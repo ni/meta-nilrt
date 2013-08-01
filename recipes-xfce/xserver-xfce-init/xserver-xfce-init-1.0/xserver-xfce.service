@@ -1,0 +1,9 @@
+[Unit]
+Description=Xserver startup with a display manager
+
+[Service]
+EnvironmentFile=/etc/default/xserver-xfce
+ExecStart=/usr/bin/startxfce4
+
+[Install]
+Alias=display-manager.service
