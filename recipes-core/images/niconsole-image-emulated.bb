@@ -1,17 +1,78 @@
 DESCRIPTION = "A small console image."
 
-IMAGE_INSTALL = "packagegroup-core-boot ${ROOTFS_PKGMANAGE_BOOTSTRAP} ${CORE_IMAGE_EXTRA_INSTALL} packagegroup-self-hosted"
+# When adding a component to install in the base image, keep this list alphabetized please
+EXTRA_INSTALL ?= "\
+	busybox-cron \
+	busybox-ifplugd \
+	busybox-mdev \
+	coreutils-hostname \
+	dhcp-client \
+	ethtool \
+	gdbserver \
+	glibc-gconv-cp932 \
+	glibc-gconv-iso8859-1 \
+	glibc-gconv-utf-16 \
+	initscripts \
+	iproute2 \
+	iptables \
+	libcap-bin \
+	libnss-mdns \
+	libpam \
+	libstdc++ \
+	logrotate \
+	mtd-utils \
+	openssh-scp \
+	openssh-sftp-server \
+	openssh-sftp \
+	openssh-ssh \
+	openvpn \
+	opkg \
+	pigz \
+	syslog-ng \
+	sysvinit \
+	tar \
+	util-linux-hwclock \
+	"
 
-IMAGE_LINGUAS = ""
+TZ_DATA_INSTALL ?= "\
+	tzdata \
+	tzdata-africa \
+	tzdata-americas \
+	tzdata-asia \
+	tzdata-atlantic \
+	tzdata-australia \
+	tzdata-europe \
+	tzdata-misc \
+	tzdata-pacific \
+	"
 
-LICENSE = "MIT"
-DEPENDS = "zip-native"
+IMAGE_PREPROCESS_COMMAND = "rootfs_update_timestamp"
+
+IMAGE_DEV_MANAGER = "busybox-mdev"
+
+IMAGE_INSTALL = "\
+	packagegroup-core-boot \
+	${DISTRO_SSH_DAEMON} \
+	${EXTRA_INSTALL} \
+	${TZ_DATA_INSTALL} \
+	"
+
 IMAGE_FSTYPES = "tar.bz2 ext3 vmdk"
+
+DEPENDS = "zip-native"
+
+# without package-management update-rc.d gets removed from image
+IMAGE_FEATURES += "package-management"
+
+require include/niconsole-image.inc
+
+#Set password to blank
+ROOTFS_POSTPROCESS_COMMAND += "sed -i -e's/root:NP:/root::/' ${IMAGE_ROOTFS}/etc/shadow; "
+
+inherit image
 
 # make sure we have some free space (in Kbytes)
 IMAGE_ROOTFS_EXTRA_SPACE = "102400"
-
-inherit core-image
 
 SRC_URI = "file://machine.vmx"
 
