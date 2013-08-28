@@ -79,6 +79,8 @@ SRC_URI = "file://machine.vmx"
 # remove not needed ipkg informations
 ROOTFS_POSTPROCESS_COMMAND += "remove_packaging_data_files ; "
 
+SYSLINUX_ROOT = "root=/dev/hda2 rw "
+
 addtask rootfs after do_unpack
 
 python () {
