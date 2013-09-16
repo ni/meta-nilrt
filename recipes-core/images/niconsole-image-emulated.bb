@@ -2,6 +2,8 @@ DESCRIPTION = "A small console image."
 
 # When adding a component to install in the base image, keep this list alphabetized please
 EXTRA_INSTALL ?= "\
+	avahi-daemon \
+	avahi-dnsconfd \
 	busybox-cron \
 	busybox-ifplugd \
 	busybox-mdev \
@@ -15,6 +17,9 @@ EXTRA_INSTALL ?= "\
 	initscripts \
 	iproute2 \
 	iptables \
+	libavahi-client \
+	libavahi-common \
+	libavahi-core \
 	libcap-bin \
 	libnss-mdns \
 	libpam \
