@@ -7,6 +7,8 @@ BASE_INSTALL ?= "\
 	"
 
 EXTRA_INSTALL ?= "\
+	avahi-daemon \
+	avahi-dnsconfd \
 	busybox-ifplugd \
 	busybox-mdev \
 	coreutils-hostname \
@@ -16,6 +18,9 @@ EXTRA_INSTALL ?= "\
 	initscripts \
 	iproute2 \
 	iptables \
+	libavahi-client \
+	libavahi-common \
+	libavahi-core \
 	libcap-bin \
 	libnss-mdns \
 	libpam \
