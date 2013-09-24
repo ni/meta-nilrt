@@ -12,7 +12,11 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 RDEPENDS_${PN} = "\
 	busybox-cron \
+	dosfstools \
+	e2fsprogs-e2fsck \
+	e2fsprogs-tune2fs \
 	gdbserver \
 	glibc-gconv-cp932 \
 	glibc-gconv-iso8859-1 \
-	logrotate"
+	logrotate \
+	parted"

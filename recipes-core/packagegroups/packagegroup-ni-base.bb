@@ -27,6 +27,8 @@ RDEPENDS_${PN} = "\
 	busybox-mdev \
 	coreutils-hostname \
 	dhcp-client \
+	e2fsprogs \
+	e2fsprogs-mke2fs \
 	ethtool \
 	glibc-gconv-utf-16 \
 	init-ifupdown \
@@ -54,6 +56,7 @@ RDEPENDS_${PN} = "\
 	syslog-ng \
 	sysvinit \
 	tar \
+	util-linux-findfs \
 	util-linux-hwclock \
 	${MACHINE_ESSENTIAL_EXTRA_RDEPENDS}"
 
