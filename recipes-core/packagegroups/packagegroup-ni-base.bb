@@ -58,6 +58,8 @@ RDEPENDS_${PN} = "\
 	tar \
 	util-linux-findfs \
 	util-linux-hwclock \
+	util-linux-mount \
+	util-linux-umount \
 	${MACHINE_ESSENTIAL_EXTRA_RDEPENDS}"
 
 RRECOMMENDS_${PN} = "\
