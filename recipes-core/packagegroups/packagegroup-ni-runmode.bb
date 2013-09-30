@@ -17,6 +17,7 @@ RDEPENDS_${PN} = "\
 	e2fsprogs-tune2fs \
 	gdbserver \
 	glibc-gconv-cp932 \
+	glibc-gconv-cp936 \
 	glibc-gconv-iso8859-1 \
 	logrotate \
 	parted"
