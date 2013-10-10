@@ -26,6 +26,11 @@ add_action()
 	# check if the device exists; otherwise exit
 	[ ! -b "${MDEV}" ] && exit 1
 
+	# check if the device is already mounted; if so, don't automount it
+	if cut -f1 -d\ < /etc/mtab | grep -q ^/dev/$1\$ ; then
+		exit 1
+	fi
+
 	symlink_cleanup
 
 	mkdir -p "${mountdir}/$1" || exit 1
