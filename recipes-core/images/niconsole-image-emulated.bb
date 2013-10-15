@@ -17,10 +17,10 @@ DEPENDS = "zip-native"
 
 require include/niconsole-image.inc
 
-#Set password to blank
-ROOTFS_POSTPROCESS_COMMAND += "sed -i -e's/root:NP:/root::/' ${IMAGE_ROOTFS}/etc/shadow; "
-
 inherit image
+
+# set root password to blank
+ROOTFS_POSTPROCESS_COMMAND += "sed -i -e's/root:NP:/root::/' ${IMAGE_ROOTFS}/etc/shadow; "
 
 # make sure we have some free space (in Kbytes)
 IMAGE_ROOTFS_EXTRA_SPACE = "102400"
