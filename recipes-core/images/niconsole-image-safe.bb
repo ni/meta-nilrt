@@ -1,3 +1,4 @@
+DESCRIPTION = "Safemode image for ethernet based, console only, NI Linux Realtime targets."
 
 IMAGE_PREPROCESS_COMMAND = "rootfs_update_timestamp"
 

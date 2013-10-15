@@ -1,5 +1,4 @@
-DESCRIPTION = "A small console image."
-
+DESCRIPTION = "Runmode emulated image (NI Linux Realtime distribution)"
 
 IMAGE_PREPROCESS_COMMAND = "rootfs_update_timestamp"
 
