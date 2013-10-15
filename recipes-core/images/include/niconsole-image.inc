@@ -32,5 +32,5 @@ ROOTFS_POSTPROCESS_COMMAND += "add_group niwscerts 498 'lvuser,webserv'; "
 ROOTFS_POSTPROCESS_COMMAND += "sed -i -e's/root::/root:NP:/' ${IMAGE_ROOTFS}/etc/shadow; "
 
 # mark hold packages
-ROOTFS_POSTPROCESS_COMMAND += "opkg-cl ${IPKG_ARGS} flag hold libc6"
+ROOTFS_POSTPROCESS_COMMAND += "opkg-cl ${IPKG_ARGS} flag hold libc6; "
 
