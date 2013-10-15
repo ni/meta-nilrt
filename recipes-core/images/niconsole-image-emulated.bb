@@ -66,9 +66,6 @@ IMAGE_FSTYPES = "tar.bz2 ext3 vmdk"
 
 DEPENDS = "zip-native"
 
-# without package-management update-rc.d gets removed from image
-IMAGE_FEATURES += "package-management"
-
 require include/niconsole-image.inc
 
 #Set password to blank
