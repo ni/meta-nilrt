@@ -64,10 +64,6 @@ IMAGE_INSTALL = "\
 
 IMAGE_FSTYPES = "tar.bz2"
 
-# without package-management update-rc.d gets removed from image
-IMAGE_FEATURES += "package-management"
-
 require include/niconsole-image.inc
 
 inherit image
-
