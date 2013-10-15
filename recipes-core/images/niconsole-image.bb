@@ -7,7 +7,7 @@ BASE_INSTALL ?= "\
 	"
 
 # When adding a component to install in the base image, keep this list alphabetized please
-ANGSTROM_EXTRA_INSTALL ?= "\
+EXTRA_INSTALL ?= "\
 	busybox-cron \
 	busybox-ifplugd \
 	busybox-mdev \
@@ -37,7 +37,6 @@ ANGSTROM_EXTRA_INSTALL ?= "\
 	syslog-ng \
 	sysvinit \
 	tar \
-	u-boot-utils \
 	util-linux-hwclock \
 	"
 
@@ -60,11 +59,11 @@ IMAGE_DEV_MANAGER = "busybox-mdev"
 IMAGE_INSTALL = "\
 	${BASE_INSTALL} \
 	${DISTRO_SSH_DAEMON} \
-	${ANGSTROM_EXTRA_INSTALL} \
+	${EXTRA_INSTALL} \
 	${TZ_DATA_INSTALL} \
 	"
 
-IMAGE_LINGUAS = ""
+IMAGE_FSTYPES = "tar.bz2"
 
 # without package-management update-rc.d gets removed from image
 IMAGE_FEATURES += "package-management"

@@ -6,7 +6,7 @@ BASE_INSTALL ?= "\
 	${@base_contains("MACHINE_FEATURES", "keyboard", "keymaps", "", d)} \
 	"
 
-ANGSTROM_EXTRA_INSTALL ?= "\
+EXTRA_INSTALL ?= "\
 	busybox-ifplugd \
 	busybox-mdev \
 	coreutils-hostname \
@@ -31,7 +31,6 @@ ANGSTROM_EXTRA_INSTALL ?= "\
 	syslog-ng \
 	sysvinit \
 	tar \
-	u-boot-utils \
 	util-linux-hwclock \
 	"
 
@@ -54,11 +53,11 @@ IMAGE_DEV_MANAGER = "busybox-mdev"
 IMAGE_INSTALL = "\
 	${BASE_INSTALL} \
 	${DISTRO_SSH_DAEMON} \
-	${ANGSTROM_EXTRA_INSTALL} \
+	${EXTRA_INSTALL} \
 	${TZ_DATA_INSTALL} \
 	"
 
-IMAGE_LINGUAS = ""
+IMAGE_FSTYPES = "tar.bz2"
 
 # without package-management update-rc.d gets removed from image
 IMAGE_FEATURES += "package-management"
