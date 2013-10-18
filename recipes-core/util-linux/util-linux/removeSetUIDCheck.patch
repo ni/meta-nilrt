@@ -1,0 +1,50 @@
+diff -urN a/sys-utils/hwclock.c b/sys-utils/hwclock.c
+--- a/sys-utils/hwclock.c	2012-12-12 14:04:47.976355000 -0600
++++ b/sys-utils/hwclock.c	2013-08-01 12:01:08.565347260 -0500
+@@ -15,7 +15,7 @@
+  *	- When you set the clock, hwclock automatically refigures the drift
+  *	  rate, based on how far off the clock was before you set it.
+  *
+- * Reshuffled things, added sparc code, and re-added alpha stuff
++ * Reshuffled things, added sparc code, and re-added alpha stuffs
+  * by David Mosberger <davidm@azstarnet.com>
+  * and Jay Estabrook <jestabro@amt.tay1.dec.com>
+  * and Martin Ostermann <ost@coments.rwth-aachen.de>, aeb@cwi.nl, 990212.
+@@ -1445,7 +1445,6 @@
+ 	 */
+ 	time_t set_time = 0;	/* Time to which user said to set Hardware Clock */
+ 
+-	bool permitted;		/* User is permitted to do the function */
+ 	int rc, c;
+ 
+ 	/* Variables set by various options; show may also be set later */
+@@ -1700,29 +1699,6 @@
+ 	      | setepoch | predict))
+ 		show = 1;	/* default to show */
+ 
+-	if (getuid() == 0)
+-		permitted = TRUE;
+-	else {
+-		/* program is designed to run setuid (in some situations) */
+-		if (set || systohc || adjust) {
+-			warnx(_("Sorry, only the superuser can change "
+-				"the Hardware Clock."));
+-			permitted = FALSE;
+-		} else if (systz || hctosys) {
+-			warnx(_("Sorry, only the superuser can change "
+-				"the System Clock."));
+-			permitted = FALSE;
+-		} else if (setepoch) {
+-			warnx(_("Sorry, only the superuser can change the "
+-				"Hardware Clock epoch in the kernel."));
+-			permitted = FALSE;
+-		} else
+-			permitted = TRUE;
+-	}
+-
+-	if (!permitted)
+-		hwclock_exit(EX_NOPERM);
+-
+ #ifdef __linux__
+ 	if (getepoch || setepoch) {
+ 		manipulate_epoch(getepoch, setepoch, epoch_option, testing);
