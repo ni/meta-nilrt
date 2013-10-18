@@ -15,4 +15,7 @@ do_install_append () {
 		>> ${D}${sysconfdir}/default/volatiles/10_varcache
 	echo "l root root 0755 /var/cache /var/volatile/cache" \
 		>> ${D}${sysconfdir}/default/volatiles/10_varcache
+
+	echo "d lvuser ni 0775 /var/volatile/run/natinst none" \
+		>> ${D}${sysconfdir}/default/volatiles/20_run_natinst
 }
