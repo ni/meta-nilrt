@@ -26,6 +26,7 @@ ROOTFS_POSTPROCESS_COMMAND += "add_user webserv NP 501 500 'Web services user'; 
 ROOTFS_POSTPROCESS_COMMAND += "add_group openvpn 499 ''; "
 ROOTFS_POSTPROCESS_COMMAND += "add_system_user openvpn '*' 499 499 'OpenVPN'; "
 ROOTFS_POSTPROCESS_COMMAND += "add_group niwscerts 498 'lvuser,webserv'; "
+ROOTFS_POSTPROCESS_COMMAND += "ln -sf /home/admin ${IMAGE_ROOTFS}/home/root; "
 
 # set root password
 # password is encrypted, use "cryptpw -a des <clear_text_password>" to get encrypted value
