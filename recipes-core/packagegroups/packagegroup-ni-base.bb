@@ -16,6 +16,9 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS ?= ""
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS ?= ""
 
+# Distro can override the following VIRTUAL-RUNTIME providers:
+VIRTUAL-RUNTIME_dev_manager ?= "busybox-mdev"
+
 RDEPENDS_${PN} = "\
 	avahi-daemon \
 	avahi-dnsconfd \
@@ -24,7 +27,6 @@ RDEPENDS_${PN} = "\
 	${@base_contains("MACHINE_FEATURES", "keyboard", "keymaps", "", d)} \
 	busybox \
 	busybox-ifplugd \
-	busybox-mdev \
 	coreutils-hostname \
 	dhcp-client \
 	e2fsprogs \
@@ -60,6 +62,7 @@ RDEPENDS_${PN} = "\
 	util-linux-hwclock \
 	util-linux-mount \
 	util-linux-umount \
+	${VIRTUAL-RUNTIME_dev_manager} \
 	${MACHINE_ESSENTIAL_EXTRA_RDEPENDS}"
 
 RRECOMMENDS_${PN} = "\
