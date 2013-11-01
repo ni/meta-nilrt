@@ -19,7 +19,7 @@ case "$1" in
     else
        # work around from /etc/X11/Xinit
        export USER=root
-       export HOME=/home/root
+       export HOME=~root
        if [ ! -d $HOME ] && [ -d /root ]; then
          HOME=/root
        fi
