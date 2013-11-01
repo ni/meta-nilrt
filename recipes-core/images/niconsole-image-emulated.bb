@@ -2,8 +2,6 @@ DESCRIPTION = "Runmode emulated image (NI Linux Realtime distribution)"
 
 IMAGE_PREPROCESS_COMMAND = "rootfs_update_timestamp"
 
-IMAGE_DEV_MANAGER = "busybox-mdev"
-
 IMAGE_INSTALL = "\
 	packagegroup-core-boot \
 	packagegroup-ni-base \
