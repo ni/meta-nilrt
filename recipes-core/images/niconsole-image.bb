@@ -8,6 +8,7 @@ IMAGE_INSTALL = "\
 	packagegroup-ni-base \
 	packagegroup-ni-tzdata \
 	packagegroup-ni-runmode \
+	packagegroup-ni-wifi \
 	"
 
 IMAGE_FSTYPES = "tar.bz2"
