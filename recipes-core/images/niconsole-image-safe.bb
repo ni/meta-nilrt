@@ -2,8 +2,6 @@ DESCRIPTION = "Safemode image for ethernet based, console only, NI Linux Realtim
 
 IMAGE_PREPROCESS_COMMAND = "rootfs_update_timestamp"
 
-IMAGE_DEV_MANAGER = "busybox-mdev"
-
 IMAGE_INSTALL = "\
 	packagegroup-ni-base \
 	packagegroup-ni-tzdata \
