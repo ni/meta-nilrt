@@ -27,9 +27,12 @@ add_action()
 	[ ! -b "${MDEV}" ] && exit 1
 
 	# check if the device is already mounted; if so, don't automount it
-	if cut -f1 -d\ < /etc/mtab | grep -q ^/dev/$1\$ ; then
-		exit 1
-	fi
+	for f in `cut -f1 -d\  < /etc/mtab | grep /dev/`; do
+		[ -h "$f" ] && f="`readlink -f $f`"
+		if [ "x$f" = "x/dev/$1" ] ; then
+			exit 1
+		fi
+	done
 
 	symlink_cleanup
 
