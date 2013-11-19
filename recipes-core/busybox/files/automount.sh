@@ -1,6 +1,8 @@
 #!/bin/sh
 
 mountdir="/media"
+sgdisk_sed="s/^(sd[a-z])([0-9]+)$/sgdisk -i \2 \/dev\/\1/"
+efi_guid="C12A7328-F81F-11D2-BA4B-00A0C93EC93B"
 
 symlink_cleanup()
 {
@@ -24,7 +26,7 @@ symlink_cleanup()
 add_action()
 {
 	# check if the device exists; otherwise exit
-	[ ! -b "${MDEV}" ] && exit 1
+	[ ! -b "$1" ] && exit 1
 
 	# check if the device is already mounted; if so, don't automount it
 	for f in `cut -f1 -d\  < /etc/mtab | grep /dev/`; do
@@ -33,6 +35,19 @@ add_action()
 			exit 1
 		fi
 	done
+
+	# check if sgdisk is available, if not, ignore the EFI check
+	if command -v sgdisk > /dev/null; then
+		# check if the device is the GRUB partition, if so, don't
+		# automount -- this unreadable bit of shell scripting does
+		# the following:
+		# - use sed to find, for example, "sda" and "1" in $MDEV
+		#   and generate an sgdisk command line to get into on that
+		#   partition of that device
+		# - grep the output of sgdisk to see if the partition is of
+		#   type "EFI System" (by GUID) and if so, exit the script
+		`echo $1 | sed -r -n "$sgdisk_sed"p` | grep -i "$efi_guid" > /dev/null && exit 1
+	fi
 
 	symlink_cleanup
 
