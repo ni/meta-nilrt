@@ -33,6 +33,7 @@ RDEPENDS_${PN} = "\
 	e2fsprogs-mke2fs \
 	ethtool \
 	glibc-gconv-utf-16 \
+	gptfdisk-sgdisk \
 	init-ifupdown \
 	initscripts \
 	iproute2 \
