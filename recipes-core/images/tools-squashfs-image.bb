@@ -1,6 +1,6 @@
 DESCRIPTION = "SquashFS image containing the toolchain used to version kernel modules."
 
-IMAGE_INSTALL = "binutils binutils-symlinks libgcc-dev gcc gcc-symlinks make"
+IMAGE_INSTALL = "binutils binutils-symlinks libgcc-dev gcc gcc-symlinks make ncurses"
 
 # disable image features we don't need
 IMAGE_FEATURES = ""
