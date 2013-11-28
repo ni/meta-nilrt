@@ -29,6 +29,7 @@ RDEPENDS_${PN} = "\
 	busybox-ifplugd \
 	coreutils-hostname \
 	dhcp-client \
+	dmidecode \
 	e2fsprogs \
 	e2fsprogs-mke2fs \
 	ethtool \
