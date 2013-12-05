@@ -1,0 +1,12 @@
+--- a/src/../../rc	2013-12-04 14:11:48.454472732 -0600
++++ b/src/../../rc	2013-12-04 14:13:11.215927170 -0600
+@@ -65,6 +65,9 @@
+   # Set onlcr to avoid staircase effect.
+   stty onlcr 0>&1
+ 
++  # Limit stack size for startup scripts
++  ulimit -s 256
++
+   # Now find out what the current and what the previous runlevel are.
+ 
+   runlevel=$RUNLEVEL
