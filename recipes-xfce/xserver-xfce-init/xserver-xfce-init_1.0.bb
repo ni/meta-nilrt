@@ -31,7 +31,8 @@ do_install() {
     fi
 }
 
-RDEPENDS_${PN} = "xserver-common (>= 1.30) xinit xfce4-session"
+# Get util-linux for su
+RDEPENDS_${PN} = "xserver-common (>= 1.30) xinit xfce4-session util-linux"
 
 FILES_${PN} += "${sysconfdir}/default/xserver-xfce"
 
