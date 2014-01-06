@@ -2,6 +2,9 @@
 
 . /etc/init.d/functions
 
+# Note, this is allowed to `exit` out if the server is considered disabled
+[ -f /etc/default/xserver-xfce ] && . /etc/default/xserver-xfce
+
 for x in $(cat /proc/cmdline); do
 	case $x in
 		x11=false)
