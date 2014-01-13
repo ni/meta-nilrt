@@ -20,7 +20,9 @@ RDEPENDS_${PN} = "\
 	glibc-gconv-iso8859-1 \
 	logrotate \
 	parted \
-	util-linux-sfdisk"
+	util-linux-sfdisk \
+	udev-cache \
+"
 
 RDEPENDS_${PN}_append_x86-64 = " glibc-gconv-cp936"
 
