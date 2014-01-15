@@ -55,7 +55,7 @@ shift
 
 [ "x$*" != "x" ] && INTERFACES="$*"
 
-[ "x$INTERFACES" = "xauto" ] && INTERFACES="`cat /proc/net/dev | awk '{ print $1 }' | egrep '^(eth|wlan)' | cut -d: -f1`"
+[ "x$INTERFACES" = "xauto" ] && INTERFACES="`cat /proc/net/dev | awk '{ print $1 }' | egrep '^(eth|wlan|usb)' | cut -d: -f1`"
 
 case "$VERB" in
     start)
