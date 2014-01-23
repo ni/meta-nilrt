@@ -6,6 +6,8 @@ LIC_FILES_CHKSUM = "file://${COREBASE}/LICENSE;md5=3f40d7994397109285ec7b81fdeb3
 
 PR = "r9"
 
+PACKAGE_ARCH = "${MACHINE_ARCH}"
+
 SRC_URI = " \
        file://automount.rules \
        file://mount.sh \
@@ -15,6 +17,7 @@ SRC_URI = " \
        file://localextra.rules \
 "
 
+SRC_URI_append_xilinx-zynq = "file://fpga.rules"
 
 do_install() {
     install -d ${D}${sysconfdir}/udev/rules.d
@@ -29,6 +32,10 @@ do_install() {
 
     install -m 0755 ${WORKDIR}/mount.sh ${D}${sysconfdir}/udev/scripts/mount.sh
     install -m 0755 ${WORKDIR}/network.sh ${D}${sysconfdir}/udev/scripts
+}
+
+do_install_append_xilinx-zynq() {
+    install -m 0644 ${WORKDIR}/fpga.rules    ${D}${sysconfdir}/udev/rules.d/fpga.rules
 }
 
 FILES_${PN} = "${sysconfdir}/udev"
