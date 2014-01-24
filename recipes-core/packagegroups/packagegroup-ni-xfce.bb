@@ -14,4 +14,6 @@ RDEPENDS_${PN} = "\
 	packagegroup-xfce-base \
 	xf86-video-vesa \
 	xfce4-xkb-plugin \
-	xserver-xfce-init"
+	xserver-xfce-init \
+	xrdb \
+"
