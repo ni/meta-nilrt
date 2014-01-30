@@ -14,7 +14,7 @@
 #
 
 # The first rtc device is symlinked to /dev/rtc
-KERNEL=="rtc0", SYMLINK+="rtc"
+KERNEL=="rtc0", SYMLINK+="rtc", MODE="664", GROUP="ni"
 
 #The first framebuffer is symlinked to /dev/fb
 KERNEL=="fb0",  SYMLINK+="fb"
