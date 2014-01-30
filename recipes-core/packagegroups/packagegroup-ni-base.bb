@@ -36,6 +36,7 @@ RDEPENDS_${PN} = "\
 	initscripts \
 	iproute2 \
 	iptables \
+	kmod \
 	libavahi-client \
 	libavahi-common \
 	libavahi-core \
