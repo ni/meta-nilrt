@@ -14,7 +14,7 @@ GROUPADD_PARAM_${PN} = " --system -g 500 ni; \
 	--system -g 499 openvpn; \
 	--system -g 498 niwscerts"
 
-USERADD_PARAM_${PN} = " -u 500 -N -g ni -G niwscerts,plugdev -c 'LabVIEW user' lvuser; \
+USERADD_PARAM_${PN} = " -u 500 -N -g ni -G niwscerts,plugdev,tty -c 'LabVIEW user' lvuser; \
 		-u 499 -N -g openvpn -c 'OpenVPN' -r openvpn; \
 		-u 501 -N -g ni -G niwscerts -c 'Web services user' webserv"
 
