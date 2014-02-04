@@ -15,6 +15,7 @@ SRC_URI = " \
        file://autonet.rules \
        file://network.sh \
        file://localextra.rules \
+       file://50-plugdev.rules \
 "
 
 SRC_URI_append_xilinx-zynq = "file://fpga.rules"
@@ -25,6 +26,7 @@ do_install() {
     install -m 0644 ${WORKDIR}/automount.rules     ${D}${sysconfdir}/udev/rules.d/automount.rules
     install -m 0644 ${WORKDIR}/autonet.rules       ${D}${sysconfdir}/udev/rules.d/autonet.rules
     install -m 0644 ${WORKDIR}/localextra.rules    ${D}${sysconfdir}/udev/rules.d/localextra.rules
+    install -m 0644 ${WORKDIR}/50-plugdev.rules    ${D}${sysconfdir}/udev/rules.d/50-plugdev.rules
 
     install -m 0644 ${WORKDIR}/mount.blacklist     ${D}${sysconfdir}/udev/
 
