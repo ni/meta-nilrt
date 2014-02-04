@@ -21,3 +21,7 @@ KERNEL=="fb0",  SYMLINK+="fb"
 
 # Make all input devices read-write to the input group
 SUBSYSTEM=="input", GROUP="input", MODE="660"
+
+# webserv requires access to rfkill forthe web server
+# configuration of wifi.
+KERNEL=="rfkill", GROUP="ni", MODE="660"
