@@ -8,6 +8,10 @@
 MOUNT="/bin/mount"
 PMOUNT="/usr/bin/pmount"
 UMOUNT="/bin/umount"
+sgdisk_sed="s/^\/dev\/(sd[a-z])([0-9]+)$/sgdisk -i \2 \/dev\/\1/"
+efi_guid="C12A7328-F81F-11D2-BA4B-00A0C93EC93B"
+export PATH="$PATH:/usr/sbin"
+
 for line in `grep -v ^# /etc/udev/mount.blacklist`
 do
 	if [ ` expr match "$DEVNAME" "$line" ` -gt 0 ];
@@ -52,6 +56,19 @@ if [ "$ACTION" = "add" ] && [ -n "$DEVNAME" ] && [ -n "$ID_FS_TYPE" ]; then
 		$PMOUNT $DEVNAME 2> /dev/null
 	elif [ -x $MOUNT ]; then
     		$MOUNT $DEVNAME 2> /dev/null
+	fi
+
+	# check if sgdisk is available, if not, ignore the EFI check
+	if command -v sgdisk > /dev/null; then
+		# check if the device is the GRUB partition, if so, don't
+		# automount -- this unreadable bit of shell scripting does
+		# the following:
+		# - use sed to find, for example, "sda" and "1" in $DEVNAME
+		#   and generate an sgdisk command line to get info on that
+		#   partition of that device
+		# - grep the output of sgdisk to see if the partition is of
+		#   type "EFI System" (by GUID) and if so, exit the script
+		`echo $DEVNAME | sed -r -n "$sgdisk_sed"p` | grep -i "$efi_guid" -q && exit 0
 	fi
 	
 	# If the device isn't mounted at this point, it isn't
