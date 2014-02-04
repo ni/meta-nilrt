@@ -49,8 +49,8 @@ automount() {
 	then
 		MOUNT="$MOUNT -o silent"
 	fi
-	
-	if ! $MOUNT -t auto $DEVNAME "/media/$name"
+
+	if ! $MOUNT -t auto -o "fmask=0000,dmask=0000" $DEVNAME "/media/$name"
 	then
 		#logger "mount.sh/automount" "$MOUNT -t auto $DEVNAME \"/media/$name\" failed!"
 		rm_dir "/media/$name"
