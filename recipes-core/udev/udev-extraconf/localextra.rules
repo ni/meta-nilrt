@@ -39,3 +39,6 @@ KERNEL=="niwatchdog", GROUP="ni", MODE="660"
 # serial ports
 KERNEL=="ttyS[0-9]*", GROUP="tty", MODE="666"
 
+# v4l (video/webcam)
+KERNEL=="video[0-9]*", GROUP="ni", MODE="666"
+
