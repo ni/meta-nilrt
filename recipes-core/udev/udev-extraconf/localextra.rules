@@ -32,3 +32,7 @@ ACTION=="add", DEVPATH=="/devices/*", ENV{MODALIAS}=="platform:wl12xx", RUN=""
 # i2c and spi access for roborio
 KERNEL=="i2c-[0-9]*", GROUP="ni", MODE="660"
 KERNEL=="spidev[0-9]*.[0-9]*", GROUP="ni", MODE="660"
+
+# NI watchdog
+KERNEL=="niwatchdog", GROUP="ni", MODE="660"
+
