@@ -27,7 +27,7 @@ SUBSYSTEM=="input", GROUP="input", MODE="660"
 KERNEL=="rfkill", GROUP="ni", MODE="660"
 
 # skip modprobe for wl12xx device to prevent 30s delay issues with 3.2 kernel
-ACTION=="add", DEVPATH=="/devices/*", ENV{MODALIAS}=="platform:wl12xx", RUN=""
+ACTION=="add", DEVPATH=="/devices/*", ENV{MODALIAS}=="platform:wl12xx", RUN="/bin/true"
 
 # i2c and spi access for roborio
 KERNEL=="i2c-[0-9]*", GROUP="ni", MODE="660"
