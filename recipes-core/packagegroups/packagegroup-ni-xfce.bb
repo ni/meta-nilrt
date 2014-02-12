@@ -16,4 +16,5 @@ RDEPENDS_${PN} = "\
 	xfce4-xkb-plugin \
 	xserver-xfce-init \
 	xrdb \
+	xfce-nilrt-settings \
 "
