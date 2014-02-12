@@ -1,0 +1,39 @@
+<!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
+  "http://www.freedesktop.org/standards/menu-spec/1.0/menu.dtd">
+
+<Menu>
+    <Name>Xfce</Name>
+
+    <DefaultAppDirs/>
+    <DefaultDirectoryDirs/>
+    <DefaultMergeDirs/>
+
+    <Include>
+        <Category>X-Xfce-Toplevel</Category>
+    </Include>
+
+    <Layout>
+        <Filename>xfce4-run.desktop</Filename>
+        <Filename>exo-terminal-emulator.desktop</Filename>
+        <Filename>exo-file-manager.desktop</Filename>
+        <Menuname>Settings</Menuname>
+        <Separator/>
+        <Filename>xfce4-about.desktop</Filename>
+    </Layout>
+
+    <Menu>
+        <Name>Settings</Name>
+        <Directory>xfce-settings.directory</Directory>
+        <Include>
+            <Category>Settings</Category>
+        </Include>
+
+        <Layout>
+            <Filename>xfce-settings-manager.desktop</Filename>
+            <Separator/>
+            <Merge type="all"/>
+        </Layout>
+
+    </Menu>
+
+</Menu>
