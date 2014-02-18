@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://${COREBASE}/LICENSE;md5=3f40d7994397109285ec7b81fdeb3
 PR = "r1"
 S = "${WORKDIR}"
 
-DEPENDS_${PN} = "niacctbase"
+DEPENDS = "niacctbase"
 RDEPENDS_${PN} = "xfce4-settings xfce4-session xfce4-panel"
 
 user = "lvuser"
