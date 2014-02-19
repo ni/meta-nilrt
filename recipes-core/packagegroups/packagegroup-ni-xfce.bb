@@ -22,4 +22,5 @@ RDEPENDS_${PN} = "\
 	xfontsel \
 	fontconfig-overrides \
 	pt-sans \
+	gnome-icon-theme-minimal \
 "
