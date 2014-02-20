@@ -20,4 +20,5 @@ RDEPENDS_${PN} = "\
 	xorg-fonts-misc \
 	xorg-fonts-100dpi \
 	xfontsel \
+	fontconfig-overrides \
 "
