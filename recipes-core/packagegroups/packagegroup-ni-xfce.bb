@@ -21,4 +21,5 @@ RDEPENDS_${PN} = "\
 	xorg-fonts-100dpi \
 	xfontsel \
 	fontconfig-overrides \
+	pt-sans \
 "
