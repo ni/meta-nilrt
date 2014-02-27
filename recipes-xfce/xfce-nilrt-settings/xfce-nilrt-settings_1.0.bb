@@ -25,7 +25,6 @@ SRC_URI = "file://autostart/dpms.desktop \
 	file://xfce4/panel/launcher-2/terminal_emulator_launcher.desktop \
 	file://xfce4/panel/launcher-3/settings_manager_launcher.desktop \
 	file://xfce4/panel/launcher-4/display_settings_launcher.desktop \
-	file://xfce4/xfconf/xfce-perchannel-xml/displays.xml \
 	file://xfce4/xfconf/xfce-perchannel-xml/keyboards.xml \
 	file://xfce4/xfconf/xfce-perchannel-xml/thunar.xml \
 	file://xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml \
@@ -49,7 +48,6 @@ FILES_${PN} = "${confdir}/autostart/dpms.desktop \
 	    ${confdir}/xfce4/panel/launcher-2/terminal_emulator_launcher.desktop \
 	    ${confdir}/xfce4/panel/launcher-3/settings_manager_launcher.desktop \
 	    ${confdir}/xfce4/panel/launcher-4/display_settings_launcher.desktop \
-	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/displays.xml \
 	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/keyboards.xml \
 	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/thunar.xml \
 	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml \
@@ -84,7 +82,6 @@ do_install () {
 	   install -m 0644 ${S}/xfce4/panel/launcher-2/terminal_emulator_launcher.desktop ${D}${confdir}/xfce4/panel/launcher-2/
 	   install -m 0644 ${S}/xfce4/panel/launcher-3/settings_manager_launcher.desktop ${D}${confdir}/xfce4/panel/launcher-3/
 	   install -m 0644 ${S}/xfce4/panel/launcher-4/display_settings_launcher.desktop ${D}${confdir}/xfce4/panel/launcher-4/
-	   install -m 0644 ${S}/xfce4/xfconf/xfce-perchannel-xml/displays.xml ${D}${confdir}/xfce4/xfconf/xfce-perchannel-xml/
 	   install -m 0644 ${S}/xfce4/xfconf/xfce-perchannel-xml/keyboards.xml ${D}${confdir}/xfce4/xfconf/xfce-perchannel-xml/
 	   install -m 0644 ${S}/xfce4/xfconf/xfce-perchannel-xml/thunar.xml ${D}${confdir}/xfce4/xfconf/xfce-perchannel-xml/
 	   install -m 0644 ${S}/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml ${D}${confdir}/xfce4/xfconf/xfce-perchannel-xml/
