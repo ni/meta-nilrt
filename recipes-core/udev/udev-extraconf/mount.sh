@@ -123,3 +123,18 @@ if [ "$ACTION" = "remove" ] && [ -x "$UMOUNT" ] && [ -n "$DEVNAME" ]; then
 	name="`basename "$DEVNAME"`"
 	test -e "/tmp/.automount-$name" && rm_dir "/media/$name"
 fi
+
+
+if [ "$ACTION" = "change" ] && [ -x "$UMOUNT" ] && [ -n "$DEVNAME" ]; then
+	for mnt in `cat /proc/mounts | grep "$DEVNAME" | cut -f 2 -d " " `
+	do
+		$UMOUNT $mnt
+	done
+
+	# Remove empty directories from auto-mounter
+	name="`basename "$DEVNAME"`"
+	for mnt in `ls /tmp/.automount* | grep "$name" | cut -f 2 -d "-"`
+	do
+		rm_dir "/media/$mnt"
+	done
+fi
