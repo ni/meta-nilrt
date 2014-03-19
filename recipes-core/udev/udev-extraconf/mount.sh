@@ -51,7 +51,13 @@ automount() {
 		MOUNT="$MOUNT -o silent"
 	fi
 
-	if ! $MOUNT -t auto -o "fmask=0000,dmask=0000" $DEVNAME "/media/$name"
+	case "$ID_FS_TYPE" in
+		# If mounting vfat, set partition to be world-writable, and
+		# disable permissions warnings
+		vfat) MOUNT="$MOUNT -o fmask=0000,dmask=0000,quiet" ;;
+	esac
+
+	if ! $MOUNT -t auto $DEVNAME "/media/$name"
 	then
 		#logger "mount.sh/automount" "$MOUNT -t auto $DEVNAME \"/media/$name\" failed!"
 		rm_dir "/media/$name"
