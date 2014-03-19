@@ -12,7 +12,8 @@ sgdisk_sed="s/^\/dev\/(sd[a-z])([0-9]+)$/sgdisk -i \2 \/dev\/\1/"
 efi_guid="C12A7328-F81F-11D2-BA4B-00A0C93EC93B"
 export PATH="$PATH:/usr/sbin"
 
-for line in `grep -v ^# /etc/udev/mount.blacklist`
+[ "$DISABLE_AUTOMOUNT_BLACKLIST" ] || \
+	for line in `grep -v ^# /etc/udev/mount.blacklist`
 do
 	if [ ` expr match "$DEVNAME" "$line" ` -gt 0 ];
 	then
