@@ -23,4 +23,5 @@ RDEPENDS_${PN} = "\
 	fontconfig-overrides \
 	pt-sans \
 	gnome-icon-theme-minimal \
+	mousepad \
 "
