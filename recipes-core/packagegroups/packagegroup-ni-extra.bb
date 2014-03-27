@@ -32,7 +32,9 @@ RDEPENDS_${PN} += "\
 	parted \
 	pseudo \
 	screen \
+${@base_contains("DISTRO_FEATURES", "x11", " \
 	vte \
+", "", d)} \
 "
 
 # packagegroup-self-hosted-debug - x11
@@ -201,9 +203,11 @@ RDEPENDS_${PN} += "\
 	rsync \
 	valgrind \
 	trace-cmd \
+${@base_contains("DISTRO_FEATURES", "x11", " \
+qemu \
+", "", d)} \
 "
 # nasm - zynq
-# qemu - x11
 
 RDEPENDS_${PN} += "\
 	augeas \
@@ -251,8 +255,10 @@ RDEPENDS_${PN} += "\
 	gnupg \
 	lzo \
 	lzop \
+${@base_contains("DISTRO_FEATURES", "x11", " \
+consolekit \
+", "", d)} \
 "
-# consolekit - x11
 
 RDEPENDS_${PN} += "\
 	bonnie++ \
@@ -266,20 +272,29 @@ RDEPENDS_${PN} += "\
 	samba \
 	smbnetfs \
 	sshfs-fuse \
+${@base_contains("DISTRO_FEATURES", "x11", " \
+networkmanager \
+\
+", "", d)} \
 "
 
-# networkmanager - x11
-
+# meta-oe/recipes-devtools
 RDEPENDS_${PN} += "\
 	bootchart \
 	cppunit \
+	lemon \
+	ltrace \
 	lua5.1 \
+${@base_contains("DISTRO_FEATURES", "x11", " \
+packagekit \
+tk \
+", "", d)} \
 "
 
 # php - fail
 # nodejs - fail
-# packagekit - x11
 
+# meta-oe/recipes-devtools/python
 RDEPENDS_${PN} += "\
 	pyrtm \
 	python-cheetah \
@@ -312,16 +327,18 @@ RDEPENDS_${PN} += "\
 	python-vobject \
 	python-webdav \
 	python-zopeinterface \
+${@base_contains("DISTRO_FEATURES", "x11", " \
+python-sip python-pyqt \
+", "", d)} \
 "
 # python-matplotlib - conflicts with several other pkgs
 
-
 # python-numpy - fail
 # python-mako - fail
-# python-sip - x11
-# python-pyqt - x11
 
+# meta-oe/recipes-extended
 RDEPENDS_${PN} += "\
+	dialog \
 	hexedit \
 	hplip \
 	iotop \
@@ -331,39 +348,91 @@ RDEPENDS_${PN} += "\
 	tmux \
 	zram \
 	zsh \
+${@base_contains("DISTRO_FEATURES", "x11", " \
+gnuplot polkit \
+", "", d)} \
 "
-# gnuplot - x11
-# polkit - x11
+# net-snmp - build fails
 
 
+# meta-oe/recipes-graphics
+RDEPENDS_${PN} += "\
+${@base_contains("DISTRO_FEATURES", "x11", " \
+	gimp \
+	jasper \
+	openbox \
+	ttf-dejavu \
+	ttf-droid \
+	ttf-gentium \
+	ttf-inconsolata \
+	ttf-liberation \
+	ttf-ubuntu-font-family \
+	iceauth \
+	sessreg \
+	setxkbmap \
+	twm \
+	xterm \
+", "", d)} \
+"
+
+# meta-oe/recipes-multimedia
+RDEPENDS_${PN} += "\
+${@base_contains("DISTRO_FEATURES", "x11", " \
+	audiofile \
+	media-ctl \
+	v4l-utils \
+", "", d)} \
+"
+# vlc, mplayer requires libmad which is on a non-whitelisted license
+
+# meta-oe/recipes-support
 RDEPENDS_${PN} += "\
 	ca-certificates \
 	ckermit \
+	cpufrequtils \
 	cramfs \
+	cryptsetup \
 	debianutils \
+	daemonize \
+	devmem2 \
 	eject \
 	fftw \
 	fuse \
 	gd \
 	i2c-tools \
-	imagemagick \
+	links \
+	lockdev \
+	lvm2 \
+	mbuffer \
+	mg \
+	multipath-tools \
 	mysql5 \
 	nano \
 	nmon \
+	ntfs-3g-ntfsprogs \
 	openldap \
 	picocom \
 	postgresql \
+	serial-forward \
 	rng-tools \
 	sqlite \
 	start-stop-daemon \
 	strongswan \
 	tcpdump \
+	usbpath \
 	vim \
 	xmlto \
 	yasm \
+${@base_contains("DISTRO_FEATURES", "x11", " \
+lcms \
+pidgin \
+poppler \
+imagemagick \
+", "", d)} \
 "
-
+# ccid -- requires pcsc, whose tarball is 0 size
+# opencv opencv-samples - requires python-numpy
 # lzip - fail
 # emacs - fail
-# poppler - x11
 # lzma - conflicts with xz?
+# openmotif - mirror down
