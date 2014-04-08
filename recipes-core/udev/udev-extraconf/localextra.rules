@@ -42,3 +42,6 @@ KERNEL=="ttyS[0-9]*", GROUP="tty", MODE="666"
 # v4l (video/webcam)
 KERNEL=="video[0-9]*", GROUP="ni", MODE="666"
 
+# create symlink to establish a uniform path to nirtfeatures
+DRIVER=="nirtfeatures",RUN+="/bin/ln -sf /sys%p /dev/nirtfeatures"
+
