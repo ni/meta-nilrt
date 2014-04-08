@@ -10,15 +10,15 @@ inherit allarch useradd
 
 USERADD_PACKAGES = "${PN}"
 
-GROUPADD_PARAM_${PN} = " --system -g 500 ni; \
+GROUPADD_PARAM_${PN} = " --system -g 500 ${LVRT_GROUP}; \
 	--system -g 499 openvpn; \
 	--system -g 498 niwscerts"
 
-USERADD_PARAM_${PN} = " -u 500 -N -g ni -G niwscerts,plugdev,tty -c 'LabVIEW user' lvuser; \
+USERADD_PARAM_${PN} = " -u 500 -N -g ${LVRT_GROUP} -G niwscerts,plugdev,tty -c 'LabVIEW user' ${LVRT_USER}; \
 		-u 499 -N -g openvpn -c 'OpenVPN' -r openvpn; \
-		-u 501 -N -g ni -G niwscerts -c 'Web services user' webserv"
+		-u 501 -N -g ${LVRT_GROUP} -G niwscerts -c 'Web services user' webserv"
 
 useradd_preinst_append () {
-eval ${PSEUDO} chmod g+s ${SYSROOT}/home/lvuser ${SYSROOT}/home/webserv || true
+eval ${PSEUDO} chmod g+s ${SYSROOT}/home/${LVRT_USER} ${SYSROOT}/home/webserv || true
 eval ${PSEUDO} ln -sf /home/admin ${SYSROOT}/home/root || true
 }
