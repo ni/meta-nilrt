@@ -69,9 +69,8 @@ automount() {
 		for symlink in U V W X Y Z
 		do
 			symlink_lowercase=$(echo $symlink | tr '[:upper:]' '[:lower:]')
-			if [ ! -e "/$symlink" -a ! -e "/$symlink_lowercase" ]; then
-				ln -s "/media/$name" "/$symlink"
-				ln -s "/media/$name" "/$symlink_lowercase"
+			ln -s "/media/$name" "/$symlink" && ln -s "/media/$name" "/$symlink_lowercase"
+			if [ $? -eq 0 ]; then
 				break
 			fi
 		done
