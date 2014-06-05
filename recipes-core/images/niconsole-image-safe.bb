@@ -6,6 +6,7 @@ IMAGE_INSTALL = "\
 	packagegroup-ni-base \
 	packagegroup-ni-tzdata \
 	packagegroup-ni-wifi \
+	niwatchdogpet \
 	"
 
 IMAGE_FSTYPES = "tar.bz2"
