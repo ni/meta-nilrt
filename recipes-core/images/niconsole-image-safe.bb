@@ -11,6 +11,7 @@ IMAGE_INSTALL = "\
 
 IMAGE_FSTYPES = "tar.bz2"
 
+require include/enable-empty-root-passwd.inc
 require include/niconsole-image.inc
 
 BAD_RECOMMENDATIONS += "usbutils-ids"
