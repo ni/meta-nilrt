@@ -1,5 +1,5 @@
 
-FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/files:${THISDIR}/${PN}-${PV}:"
+FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/files:${THISDIR}/${PN}:"
 
 SRC_URI =+ "file://automount.sh file://usb.sh"
 SRC_URI =+ "file://busybox-ifplugd"
