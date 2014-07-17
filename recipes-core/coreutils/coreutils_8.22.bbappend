@@ -2,7 +2,7 @@ PRINC := "${@int(PRINC) + 1}"
 
 PACKAGES =+ "${PN}-hostname"
 
-EXTRA_OECONF += "--enable-install-program=hostname"
+EXTRA_OECONF_class-target += "--enable-install-program=hostname"
 
 FILES_${PN}-hostname = "${base_bindir}/hostname.${PN}"
 
