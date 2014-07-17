@@ -28,5 +28,5 @@ Contact
 Email [licensing@ni.com]
 
 [NI Linux Real-Time Portal]:http://www.ni.com/white-paper/14627/en/
-[Github]:http://www.github.com
+[Github]:https://www.github.com/ni/nilrt
 [licensing@ni.com]:mailto:licensing@ni.com
