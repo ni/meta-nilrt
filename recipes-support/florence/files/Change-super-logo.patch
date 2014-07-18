@@ -1,0 +1,30 @@
+From 89c4b11b6b93f506597dded1dc3a76815fd82f7b Mon Sep 17 00:00:00 2001
+From: Jonathan David <jonathan.david@ni.com>
+Date: Fri, 18 Jul 2014 17:35:04 -0500
+Subject: [PATCH 8/8] Change super logo
+
+---
+ data/styles/default/symbols.xml.in | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/data/styles/default/symbols.xml.in b/data/styles/default/symbols.xml.in
+index dcafe07..ac4f2ed 100644
+--- a/data/styles/default/symbols.xml.in
++++ b/data/styles/default/symbols.xml.in
+@@ -26,12 +26,7 @@
+ 	</symbol>
+ 	<symbol>
+ 		<name>Super_[LR]</name>
+-		<svg width="100" height="100" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg">
+-			<path class="symbol" d="M 50,22.5 C 34.841781,22.5 22.5,34.841781 22.5,50 22.5,65.158219 34.841781,77.5 50,77.5 65.158219,77.5 77.5,65.158219 77.5,50 77.5,34.841781 65.158219,22.5 50,22.5 z m 0,5 C 62.456018,27.5 72.5,37.543982 72.5,50 72.5,62.456018 62.456018,72.5 50,72.5 37.543982,72.5 27.5,62.456018 27.5,50 27.5,37.543982 37.543982,27.5 50,27.5 z"/>
+-			<ellipse class="symbol" cx="42" cy="42" rx="6" ry="4" transform="matrix(0.83333331,0,0,1,8.0000011,0)"/>
+-			<ellipse class="symbol" cx="58" cy="42" rx="6" ry="4" transform="matrix(0.83333334,0,0,1,8.6666665,0)"/>
+-			<path class="symbol" d="m 36.96875,55.46875 a 2.50025,2.50025 0 0 0 -1.75,4.3125 C 39.004424,63.566924 44.666667,64.5 50,64.5 c 5.333333,0 10.995576,-0.933076 14.78125,-4.71875 a 2.5190679,2.5190679 0 1 0 -3.5625,-3.5625 C 59.004424,58.433076 54.666667,59.5 50,59.5 c -4.666667,0 -9.004424,-1.066924 -11.21875,-3.28125 a 2.50025,2.50025 0 0 0 -1.8125,-0.75 z"/>
+-		</svg>
++		<_label>sp</_label>
+ 	</symbol>
+ 	<symbol>
+ 		<name>(Alt_[LR]|Meta_L)</name>
+-- 
+2.0.2
+
