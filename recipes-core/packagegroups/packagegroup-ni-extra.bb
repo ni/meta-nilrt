@@ -446,3 +446,6 @@ imagemagick \
 # emacs - fail
 # lzma - conflicts with xz?
 # openmotif - mirror down
+
+
+RDEPENDS_${PN} += "${@base_contains("DISTRO_FEATURES", "x11", " florence ", "", d)}"
