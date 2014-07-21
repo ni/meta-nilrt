@@ -385,6 +385,16 @@ ${@base_contains("DISTRO_FEATURES", "x11", " \
 "
 # vlc, mplayer requires libmad which is on a non-whitelisted license
 
+# meta-oe/recipes-networking
+RDEPENDS_${PN} += "\
+	ntp \
+	netcat \
+	bridge-utils \
+	cifs \
+	traceroute \
+	tunctl \
+"
+
 # meta-oe/recipes-support
 RDEPENDS_${PN} += "\
 	ca-certificates \
