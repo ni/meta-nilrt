@@ -1,7 +1,7 @@
 DESCRIPTION = "Central Regulatory Domain Agent"
 SECTION = "base"
 LICENSE = "ISC"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=07c4f6dea3845b02a18dc00c8c87699c"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=ef8b69b43141352d821fd66b64ff0ee7"
 
 PR = "r3"
 
