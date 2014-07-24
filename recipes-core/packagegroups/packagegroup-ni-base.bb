@@ -60,6 +60,7 @@ RDEPENDS_${PN} = "\
 	syslog-ng \
 	sysvinit \
 	tar \
+	util-linux-agetty \
 	util-linux-findfs \
 	util-linux-hwclock \
 	util-linux-mount \
