@@ -40,7 +40,7 @@
 
 CFG=/etc/ifplugd/ifplugd.conf
 
-IFPLUGD=/usr/bin/ifplugd
+IFPLUGD=/usr/sbin/ifplugd
 test -x $IFPLUGD || exit 0
 
 if [ `id -u` != "0" ] && [ "$1" = "start" -o "$1" = "stop" ] ; then
