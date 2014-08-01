@@ -1,6 +1,5 @@
 
 FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/${PN}-${PV}:"
-PRINC := "${@int(PRINC) + 1}"
 
 do_install_append() {
 	# re-assign urandom runlevel links

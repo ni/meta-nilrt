@@ -1,5 +1,3 @@
-PRINC := "${@int(PRINC) + 1}"
-
 PACKAGES =+ "${PN}-hostname"
 
 EXTRA_OECONF_class-target += "--enable-install-program=hostname"
