@@ -1,7 +1,13 @@
 
 FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/${PN}-${PV}:"
 
+SRC_URI += "file://urandom.default"
+
 do_install_append() {
+	# install urandom defaults file
+	install -d ${D}${sysconfdir}/default
+	install -m 0644 ${WORKDIR}/urandom.default ${D}${sysconfdir}/default/urandom
+
 	# re-assign urandom runlevel links
 	update-rc.d -r ${D} -f urandom remove
 	update-rc.d -r ${D} urandom start 41 S . stop 1 0 6 .
