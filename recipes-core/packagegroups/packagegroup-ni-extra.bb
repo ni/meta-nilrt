@@ -24,7 +24,6 @@ RDEPENDS_${PN} += "\
 	e2fsprogs-e2fsck \
 	e2fsprogs-mke2fs \
 	e2fsprogs-tune2fs \
-	genext2fs \
 	hdparm \
 	iptables \
 	lsb \
@@ -400,7 +399,6 @@ RDEPENDS_${PN} += "\
 	ca-certificates \
 	ckermit \
 	cpufrequtils \
-	cramfs \
 	cryptsetup \
 	debianutils \
 	daemonize \
