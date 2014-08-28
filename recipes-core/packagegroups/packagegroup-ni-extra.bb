@@ -198,6 +198,7 @@ RDEPENDS_${PN} += "\
 	libxml-namespacesupport-perl \
 	libtimedate-perl \
 	libconvert-asn1-perl \
+	perf \
 	prelink \
 	python \
 	rsync \
