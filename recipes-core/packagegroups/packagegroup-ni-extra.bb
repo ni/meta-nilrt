@@ -179,6 +179,7 @@ RDEPENDS_${PN} += "\
 RDEPENDS_${PN} += "\
 	bind \
 	connman \
+	cifs-utils \
 	dhcp \
 	libpcap \
 	nfs-utils \
