@@ -446,5 +446,8 @@ imagemagick \
 # lzma - conflicts with xz?
 # openmotif - mirror down
 
-
+# meta-oe/meta-gnome
 RDEPENDS_${PN} += "${@base_contains("DISTRO_FEATURES", "x11", " florence ", "", d)}"
+
+# meta-selinux
+RDEPENDS_${PN} += "packagegroup-ni-selinux"
