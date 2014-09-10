@@ -16,7 +16,6 @@ confdir = "${homedir}/.config"
 backgrounddir = "/usr/share/backgrounds/xfce"
 
 SRC_URI = "file://autostart/dpms.desktop \
-	file://autostart/xinput_calibrator.desktop \
 	file://autostart/screensaver.desktop \
 	file://menus/xfce-applications.menu \
 	file://xfce4/desktop/icons.screen0-624x384.rc \
@@ -40,7 +39,6 @@ SRC_URI = "file://autostart/dpms.desktop \
 	"
 
 FILES_${PN} = "${confdir}/autostart/dpms.desktop \
-	    ${confdir}/autostart/xinput_calibrator.desktop \
 	    ${confdir}/autostart/screensaver.desktop \
 	    ${confdir}/menus/xfce-applications.menu \
 	    ${confdir}/xfce4/desktop/icons.screen0-624x384.rc \
@@ -75,7 +73,6 @@ do_install () {
 	   install -d ${D}${backgrounddir}
 
 	   install -m 0644 ${S}/autostart/dpms.desktop ${D}${confdir}/autostart/
-	   install -m 0644 ${S}/autostart/xinput_calibrator.desktop ${D}${confdir}/autostart/
 	   install -m 0644 ${S}/autostart/screensaver.desktop ${D}${confdir}/autostart/
 	   install -m 0644 ${S}/menus/xfce-applications.menu ${D}${confdir}/menus/
 	   install -m 0644 ${S}/xfce4/desktop/icons.screen0-624x384.rc ${D}${confdir}/xfce4/desktop/
