@@ -1,0 +1,18 @@
+#!/bin/sh
+
+if [ "$USER" = "root" ]; then
+  CALPREFIX="/etc"
+  LOGPREFIX="/var/log"
+else
+  CALPREFIX="$HOME/.pointercal"
+  mkdir -p "$CALPREFIX"
+  LOGPREFIX="$CALPREFIX"
+fi
+
+CALFILE="$CALPREFIX/pointercal.xinput"
+LOGFILE="$LOGPREFIX/xinput_calibrator.pointercal.log"
+
+CALDATA=`/usr/bin/xinput_calibrator --output-type xinput -v | tee "$LOGFILE" | grep "[ \t]*xinput set" | sed 's/^[ \t]*//;s/$/;/'`
+if [ "$CALDATA" ] ; then
+  echo "$CALDATA" > $CALFILE
+fi
