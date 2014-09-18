@@ -3,6 +3,10 @@ DESCRIPTION = "Linux kernel based on nilrt branch"
 inherit kernel
 require recipes-kernel/linux/linux-yocto.inc
 
+# The NI kernel build includes on-target versioning tools that
+# link against the gcc provided runtime
+do_kernel_configme[depends] += "libgcc:do_populate_sysroot" 
+
 SRC_URI = "git://git.amer.corp.natinst.com/linux.git;protocol=git;nocheckout=1;branch=nilrt/15.0/3.10"
 
 LINUX_VERSION ?= "3.10"
@@ -32,6 +36,8 @@ fi
     cp ${WORKDIR}/${MYCONFIG} ${THISDIR}/files/defconfig
 }
 
+# defconfig is consumed in patch task and .config file is used thereafter.
+# We can therefore restore defconfig back to its default (blank) state now.
 do_patch_append() {
     cat /dev/null > ${THISDIR}/files/defconfig
 }
