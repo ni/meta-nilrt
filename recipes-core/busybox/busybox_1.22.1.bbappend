@@ -2,6 +2,7 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/files:${THISDIR}/${PN}:"
 
 SRC_URI =+ "file://automount.sh file://usb.sh"
+SRC_URI =+ "file://busybox-cron"
 SRC_URI =+ "file://busybox-ifplugd"
 SRC_URI =+ "file://busybox-acpid file://acpid.conf file://acpid_poweroff.sh"
 
