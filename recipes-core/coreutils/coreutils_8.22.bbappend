@@ -6,9 +6,17 @@ FILES_${PN}-hostname = "${base_bindir}/hostname.${PN}"
 FILES_${PN}-ls = "${base_bindir}/ls.${PN}"
 FILES_${PN}-chcon = "${bindir}/chcon.${PN}"
 
+DEPENDS += "niacctbase"
+
+RDEPENDS_${PN}-hostname += "niacctbase"
+
+group = "${LVRT_GROUP}"
+
 do_install_append() {
 	# rename hostname manually since its not part of base_bindir_progs
 	mv ${D}${bindir}/hostname ${D}${base_bindir}/hostname.${BPN}
+	chmod 4550 ${D}${base_bindir}/hostname.coreutils
+	chown 0:${group} ${D}${base_bindir}/hostname.coreutils
 }
 
 pkg_postinst_coreutils-hostname () {
