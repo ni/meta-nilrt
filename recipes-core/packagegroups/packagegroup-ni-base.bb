@@ -56,10 +56,13 @@ RDEPENDS_${PN} = "\
 	openssh-ssh \
 	openvpn \
 	opkg \
+	${@base_contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
 	pigz \
 	syslog-ng \
 	sysvinit \
 	tar \
+	udev-extraconf \
+	usbutils-ids \
 	util-linux-agetty \
 	util-linux-findfs \
 	util-linux-hwclock \
