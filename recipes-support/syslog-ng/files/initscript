@@ -1,0 +1,54 @@
+#! /bin/sh
+#
+# Copyright (c) 2013 National Instruments
+#
+
+syslog_ng=/usr/sbin/syslog-ng
+NIRTCFG=/usr/local/natinst/bin/nirtcfg
+
+[ -x "$syslog_ng" ] || exit 1
+[ -x "$NIRTCFG" ] || exit 1
+
+syslog_opts="--process-mode=background"
+
+start_syslog()
+{
+  if [ `$NIRTCFG --get section=RTLog,token=disableSyslog,value=false | tr "[:upper:]" "[:lower:]"` = "false" -o "$1" = "force" ]
+  then
+    [ "${VERBOSE}" != "no" ] && echo -n "Starting syslog-ng"
+    start-stop-daemon --start --quiet --user root --exec $syslog_ng -- $syslog_opts
+    [ "${VERBOSE}" != "no" ] && echo "."
+  else
+    [ "${VERBOSE}" != "no" ] && echo "Syslog-ng disabled from ni-rt.ini"
+  fi
+}
+
+case "$1" in
+  start)
+    start_syslog
+    ;;
+  stop)
+    echo -n "Stopping syslog-ng:"
+    start-stop-daemon --stop --oknodo --quiet --exec $syslog_ng 
+    echo "."
+    ;;
+  reload|force-reload)
+    start-stop-daemon --stop --oknodo --quiet --signal 1 --exec $syslog_ng -- $syslog_opts
+    ;;
+  restart)
+    $0 stop
+    echo -n "Waiting for syslog-ng to die off"
+    for i in 1 2 3 ;
+    do
+        sleep 1
+        echo -n "."
+    done
+    echo ""
+    $0 start
+    ;;
+  *)
+    echo "Usage: /etc/init.d/syslog-ng {start|stop|reload|restart|force-reload}"
+    exit 1
+esac
+
+exit 0
