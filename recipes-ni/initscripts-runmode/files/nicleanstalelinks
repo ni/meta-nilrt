@@ -1,0 +1,16 @@
+#!/bin/sh
+# Copyright (c) 2012-2013 National Instruments.
+# All rights reserved.
+
+# clean-up any stale compatibility symlinks created for hot-plugged mass storaged devices
+for symlink in u v w x y z U V W X Y Z
+do
+    if [ -h "/$symlink" ]; then
+	symlink_target=`readlink /$symlink`
+	if [ ! -e "$symlink_target" ]; then
+	    rm "/$symlink"
+	else
+	    grep -q -F "$symlink_target" /proc/mounts || rm "/$symlink"
+	fi
+    fi
+done

@@ -1,0 +1,157 @@
+#! /bin/sh
+# Copyright (c) 2012-2013 National Instruments.
+# All rights reserved.
+#
+# Usage: nisetbootmode
+#     This script will be found under /etc/init.d and will be called during
+#     startup and shutdown.  It is also designed to be run by the user to
+#     force the target to boot into one of the 3 boot modes.
+#
+#     $BOOT_MODE_INPUT is a file that will contain the next boot mode for the
+#     target which is one of the following 3 values:
+#         safemode - boots from the NAND flash and uses a separate ramdisk
+#                    image -- may enter "restore mode" or "install mode"
+#         runtime  - boots from the main disk and uses that disk's filesystem
+#
+#     For user use, the following commands are supported
+#         force-safemode - boots the target into safe mode
+#         force-normal or force-runtime - boots the target into normal mode
+#         force-install - boots the target into install mode
+#
+#     This script reads the contents of the file, if it exists, and
+#     configures the boot process according to the value from the file, if
+#     the value is one of the valid values.  The file $BOOT_MODE_INPUT itself
+#     will be created by the web-service and/or a module that handles the
+#     "RebootEx" web-service.  In addition this script verifies that rebooting
+#     while in safemode results in the target attempting to boot into normal
+#     mode.
+#
+
+arch=`uname -m`
+if [ "$arch" = "armv7l" ]; then
+	BOOT_CONFIG_LOCATION=/sys/bus/i2c/devices/0-0040/bootmode
+	write_config() {
+		echo -n $1 > $BOOT_CONFIG_LOCATION
+	}
+	read_config() {
+		read tmp_cfg < $BOOT_CONFIG_LOCATION
+		echo $tmp_cfg
+	}
+elif [ "$arch" = "x86_64" ]; then
+	BOOT_CONFIG_LOCATION=/boot/bootmode
+	write_config() {
+		echo set BOOT_MODE=$1 > $BOOT_CONFIG_LOCATION
+	}
+	read_config() {
+		read tmp_cfg < $BOOT_CONFIG_LOCATION
+		echo $tmp_cfg | awk -F '=' '{print $2}';
+	}
+
+	# if the bootmode file doesn't exist, this is the first run of this
+	# script for this boot, so set it to the current mode
+	if [ ! -f "$BOOT_CONFIG_LOCATION" ]; then
+		if [ -f "/etc/natinst/safemode" ]; then
+			write_config safemode
+		else
+			write_config runtime
+		fi
+	fi
+fi
+
+BOOT_MODE_INPUT=/tmp/ni_boot_mode_input
+SAFEMODE_REASON_FILE=/etc/natinst/share/safemode_reason
+
+fail() { echo "$@" >&2; exit 1; }
+
+check_file() {
+	[ -f "$1" ] || fail "$0 error: Unable to find $1";
+}
+
+setbootmode() {
+	case "$1" in
+	runtime)
+		write_config runtime
+		;;
+	install)
+		echo "Install Mode" > $SAFEMODE_REASON_FILE
+		write_config safemode
+		;;
+	safemode)
+		# SAFEMODE_REASON_FILE is set below when the user calls
+		# force-safemode, because that's where we have access
+		# to the reason string.
+		write_config safemode
+		;;
+	esac
+}
+
+checkbootmode() {
+	[ -f $BOOT_MODE_INPUT ] || return
+
+	read NEXT_BOOT_MODE < $BOOT_MODE_INPUT
+	if [ -n "$NEXT_BOOT_MODE" ]; then
+		case "$NEXT_BOOT_MODE" in
+		runtime|install|safemode)
+			CUR_BOOT_CONFIG=$(read_config)
+			if [ "$NEXT_BOOT_MODE" != "$CUR_BOOT_CONFIG" ]; then
+				echo Configuring next boot mode to $NEXT_BOOT_MODE.
+				setbootmode $NEXT_BOOT_MODE
+			else
+				# The current boot mode and the requested boot mode are
+				# the same. Ignoring the request.  However, this is not
+				# a warning or a fatal error just an optimization.
+				echo "Next boot mode is $NEXT_BOOT_MODE"
+			fi
+			;;
+		recovery)
+			fail "Entering recovery mode requires physical access."
+			;;
+		*)
+			fail "Fatal error: The file $BOOT_MODE_INPUT contains invalid boot mode"
+			;;
+		esac
+	fi
+}
+
+# Verify all the necessary utilities exist
+check_file $BOOT_CONFIG_LOCATION
+
+case "$1" in
+  start)
+	# The default boot mode is always runmode, we also change the permissions on
+	# the $BOOT_MODE_INPUT so the system webserver can change the mode to boot into
+	echo runtime >$BOOT_MODE_INPUT
+	chown lvuser:ni $BOOT_MODE_INPUT
+	chmod 660 $BOOT_MODE_INPUT
+	;;
+  stop)
+	# Will hit checkbootmode just before exit 0 below
+	;;
+  force-safemode|boot-safemode)
+	echo safemode >$BOOT_MODE_INPUT
+	if [ -z "$2" ]; then
+		echo "No safe mode reason specified."
+		echo "Safe Mode" >$SAFEMODE_REASON_FILE
+	else
+		echo "Safe Mode ($2)" >$SAFEMODE_REASON_FILE
+	fi
+	;;
+  force-install|boot-install)
+	# SAFEMODE_REASON_FILE is set in checkbootmode for install, because
+	# normally install mode is indicated by writing BOOT_MODE_INPUT
+	# directly, not by using this script.
+	echo install >$BOOT_MODE_INPUT
+	;;
+  force-runtime|boot-runtime|force-runmode|boot-runmode|force-normal|force-normalmode|boot-normal|boot-normalmode)
+	echo runtime >$BOOT_MODE_INPUT
+	;;
+  *)
+	echo "Usage: $progname {force-safemode|force-runtime|force-install} [safemode reason]" >&2
+	exit 1
+	;;
+esac
+
+checkbootmode
+
+exit 0
+

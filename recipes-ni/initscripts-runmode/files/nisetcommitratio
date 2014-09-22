@@ -1,0 +1,127 @@
+#! /bin/sh
+# Copyright (c) 2012-2013 National Instruments.
+# All rights reserved.
+#
+# This script sets the overcommit ratio for the system. The value set is the
+# calculated number. If there is an error nothing is set. Reserved memory is
+# specified in /etc/natinst/share/ni-rt.ini in the RtLinuxMemReserve section.
+set -e
+SCRIPTNAME="${0##*/}"
+SYSCTL_OVERCOMMIT_KEY="vm.overcommit_ratio"
+
+SYSTEM_MEMORY=0
+RESERVED_TOTAL=0
+COMMIT_RATIO=0
+
+log()
+{
+   { [ "${VERBOSE}" != "no" ] && echo "$SCRIPTNAME: $1"; } || true
+}
+
+get_total_memory_reserved()
+{
+   local list element mem
+   local cmd="/usr/local/natinst/bin/nirtcfg --list"
+   local cmd_tr="/usr/bin/tr '[:upper:]' '[:lower:]'"
+   local reserved=false
+
+   list=$($cmd | $cmd_tr)
+   if [ "$list" ]; then
+      for element in $list; do
+         case $element in
+            *"[rtlinuxmemreserve]"*)
+               mem="${element#*=}"
+               mem=$((mem*1024))
+               RESERVED_TOTAL=$((RESERVED_TOTAL+mem))
+               reserved=true
+            ;;
+         esac
+      done
+   else
+      log "Unable to get valid output from $cmd"
+   fi
+
+   if $reserved; then
+      log "NI reserved memory: $RESERVED_TOTAL"
+      return 0
+   else
+      log "No NI reserved memory, using system default"
+      return 1
+   fi
+}
+
+get_memory_total()
+{
+   if SYSTEM_MEMORY=$(awk '/MemTotal/{print $2}' /proc/meminfo); then
+      log "Total system memory: $SYSTEM_MEMORY"
+   else
+      log "Failed to get system memory."
+   fi
+}
+
+calculate_commit_ratio()
+{
+   local unreserved percentage
+   # Get the unreserved amount of memory
+   if ! unreserved=$((SYSTEM_MEMORY - RESERVED_TOTAL)); then
+       log "Failed to calculate unreserved memory"
+   fi
+
+   # Get the commit percentage (unreserved/total memory)*100
+   if ! percentage=$(awk -v x=$unreserved -v y=$SYSTEM_MEMORY \
+                      'BEGIN {print ((x/y)*100)}'); then
+       log "Failed to calculate commit ratio"
+   fi
+
+   # Floor the percentage
+   COMMIT_RATIO=${percentage%.*}
+   log "Calculated commit ratio: $COMMIT_RATIO"
+}
+
+write_commit_ratio()
+{
+   validate_commit_ratio
+   sysctl -w $SYSCTL_OVERCOMMIT_KEY=$COMMIT_RATIO
+   log "Wrote $SYSCTL_OVERCOMMIT_KEY=$COMMIT_RATIO"
+}
+
+validate_commit_ratio()
+{
+   if [ "$COMMIT_RATIO" -le 0 ]; then
+      log "Calculated bad commit ratio '$COMMIT_RATIO'. Leaving system default."
+      return 1
+   fi
+   return 0
+}
+
+do_start()
+{
+   get_total_memory_reserved
+   get_memory_total
+   calculate_commit_ratio
+   write_commit_ratio
+}
+
+do_status()
+{
+   set +e
+   get_total_memory_reserved
+   get_memory_total
+   calculate_commit_ratio
+   local actual=$(sysctl $SYSCTL_OVERCOMMIT_KEY)
+   log "Actual $actual"
+   set -e
+}
+
+case "$1" in
+  start)
+   do_start
+   ;;
+  status)
+   do_status
+   ;;
+  *)
+   echo "Usage: $0 {start|status}" >&2
+   exit 3
+   ;;
+esac

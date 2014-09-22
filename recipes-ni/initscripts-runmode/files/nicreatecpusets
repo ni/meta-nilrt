@@ -1,0 +1,34 @@
+#!/bin/sh
+# Copyright (c) 2012-2013 National Instruments.
+# All rights reserved.
+
+#echo -n "Creating CPU sets for National Instruments LabVIEW Real-Time:"
+[ "${VERBOSE}" != "no" ] && echo -n "Starting nicreatecpusets:"
+mkdir -p /dev/cgroup/cpuset
+mount -t cpuset none /dev/cgroup/cpuset
+cd /dev/cgroup/cpuset
+mkdir LabVIEW_tl_set
+mkdir system_set
+
+#cpus and mems cannot be empty while tasks are added to tasks file
+#in a cpuset
+cat cpus > ./system_set/cpus
+cat mems > ./system_set/mems
+
+cat cpus > ./LabVIEW_tl_set/cpus
+cat mems > ./LabVIEW_tl_set/mems
+
+# fast_task_writes was added to 3.2 for performance reasons, but does not exist and is not
+# necessary in the 3.10 kernel. 
+[ -e ./system_set/cgroup.fast_task_writes ] && echo 1 > ./system_set/cgroup.fast_task_writes
+while read TASK
+do
+	echo $TASK > "./system_set/tasks" 2> /dev/null
+	# Following system tasks are specifically affined to run on a core
+	# and cannot be moved. So, the above line does thrown
+	# an error for these tasks and those can be ignored.
+	# kworker|ksoftirqd|posixcputmr|migration
+done < "tasks"
+[ -e ./system_set/cgroup.fast_task_writes ] && echo 0 > ./system_set/cgroup.fast_task_writes
+chown -R lvuser:ni /dev/cgroup/cpuset
+[ "${VERBOSE}" != "no" ] && echo "done"
