@@ -1,0 +1,27 @@
+#!/bin/sh
+
+[ "${VERBOSE}" != "no" ] && echo "Creating default reg domain."
+WIRELESS_REGION_FACTORY=`fw_printenv -n wirelessRegionFactory 2> /dev/null` ||
+    WIRELESS_REGION_FACTORY=-1
+
+# If wirelessRegionUser isn't set, we should default to the factory region (if set)
+WIRELESS_REGION_USER=$(/usr/local/natinst/bin/nirtcfg --get section=SystemSettings,token=wirelessRegionUser,value=${WIRELESS_REGION_FACTORY})
+
+WIRELESS_REGION_USER_ALPHA2=$(grep -v ^\# /etc/natinst/iso3166-translation.txt | grep -- $(printf "%03d" "${WIRELESS_REGION_USER}") | awk -F ' ' '{print $2}')
+if [ -n "${WIRELESS_REGION_USER_ALPHA2}" ]; then
+    # Only set if we found something. This should always be the case unless new
+    # countries were added in a future release and the user downgraded. In that
+    # case we don't apply wirelessRegionUser settings, and use the default
+    # regulatory domain (world).
+    if [ -f /etc/modprobe.d/cfg80211 ]; then
+        # If the cfg80211 parameters file does exist, check it is correct
+        PREVIOUS_REGION_USER=$(cat /etc/modprobe.d/cfg80211 | sed 's/.\+ieee80211_regdom=//')
+        if [ "${WIRELESS_REGION_USER_ALPHA2}" = "${PREVIOUS_REGION_USER}" ]; then
+            # Region is set correctly, exit normally
+            exit 0
+        fi
+    fi
+    # Wrong or not there, create it
+    echo "options cfg80211 ieee80211_regdom=${WIRELESS_REGION_USER_ALPHA2}" > /etc/modprobe.d/cfg80211
+fi
+

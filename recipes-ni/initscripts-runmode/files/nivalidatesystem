@@ -1,0 +1,19 @@
+#! /bin/sh
+# Copyright (c) 2012-2013 National Instruments.
+# All rights reserved.
+#
+# Verify that the installation is valid. If not, reboot into safemode.
+
+config_old=/etc/natinst/share/config.old
+setbootmode=/etc/init.d/nisetbootmode
+status_led=/usr/local/natinst/bin/status_led
+
+if [ -s $config_old ]; then
+	echo "Improper installation detected. Rebooting into Install Mode."
+	$setbootmode force-install "Improper Installation"
+	reboot
+fi
+
+# switch LED watchdog from boot mode to user mode, and turn off the LED
+$status_led init
+

@@ -1,0 +1,19 @@
+#!/bin/sh
+# Copyright (c) 2012-2013 National Instruments.
+# All rights reserved.
+[ "${VERBOSE}" != "no" ] && echo -n "Starting nisetupkernelconfig:"
+
+#This disables RT scheduler's CPU throttling for National Instruments LabVIEW Real-Time
+echo -1 > /proc/sys/kernel/sched_rt_runtime_us
+
+#This forces CPU affinity of IRQs to Core-0. Some reserved IRQs and specific IRQs
+#such as timer-watch-dog (twd) are per core and their affinity cannot be changed
+#and thus we ignore the errors on those by redirecting error to /dev/null.
+#Note: smp_affinity file accepts CPU mask
+echo 1 > /proc/irq/default_smp_affinity
+for x in /proc/irq/*/smp_affinity;
+do
+  echo 1 > $x
+done 2> /dev/null
+
+[ "${VERBOSE}" != "no" ] && echo "done"

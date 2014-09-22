@@ -1,0 +1,18 @@
+#!/bin/sh
+# (c) 2013 National Instruments Corporation
+[ "${VERBOSE}" != "no" ] && echo -n "Configuring core dump settings:"
+
+safemodeflag=/etc/natinst/safemode
+
+#Create core dump files in the root directory of runmode with the
+#executable name as the suffix.
+if [ -f $safemodeflag ]; then
+	echo "/mnt/userfs/var/local/natinst/log/core_dump.%E" > /proc/sys/kernel/core_pattern
+else
+	echo "/var/local/natinst/log/core_dump.%E" > /proc/sys/kernel/core_pattern
+fi
+
+#Enable core dump for tainted binaries
+echo 1 > /proc/sys/fs/suid_dumpable
+
+[ "${VERBOSE}" != "no" ] && echo "done"

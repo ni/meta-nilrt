@@ -1,0 +1,58 @@
+#!/bin/sh
+# Copyright (c) 2012-2013 National Instruments.
+# All rights reserved.
+
+IPTABLES_CONF=/etc/natinst/share/iptables.conf
+[ -f $IPTABLES_CONF ] || exit 0
+
+# The VERBOSE setting in /etc/default/rcS is deliberately ignored: the existence
+# of a firewall or VPN configuration must always be logged to the console.
+
+report_permissions_failure () {
+	files=$1
+	req=$2
+	cat >&2 <<EOF
+ERROR: The following files/directories possess incorrect permissions:
+ERROR:
+EOF
+	for f in $files ; do
+		echo -n "ERROR: " >&2
+		ls -ld $f >&2
+	done
+	cat >&2 <<EOF
+ERROR:
+ERROR: Ensure that these files/directories are
+ERROR: $req.
+ERROR:
+ERROR: Because of these permissions issues, the firewall service will not run.
+EOF
+}
+
+check_permissions () {
+	# iptables.conf must only be writable by root
+	files=`find $IPTABLES_CONF \! \( -user root \( \
+		\! -perm +022 -o \
+		-group root \! -perm +002 \) \)`
+	if [ "$files" ] ; then
+		report_permissions_failure "$files" "only writable by root"
+		exit 1
+	fi
+}
+
+case "$1" in
+	start)
+		check_permissions
+		echo "Loading firewall configuration."
+		iptables-restore < $IPTABLES_CONF
+		;;
+	stop)
+		echo "Clearing firewall configuration."
+		iptables -P INPUT ACCEPT
+		iptables -P FORWARD ACCEPT
+		iptables -P OUTPUT ACCEPT
+		iptables -F
+		;;
+	*)
+		echo "Usage: $0 {start|stop}" >&2
+		;;
+esac

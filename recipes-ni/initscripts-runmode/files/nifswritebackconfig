@@ -1,0 +1,24 @@
+#! /bin/sh
+# Copyright (c) 2012-2013 National Instruments.
+# All rights reserved.
+#
+# Set dirty_writeback_centisecs and dirty_expire_centisecs Write-back knobs
+
+NIRTCFG=/usr/local/natinst/bin/nirtcfg
+fs_writeback_centisecs_default=300
+fs_expire_centisecs_default=300
+fs_writeback_centisecs_knob="/proc/sys/vm/dirty_writeback_centisecs"
+fs_expire_centisecs_knob="/proc/sys/vm/dirty_expire_centisecs"
+
+for procfile in "fs_writeback_centisecs" "fs_expire_centisecs"
+do
+rval=$($NIRTCFG --get section=SystemSettings,token=$procfile,value="$(eval echo \$${procfile}_default)")
+if [ $? -ne 0 -o -z "$rval" ]; then
+	rval=$(eval echo \$${procfile}_default)
+fi
+$NIRTCFG --set section=SystemSettings,token=$procfile,value=$rval
+if [ "$(cat "$(eval echo \$${procfile}_knob)")" != $rval ]; then
+	[ "${VERBOSE}" != "no" ] && echo "setting $(eval basename \$${procfile}_knob) to $rval"
+	echo $rval > $(eval echo \$${procfile}_knob)
+fi
+done

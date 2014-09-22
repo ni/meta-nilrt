@@ -1,0 +1,19 @@
+#!/bin/sh
+# Copyright (c) 2012-2013 National Instruments.
+# All rights reserved.
+
+permissions_string="a+w"
+debugfs_path="/sys/kernel/debug"
+
+# If not mounted, mount the debugfs so we can use ftrace
+grep -qs '/sys/kernel/debug' /proc/mounts || mount -t debugfs nodev $debugfs_path
+
+# Change the permissions so a non-root user can control ftrace
+chmod a+rx $debugfs_path
+chmod -R $permissions_string $debugfs_path/tracing/events
+chmod $permissions_string $debugfs_path/tracing/tracing_on
+[ -e $debugfs_path/tracing/tracing_enabled ] && chmod $permissions_string $debugfs_path/tracing/tracing_enabled
+chmod $permissions_string $debugfs_path/tracing/trace
+chmod $permissions_string $debugfs_path/tracing/trace_marker
+chmod $permissions_string $debugfs_path/tracing/trace_ni_ett_marker
+chmod $permissions_string $debugfs_path/tracing/buffer_size_kb

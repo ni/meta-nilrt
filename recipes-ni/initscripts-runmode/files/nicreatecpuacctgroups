@@ -1,0 +1,37 @@
+#!/bin/sh
+# Copyright (c) 2012-2013 National Instruments.
+# All rights reserved.
+
+#echo -n "Creating cgroups for CPU accounting for National Instruments LabVIEW Real-Time:"
+[ "${VERBOSE}" != "no" ] && echo -n "Starting nicreatecpuacctgroups:"
+mkdir -p /dev/cgroup/cpuacct
+mount -t cgroup -ocpuacct none /dev/cgroup/cpuacct
+cd /dev/cgroup/cpuacct
+mkdir LabVIEW_Timed-Structures_group
+mkdir LabVIEW_Time-Critical_group
+mkdir ISR_group
+mkdir other_group
+
+# fast_task_writes was added to 3.2 for performance reasons, but does not exist and is not
+# necessary in the 3.10 kernel. 
+[ -e ./other_group/cgroup.fast_task_writes ] && echo 1 > ./other_group/cgroup.fast_task_writes
+while read TASK
+do
+	echo $TASK > "./other_group/tasks" 2> /dev/null 
+	# cgroup behavior as of 3.10 kernel has been altered 
+	# such that certain tasks cannot be assigned to any cgroup.
+	# Because of this change an error for trying to assign those
+	# tasks can be ignored in this loop and the following loop. 
+done < "tasks"
+[ -e ./other_group/cgroup.fast_task_writes ] && echo 0 > ./other_group/cgroup.fast_task_writes
+
+#If we cannot move a task from the root cpuset, that task is softirq
+# or realted to system timer task
+[ -e ./ISR_group/cgroup.fast_task_writes ] && echo 1 > ./ISR_group/cgroup.fast_task_writes
+while read TASK
+do
+	echo $TASK > "./ISR_group/tasks" 2> /dev/null
+done < "/dev/cgroup/cpuset/tasks"
+[ -e ./ISR_group/cgroup.fast_task_writes ] && echo 0 > ./ISR_group/cgroup.fast_task_writes
+chown -R lvuser:ni /dev/cgroup/cpuacct
+[ "${VERBOSE}" != "no" ] && echo "done"
