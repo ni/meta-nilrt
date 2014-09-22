@@ -18,6 +18,7 @@ RDEPENDS_${PN} = "\
 	gdbserver \
 	glibc-gconv-cp932 \
 	glibc-gconv-iso8859-1 \
+	initscripts-runmode \
 	logrotate \
 	parted \
 	util-linux-sfdisk \
