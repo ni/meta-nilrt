@@ -7,4 +7,10 @@ do_install_append () {
         [ "${VERBOSE}" != "no" ] \&\& echo "SSHD not enabled in ni-rt.ini"\
         exit 0\
     fi|' -i ${D}${sysconfdir}/init.d/sshd
+
+    # customize sshd_config
+    sed -e 's|^[#[:space:]]*Banner.*|Banner /etc/issue.net|' \
+			-e 's|^[#[:space:]]*UseDNS.*|UseDNS no|' \
+			-e 's|^[#[:space:]]*PasswordAuthentication.*|PasswordAuthentication no|' \
+			-i ${D}${sysconfdir}/ssh/sshd_config
 }
