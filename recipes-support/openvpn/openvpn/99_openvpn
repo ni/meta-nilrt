@@ -1,0 +1,2 @@
+# OpenVPN runs with reduced privileges: let it create its own pidfile here.
+d openvpn openvpn 0755 /var/run/openvpn none

@@ -1,0 +1,178 @@
+#!/bin/sh -e
+#
+# Copyright (c) 2013 National Instruments
+#
+
+VPN_CONFIG_DIR=/etc/natinst/share/openvpn
+OPENVPN_DAEMON=/usr/sbin/openvpn
+OPENVPN_CONFIG=client.conf
+OPENVPN_PIDFILE=/var/run/openvpn/openvpn.pid
+OPENVPN="$OPENVPN_DAEMON --cd $VPN_CONFIG_DIR --config $OPENVPN_CONFIG \
+	--dev tapvpn0 --dev-type tap --persist-tun --ns-cert-type server"
+
+# OpenVPN calls `ip` to configure the tapvpn0 interface. However, this requires
+# superuser privileges, which OpenVPN will not possess. $IPROUTE points to an
+# executable which runs `ip` with superuser privileges. This will either be a
+# copy of /bin/ip that is setuid root, or a shell script that executes `sudo
+# /bin/ip` (combined with appropriate sudoers settings).
+IPROUTE=/usr/lib/iproute2-openvpn/ip
+
+OPENVPN_WAIT_STOP_SECONDS=10
+VPN_DISABLED=no
+
+# /etc/default/vpn is meant to allow configuration of VPN_LOAD_ON_STARTUP,
+# OPENVPN_WAIT_STOP_SECONDS, and VPN_DISABLED. By design, THIS IS NOT READ IN
+# SAFEMODE: safemode will always try to connect to a VPN if a configuration
+# exists. This permits users to manually start/stop the VPN from their own
+# applications in runmode, while ensuring that the target is accessible over
+# the VPN in safemode.
+DEFAULTS=/etc/default/vpn
+[ -f $DEFAULTS ] && . $DEFAULTS
+
+[ -x $OPENVPN_DAEMON ] || exit 0
+[ -f $VPN_CONFIG_DIR/$OPENVPN_CONFIG ] || exit 0
+
+report_permissions_failure () {
+	files=$1
+	req=$2
+	cat >&2 <<EOF
+ERROR: The following files/directories possess incorrect permissions:
+ERROR:
+EOF
+	for f in $files ; do
+		echo -n "ERROR: " >&2
+		ls -ld $f >&2
+	done
+	cat >&2 <<EOF
+ERROR:
+ERROR: Ensure that these files/directories are
+ERROR: $req.
+ERROR:
+ERROR: Because of these permissions issues, the VPN service will not run.
+EOF
+}
+
+check_permissions () {
+	# VPN_CONFIG_DIR and all files/directories under it must be owned by
+	# openvpn.openvpn (openvpn daemon will otherwise complain) and possess
+	# appropriate permissions
+	files=`find $VPN_CONFIG_DIR \! \( \
+		-user openvpn -group openvpn \! -perm -002 \)`
+	if [ "$files" ] ; then
+		report_permissions_failure "$files" \
+			"owned by openvpn.openvpn and are not world-writable"
+		exit 1
+	fi
+
+	# /etc/default/vpn must be owned by root and possess appropriate
+	# permissions
+	if [ -f $DEFAULTS ] ; then
+		files=`find $DEFAULTS \! \( \
+			-user root -group root \! -perm +002 \)`
+		if [ "$files" ] ; then
+			report_permissions_failure "$files" \
+				"owned by root.root and are not world-writable"
+			exit 1
+		fi
+	fi
+}
+
+is_openvpn_running () {
+	unset -v PID COMM
+	[ -f "$OPENVPN_PIDFILE" ] && read PID < $OPENVPN_PIDFILE
+	[ "$PID" -a -f "/proc/$PID/comm" ] && read COMM < /proc/$PID/comm
+	[ "openvpn" = "$COMM" ]
+}
+
+wait_for_openvpn_to_exit () {
+	X=0
+	while is_openvpn_running && [ $X -lt $OPENVPN_WAIT_STOP_SECONDS ] ; do
+		sleep 1
+		X=$(($X+1))
+	done
+}
+
+start_vpn () {
+	if [ "$VPN_DISABLED" = "yes" ] ; then
+		echo "(disabled)"
+		return 0
+	fi
+
+	if is_openvpn_running ; then
+		echo "(already started)"
+		return 1
+	fi
+
+	rm -f $OPENVPN_PIDFILE
+	$OPENVPN --syslog --rmtun || true
+	$OPENVPN --syslog --mktun --user openvpn --group openvpn || true
+	su openvpn -s /bin/sh -c "$OPENVPN --daemon \
+		--writepid $OPENVPN_PIDFILE --iproute $IPROUTE"
+
+	echo "done."
+}
+
+stop_vpn () {
+	if ! is_openvpn_running ; then
+		echo "(not running)"
+		return 1
+	fi
+	read PID < $OPENVPN_PIDFILE
+	kill $PID
+
+	wait_for_openvpn_to_exit
+	if is_openvpn_running ; then
+		kill -9 $PID
+	fi
+
+	$OPENVPN --syslog --rmtun
+	rm -f $OPENVPN_PIDFILE
+	echo "done."
+}
+
+check_status () {
+	if is_openvpn_running ; then
+		echo "OpenVPN is running, pid=`cat $OPENVPN_PIDFILE`"
+		return 0
+	else
+		echo "OpenVPN is not running"
+		return 1
+	fi
+}
+
+reload_vpn () {
+	if ! is_openvpn_running ; then
+		echo "failed: OpenVPN is not running"
+		return 1
+	fi
+	kill -HUP `cat $OPENVPN_PIDFILE`
+	echo "done."
+}
+
+case "$1" in
+	start)
+		check_permissions
+		echo -n "Starting openvpn: "
+		start_vpn
+		;;
+	stop)
+		echo -n "Stopping openvpn: "
+		stop_vpn
+		;;
+	reload|force-reload)
+		echo -n "Reloading openvpn: "
+		reload_vpn
+		;;
+	restart)
+		stop_vpn
+		sleep 1
+		start_vpn
+		;;
+	status)
+		check_status
+		;;
+	*)
+		echo "Usage: $0 {start|stop|reload|restart|status}" >&2
+		exit 1
+		;;
+esac

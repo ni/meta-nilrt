@@ -1,0 +1,26 @@
+#!/bin/sh
+# Copyright (c) 2012-2013 National Instruments.
+# All rights reserved.
+
+VPNCTL=/usr/sbin/vpnctl
+
+VPN_LOAD_ON_STARTUP=yes
+
+# The VERBOSE setting in /etc/default/rcS is deliberately ignored: the existence
+# of a firewall or VPN configuration must always be logged to the console.
+
+# /etc/default/vpn is meant to allow configuration of VPN_LOAD_ON_STARTUP,
+# OPENVPN_WAIT_STOP_SECONDS, and VPN_DISABLED. By design, THIS IS NOT READ IN
+# SAFEMODE: safemode will always try to connect to a VPN if a configuration
+# exists. This permits users to manually start/stop the VPN from their own
+# applications in runmode, while ensuring that the target is accessible over
+# the VPN in safemode.
+DEFAULTS=/etc/default/vpn
+[ -f $DEFAULTS ] && . $DEFAULTS
+
+if [ "$VPN_LOAD_ON_STARTUP" != "yes" ] ; then
+	echo "Skipping VPN startup."
+	exit 0
+fi
+
+[ -x $VPNCTL ] && $VPNCTL $@
