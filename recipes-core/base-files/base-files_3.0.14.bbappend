@@ -19,3 +19,17 @@ do_install_append () {
 	echo "d ${LVRT_USER} ${LVRT_GROUP} 0775 /run/natinst none" \
 		>> ${D}${sysconfdir}/default/volatiles/20_run_natinst
 }
+
+pkg_postinst_${PN} () {
+	sed -e 's/^passwd:\s*compat/passwd:         niauth [!SUCCESS=continue] compat/' \
+		-e 's/^group:\s*compat/group:          niauth [!SUCCESS=continue] compat/' \
+		-e 's/^shadow:\s*compat/shadow:         niauth [!SUCCESS=continue] compat/' \
+		-i $D${sysconfdir}/nsswitch.conf
+}
+
+pkg_prerm_${PN} () {
+	sed -e 's/passwd:         niauth [!SUCCESS=continue] compat/passwd:         compat/' \
+		-e 's/^group:          niauth [!SUCCESS=continue] compat/group:         compat/' \
+		-e 's/^shadow:         niauth [!SUCCESS=continue] compat/shadow:         compat/' \
+		-i $D${sysconfdir}/nsswitch.conf
+}
