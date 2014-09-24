@@ -1,0 +1,13 @@
+You can find end-user license agreements (EULAs) and third-party legal
+notices in the following locations on your host computer:
+
+Notices are located in the <National Instruments>\_Legal Information and
+<National Instruments> directories.
+
+EULAs are located in the <National Instruments>\Shared\MDF\Legal\license
+directory, and in the Licenses directory of your LabVIEW Real-Time Module
+or NI-RIO Device Drivers install disks.
+
+Review <National Instruments>\_Legal Information.txt for information on
+including legal information in installers built with NI products.
+
