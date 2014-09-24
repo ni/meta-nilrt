@@ -1,0 +1,95 @@
+#!/bin/sh
+
+# udhcpc script edited by Tim Riker <Tim@Rikers.org>
+# further modified by National Instruments
+
+[ -z "$1" ] && echo "Error: should be called from udhcpc" && exit 1
+
+. /etc/natinst/networking/functions.common
+
+case "$1" in
+   deconfig)
+      # Get rid of any global-scope IPv4 addresses on this interface.
+      remove_addresses $interface global;
+
+      # If interface isn't up at all, bring it up.
+      if ! ( is_interface_up $interface ) ; then
+         /sbin/ifconfig $interface up 0.0.0.0
+      fi
+      update_interface_info $interface
+      ;;
+
+   leasefail)
+      if ( is_linklocal_enabled $interface ); then
+         start_linklocal_client $interface;
+      fi
+      update_interface_info $interface
+      ;;
+
+   renew|bound)
+      RESOLV_CONF="/etc/resolv.conf.${interface}"
+      BROADCAST="broadcast +"
+      [ -n "$broadcast" ] && BROADCAST="broadcast $broadcast"
+      if [ -n "$subnet" ]; then
+         prefix_length_from_netmask $subnet
+         PREFIX=$?
+      fi
+
+      if ( is_primary_interface $interface ); then
+         METRIC=0
+      else
+         METRIC=5
+      fi
+
+      # Save the IP address that we get so we can request it next time.
+      set_var $(uboot_var_for_interface dhcpipaddr $interface) $ip
+
+      # if there's a link-local IP get rid of it.
+      if ( is_linklocal_enabled $interface ); then
+         stop_linklocal_client $interface;
+         remove_addresses $interface link;
+      fi
+
+      # Apply the IP address to the interface.
+      ip address add dev $interface scope global local $ip/$PREFIX $BROADCAST
+
+      # Set up routes.
+      if [ -n "$router" ] ; then
+         while ip route del default dev $interface 2>/dev/null ; do
+            :
+         done
+
+         for i in $router ; do
+            ip route add default via $i dev $interface src $ip metric 1$METRIC
+         done
+      fi
+
+      # add the link-local route back
+      add_linklocal_route $interface 10$METRIC 119
+
+      # We changed routing, so flush the cache.
+      ip route flush cache
+
+      echo -n > $RESOLV_CONF
+      [ -n "$domain" ] && echo search $domain >> $RESOLV_CONF
+      for i in $dns ; do
+         echo nameserver $i >> $RESOLV_CONF
+      done
+
+      update_resolv_conf
+      update_interface_info $interface
+
+      # on ethernet over USB, ping the host ip to induce Windows to send an ARP request,
+      # otherwise, if the host is trying to connect to the target while it's booting,
+      # Windows Vista/7/8 waits an extra 60 seconds before sending an ARP request to find the target
+      if [ $interface = "usb0" ]; then
+         first=`echo $ip | cut -d . -f 1,2,3`
+         last=`echo $ip | cut -d . -f 4`
+         # host ip is always one less than the target ip
+         last=$(($last-1))
+         nohup ping $first.$last -c 5 &
+      fi
+      ;;
+esac
+
+exit 0
