@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.22.1
-# Fri Aug 22 09:47:09 2014
+# Tue Sep  9 15:17:41 2014
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -46,7 +46,7 @@ CONFIG_PID_FILE_PATH="/var/run"
 CONFIG_FEATURE_SUID=y
 CONFIG_FEATURE_SUID_CONFIG=y
 CONFIG_FEATURE_SUID_CONFIG_QUIET=y
-# CONFIG_SELINUX is not set
+CONFIG_SELINUX=y
 # CONFIG_FEATURE_PREFER_APPLETS is not set
 CONFIG_BUSYBOX_EXEC_PATH="/proc/self/exe"
 CONFIG_FEATURE_SYSLOG=y
@@ -943,6 +943,10 @@ CONFIG_SV_DEFAULT_SERVICE_DIR=""
 # CONFIG_ENVUIDGID is not set
 # CONFIG_ENVDIR is not set
 # CONFIG_SOFTLIMIT is not set
+
+#
+# SELinux Utilities
+#
 # CONFIG_CHCON is not set
 # CONFIG_FEATURE_CHCON_LONG_OPTIONS is not set
 # CONFIG_GETENFORCE is not set
