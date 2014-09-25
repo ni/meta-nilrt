@@ -1,0 +1,281 @@
+#!/bin/bash
+
+print_help(){
+cat <<EOF
+fw_printenv/fw_setenv, an implementation of the U-Boot environment variable facility in Grub/EFI
+usage:  fw_printenv [-n] [variable name]
+	fw_setenv [variable name] [variable value]
+	fw_setenv -s [ file ]
+	fw_setenv -s - < [ file ]
+
+File syntax example:
+	# Any line starting with # is treated as comment
+	var1
+	var2          string value
+	other_value   1234
+
+In this case, var1 will be deleted, var2 and other_value
+will be set with the values passed. The value can contain any
+number of spaces.
+EOF
+}
+
+#show_variable functions will print all variables from specific environment if no input, or
+#they will write the value of the "$1" variable name
+
+show_variable_grub(){
+	if [ $# -eq 0 ] ; then
+		#show all variables
+		grub-editenv list
+		if [ $? -ne 0 ]; then
+			return 1
+		fi
+		return 0
+	else
+		set -o pipefail
+		value=$(grub-editenv - list | grep -- "$1=" | while read -r line; do
+			key=$(echo "$line" | cut -d "=" -f 1)
+			#if the $1 matches exactly the key, extract the value
+			if [ "$key" = "$1" ] ; then
+				value_tmp=$(echo "$line" | cut -d "=" -f 2)
+				echo "$value_tmp"
+				break
+			fi
+		done)
+		if [ $? -ne 0 ]; then
+			return 1
+		fi
+		if [[ $value ]]; then
+			return 0
+		fi
+		return 1
+	fi
+}
+
+readonly_grub_variable()
+{
+	grub_readonly_vars_file=/boot/.safe/GRUB_NI_readonly_vars
+	if [ ! -f  $grub_readonly_vars_file ]; then
+		#GRUB_NI read-only vars file does not exist
+		return 1
+	fi
+	grep -sw "$1" "$grub_readonly_vars_file"
+	return $?
+}
+
+show_variable_smbios(){
+	smbios_file=/boot/.safe/SMBIOS_NI_vars
+        if [ ! -f  $smbios_file ]; then
+                #SMBIOS vars file doed not exist
+                return 1
+        fi
+	set -o pipefail
+	while IFS=';' read -r key head name prefix
+	do
+		value=${prefix}$(/usr/sbin/dmidecode | sed -n "/$head/,/^$/p" | grep -- "$name" | awk -F "$name" '{print $2}')
+		if [ $? -ne 0 ]; then
+			return 1
+		fi
+		if [ $# -eq 0 ] ; then
+			#show each variable
+			echo "$key=$value"
+		elif [ "$1" = "$key" ] ; then
+			#value was found
+			return 0
+		fi
+		value=""
+	done < $smbios_file
+	if [ $# -eq 0 ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+show_variable_efi(){
+	efi_file=/boot/.safe/EFI_NI_vars
+        if [ ! -f  $efi_file ]; then
+                #EFI vars file doed not exist
+                return 1
+        fi
+	while read -r key
+	do
+		value=$(/sbin/efimgr -r "$key");
+		if [ $? -ne 0 ]; then
+			return 1
+		fi
+		if [ $# -eq 0 ] ; then
+			#show each variable
+			echo "$key=$value"
+		elif [ "$1" = "$key" ] ; then
+			#pass $value to caller
+			return 0
+		fi
+		value=""
+	done < $efi_file
+	if [ $# -eq 0 ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+
+#wraps together smbios, efi and grub variable query
+show_variable(){
+	if [ $# -eq 0 ]; then
+		#show all variables
+		show_variable_smbios && show_variable_efi && show_variable_grub
+		return $?
+	else
+		value=""
+		#check for single variable
+		if show_variable_smbios $1 || show_variable_efi  $1 || show_variable_grub $1; then
+			(( n_opt )) || printf '%s=' "$var_name"
+			printf '%s\n' "$value"
+			return 0
+		else
+			echo "## Error: \"$var_name\" not defined " >&2
+			exit 1
+		fi
+	fi
+}
+
+add_rem_vars(){
+	#SMBIOS - are read only variables
+	value=""
+	if show_variable_smbios "$var_name"; then
+		echo "Can't overwrite" "\"$var_name\"" >&2
+		exit 1
+	fi
+
+	#EFI
+	if show_variable_efi "$var_name"; then
+		/sbin/efimgr -W "$var_name" "$new_value"
+		return
+	fi
+
+	#Grub
+	if readonly_grub_variable "$var_name"; then
+		echo "Can't overwrite" "\"$var_name\"" >&2
+		exit 1
+	fi
+	if [[ $new_value ]]; then
+		grub-editenv - set "$var_name=$new_value"
+	else
+		grub-editenv - unset "$var_name"
+	fi
+}
+
+read_vars_from_file(){
+	if [[ $s_file == "-" ]]; then
+		exec {fd_file}>&0
+	else
+		if [ -f $s_file ]; then
+			#not valid file
+			echo "I cannot open $file for reading" >&2
+                        exit 1
+		fi
+		exec {fd_file}>"$s_file"
+	fi
+	while read -r line;
+	do
+		var_name=$(echo "$line" | awk -F " " '{print $1}')
+		new_value=$(echo "$line" | awk -F " " '{$1=""; print substr($0, 2)}')
+		add_rem_vars
+	done <&$fd_file
+	exec {fd_file}<&-
+}
+
+print_invalid_opt(){
+	echo "$0:  invalid option -- '$1'"
+	echo "Try '$0 --help' for more information"
+	exit 1
+}
+
+parse_opt(){
+	while getopts ":hn:s:-:" opt;
+	do
+		case "${opt}" in
+
+			-)	#check for long options
+				if [ "${OPTARG}" == "help" ]; then
+					#print help and exit
+					print_help >&2
+					exit
+				else
+					print_invalid_opt ${OPTARG} >&2
+				fi
+				;;
+			h)	#print help and exit
+				print_help >&2
+				exit
+				;;
+			s)	s_opt=1; s_file=$OPTARG ;;
+			n)	n_opt=1; varnames=$OPTARG ;;
+			*)	print_invalid_opt $OPTARG >&2
+				;;
+		esac
+	done
+
+        #check if there are other options passed incorrectly
+        shift $(($OPTIND - 1))
+        if [ "x$(echo $* | grep '\-')" != "x" ]; then
+                echo "$0:  invalid syntax" >&2
+                echo "Try '$0 --help' for more information"
+                exit 1
+        fi
+
+	if (( ! is_setenv && s_opt )); then
+		print_invalid_opt "s" >&2
+		exit 1
+	fi
+
+	if (( is_setenv && n_opt )); then
+		print_invalid_opt "n" >&2
+		exit 1
+	fi
+
+	if (( n_opt && $# )); then
+		echo "## Error: '-n' option requires exactly one argument" >&2
+		exit 1
+	fi
+}
+
+if [[ $0 =~ fw_setenv ]]; then
+	is_setenv=1
+fi
+
+#if grub folder does not exist, create it
+if [ ! -d "/boot/grub" ] ; then
+	mkdir -p /boot/grub
+fi
+
+#init values for parsing
+s_opt=0
+s_file=""
+n_opt=0
+varnames=$@
+
+#parse opt for both printenv and setenv
+parse_opt $@
+
+if (( ! is_setenv )) ; then
+	if [ $# -eq 0 ] ; then # if no arguments, list the variables
+		show_variable || exit $?
+	else
+		#show all variables passed by name
+		for var_name in $varnames
+		do
+			show_variable "$var_name"
+		done
+	fi
+else
+	if [ $s_opt -eq 1 ]; then
+		read_vars_from_file $s_file
+		exit
+	fi
+	var_name=$(echo "$@" | awk -F " " '{print $1}')
+	new_value=$(echo "$@" | awk -F " " '{$1=""; print substr($0, 2)}')
+	add_rem_vars
+fi
