@@ -7,7 +7,7 @@ PR = "r1"
 S = "${WORKDIR}"
 
 DEPENDS = "niacctbase"
-RDEPENDS_${PN} = "xfce4-settings xfce4-session xfce4-panel"
+RDEPENDS_${PN} = "niacctbase xfce4-settings xfce4-session xfce4-panel"
 
 user = "${LVRT_USER}"
 group = "${LVRT_GROUP}"
@@ -25,6 +25,8 @@ SRC_URI = "file://autostart/dpms.desktop \
 	file://xfce4/panel/launcher-2/terminal_emulator_launcher.desktop \
 	file://xfce4/panel/launcher-3/settings_manager_launcher.desktop \
 	file://xfce4/panel/launcher-4/display_settings_launcher.desktop \
+	file://xfce4/panel/showpanel \
+	file://xfce4/panel/hidepanel \
 	file://xfce4/xfconf/xfce-perchannel-xml/keyboards.xml \
 	file://xfce4/xfconf/xfce-perchannel-xml/thunar.xml \
 	file://xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml \
@@ -48,6 +50,10 @@ FILES_${PN} = "${confdir}/autostart/dpms.desktop \
 	    ${confdir}/xfce4/panel/launcher-2/terminal_emulator_launcher.desktop \
 	    ${confdir}/xfce4/panel/launcher-3/settings_manager_launcher.desktop \
 	    ${confdir}/xfce4/panel/launcher-4/display_settings_launcher.desktop \
+	    /usr/local/natinst/bin/showpanel \
+	    /usr/local/natinst/bin/hidepanel \
+	    /usr/local/bin/showpanel \
+	    /usr/local/bin/hidepanel \
 	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/keyboards.xml \
 	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/thunar.xml \
 	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml \
@@ -71,6 +77,8 @@ do_install () {
 	   install -d ${D}${confdir}/xfce4/panel/launcher-4
 	   install -d ${D}${confdir}/xfce4/xfconf/xfce-perchannel-xml
 	   install -d ${D}${backgrounddir}
+	   install -d ${D}/usr/local/bin
+	   install -d ${D}/usr/local/natinst/bin
 
 	   install -m 0644 ${S}/autostart/dpms.desktop ${D}${confdir}/autostart/
 	   install -m 0644 ${S}/autostart/screensaver.desktop ${D}${confdir}/autostart/
@@ -82,6 +90,8 @@ do_install () {
 	   install -m 0644 ${S}/xfce4/panel/launcher-2/terminal_emulator_launcher.desktop ${D}${confdir}/xfce4/panel/launcher-2/
 	   install -m 0644 ${S}/xfce4/panel/launcher-3/settings_manager_launcher.desktop ${D}${confdir}/xfce4/panel/launcher-3/
 	   install -m 0644 ${S}/xfce4/panel/launcher-4/display_settings_launcher.desktop ${D}${confdir}/xfce4/panel/launcher-4/
+	   install -m 0755 ${S}/xfce4/panel/showpanel ${D}/usr/local/natinst/bin/
+	   install -m 0755 ${S}/xfce4/panel/hidepanel ${D}/usr/local/natinst/bin/
 	   install -m 0644 ${S}/xfce4/xfconf/xfce-perchannel-xml/keyboards.xml ${D}${confdir}/xfce4/xfconf/xfce-perchannel-xml/
 	   install -m 0644 ${S}/xfce4/xfconf/xfce-perchannel-xml/thunar.xml ${D}${confdir}/xfce4/xfconf/xfce-perchannel-xml/
 	   install -m 0644 ${S}/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml ${D}${confdir}/xfce4/xfconf/xfce-perchannel-xml/
@@ -93,6 +103,9 @@ do_install () {
 	   install -m 0644 ${S}/xfce4/xfconf/xfce-perchannel-xml/xfce4-settings-manager.xml ${D}${confdir}/xfce4/xfconf/xfce-perchannel-xml/
 	   install -m 0644 ${S}/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml ${D}${confdir}/xfce4/xfconf/xfce-perchannel-xml/
 	   install -m 0644 ${S}/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml ${D}${confdir}/xfce4/xfconf/xfce-perchannel-xml/
+
+	   ln -sf /usr/local/natinst/bin/showpanel ${D}/usr/local/bin/showpanel
+	   ln -sf /usr/local/natinst/bin/hidepanel ${D}/usr/local/bin/hidepanel
 
 	   chown -R ${user}:${group} ${D}${homedir}
 }
