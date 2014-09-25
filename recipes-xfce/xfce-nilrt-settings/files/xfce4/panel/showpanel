@@ -1,0 +1,4 @@
+#!/bin/sh
+
+export DISPLAY=:0.0
+nohup xfce4-panel --display=:0.0 &>/dev/null &

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+export DISPLAY=:0.0
+ps | grep -v grep | grep "xfce4-panel" && xfce4-panel -q
