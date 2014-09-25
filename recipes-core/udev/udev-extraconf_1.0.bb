@@ -16,6 +16,7 @@ SRC_URI = " \
        file://network.sh \
        file://localextra.rules \
        file://net-hotplug.rules \
+       file://hotplug.script \
        file://50-plugdev.rules \
        file://61-removable-storage-polling.rules \
        file://70-usb-serial-permissions.rules \
@@ -38,12 +39,13 @@ do_install() {
 
     install -d ${D}${sysconfdir}/udev/scripts/
 
-    install -m 0755 ${WORKDIR}/mount.sh ${D}${sysconfdir}/udev/scripts/mount.sh
-    install -m 0755 ${WORKDIR}/network.sh ${D}${sysconfdir}/udev/scripts
+    install -m 0755 ${WORKDIR}/mount.sh            ${D}${sysconfdir}/udev/scripts/mount.sh
+    install -m 0755 ${WORKDIR}/network.sh          ${D}${sysconfdir}/udev/scripts/network.sh
+    install -m 0755 ${WORKDIR}/hotplug.script      ${D}${sysconfdir}/udev/scripts/hotplug.script
 }
 
 do_install_append_xilinx-zynq() {
-    install -m 0644 ${WORKDIR}/fpga.rules    ${D}${sysconfdir}/udev/rules.d/fpga.rules
+    install -m 0644 ${WORKDIR}/fpga.rules          ${D}${sysconfdir}/udev/rules.d/fpga.rules
 }
 
 FILES_${PN} = "${sysconfdir}/udev"
