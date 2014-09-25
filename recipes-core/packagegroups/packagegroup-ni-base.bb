@@ -47,6 +47,7 @@ RDEPENDS_${PN} = "\
 	lsb \
 	mtd-utils \
 	mtd-utils-ubifs \
+	ni-utils \
 	netbase \
 	niacctbase \
 	openssh-sshd \
