@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<item>
+	<group id="startupsettings" caption="{startupsettings}" weight="100" order="0">
+		<property id="app" caption="{noapp}" sysattr="335552512" writable="true" order="400" />
+	</group>
+</item>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<uistrings>
+	<str name="startupsettings">시작 셋팅</str>
+	<str name="nofpga">FPGA 시작 앱 비활성화</str>
+</uistrings>
