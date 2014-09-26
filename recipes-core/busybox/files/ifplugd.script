@@ -1,0 +1,47 @@
+#!/bin/sh
+# Usage: ifplugd.script <interface> <up|down|error> <extraVariableSetWith-xOption>
+# Also the following envvars are set:
+# IFPLUGD_PREVIOUS=<up|down|error>
+# IFPLUGD_CURRENT=<up|down|error>
+
+[ -z "$1" ] && echo "Error: should be called from ifplugd" && exit 1
+
+. /etc/natinst/networking/functions.common
+
+INTERFACE=$1
+
+# If there are drivers that need priorities changed, do it
+update_driver_priorities
+
+case "$2" in
+   up)
+      # On link-up, we're not guaranteed to be on the same network as
+      # we were before, so we should reprobe for an address if it's
+      # automatically configured.
+      if ( is_dhcp_enabled $INTERFACE ); then
+         if [ $(get_var section=$INTERFACE,token=dhcpserverenabled) = 1 ]; then
+            reload_dhcp_server $INTERFACE;
+         else
+            # DHCP, or DHCP+LinkLocal
+            reload_dhcp_client $INTERFACE;
+         fi
+      elif ( is_linklocal_enabled $INTERFACE ); then
+         # LinkLocal only
+         reload_linklocal_client $INTERFACE;
+      else
+         # static
+         start_static_interface $INTERFACE;
+      fi
+      update_interface_info $INTERFACE
+      ;;
+   down)
+      stop_dhcp_server $INTERFACE;
+      stop_dhcp_client $INTERFACE;
+      stop_linklocal_client $INTERFACE;
+
+      # We clearly aren't going to be able to do DNS on this interface anymore.
+      rm -f /etc/resolv.conf.$INTERFACE
+      update_resolv_conf
+      update_interface_info $INTERFACE
+      ;;
+esac
