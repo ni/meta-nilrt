@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<item>
+  <group id="settings" weight="0">
+    <property id="locale" sysattr="219271168" writable="true" order="41000" weight="100">
+      <stringlistoptions sysattr="219275264" separator=","/>
+      <map value="de" caption="{de}"/>
+      <map value="en" caption="{en}"/>
+      <map value="fr" caption="{fr}"/>
+      <map value="ko" caption="{ko}"/>
+      <map value="ja" caption="{ja}"/>
+      <map value="zh-Hans" caption="{zh-CN}"/>
+    </property>
+  </group>
+  <!-- Make Locale read only when Enable Embedded UI is enabled because localization is not supported -->
+  <!-- for UI enabled smasher targets in 2014. Refer to the NI Talk discussions for more information: -->
+  <!-- http://nitalk.natinst.com/message/258374#258374 and http://nitalk.natinst.com/message/262333#262333 -->
+  <rules>
+    <if>
+      <condition>
+        <!-- EnableEmbeddedUI == True -->
+        <eq sysattr="335560704" value="true" />
+      </condition>
+      <setprop id="settings.locale" writable="false" />
+    </if>
+  </rules>
+</item>
+<!-- Delete this file once we are able to support localization for UI Embedded Smasher Targets -->
