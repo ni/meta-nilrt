@@ -25,6 +25,7 @@ RDEPENDS_${PN} = "\
 	util-linux-sfdisk \
 	udev-cache \
 	zip \
+	${@base_contains("DISTRO_FEATURES", "x11", "sysconfig-settings-ui", "", d)} \
 "
 
 RDEPENDS_${PN}_append_x86-64 = " glibc-gconv-cp936"
