@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<item>
+	<group id="startupsettings" caption="{startupsettings}" weight="100" order="0">
+		<property id="uienable" caption="{uienable}" sysattr="335560704" writable="false" order="800" />
+	</group>
+  <!-- Make Enable Embedded UI writable only when Locale is set to English because localization is not supported -->
+  <!-- for UI enabled smasher targets in 2014. Refer to the NI Talk discussions for more information: -->
+  <!-- http://nitalk.natinst.com/message/258374#258374 and http://nitalk.natinst.com/message/262333#262333 -->
+	<rules>
+		<if>
+			<condition>
+				<!-- Locale == English -->
+				<eq sysattr="219271168" value="en" />
+			</condition>
+			<setprop id="startupsettings.uienable" writable="true" />
+		</if>
+	</rules>
+</item>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<uistrings>
+	<str name="de">독일어</str>
+	<str name="en">영어</str>
+	<str name="fr">프랑스어</str>
+	<str name="ja">일본어</str>
+	<str name="ko">한국어</str>
+	<str name="zh-CN">중국어(간체)</str>
+</uistrings>
+<!-- Delete this file once we are able to support localization for UI Embedded Smasher Targets -->
