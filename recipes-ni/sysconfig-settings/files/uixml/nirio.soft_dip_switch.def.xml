@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<item>
+	<group id="startupsettings" caption="{startupsettings}" weight="100" order="0">
+		<property id="fpga" caption="{nofpga}" sysattr="84955136" writable="true" order="500" />
+	</group>
+</item>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<uistrings>
+	<str name="startupsettings">启动设置</str>
+	<str name="nofpga">禁用FPGA启动应用程序</str>
+</uistrings>

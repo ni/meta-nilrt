@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<item>
+	<group id="startupsettings" caption="{startupsettings}" weight="100" order="0">
+		<property id="sshd" caption="{sshd}" sysattr="335544320" writable="true" order="600" />
+	</group>
+</item>

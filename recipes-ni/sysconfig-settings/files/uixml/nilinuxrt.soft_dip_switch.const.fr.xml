@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<uistrings>
+	<str name="startupsettings">Paramètres de démarrage</str>
+	<str name="noapp">Désactiver l&apos;application de démarrage RT</str>
+</uistrings>
