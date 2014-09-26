@@ -60,6 +60,7 @@ RDEPENDS_${PN} = "\
 	${@base_contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
 	pigz \
 	syslog-ng \
+	sysconfig-settings \
 	sysvinit \
 	tar \
 	udev-extraconf \
