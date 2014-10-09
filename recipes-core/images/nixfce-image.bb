@@ -22,9 +22,12 @@ IMAGE_INSTALL = "\
 	packagegroup-ni-runmode \
 	packagegroup-ni-wifi \
 	packagegroup-ni-xfce \
+	${ni_external_components} \
 	"
 
 IMAGE_FSTYPES = "tar.bz2"
+
+require include/ni-external-components.inc
 
 require include/niconsole-image.inc
 
