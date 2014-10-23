@@ -45,6 +45,7 @@ RDEPENDS_${PN} = "\
 	libnss-mdns \
 	libpam \
 	libstdc++ \
+	lsb \
 	mtd-utils \
 	mtd-utils-ubifs \
 	netbase \
