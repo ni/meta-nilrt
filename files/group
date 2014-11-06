@@ -25,3 +25,8 @@ xuser:x:382:
 systemd-journal:x:381:
 systemd-journal-gateway:x:380:
 gdm:x:379:
+squid:x:378:
+postfix:x:377:
+postdrop:x:376:
+bind:x:375:
+lpadmin:x:374:
