@@ -45,6 +45,7 @@ RDEPENDS_${PN} = "\
 	libpam \
 	libstdc++ \
 	lsb \
+	modutils-initscripts \
 	mtd-utils \
 	mtd-utils-ubifs \
 	ni-utils \
