@@ -6,9 +6,9 @@ SUMMARY = "Wi-Fi packages for NI Linux Realtime distribution"
 LICENSE = "MIT"
 PR = "r1"
 
-inherit packagegroup
-
 PACKAGE_ARCH = "${MACHINE_ARCH}"
+
+inherit packagegroup
 
 RDEPENDS_${PN} = "\
 	crda \
