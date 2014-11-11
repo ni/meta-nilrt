@@ -17,7 +17,8 @@ RDEPENDS_${PN} = "\
 	xserver-xfce-init \
 	xrdb \
 	xfce-nilrt-settings \
-	xorg-fonts-misc \
+	font-cursor-misc \
+	font-misc-misc \
 	xorg-fonts-100dpi \
 	xfontsel \
 	fontconfig-overrides \
