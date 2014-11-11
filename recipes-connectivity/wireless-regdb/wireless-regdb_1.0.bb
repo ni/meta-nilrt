@@ -9,7 +9,10 @@ PR = "r0"
 
 S = "${WORKDIR}/git"
 
-SRC_URI = "git://git.kernel.org/pub/scm/linux/kernel/git/linville/wireless-regdb.git;protocol=git;tag=master-2013-02-13"
+# corresponds to master-2013-02-13
+SRCREV = "bb99560ff69c44c30e47416501639e37014689c3"
+
+SRC_URI = "git://git.kernel.org/pub/scm/linux/kernel/git/linville/wireless-regdb.git;protocol=git"
 
 FILES_${PN} += "${libdir}/crda/regulatory.bin"
 FILES_${PN} += "${libdir}/crda/pubkeys/linville.key.pub.pem"
