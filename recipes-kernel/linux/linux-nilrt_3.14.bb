@@ -5,11 +5,11 @@ require recipes-kernel/linux/linux-yocto.inc
 
 # The NI kernel build includes on-target versioning tools that
 # link against the gcc provided runtime
-do_kernel_configme[depends] += "libgcc:do_populate_sysroot" 
+do_kernel_configme[depends] += "libgcc:do_populate_sysroot"
 
-SRC_URI = "git://git.amer.corp.natinst.com/linux.git;protocol=git;nocheckout=1;branch=nilrt/15.0/3.10"
+SRC_URI = "git://git.amer.corp.natinst.com/linux.git;protocol=git;nocheckout=1;branch=nilrt/15.0/3.14"
 
-LINUX_VERSION ?= "3.10"
+LINUX_VERSION ?= "3.14"
 LINUX_VERSION_EXTENSION ?= "-nilrt"
 
 # A defconfig must be provided to trigger OE to use a custom kernel config during patch.
@@ -17,6 +17,7 @@ LINUX_VERSION_EXTENSION ?= "-nilrt"
 # after kernel_checkout, so point to an empty defconfig to start.
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 SRC_URI += "file://defconfig"
+KCONFIG_MODE="--alldefconfig"
 
 SRCREV="${AUTOREV}"
 PV = "${LINUX_VERSION}+git${SRCPV}"
