@@ -1,0 +1,24 @@
+#!/bin/sh
+# Copyright (c) 2012-2013 National Instruments.
+# All rights reserved.
+# Spawn getty on the enabled, controlling console device. There will be at most
+# one of these. If there aren't any, use /dev/tty0. (This mostly matches
+# sysvinit behavior when $CONSOLE is unset.)
+
+. /etc/natinst/networking/functions.common
+update_all_interface_info
+
+[ "$1" != "" ] && DEFAULT_CONSOLE="$1" || DEFAULT_CONSOLE="tty2"
+CONSOLE=$DEFAULT_CONSOLE
+while read cons flags; do
+   case "$flags" in
+   *EC*) CONSOLE="$cons"
+         break
+         ;;
+   esac
+done < /proc/consoles
+
+# tty1 comes up by default in inittab, so disallow blank or conflicting choices
+[ "$CONSOLE" = "" ] || [ "$CONSOLE" = "tty0" ] || [ "$CONSOLE" = "tty1" ] && CONSOLE="$DEFAULT_CONSOLE"
+SPEED=`stty speed < /dev/$CONSOLE`
+exec /sbin/getty $SPEED $CONSOLE
