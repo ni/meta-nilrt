@@ -1,7 +1,8 @@
-
 FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/files:${THISDIR}/${PN}-${PV}:"
 
 DEPENDS += "niacctbase"
+RDEPENDS_${PN} += " niacctbase"
+do_install[depends] += "niacctbase:do_populate_sysroot"
 
 SRC_URI += "file://mimeapps.list"
 
