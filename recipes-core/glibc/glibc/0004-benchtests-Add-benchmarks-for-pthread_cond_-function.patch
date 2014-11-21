@@ -1,0 +1,457 @@
+From d22d29b8c836512d13529c02e86cac4472deb4e5 Mon Sep 17 00:00:00 2001
+From: Gratian Crisan <gratian.crisan@ni.com>
+Date: Mon, 30 Jun 2014 11:07:30 -0500
+Subject: [PATCH 4/5] benchtests: Add benchmarks for pthread_cond_* functions
+
+Add a benchmark set that measures the average execution time, min, max,
+running variance and standard deviation for:
+
+ - N threads calling pthread_cond_signal/pthread_cond_broadcast w/o any
+waiters consuming the signal.
+
+ - time it takes to execute pthread_cond_signal/pthread_cond_broadcast in
+the presence of a waiter.
+
+ - round trip time from the ptread_cond_signal call to pthread_cond_wait or
+pthread_cond_timedwait return for N threads.
+
+ - round trip time from the ptread_cond_broadcast call to pthread_cond_wait
+or pthread_cond_timedwait return for N threads.
+
+Signed-off-by: Gratian Crisan <gratian.crisan@ni.com>
+
+---
+Changes since v1:
+* Removed debugging leftover '-g' option from Makefile.
+* Replaced bzero() with memset().
+* Use size_t where appropriate.
+---
+ benchtests/Makefile             |   4 +-
+ benchtests/bench-pthread_cond.c | 387 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 390 insertions(+), 1 deletion(-)
+ create mode 100644 benchtests/bench-pthread_cond.c
+
+diff --git a/benchtests/Makefile b/benchtests/Makefile
+index fd3036d..3ea254a 100644
+--- a/benchtests/Makefile
++++ b/benchtests/Makefile
+@@ -26,6 +26,7 @@ bench-math := acos acosh asin asinh atan atanh cos cosh exp exp2 ffs ffsll \
+ 	      log log2 modf pow rint sin sincos sinh sqrt tan tanh
+ 
+ bench-pthread := pthread_once
++bench-pthread-set := pthread_cond
+ 
+ bench := $(bench-math) $(bench-pthread)
+ 
+@@ -39,13 +40,14 @@ string-bench-all := $(string-bench)
+ 
+ stdlib-bench := strtod
+ 
+-benchset := $(string-bench-all) $(stdlib-bench)
++benchset := $(string-bench-all) $(stdlib-bench) $(bench-pthread-set)
+ 
+ CFLAGS-bench-ffs.c += -fno-builtin
+ CFLAGS-bench-ffsll.c += -fno-builtin
+ 
+ $(addprefix $(objpfx)bench-,$(bench-math)): $(libm)
+ $(addprefix $(objpfx)bench-,$(bench-pthread)): $(shared-thread-library)
++$(addprefix $(objpfx)bench-,$(bench-pthread-set)): $(shared-thread-library) $(libm)
+ 
+ 
+ 
+diff --git a/benchtests/bench-pthread_cond.c b/benchtests/bench-pthread_cond.c
+new file mode 100644
+index 0000000..8accdb7
+--- /dev/null
++++ b/benchtests/bench-pthread_cond.c
+@@ -0,0 +1,387 @@
++/* Measure the performance of pthread_cond_* family of functions.
++   Copyright (C) 2013-2014 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++
++#include <error.h>
++#include <errno.h>
++#include <unistd.h>
++#include <pthread.h>
++#include <sched.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <stdint.h>
++#include <sched.h>
++#include <time.h>
++#include <math.h>
++
++#include "bench-timing.h"
++
++typedef enum
++  {
++    COND_START,
++    COND_WAITING,
++    COND_SIGNALED,
++    COND_STOP
++  } state_t;
++
++/* Uncomment to run benchmarks at RT priority */
++/* #define REALTIME 1	*/
++
++#define TIMEDWAIT_FLAG	(1<<0)
++#define BROADCAST_FLAG	(1<<1)
++#define ROUNDTRIP_FLAG	(1<<2)
++
++typedef struct
++{
++  pthread_t tid;
++  pthread_cond_t cond;
++  pthread_mutex_t mutex;
++  volatile state_t state;
++  uint32_t flags;
++  size_t iters;
++  timing_t start;
++  timing_t stop;
++} params_t;
++
++typedef struct
++{
++  timing_t sum;
++  timing_t min;
++  timing_t max;
++  size_t n;
++  double rmean;
++  double rvar;
++} stats_t;
++
++static stats_t g_stats;
++static pthread_mutex_t g_stats_mutex = PTHREAD_MUTEX_INITIALIZER;
++
++static void
++init_stats (void)
++{
++  memset (&g_stats, 0, sizeof (stats_t));
++}
++
++static void
++update_stats (params_t *p)
++{
++  timing_t diff;
++  double delta;
++
++  pthread_mutex_lock (&g_stats_mutex);
++
++  g_stats.n++;
++  TIMING_DIFF (diff, p->start, p->stop);
++  TIMING_ACCUM (g_stats.sum, diff);
++  if (diff > g_stats.max)
++    g_stats.max = diff;
++  if (diff < g_stats.min || g_stats.min == 0)
++    g_stats.min = diff;
++  delta = diff - g_stats.rmean;
++  g_stats.rmean += delta / g_stats.n;
++  g_stats.rvar += delta * (diff - g_stats.rmean);
++
++  pthread_mutex_unlock (&g_stats_mutex);
++}
++
++static void
++print_stats (size_t niters, size_t nthreads)
++{
++  double variance;
++
++  variance = (g_stats.n > 1) ? g_stats.rvar / (g_stats.n - 1) : 0.0;
++
++  printf ("%-14u%-11u", (unsigned int) niters, (unsigned int) nthreads);
++  printf ("%-11g", (double) g_stats.sum / (double) g_stats.n);
++  printf ("%-8u%-12u", (unsigned int) g_stats.min, (unsigned int) g_stats.max);
++  printf ("%-15e%g\n", variance, sqrt (variance));
++}
++
++static void
++create_thread (params_t *p, void *(*function) (void *))
++{
++  pthread_attr_t attr;
++  pthread_condattr_t cond_attr;
++#ifdef REALTIME
++  int priority;
++  struct sched_param schedp;
++#endif
++
++  p->state = COND_START;
++  p->start = 0;
++  p->stop = 0;
++
++  if (pthread_mutex_init (&p->mutex, NULL) != 0)
++    error (EXIT_FAILURE, errno, "pthread_mutex_init failed");
++
++  if (pthread_condattr_init (&cond_attr) != 0)
++    error (EXIT_FAILURE, errno, "pthread_condattr_init failed");
++
++  if (p->flags & TIMEDWAIT_FLAG)
++    if (pthread_condattr_setclock (&cond_attr, CLOCK_MONOTONIC) != 0)
++      error (EXIT_FAILURE, errno, "pthread_condattr_setclock failed");
++
++  if (pthread_cond_init (&p->cond, &cond_attr) != 0)
++    error (EXIT_FAILURE, errno, "pthread_cond_init failed");
++
++  if (pthread_attr_init (&attr) != 0)
++    error (EXIT_FAILURE, errno, "pthread_attr_init failed");
++
++#ifdef REALTIME
++  priority = sched_get_priority_max (SCHED_FIFO);
++  if (priority == -1)
++    error (EXIT_FAILURE, errno, "sched_get_priority_max failed");
++
++  schedp.sched_priority = priority - 1;
++  if (sched_setscheduler (getpid (), SCHED_FIFO, &schedp) != 0)
++    error (EXIT_FAILURE, errno, "sched_setscheduler failed");
++
++  if (pthread_attr_setschedpolicy (&attr, SCHED_FIFO) != 0)
++    error (EXIT_FAILURE, errno, "sched_setscheduler failed");
++
++  if (pthread_attr_setschedparam (&attr, &schedp) != 0)
++    error (EXIT_FAILURE, errno, "sched_setscheduler failed");
++#endif
++
++  if (pthread_create (&p->tid, &attr, function, (void *) p) != 0)
++    error (EXIT_FAILURE, errno, "pthread_create failed");
++}
++
++static void *
++signaler (void *arg)
++{
++  params_t *p = (params_t *) arg;
++  size_t i;
++
++  for (i = 0; i < p->iters; i++)
++    {
++      pthread_mutex_lock (&p->mutex);
++      if (p->flags & BROADCAST_FLAG)
++	{
++	  TIMING_NOW (p->start);
++	  if (pthread_cond_broadcast (&p->cond) != 0)
++	    error (EXIT_FAILURE, errno, "pthread_cond_broadcast failed");
++	}
++      else
++	{
++	  TIMING_NOW (p->start);
++	  if (pthread_cond_signal (&p->cond) != 0)
++	    error (EXIT_FAILURE, errno, "pthread_cond_signal failed");
++	}
++      TIMING_NOW (p->stop);
++      update_stats (p);
++      pthread_mutex_unlock (&p->mutex);
++    }
++
++  return NULL;
++}
++
++static void
++do_signal_test (size_t niters, size_t nthreads, uint32_t flags)
++{
++  size_t i;
++  params_t *params;
++
++  init_stats ();
++
++  params = (params_t *) malloc (sizeof (params_t) * nthreads);
++  if (params == NULL)
++    error (EXIT_FAILURE, errno, "out of memory");
++
++  for (i = 0; i < nthreads; i++)
++    {
++      params[i].iters = niters;
++      params[i].flags = flags;
++      create_thread (&params[i], signaler);
++    }
++
++  for (i = 0; i < nthreads; i++)
++    pthread_join (params[i].tid, NULL);
++
++  printf ("%s\t",
++	  (flags & BROADCAST_FLAG) ?
++	  "broadcast (w/o waiters)" : "signal (w/o waiters)");
++  print_stats (niters, nthreads);
++
++  free (params);
++}
++
++static void *
++waiter (void *arg)
++{
++  params_t *p = (params_t *) arg;
++  struct timespec ts;
++
++  while (p->state == COND_START)
++    {
++      pthread_mutex_lock (&p->mutex);
++      p->state = COND_WAITING;
++      if (p->flags & TIMEDWAIT_FLAG)
++	{
++	  if (clock_gettime (CLOCK_MONOTONIC, &ts) != 0)
++	    error (EXIT_FAILURE, errno, "clock_gettime failed");
++
++	  /* Long timeout value, for this benchmark
++	     we do not want to time out. */
++	  ts.tv_sec += 60;
++	  if (pthread_cond_timedwait (&p->cond, &p->mutex, &ts) != 0)
++	    error (EXIT_FAILURE, errno, "pthread_cond_timedwait failed");
++	}
++      else
++	{
++	  if (pthread_cond_wait (&p->cond, &p->mutex) != 0)
++	    error (EXIT_FAILURE, errno, "pthread_cond_wait failed");
++	}
++      if (p->flags & ROUNDTRIP_FLAG)
++	{
++	  TIMING_NOW (p->stop);
++	  update_stats (p);
++	}
++      if (p->state == COND_STOP)
++	{
++	  pthread_mutex_unlock (&p->mutex);
++	  break;
++	}
++      p->state = COND_SIGNALED;
++      pthread_mutex_unlock (&p->mutex);
++
++      while (p->state == COND_SIGNALED)
++	sched_yield ();
++    }
++
++  return NULL;
++}
++
++static void
++signal_waiter (params_t *p)
++{
++  pthread_mutex_lock (&p->mutex);
++  while (p->state == COND_START)
++    {
++      pthread_mutex_unlock (&p->mutex);
++      sched_yield ();
++      pthread_mutex_lock (&p->mutex);
++    }
++
++  if (p->flags & BROADCAST_FLAG)
++    {
++      TIMING_NOW (p->start);
++      if (pthread_cond_broadcast (&p->cond) != 0)
++	error (EXIT_FAILURE, errno, "pthread_cond_broadcast failed");
++    }
++  else
++    {
++      TIMING_NOW (p->start);
++      if (pthread_cond_signal (&p->cond) != 0)
++	error (EXIT_FAILURE, errno, "pthread_cond_signal failed");
++    }
++  if (!(p->flags & ROUNDTRIP_FLAG))
++    {
++      TIMING_NOW (p->stop);
++      update_stats (p);
++    }
++
++  do
++    {
++      pthread_mutex_unlock (&p->mutex);
++      sched_yield ();
++      pthread_mutex_lock (&p->mutex);
++    }
++  while (p->state != COND_SIGNALED);
++
++  p->state = COND_START;
++  pthread_mutex_unlock (&p->mutex);
++}
++
++static void
++stop_waiter (params_t *p)
++{
++  pthread_mutex_lock (&p->mutex);
++  while (p->state != COND_WAITING)
++    {
++      pthread_mutex_unlock (&p->mutex);
++      sched_yield ();
++      pthread_mutex_lock (&p->mutex);
++    }
++  p->state = COND_STOP;
++  pthread_cond_signal (&p->cond);
++  pthread_mutex_unlock (&p->mutex);
++
++  pthread_join (p->tid, NULL);
++}
++
++static void
++do_test (size_t niters, size_t nthreads, uint32_t flags)
++{
++  size_t i, j;
++  params_t *params;
++
++  init_stats ();
++
++  params = (params_t *) malloc (sizeof (params_t) * nthreads);
++  if (params == NULL)
++    error (EXIT_FAILURE, errno, "out of memory");
++
++  for (i = 0; i < nthreads; i++)
++    {
++      params[i].flags = flags;
++      create_thread (&params[i], waiter);
++    }
++
++  for (i = 0; i < niters; i++)
++    for (j = 0; j < nthreads; j++)
++      signal_waiter (&params[j]);
++
++  for (i = 0; i < nthreads; i++)
++    stop_waiter (&params[i]);
++
++  if (flags & ROUNDTRIP_FLAG)
++    printf ("%s/%s\t",
++	    (flags & BROADCAST_FLAG) ? "broadcast" : "signal",
++	    (flags & TIMEDWAIT_FLAG) ? "timedwait" : "wait\t");
++  else
++    printf ("%s\t\t",
++	    (flags & BROADCAST_FLAG) ? "broadcast" : "signal\t");
++  print_stats (niters, nthreads);
++
++  free (params);
++}
++
++int
++test_main (void)
++{
++  printf ("pthread_cond_[test]\titerations    threads    mean       min     "
++	  "max         variance       std. deviation\n");
++  printf ("-----------------------------------------------------------------"
++	  "--------------------------------------------\n");
++  do_signal_test (1000000, 100, 0);
++  do_signal_test (1000000, 100, BROADCAST_FLAG);
++  do_test (1000000, 1, 0);
++  do_test (1000000, 1, BROADCAST_FLAG);
++  do_test (100000, 100, ROUNDTRIP_FLAG);
++  do_test (100000, 100, TIMEDWAIT_FLAG | ROUNDTRIP_FLAG);
++  do_test (100000, 100, BROADCAST_FLAG | ROUNDTRIP_FLAG);
++  do_test (100000, 100, BROADCAST_FLAG | TIMEDWAIT_FLAG | ROUNDTRIP_FLAG);
++
++  return EXIT_SUCCESS;
++}
++
++#define TIMEOUT (4 * 60)
++#define TEST_FUNCTION test_main ()
++#include "../test-skeleton.c"
+-- 
+2.1.1
+
