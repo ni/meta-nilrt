@@ -22,7 +22,6 @@ RDEPENDS_${PN} = "\
 	xorg-fonts-100dpi \
 	xfontsel \
 	fontconfig-overrides \
-	gnome-icon-theme-minimal \
 	mousepad \
 	ttf-pt-sans \
 "
