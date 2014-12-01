@@ -18,7 +18,6 @@ MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS ?= ""
 
 RDEPENDS_${PN} = "\
 	avahi-daemon \
-	avahi-dnsconfd \
 	base-files \
 	base-passwd \
 	${@base_contains("MACHINE_FEATURES", "keyboard", "keymaps", "", d)} \
