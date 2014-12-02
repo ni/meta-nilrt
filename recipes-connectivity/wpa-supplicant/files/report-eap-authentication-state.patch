@@ -1,0 +1,112 @@
+diff -urN a/src/eapol_supp/eapol_supp_sm.c b/src/eapol_supp/eapol_supp_sm.c
+--- a/src/eapol_supp/eapol_supp_sm.c	2013-01-12 09:42:53.000000000 -0600
++++ b/src/eapol_supp/eapol_supp_sm.c	2013-08-20 14:28:51.515563059 -0500
+@@ -1075,6 +1075,23 @@
+ 	return len;
+ }
+ 
++/**
++ * eapol_sm_has_authentication_failed - Return true if EAPOL state machine reports authentication failed
++ * @sm: Pointer to EAPOL state machine allocated with eapol_sm_init()
++ * Returns: TRUE if EAPOL state machine reports authentication failure
++ *
++ */
++Boolean eapol_sm_has_authentication_failed(struct eapol_sm *sm)
++{
++	if (sm == NULL)
++		return FALSE;
++	if ((sm->suppPortStatus == Unauthorized && sm->SUPP_PAE_state == SUPP_PAE_HELD) ||
++	    eap_sm_has_authentication_failed(sm->eap))
++		return TRUE;
++	else
++		return FALSE;
++
++}
+ 
+ /**
+  * eapol_sm_get_mib - Get EAPOL state machine MIBs
+diff -urN a/src/eapol_supp/eapol_supp_sm.h b/src/eapol_supp/eapol_supp_sm.h
+--- a/src/eapol_supp/eapol_supp_sm.h	2013-01-12 09:42:53.000000000 -0600
++++ b/src/eapol_supp/eapol_supp_sm.h	2013-08-20 14:28:51.515563059 -0500
+@@ -259,6 +259,7 @@
+ void eapol_sm_step(struct eapol_sm *sm);
+ int eapol_sm_get_status(struct eapol_sm *sm, char *buf, size_t buflen,
+ 			int verbose);
++Boolean eapol_sm_has_authentication_failed(struct eapol_sm *sm);
+ int eapol_sm_get_mib(struct eapol_sm *sm, char *buf, size_t buflen);
+ void eapol_sm_configure(struct eapol_sm *sm, int heldPeriod, int authPeriod,
+ 			int startPeriod, int maxStart);
+diff -urN a/src/eap_peer/eap.c b/src/eap_peer/eap.c
+--- a/src/eap_peer/eap.c	2013-01-12 09:42:53.000000000 -0600
++++ b/src/eap_peer/eap.c	2013-08-20 14:28:51.579563059 -0500
+@@ -1614,6 +1614,26 @@
+ 
+ 	return len;
+ }
++
++
++/**
++ * eap_sm_has_authentication_failed - return true if EAP state machine reports authentication failure
++ * @sm: Pointer to EAP state machine allocated with eap_peer_sm_init()
++ * Returns: reports TRYE if EAP state machine reports authentication failure
++ *
++ */
++Boolean eap_sm_has_authentication_failed(struct eap_sm *sm)
++{
++	if (sm == NULL)
++		return FALSE;
++
++	if (sm->decision == DECISION_FAIL && sm->methodState == METHOD_MAY_CONT)
++		return TRUE;
++	else
++		return FALSE;
++
++}
++
+ #endif /* CONFIG_CTRL_IFACE */
+ 
+ 
+diff -urN a/src/eap_peer/eap.h b/src/eap_peer/eap.h
+--- a/src/eap_peer/eap.h	2013-01-12 09:42:53.000000000 -0600
++++ b/src/eap_peer/eap.h	2013-08-20 14:28:51.579563059 -0500
+@@ -288,6 +288,7 @@
+ void eap_sm_abort(struct eap_sm *sm);
+ int eap_sm_get_status(struct eap_sm *sm, char *buf, size_t buflen,
+ 		      int verbose);
++Boolean eap_sm_has_authentication_failed(struct eap_sm *sm);
+ const char * eap_sm_get_method_name(struct eap_sm *sm);
+ struct wpabuf * eap_sm_buildIdentity(struct eap_sm *sm, int id, int encrypted);
+ void eap_sm_request_identity(struct eap_sm *sm);
+diff -urN a/wpa_supplicant/dbus/dbus_new_handlers.c b/wpa_supplicant/dbus/dbus_new_handlers.c
+--- a/wpa_supplicant/dbus/dbus_new_handlers.c	2013-01-12 09:42:53.000000000 -0600
++++ b/wpa_supplicant/dbus/dbus_new_handlers.c	2013-08-20 14:28:51.579563059 -0500
+@@ -2284,8 +2284,27 @@
+ 	const char *str_state;
+ 	char *state_ls, *tmp;
+ 	dbus_bool_t success = FALSE;
+-
+-	str_state = wpa_supplicant_state_txt(wpa_s->wpa_state);
++	
++	/**
++	 * Need to check whether supplicant state is inactive BEFORE
++	 * checking failed authentication state (for EAP security types only).
++	 * The eapol state machine does not reset authentication state
++	 * when it transitions TO the inactive state.
++	 *
++	 */
++	if (wpa_s->wpa_state == WPA_INACTIVE)
++	{
++		str_state = wpa_supplicant_state_txt(wpa_s->wpa_state);
++	}
++	else if (wpa_s->key_mgmt == WPA_KEY_MGMT_IEEE8021X &&
++	    eapol_sm_has_authentication_failed(wpa_s->eapol))
++	{
++		str_state = "UNAUTHORIZED";
++	}
++	else
++	{
++		str_state = wpa_supplicant_state_txt(wpa_s->wpa_state);
++	}
+ 
+ 	/* make state string lowercase to fit new DBus API convention
+ 	 */
