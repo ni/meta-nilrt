@@ -1,0 +1,49 @@
+diff -urN a/wpa_supplicant/dbus/dbus_new_handlers.c b/wpa_supplicant/dbus/dbus_new_handlers.c
+--- a/wpa_supplicant/dbus/dbus_new_handlers.c	2013-01-12 09:42:53.000000000 -0600
++++ b/wpa_supplicant/dbus/dbus_new_handlers.c	2013-08-20 14:26:52.831563269 -0500
+@@ -126,7 +126,9 @@
+ 	"bssid", "scan_freq", "freq_list", NULL
+ };
+ 
+-static dbus_bool_t should_quote_opt(const char *key)
++static dbus_bool_t should_quote_opt(const char *key, 
++				size_t value_length, 
++				char *value)
+ {
+ 	int i = 0;
+ 	while (dont_quote[i] != NULL) {
+@@ -134,7 +136,21 @@
+ 			return FALSE;
+ 		i++;
+ 	}
+-	return TRUE;
++
++	/* WEP 64-bit, WEP 128-bit and WPA-PSK  hex keys should not be quoted*/
++	if ((os_strcmp(key, "wep_key0") == 0 || 
++		os_strcmp(key, "wep_key1") == 0 ||
++		os_strcmp(key, "wep_key2") == 0 ||
++		os_strcmp(key, "wep_key3") == 0) && ((value_length == 10) || (value_length == 26))){
++		return FALSE;
++	}
++	else if ((os_strcmp(key, "psk") == 0) && (value_length == PMK_LEN*2)) {
++		u8 temp_buffer[PMK_LEN];
++		if (hexstr2bin(value, temp_buffer, PMK_LEN) == 0)
++			return FALSE;
++	}
++	else
++		return TRUE;
+ }
+ 
+ /**
+@@ -203,8 +219,9 @@
+ 			if (ret <= 0)
+ 				goto error;
+ 		} else if (entry.type == DBUS_TYPE_STRING) {
+-			if (should_quote_opt(entry.key)) {
+-				size = os_strlen(entry.str_value);
++			size = os_strlen(entry.str_value);
++			if (should_quote_opt(entry.key, size, entry.str_value)) {
++	
+ 				if (size <= 0)
+ 					goto error;
+ 
