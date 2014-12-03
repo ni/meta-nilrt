@@ -489,7 +489,7 @@ CONFIG_CTRL_IFACE_DBUS_NEW=y
 #CONFIG_NO_RANDOM_POOL=y
 
 # IEEE 802.11n (High Throughput) support (mainly for AP mode)
-#CONFIG_IEEE80211N=y
+CONFIG_IEEE80211N=y
 
 # IEEE 802.11ac (Very High Throughput) support (mainly for AP mode)
 # (depends on CONFIG_IEEE80211N)
