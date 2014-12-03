@@ -55,8 +55,8 @@ RDEPENDS_${PN} += "\
 	cpp \
 	cpp-symlinks \
 	distcc \
-	eglibc-utils \
-	eglibc-gconv-ibm850 \
+	glibc-utils \
+	glibc-gconv-ibm850 \
 	file \
 	findutils \
 	g++ \
@@ -285,7 +285,7 @@ RDEPENDS_${PN} += "\
 	cppunit \
 	lemon \
 	ltrace \
-	lua5.1 \
+	lua \
 ${@base_contains("DISTRO_FEATURES", "x11", " \
 packagekit \
 tk \
@@ -348,7 +348,6 @@ RDEPENDS_${PN} += "\
 	tcsh \
 	tmux \
 	zram \
-	zsh \
 ${@base_contains("DISTRO_FEATURES", "x11", " \
 gnuplot polkit \
 ", "", d)} \
