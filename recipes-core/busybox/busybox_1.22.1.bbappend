@@ -2,7 +2,7 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/files:${THISDIR}/${PN}:"
 
 SRC_URI =+ "file://automount.sh file://usb.sh"
-SRC_URI =+ "file://busybox-cron"
+SRC_URI =+ "file://busybox-cron file://cron.conf"
 SRC_URI =+ "file://busybox-ifplugd"
 SRC_URI =+ "file://busybox-acpid file://acpid.conf file://acpid_poweroff.sh"
 
@@ -30,6 +30,8 @@ do_install_append () {
 	if grep "CONFIG_CROND=y" ${B}/.config; then
 		install -m 0755 ${WORKDIR}/busybox-cron ${D}${sysconfdir}/init.d/
 		install -d ${D}${sysconfdir}/cron/crontabs
+		install -d ${D}${sysconfdir}/logrotate.d
+		install -m 644 ${WORKDIR}/cron.conf ${D}${sysconfdir}/logrotate.d/
 	fi
 	if grep "CONFIG_IFPLUGD=y" ${B}/.config; then
 	       install -m 0755 ${WORKDIR}/busybox-ifplugd ${D}${sysconfdir}/init.d/
