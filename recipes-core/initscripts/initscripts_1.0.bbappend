@@ -29,4 +29,8 @@ do_install_append() {
 	update-rc.d -r ${D} checkroot.sh remove
 	update-rc.d -r ${D} mountnfs.sh remove
 	update-rc.d -r ${D} read-only-rootfs-hook.sh remove
+
+	if [ "${TARGET_ARCH}" = "arm" ]; then
+		sed -i -e "s/echo \"3\"/echo \"5\"/" ${D}/${sysconfdir}/init.d/alignment.sh
+	fi
 }
