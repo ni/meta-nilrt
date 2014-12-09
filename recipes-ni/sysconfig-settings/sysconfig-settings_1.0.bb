@@ -30,4 +30,18 @@ do_install () {
 	install -d -m 0775 ${D}${localstatedir}/local/natinst/systemsettings/
 	chown ${user}:${group} ${D}${localstatedir}/local/natinst/systemsettings/
 	install -m 0644 ${WORKDIR}/systemsettings/* ${D}${localstatedir}/local/natinst/systemsettings/
+
+	install -d -m 0755 ${D}${sysconfdir}/natinst/
+	install -m 0755 ${WORKDIR}/niselectsystemsettings ${D}${sysconfdir}/natinst/
+}
+
+# To delay the execution of the postinst to first boot, check $D and error
+# if empty. Process explained in the Yocto Manual Post-Installation Scripts
+# section.
+pkg_postinst_${PN} () {
+	if [ x"$D" = "x" ]; then
+		${sysconfdir}/natinst/niselectsystemsettings postinst
+	else
+		exit 1
+	fi
 }
