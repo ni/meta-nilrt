@@ -449,6 +449,13 @@ imagemagick \
 # meta-oe/meta-gnome
 RDEPENDS_${PN} += "${@base_contains("DISTRO_FEATURES", "x11", " florence ", "", d)}"
 
+# meta-oe/meta-xfce
+RDEPENDS_${PN} += "\
+${@base_contains("DISTRO_FEATURES", "x11", " \
+	xfce4-screenshooter \
+", "", d)} \
+"
+
 # meta-selinux
 RDEPENDS_${PN} += "packagegroup-ni-selinux"
 
