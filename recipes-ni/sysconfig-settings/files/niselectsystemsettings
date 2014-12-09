@@ -1,0 +1,19 @@
+#!/bin/bash
+#
+# Copyright (c) 2014 National Instruments
+#
+# Select the system settings that will be published to the system API
+#
+
+TARGET_CLASS=`/sbin/fw_printenv -n TargetClass 2>&1`
+SYS_SETTINGS_DIR=/var/local/natinst/systemsettings
+
+# Ethernet RIO targets should not have RT startup settings
+if [ "$TARGET_CLASS" = "Ethernet RIO" ]; then
+	echo "" > $SYS_SETTINGS_DIR/rt_target.ini
+fi
+
+# cDAQ targets should not have FPGA startup settings
+if [ "$TARGET_CLASS" = "cDAQ" -o "$TARGET_CLASS" = "CVS" ]; then
+	echo "" > $SYS_SETTINGS_DIR/fpga_target.ini
+fi
