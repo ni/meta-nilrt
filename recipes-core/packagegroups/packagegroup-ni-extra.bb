@@ -451,3 +451,6 @@ RDEPENDS_${PN} += "${@base_contains("DISTRO_FEATURES", "x11", " florence ", "", 
 
 # meta-selinux
 RDEPENDS_${PN} += "packagegroup-ni-selinux"
+
+# meta-ruby (from meta-openembedded)
+RDEPENDS_${PN} += "ruby"
