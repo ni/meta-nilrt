@@ -295,12 +295,15 @@ tk \
 # php - fail
 # nodejs - fail
 
-# meta-oe/recipes-devtools/python
+# meta-oe/recipes-devtools/python (most now in meta-oe/meta-python)
 RDEPENDS_${PN} += "\
 	pyrtm \
+	python-autobahn \
 	python-cheetah \
+	python-cloudeebus \
 	python-cython \
 	python-dateutil \
+	python-decorator \
 	python-docutils \
 	python-epydoc \
 	python-feedparser \
@@ -310,18 +313,23 @@ RDEPENDS_${PN} += "\
 	python-ldap \
 	python-lxml \
 	python-m2crypto \
+	python-matplotlib \
 	python-nose \
 	python-numeric \
 	python-pexpect \
+	python-pip \
 	python-psutil \
 	python-pyalsaaudio \
 	python-pyopenssl \
 	python-pyserial \
+	python-pytz \
 	python-pyudev \
 	python-pyusb \
 	python-pyyaml \
 	python-simplejson \
+	python-slip-dbus \
 	python-smbus \
+	python-snakefood \
 	python-sqlalchemy \
 	python-tornado \
 	python-twisted \
@@ -332,9 +340,12 @@ ${@base_contains("DISTRO_FEATURES", "x11", " \
 python-sip python-pyqt \
 ", "", d)} \
 "
-# python-matplotlib - conflicts with several other pkgs
 
-# python-numpy - fail
+# python-numpy
+RDEPENDS_${PN} += "\
+	python-numpy \
+"
+
 # python-mako - fail
 
 # meta-oe/recipes-extended
