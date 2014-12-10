@@ -430,6 +430,8 @@ RDEPENDS_${PN} += "\
 	nano \
 	nmon \
 	ntfs-3g-ntfsprogs \
+	opencv \
+	opencv-samples \
 	openldap \
 	picocom \
 	postgresql \
@@ -451,7 +453,6 @@ imagemagick \
 ", "", d)} \
 "
 # ccid -- requires pcsc, whose tarball is 0 size
-# opencv opencv-samples - requires python-numpy
 # lzip - fail
 # emacs - fail
 # lzma - conflicts with xz?
