@@ -279,6 +279,11 @@ networkmanager \
 ", "", d)} \
 "
 
+# meta-oe/recipes-connectivity
+RDEPENDS_${PN} += "\
+	ser2net \
+"
+
 # meta-oe/recipes-devtools
 RDEPENDS_${PN} += "\
 	bootchart \
