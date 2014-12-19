@@ -287,6 +287,7 @@ RDEPENDS_${PN} += "\
 # meta-oe/recipes-devtools
 RDEPENDS_${PN} += "\
 	bootchart \
+	cgdb \
 	cppunit \
 	lemon \
 	ltrace \
