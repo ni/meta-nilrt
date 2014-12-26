@@ -19,7 +19,9 @@ FILES_${PN} += "/usr/local/natinst/bin/* \
 
 DEPENDS += "niacctbase"
 
-RDEPENDS_${PN} += "niacctbase"
+RDEPENDS_${PN} += "niacctbase \
+	${@base_contains("MACHINE_FEATURES", "x86", "grub-editenv", "", d)} \
+"
 
 group = "${LVRT_GROUP}"
 
