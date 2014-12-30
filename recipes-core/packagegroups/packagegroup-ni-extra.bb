@@ -265,6 +265,7 @@ RDEPENDS_${PN} += "\
 	bonnie++ \
 	iozone3 \
 	iperf \
+	iperf3 \
 	lmbench \
 	memtester \
 	iw \
