@@ -1,6 +1,6 @@
 DESCRIPTION = "Runmode image for ethernet-based NI Linux Real-Time targets running XFCE."
 
-IMAGE_PREPROCESS_COMMAND = "rootfs_update_timestamp"
+IMAGE_PREPROCESS_COMMAND = "rootfs_update_timestamp; "
 
 IMAGE_INSTALL = "\
 	packagegroup-ni-base \
