@@ -16,7 +16,7 @@ GROUPADD_PARAM_${PN} = " --system -g 500 ${LVRT_GROUP}; \
 
 USERADD_PARAM_${PN} = " -u 500 -N -g ${LVRT_GROUP} -G niwscerts,plugdev,tty -c 'LabVIEW user' ${LVRT_USER}; \
 		-u 499 -N -g openvpn -c 'OpenVPN' -r openvpn; \
-		-u 501 -N -g ${LVRT_GROUP} -G niwscerts,plugdev -c 'Web services user' webserv"
+		-u 501 -N -g ${LVRT_GROUP} -G niwscerts,plugdev,adm -c 'Web services user' webserv"
 
 useradd_preinst_append () {
 eval ${PSEUDO} chmod g+s ${SYSROOT}/home/${LVRT_USER} ${SYSROOT}/home/webserv || true
