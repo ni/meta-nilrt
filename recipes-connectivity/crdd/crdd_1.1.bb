@@ -1,7 +1,7 @@
 DESCRIPTION = "Central Regulatory Domain Daemon"
 SECTION = "network"
-LICENSE = "ISC"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=403e16e3768619e3adac3449870302f3"
+LICENSE = "MIT"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
 PR = "r1"
 DEPENDS = "libnl"
