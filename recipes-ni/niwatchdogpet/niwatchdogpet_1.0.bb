@@ -1,7 +1,7 @@
 DESCRIPTION = "NI Watchdog Petter"
 SECTION = "base"
-LICENSE = "MPL-2.0"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=f27a50d2e878867827842f2c60e30bfc"
+LICENSE = "MIT"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
 inherit update-rc.d
 
