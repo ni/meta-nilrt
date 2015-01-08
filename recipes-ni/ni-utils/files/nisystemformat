@@ -169,7 +169,7 @@ format_config()
 
 	# in case services_stop didn't work, or others are using $mount_point
 	if fuser -s -m "$mount_point"; then
-		fuser -k -m "$mount_point"
+		fuser -k -m "$mount_point" || :
 		sleep 10
 	fi
 
