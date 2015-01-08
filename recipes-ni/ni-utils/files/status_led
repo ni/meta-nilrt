@@ -24,8 +24,8 @@ blink_max=4
 case "$1" in
   init)
 	# switch LED watchdog from boot mode to user mode, and turn off the LED
-	echo -n user > $WD_MODE_PATH
-	echo 0 > $STATUS_LED_PATH
+	echo -n user > $WD_MODE_PATH 2>/dev/null
+	echo 0 > $STATUS_LED_PATH 2>/dev/null
 	;;
   blink_count)
 	if [ -z "$2" ]; then
@@ -34,14 +34,14 @@ case "$1" in
 		# let bash handle reporting the error for non-numeric params
 		echo "$2 is not a supported blink count."
 	else
-		echo ${pattern[$2]} > $STATUS_LED_PATH
+		echo ${pattern[$2]} > $STATUS_LED_PATH 2>/dev/null
 	fi
 	;;
   blink_pattern)
 	if [ -z "$2" ]; then
 		echo "No blink pattern specified."
 	else
-		echo $2 > $STATUS_LED_PATH
+		echo $2 > $STATUS_LED_PATH 2>/dev/null
 	fi
 	;;
   *)
