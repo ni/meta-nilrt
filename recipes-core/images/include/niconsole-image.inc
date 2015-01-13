@@ -10,7 +10,9 @@ remove_unused_feeds() {
 IMAGE_PREPROCESS_COMMAND += "remove_kernel; "
 
 remove_kernel() {
-	rm -f ${IMAGE_ROOTFS}/boot/*
+	rm -rf ${IMAGE_ROOTFS}/boot/*
+	rm -f ${IMAGE_ROOTFS}/usr/lib/opkg/alternatives/bzImage
+	rm -f ${IMAGE_ROOTFS}/usr/lib/opkg/alternatives/zImage
 }
 
 # without package-management update-rc.d gets removed from image
