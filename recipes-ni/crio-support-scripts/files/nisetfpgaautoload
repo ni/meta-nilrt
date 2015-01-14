@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# The purpose of this script is to sync the CPLD NOFPGA autoload setting with
+# values stored in various config files.
+
+NOFPGA_CPLD=/sys/bus/acpi/devices/NIC775D\:00/no_fpga_sw
+
+if [ -f $NOFPGA_CPLD ]; then
+
+# Read the NoFPGAApp.enabled setting from the [SystemSettings] section of
+# our main config file.
+NOFPGA_INI_VAL=`/usr/local/natinst/bin/nirtcfg --get section=SystemSettings,token=NoFPGAApp.enabled,value="false" | tr "[:upper:]" "[:lower:]"`
+
+# Default to not setting NOFPGA in the CPLD.
+NOFPGA_CPLD_VAL=0
+
+# If NoFPGAApp.enabled is 'true' in our config file, set NOFPGA in the CPLD.
+case "$NOFPGA_INI_VAL" in
+	true)
+		NOFPGA_CPLD_VAL=1
+		;;
+esac
+
+echo $NOFPGA_CPLD_VAL > $NOFPGA_CPLD
+
+fi

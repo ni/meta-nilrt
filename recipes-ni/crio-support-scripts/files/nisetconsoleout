@@ -1,0 +1,18 @@
+#! /bin/sh
+
+# compare the value save in grubenv with the one in the BIOS. If they differ, set the BIOS variable
+if [ `/sbin/fw_printenv -n BIOSBootMode` = "legacy" ]; then
+	exit 0
+fi
+echo "Setting ConsoleOutEnable"
+grubConsoleOutEnableTmp=`fw_printenv -n consoleoutenable 2> /dev/null | tr '[:upper:]' '[:lower:]'`
+if [ "$grubConsoleOutEnableTmp" = "true" ]; then
+	grubConsoleOutEnable=1
+else
+	grubConsoleOutEnable=0
+fi
+efiConsoleOutEnable=`fw_printenv -n BootFirmwareConsoleOutEnable`
+if [ ! "$grubConsoleOutEnable" = "$efiConsoleOutEnable" ]; then
+	fw_setenv BootFirmwareConsoleOutEnable $grubConsoleOutEnable
+fi
+
