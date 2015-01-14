@@ -293,14 +293,15 @@ RDEPENDS_${PN} += "\
 	lemon \
 	ltrace \
 	lua \
+	nodejs4 \
+	php \
 ${@base_contains("DISTRO_FEATURES", "x11", " \
 packagekit \
 tk \
 ", "", d)} \
 "
 
-# php - fail
-# nodejs - fail
+# nodejs - nodejs4 builds (included above), but nodejs is broken (tested on dizzy)
 
 # meta-oe/recipes-devtools/python (most now in meta-oe/meta-python)
 RDEPENDS_${PN} += "\
@@ -320,6 +321,7 @@ RDEPENDS_${PN} += "\
 	python-ldap \
 	python-lxml \
 	python-m2crypto \
+	python-mako \
 	python-matplotlib \
 	python-nose \
 	python-numeric \
@@ -353,8 +355,6 @@ RDEPENDS_${PN} += "\
 	python-numpy \
 "
 
-# python-mako - fail
-
 # meta-oe/recipes-extended
 RDEPENDS_${PN} += "\
 	dialog \
@@ -370,8 +370,6 @@ ${@base_contains("DISTRO_FEATURES", "x11", " \
 gnuplot polkit \
 ", "", d)} \
 "
-# net-snmp - build fails
-
 
 # meta-oe/recipes-graphics
 RDEPENDS_${PN} += "\
@@ -405,10 +403,11 @@ ${@base_contains("DISTRO_FEATURES", "x11", " \
 
 # meta-oe/recipes-networking
 RDEPENDS_${PN} += "\
-	ntp \
-	netcat \
 	bridge-utils \
 	cifs \
+	ntp \
+	net-snmp \
+	netcat \
 	traceroute \
 	tunctl \
 "
@@ -416,6 +415,7 @@ RDEPENDS_${PN} += "\
 # meta-oe/recipes-support
 RDEPENDS_${PN} += "\
 	ca-certificates \
+	ccid \
 	ckermit \
 	cpufrequtils \
 	cryptsetup \
@@ -429,6 +429,7 @@ RDEPENDS_${PN} += "\
 	i2c-tools \
 	links \
 	lockdev \
+	lzip \
 	lvm2 \
 	mbuffer \
 	mg \
@@ -459,11 +460,8 @@ poppler \
 imagemagick \
 ", "", d)} \
 "
-# ccid -- requires pcsc, whose tarball is 0 size
-# lzip - fail
-# emacs - fail
-# lzma - conflicts with xz?
-# openmotif - mirror down
+# emacs - fail (blacklisted on dizzy)
+# openmotif - fail (blacklisted on dizzy)
 
 # meta-oe/meta-gnome
 RDEPENDS_${PN} += "${@base_contains("DISTRO_FEATURES", "x11", " florence ", "", d)}"
