@@ -9,8 +9,6 @@ SRC_URI = "git://git.amer.corp.natinst.com/linux.git;protocol=git;nocheckout=1;b
 SRCREV="${AUTOREV}"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 
-KERNEL_IMAGEDEST ?= "boot/runmode"
-
 # A defconfig must be provided to trigger OE to use a custom kernel config during patch.
 # As the desired config is stored in-tree with the kernel source, it not available until
 # after kernel_checkout, so point to an empty defconfig to start.
