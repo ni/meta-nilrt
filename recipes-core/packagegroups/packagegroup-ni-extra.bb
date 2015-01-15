@@ -478,3 +478,19 @@ RDEPENDS_${PN} += "packagegroup-ni-selinux"
 
 # meta-ruby (from meta-openembedded)
 RDEPENDS_${PN} += "ruby"
+
+# meta-oe/meta-webserver
+RDEPENDS_${PN} += "\
+	apache2 \
+	cherokee \
+	fcgi \
+	hiawatha \
+	monkey \
+	nginx \
+	nostromo \
+	phpmyadmin \
+	sthttpd \
+"
+
+# modphp - fail (blacklisted on dizzy)
+# xdebug - fail (blacklisted on dizzy)
