@@ -12,8 +12,6 @@ SRC_URI = " \
        file://automount.rules \
        file://mount.sh \
        file://mount.blacklist \
-       file://autonet.rules \
-       file://network.sh \
        file://localextra.rules \
        file://net-hotplug.rules \
        file://hotplug.script \
@@ -28,7 +26,6 @@ do_install() {
     install -d ${D}${sysconfdir}/udev/rules.d
 
     install -m 0644 ${WORKDIR}/automount.rules     ${D}${sysconfdir}/udev/rules.d/automount.rules
-    install -m 0644 ${WORKDIR}/autonet.rules       ${D}${sysconfdir}/udev/rules.d/autonet.rules
     install -m 0644 ${WORKDIR}/localextra.rules    ${D}${sysconfdir}/udev/rules.d/localextra.rules
     install -m 0644 ${WORKDIR}/net-hotplug.rules   ${D}${sysconfdir}/udev/rules.d/net-hotplug.rules
     install -m 0644 ${WORKDIR}/50-plugdev.rules    ${D}${sysconfdir}/udev/rules.d/50-plugdev.rules
@@ -40,7 +37,6 @@ do_install() {
     install -d ${D}${sysconfdir}/udev/scripts/
 
     install -m 0755 ${WORKDIR}/mount.sh            ${D}${sysconfdir}/udev/scripts/mount.sh
-    install -m 0755 ${WORKDIR}/network.sh          ${D}${sysconfdir}/udev/scripts/network.sh
     install -m 0755 ${WORKDIR}/hotplug.script      ${D}${sysconfdir}/udev/scripts/hotplug.script
 }
 
