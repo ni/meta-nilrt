@@ -301,6 +301,10 @@ tk \
 ", "", d)} \
 "
 
+RDEPENDS_${PN}_append_x64 += "\
+	msr-tools \
+"
+
 # nodejs - nodejs4 builds (included above), but nodejs is broken (tested on dizzy)
 
 # meta-oe/recipes-devtools/python (most now in meta-oe/meta-python)
@@ -428,6 +432,7 @@ RDEPENDS_${PN} += "\
 	gd \
 	i2c-tools \
 	links \
+	lmsensors \
 	lockdev \
 	lzip \
 	lvm2 \
