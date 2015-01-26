@@ -150,8 +150,9 @@ reset_primary_mac()
    # Prefer primaryethaddr, then ethaddr, else usbgadgetethaddr
    # If default value mismatched or missing, pick a new primary adapter
    # from the available hardware
+   # If existing primaryethaddr is zeroes, always retry for something better.
    primaryethaddr="$(normalize_macaddr $(fw_printenv -n primaryethaddr 2>/dev/null))" || true
-   if ! adapter_is_present $primaryethaddr; then
+   if ! adapter_is_present $primaryethaddr || [ "$primaryethaddr" = 000000000000 ] ; then
       primaryethaddr="$(normalize_macaddr $(fw_printenv -n ethaddr 2>/dev/null))" || true
       adapter_is_present $primaryethaddr || primaryethaddr="$(normalize_macaddr $(fw_printenv -n usbgadgetethaddr 2>/dev/null))" || true
       adapter_is_present $primaryethaddr || primaryethaddr="$(normalize_macaddr $(cat /sys/class/net/$(get_primary_device_from_hw)/address))" || true
