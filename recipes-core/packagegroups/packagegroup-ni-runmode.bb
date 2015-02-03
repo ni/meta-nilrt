@@ -18,6 +18,7 @@ RDEPENDS_${PN} = "\
 	e2fsprogs-tune2fs \
 	gdbserver \
 	glibc-gconv-cp932 \
+	glibc-gconv-cp936 \
 	glibc-gconv-iso8859-1 \
 	initscripts-runmode \
 	logrotate \
@@ -27,6 +28,3 @@ RDEPENDS_${PN} = "\
 	zip \
 	${@base_contains("DISTRO_FEATURES", "x11", "sysconfig-settings-ui", "", d)} \
 "
-
-RDEPENDS_${PN}_append_x86-64 = " glibc-gconv-cp936"
-
