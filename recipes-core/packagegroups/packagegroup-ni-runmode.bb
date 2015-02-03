@@ -17,6 +17,7 @@ RDEPENDS_${PN} = "\
 	e2fsprogs-tune2fs \
 	gdbserver \
 	glibc-gconv-cp932 \
+	glibc-gconv-cp936 \
 	glibc-gconv-iso8859-1 \
 	logrotate \
 	parted \
@@ -24,6 +25,3 @@ RDEPENDS_${PN} = "\
 	udev-cache \
 	zip \
 "
-
-RDEPENDS_${PN}_append_x86-64 = " glibc-gconv-cp936"
-
