@@ -7,7 +7,6 @@ UNIX-style operating systems.
 Other RT targets follow Microsoft Windows-style conventions. In order
 to facilitate the porting of applications from those targets,
 this target supports the Windows-style "/C" home directory.
-This path is bound to the UNIX-style directory "/home/lvuser".
 
 Various LabVIEW Real-Time system files which would be accessible from
 "C:" (or "/C") on other RT targets are found in different locations
