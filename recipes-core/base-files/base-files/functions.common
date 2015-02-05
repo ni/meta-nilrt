@@ -846,6 +846,8 @@ setup_wireless()
        rfkill block wlan 0
     fi
 
+	iw dev ${INTERFACEW} set power_save off
+
     /etc/network/wpa_supplicant_conf
 }
 
