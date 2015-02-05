@@ -12,6 +12,13 @@ RDEPENDS_${PN}-hostname += "niacctbase"
 
 group = "${LVRT_GROUP}"
 
+# preserve existing behavior when installing base package
+RDEPENDS_${PN} += "\
+	${PN}-hostname \
+	${PN}-ls \
+	${PN}-chcon \
+"
+
 do_install_append() {
 	# rename hostname manually since its not part of base_bindir_progs
 	mv ${D}${bindir}/hostname ${D}${base_bindir}/hostname.${BPN}
