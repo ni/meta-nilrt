@@ -51,9 +51,8 @@ process_is_running ()
 
    if [ -f $PIDFILE ]; then
       OLDPID=`cat ${PIDFILE}`
-      if [ "x${OLDPID}" != "x" -a -f /proc/${OLDPID}/cmdline ]; then
-         FOUNDPROCNAME=`cat /proc/${OLDPID}/cmdline | xargs`
-         FOUNDPROCNAME=`basename $FOUNDPROCNAME`
+      if [ "x${OLDPID}" != "x" -a -f /proc/${OLDPID}/status ]; then
+         FOUNDPROCNAME=`cat /proc/${OLDPID}/status | grep Name | cut -f 2`
          if [ "x${FOUNDPROCNAME}" = "x${PROCNAME}" ]; then
             return 0;
          fi;
@@ -846,7 +845,7 @@ setup_wireless()
        rfkill block wlan 0
     fi
 
-	iw dev ${INTERFACEW} set power_save off
+    iw dev ${INTERFACEW} set power_save off
 
     /etc/network/wpa_supplicant_conf
 }
