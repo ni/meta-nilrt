@@ -6,6 +6,13 @@ FILES_${PN}-hostname = "${base_bindir}/hostname.${PN}"
 FILES_${PN}-ls = "${base_bindir}/ls.${PN}"
 FILES_${PN}-chcon = "${bindir}/chcon.${PN}"
 
+# preserve existing behavior when installing base package
+RDEPENDS_${PN} += "\
+	${PN}-hostname \
+	${PN}-ls \
+	${PN}-chcon \
+"
+
 do_install_append() {
 	# rename hostname manually since its not part of base_bindir_progs
 	mv ${D}${bindir}/hostname ${D}${base_bindir}/hostname.${BPN}
