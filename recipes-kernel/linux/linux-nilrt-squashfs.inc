@@ -1,7 +1,7 @@
 # Installs module-versioning-image.squashfs to /usr/local/natinst/tools
 # and runs the NI-KAL versioning against existing installed KAL-based drivers
 
-DEPENDS =+ "squashfs-tools"
+DEPENDS =+ "squashfs-tools-native"
 
 KERNEL_SQUASHFS = "module-versioning-image.squashfs"
 KERNEL_SQUASHFS_DESTDIR = "/usr/local/natinst/tools"
