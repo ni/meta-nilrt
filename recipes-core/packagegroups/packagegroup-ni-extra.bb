@@ -285,6 +285,12 @@ RDEPENDS_${PN} += "\
 	ser2net \
 "
 
+# oe-core/recipes-devtools
+RDEPENDS_${PN} += "\
+	cmake \
+	guile \
+"
+
 # meta-oe/recipes-devtools
 RDEPENDS_${PN} += "\
 	bootchart \
