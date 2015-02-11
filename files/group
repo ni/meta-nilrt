@@ -31,3 +31,9 @@ postdrop:x:376:
 bind:x:375:
 lpadmin:x:374:
 www:x:373:
+postgres:x:372:
+rabbitmq:x:371:
+trove:x:370:
+nova:x:369:
+barbican:x:368:
+syslog:x:367:
