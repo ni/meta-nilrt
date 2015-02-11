@@ -283,6 +283,7 @@ networkmanager \
 # meta-oe/recipes-connectivity
 RDEPENDS_${PN} += "\
 	ser2net \
+	zeromq \
 "
 
 # oe-core/recipes-devtools
@@ -358,6 +359,14 @@ RDEPENDS_${PN} += "\
 ${@base_contains("DISTRO_FEATURES", "x11", " \
 python-sip python-pyqt \
 ", "", d)} \
+"
+
+# meta-cloud-services/meta-openstack/recipes-devtools/python
+RDEPENDS_${PN} += "\
+	python-jinja2 \
+	python-markupsafe \
+	python-msgpack \
+	python-requests \
 "
 
 # python-numpy
