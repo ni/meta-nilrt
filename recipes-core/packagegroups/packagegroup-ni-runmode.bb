@@ -22,6 +22,7 @@ RDEPENDS_${PN} = "\
 	glibc-gconv-iso8859-1 \
 	initscripts-runmode \
 	logrotate \
+	ni-module-versioning-tools \
 	parted \
 	util-linux-sfdisk \
 	udev-cache \
