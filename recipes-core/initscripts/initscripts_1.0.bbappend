@@ -20,15 +20,12 @@ do_install_append() {
 	update-rc.d -r ${D} -f mountall.sh remove
 	update-rc.d -r ${D} mountall.sh start 2 S .
 
-	# remove unnecessary startup scripts
-	rm ${D}${sysconfdir}/init.d/banner.sh
-	rm ${D}${sysconfdir}/init.d/checkroot.sh
-	rm ${D}${sysconfdir}/init.d/mountnfs.sh
-	rm ${D}${sysconfdir}/init.d/read-only-rootfs-hook.sh
-	update-rc.d -r ${D} banner.sh remove
-	update-rc.d -r ${D} checkroot.sh remove
-	update-rc.d -r ${D} mountnfs.sh remove
-	update-rc.d -r ${D} read-only-rootfs-hook.sh remove
+	# remove the scripts from the rc folders, but keep them around
+	update-rc.d -f -r ${D} banner.sh remove
+	update-rc.d -f -r ${D} checkroot.sh remove
+	update-rc.d -f -r ${D} mountnfs.sh remove
+	update-rc.d -f -r ${D} umountnfs.sh remove
+	update-rc.d -f -r ${D} read-only-rootfs-hook.sh remove
 
 	if [ "${TARGET_ARCH}" = "arm" ]; then
 		sed -i -e "s/echo \"3\"/echo \"5\"/" ${D}/${sysconfdir}/init.d/alignment.sh
