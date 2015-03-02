@@ -59,6 +59,7 @@ RDEPENDS_${PN} = "\
 	opkg \
 	${@base_contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
 	pigz \
+	start-stop-daemon \
 	syslog-ng \
 	sysvinit \
 	tar \
