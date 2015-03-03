@@ -49,6 +49,7 @@ RDEPENDS_${PN} = "\
 	mtd-utils-ubifs \
 	netbase \
 	niacctbase \
+	niwatchdogpet \
 	openssh-sshd \
 	openssh-scp \
 	openssh-sftp-server \
