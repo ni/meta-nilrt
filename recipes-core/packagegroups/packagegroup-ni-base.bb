@@ -51,6 +51,7 @@ RDEPENDS_${PN} = "\
 	ni-utils \
 	netbase \
 	niacctbase \
+	niwatchdogpet \
 	openssh-sshd \
 	openssh-scp \
 	openssh-sftp-server \
