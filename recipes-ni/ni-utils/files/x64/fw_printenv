@@ -98,9 +98,9 @@ show_variable_efi(){
                 #EFI vars file doed not exist
                 return 1
         fi
-	while read -r key
+	while IFS=';' read -r key name
 	do
-		value=$(/sbin/efimgr -r "$key");
+		value=$(/usr/sbin/efivar -n="$name" -d);
 		if [ $? -ne 0 ]; then
 			return 1
 		fi
@@ -150,8 +150,13 @@ add_rem_vars(){
 	fi
 
 	#EFI
+	name=''
 	if show_variable_efi "$var_name"; then
-		/sbin/efimgr -W "$var_name" "$new_value"
+		#recognized ni efi variable
+		#get variable efi name
+		echo -e -n $'\x'$new_value >/boot/.safe/efi_val
+		/usr/sbin/efivar -n="$name" -w -f=/boot/.safe/efi_val
+		rm /boot/.safe/efi_val
 		return
 	fi
 
