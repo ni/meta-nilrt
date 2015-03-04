@@ -1,0 +1,77 @@
+diff --git a/src/efivar.c b/src/efivar.c
+index d5f81e4..a7b473d 100644
+--- a/src/efivar.c
++++ b/src/efivar.c
+@@ -32,9 +32,12 @@
+ #define ACTION_LIST	0x1
+ #define ACTION_PRINT	0x2
+ #define ACTION_APPEND	0x4
+-
++#define ACTION_OVERWRITE	0x10
+ #define GUID_FORMAT "%08x-%04x-%04x-%04x-%02x%02x%02x%02x%02x%02x"
+ 
++#define APPEND	0
++#define WRITE	1
++
+ static const char *attribute_names[] = {
+ 	"Non-Volatile",
+ 	"Boot Service Access",
+@@ -167,7 +170,7 @@ show_variable(char *guid_name)
+ }
+ 
+ static void
+-append_variable(const char *guid_name, void *data, size_t data_size)
++edit_variable(const char *guid_name, void *data, size_t data_size, int edit_type)
+ {
+ 	efi_guid_t guid;
+ 	char *name = NULL;
+@@ -184,9 +187,18 @@ append_variable(const char *guid_name, void *data, size_t data_size)
+ 		fprintf(stderr, "efivar: %m\n");
+ 		exit(1);
+ 	}
+-
+-	rc = efi_append_variable(guid, name, data, data_size,
+-				old_attributes);
++	
++	switch (edit_type){
++		case APPEND:
++			rc = efi_append_variable(guid, name, data, data_size,
++					old_attributes);
++			break;
++		case WRITE:
++			rc = efi_set_variable(guid, name, data, data_size,
++					old_attributes);
++			break;
++	}
++	
+ 	if (rc < 0) {
+ 		fprintf(stderr, "efivar: %m\n");
+ 		exit(1);
+@@ -252,6 +264,8 @@ int main(int argc, char *argv[])
+ 		 ACTION_APPEND, "append to variable specified by --name", NULL },
+ 		{"fromfile", 'f', POPT_ARG_STRING, &file, 0,
+ 		 "use data from <file>", "<file>" },
++		{"write", 'w', POPT_ARG_VAL, &action,
++   		 ACTION_OVERWRITE, "write to variable specified by --name", NULL },
+ 		POPT_AUTOALIAS
+ 		POPT_AUTOHELP
+ 		POPT_TABLEEND
+@@ -297,10 +311,16 @@ int main(int argc, char *argv[])
+ 			validate_name(name);
+ 			show_variable(name);
+ 			break;
+-		case ACTION_APPEND:
++		case ACTION_APPEND | ACTION_PRINT:
++			validate_name(name);
++			prepare_data(file, &data, &data_size);
++			edit_variable(name, data, data_size, APPEND);
++			break;
++		case ACTION_OVERWRITE | ACTION_PRINT:
+ 			validate_name(name);
+ 			prepare_data(file, &data, &data_size);
+-			append_variable(name, data, data_size);
++			edit_variable(name, data, data_size, WRITE);
++			break;
+ 	};
+ 
+ 	return 0;
