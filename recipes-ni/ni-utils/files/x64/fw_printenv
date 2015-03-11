@@ -220,7 +220,7 @@ parse_opt(){
 
         #check if there are other options passed incorrectly
         shift $(($OPTIND - 1))
-        if [ "x$(echo $* | grep '\-')" != "x" ]; then
+        if [ "x$(echo $* | grep ' \-')" != "x" ]; then
                 echo "$0:  invalid syntax" >&2
                 echo "Try '$0 --help' for more information"
                 exit 1
