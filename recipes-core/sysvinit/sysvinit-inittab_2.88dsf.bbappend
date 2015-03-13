@@ -10,5 +10,5 @@ do_install_append() {
 	# script for calling getty only if console output is enabled 
 	install -m 0755    ${WORKDIR}/consolegetty       ${D}${sysconfdir}/init.d
 	# Remove OE getty lines for serial terminal and replace with consolegetty
-	sed -i'' -e"s/\/sbin\/getty [0-9]\+ tty[OPS]\+[0-9]\+/\/etc\/init.d\/consolegetty tty2/g" ${D}${sysconfdir}/inittab
+	sed -i'' -e"s/\/sbin\/getty \(-L \)\?[0-9]\+ tty[OPS]\+[0-9]\+/\/etc\/init.d\/consolegetty tty2/g" ${D}${sysconfdir}/inittab
 }
