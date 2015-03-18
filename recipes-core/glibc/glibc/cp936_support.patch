@@ -13508,4 +13508,27 @@ diff -rupN libc/iconvdata/Makefile libc-CHANGED/iconvdata/Makefile
 +	   CP770 CP771 CP772 CP773 CP774 CP936
  
  modules.so := $(addsuffix .so, $(modules-y))
+
+diff -rupN libc/iconvdata/gconv-modules libc-CHANGED/iconvdata/gconv-modules 
+--- libc/iconvdata/gconv-modules	2015-03-18 17:12:22.864768392 -0500
++++ libc-CHANGED/iconvdata/gconv-modules	2015-03-18 17:15:49.357792336 -0500
+@@ -1136,9 +1136,6 @@ module	BIG5//			EUC-CN//		GBBIG5		1
  
+ #	from			to			module		cost
+ alias	GB13000//		GBK//
+-alias	CP936//			GBK//
+-alias	MS936//			GBK//
+-alias	WINDOWS-936//		GBK//
+ module	GBK//			INTERNAL		GBK		1
+ module	INTERNAL		GBK//			GBK		1
+ 
+@@ -1968,3 +1965,9 @@ alias	HPGREEK8//		HP-GREEK8//
+ alias	OSF10010004//		HP-GREEK8//
+ module	HP-GREEK8//		INTERNAL		HP-GREEK8	1
+ module	INTERNAL		HP-GREEK8//		HP-GREEK8	1
++
++#	from			to			module		cost
++alias	MS936//			CP936//
++alias	WINDOWS-936//		CP936//
++module	CP936//			INTERNAL		CP936		1
++module	INTERNAL		CP936//			CP936		1
