@@ -11,7 +11,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS_${PN} = "\
-	busybox-cron \
+	cronie \
 	dosfstools \
 	e2fsprogs-e2fsck \
 	e2fsprogs-tune2fs \
