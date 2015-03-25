@@ -12,7 +12,7 @@ inherit packagegroup
 
 RDEPENDS_${PN} = "\
 	base-files-runmode \
-	busybox-cron \
+	cronie \
 	dosfstools \
 	e2fsprogs-e2fsck \
 	e2fsprogs-tune2fs \
