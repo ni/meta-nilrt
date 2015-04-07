@@ -427,6 +427,7 @@ RDEPENDS_${PN} += "\
 	ntp \
 	net-snmp \
 	netcat \
+	nuttcp \
 	traceroute \
 	tunctl \
 "
