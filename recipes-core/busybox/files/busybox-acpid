@@ -1,17 +1,20 @@
 #! /bin/sh
 
-test -x /sbin/acpid || exit 0
+DAEMON=/sbin/acpid
+PIDFILE=/var/run/acpid.pid
+
+test -x $DAEMON || exit 0
 test -d /proc/acpi || exit 0
 
 case "$1" in
   start)
     echo -n "Starting Advanced Configuration and Power Interface daemon: "
-    start-stop-daemon -S -x /sbin/acpid -- -a /etc/acpid.conf -c /etc/acpi
+    start-stop-daemon -S -a $DAEMON -p $PIDFILE -n acpid -- -a /etc/acpid.conf -c /etc/acpi
     echo "acpid."
     ;;
   stop)
     echo -n "Stopping Advanced Configuration and Power Interface daemon: "
-    start-stop-daemon -K -x /sbin/acpid
+    start-stop-daemon -K -p $PIDFILE -n acpid --retry 5
     echo "acpid."
     ;;
   restart|force-reload)
