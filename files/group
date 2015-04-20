@@ -32,3 +32,4 @@ bind:x:375:
 lpadmin:x:374:
 www:x:373:
 systemd-timesync:x:372:
+mpd:x:371:
