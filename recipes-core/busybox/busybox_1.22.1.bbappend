@@ -4,6 +4,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/files:${THISDIR}/${PN}:"
 SRC_URI =+ "file://automount.sh file://usb.sh"
 SRC_URI =+ "file://busybox-ifplugd file://ifplugd.conf file://ifplugd.script"
 SRC_URI =+ "file://busybox-acpid file://acpid.conf file://acpid_poweroff.sh"
+SRC_URI =+ "file://acpid-logrotate.conf"
 
 PACKAGES =+ " ${PN}-ifplugd"
 PACKAGES =+ " ${PN}-acpid"
@@ -35,6 +36,8 @@ do_install_append () {
 		install -m 0755 ${WORKDIR}/acpid.conf ${D}${sysconfdir}/
 		install -d ${D}${sysconfdir}/acpi
 		install -m 0755 ${WORKDIR}/acpid_poweroff.sh ${D}${sysconfdir}/acpi/poweroff.sh
+		install -d ${D}${sysconfdir}/logrotate.d
+		install -m 0644 ${WORKDIR}/acpid-logrotate.conf ${D}${sysconfdir}/logrotate.d/acpid.conf
 	fi
         if grep "CONFIG_MDEV=y" ${B}/.config; then
                if grep "CONFIG_FEATURE_MDEV_CONF=y" ${B}/.config; then
