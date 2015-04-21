@@ -6,6 +6,7 @@ SRC_URI =+ " \
             file://busybox-acpid \
             file://acpid.conf \
             file://acpid_poweroff.sh \
+            file://acpid-logrotate.conf \
             file://0001-zcip-fix-wrong-comparison-of-source-IP-with-our-IP.patch"
 
 PACKAGES =+ " ${PN}-ifplugd"
@@ -32,5 +33,7 @@ do_install_append () {
 		install -m 0755 ${WORKDIR}/acpid.conf ${D}${sysconfdir}/
 		install -d ${D}${sysconfdir}/acpi
 		install -m 0755 ${WORKDIR}/acpid_poweroff.sh ${D}${sysconfdir}/acpi/poweroff.sh
+		install -d ${D}${sysconfdir}/logrotate.d
+		install -m 0644 ${WORKDIR}/acpid-logrotate.conf ${D}${sysconfdir}/logrotate.d/acpid.conf
 	fi
 }
