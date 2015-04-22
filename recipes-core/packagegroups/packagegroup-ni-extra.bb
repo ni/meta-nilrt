@@ -137,14 +137,20 @@ RDEPENDS_${PN} += "\
 	python-elementtree \
 	python-email \
 	python-fcntl \
+	python-jinja2 \
 	python-logging \
+	python-markupsafe \
 	python-misc \
+	python-msgpack \
 	python-multiprocessing \
 	python-netclient \
 	python-netserver \
 	python-pickle \
 	python-pkgutil \
+	python-pycrypto \
+	python-pyzmq \
 	python-re \
+	python-requests \
 	python-rpm \
 	python-shell \
 	python-sqlite3 \
