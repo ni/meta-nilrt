@@ -59,6 +59,7 @@ RDEPENDS_${PN} = "\
 	openssh-ssh \
 	openvpn \
 	opkg \
+        opkg-utils \
 	${@base_contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
 	pigz \
         salt-minion \
