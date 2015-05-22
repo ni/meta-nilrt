@@ -33,3 +33,9 @@ lpadmin:x:374:
 www:x:373:
 systemd-timesync:x:372:
 mpd:x:371:
+postgres:x:370
+rabbitmq:x:369:
+trove:x:368:
+nova:x:367:
+barbican:x:366:
+syslog:x:365:
