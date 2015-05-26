@@ -838,7 +838,7 @@ setup_wireless()
 
     # Bring the interface up, unless the radio's disabled, in which case rfkill it so
     # it can't be brought up inadvertantly (e.g. by wpa_supplicant).
-    RADIOENABLED=`/usr/local/natinst/bin/nirtcfg --get section=${INTERFACEW},token=radioenabled,value=1`
+    RADIOENABLED=`/usr/local/natinst/bin/nirtcfg --get section=${INTERFACEW},token=radioenabled,value=0`
     if [ ${RADIOENABLED} = 1 ] ; then
        ifconfig $INTERFACEW up
     else
