@@ -12,7 +12,9 @@ inherit packagegroup
 
 RDEPENDS_${PN} = "\
 	base-files-runmode \
+	ca-certificates \
 	cronie \
+	curl \
 	dosfstools \
 	e2fsprogs-e2fsck \
 	e2fsprogs-tune2fs \
@@ -23,6 +25,7 @@ RDEPENDS_${PN} = "\
 	initscripts-runmode \
 	logrotate \
 	ni-module-versioning-tools \
+	openssl \
 	parted \
 	util-linux-sfdisk \
 	udev-cache \
