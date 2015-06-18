@@ -19,6 +19,7 @@ MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS ?= ""
 RDEPENDS_${PN} = "\
 	avahi-daemon \
 	base-files \
+	base-files-nilrt \
 	base-passwd \
 	${@base_contains("MACHINE_FEATURES", "keyboard", "keymaps", "", d)} \
 	busybox \
@@ -35,6 +36,7 @@ RDEPENDS_${PN} = "\
 	gptfdisk-sgdisk \
 	init-ifupdown \
 	initscripts \
+	initscripts-nilrt \
 	iproute2 \
 	iptables \
 	kmod \

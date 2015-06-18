@@ -11,7 +11,6 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS_${PN} = "\
-	base-files-runmode \
 	ca-certificates \
 	cronie \
 	curl \
@@ -22,7 +21,6 @@ RDEPENDS_${PN} = "\
 	glibc-gconv-cp932 \
 	glibc-gconv-cp936 \
 	glibc-gconv-iso8859-1 \
-	initscripts-runmode \
 	logrotate \
 	ni-module-versioning-tools \
 	openssl \
