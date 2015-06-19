@@ -20,5 +20,4 @@ USERADD_PARAM_${PN} = " -u 500 -N -g ${LVRT_GROUP} -G niwscerts,plugdev,tty -c '
 
 useradd_preinst_append () {
 eval ${PSEUDO} chmod g+s ${SYSROOT}/home/${LVRT_USER} ${SYSROOT}/home/webserv || true
-eval ${PSEUDO} ln -sf /home/admin ${SYSROOT}/home/root || true
 }
