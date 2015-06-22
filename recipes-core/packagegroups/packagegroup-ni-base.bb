@@ -29,11 +29,7 @@ RDEPENDS_${PN} = "\
 	dhcp-client \
 	distro-feed-configs \
 	dmidecode \
-	e2fsprogs \
-	e2fsprogs-mke2fs \
 	ethtool \
-	glibc-gconv-utf-16 \
-	gptfdisk-sgdisk \
 	init-ifupdown \
 	initscripts \
 	initscripts-nilrt \
@@ -43,44 +39,31 @@ RDEPENDS_${PN} = "\
 	libavahi-client \
 	libavahi-common \
 	libavahi-core \
-	libcap-bin \
 	libnss-mdns \
 	libpam \
-	libstdc++ \
 	lsb \
 	modutils-initscripts \
-	mtd-utils \
-	mtd-utils-ubifs \
 	ni-utils \
 	netbase \
 	niacctbase \
-	niwatchdogpet \
 	openssh-sshd \
 	openssh-scp \
-	openssh-sftp-server \
-	openssh-sftp \
 	openssh-ssh \
-	openvpn \
 	opkg \
         opkg-utils \
-	${@base_contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
-	pigz \
         salt-minion \
 	start-stop-daemon \
 	syslog-ng \
-	sysconfig-settings \
 	sysvinit \
 	tar \
 	udev-extraconf \
-	usbutils-ids \
 	util-linux-agetty \
-	util-linux-findfs \
 	util-linux-hwclock \
 	util-linux-mount \
 	util-linux-umount \
-	vlan \
 	${VIRTUAL-RUNTIME_dev_manager} \
-	${MACHINE_ESSENTIAL_EXTRA_RDEPENDS}"
+	${MACHINE_ESSENTIAL_EXTRA_RDEPENDS} \
+"
 
 RDEPENDS_${PN}_append_x64 += "\
 	efivar \
