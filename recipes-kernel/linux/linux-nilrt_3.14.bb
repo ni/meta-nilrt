@@ -6,7 +6,6 @@ NI_RELEASE_VERSION = "comms-2.0"
 LINUX_VERSION = "3.14"
 LINUX_VERSION_EXTENSION = "-nilrt"
 KBRANCH = "nilrt/${NI_RELEASE_VERSION}/${LINUX_VERSION}"
-KERNEL_IMAGEDEST = "boot/runmode"
 
 # Subfolder of the same name will be added to FILESEXTRAPATHS and also
 # used for nilrt-specific defconfig manipulation during build. Provide

@@ -12,8 +12,6 @@ KERNEL_MODULES_META_PACKAGE = "kernel-modules-debug"
 KERNEL_MODULE_PACKAGE_NAME_PREPEND = "kernel-module-debug"
 KERNEL_MODULE_PACKAGE_PREPEND = "${KERNEL_MODULE_PACKAGE_NAME_PREPEND}-%s"
 
-KERNEL_IMAGEDEST := "boot/runmode"
-
 # Force creation of symlink to target file at a relative path
 KERNEL_IMAGE_SYMLINK_DEST = "."
 
@@ -32,12 +30,3 @@ DEFCONFIG_LOCATION := "nilrt-debug"
 SRC_URI += "file://debug.cfg \
            "
 
-# Because we did not originally use the alternatives system to setup symlinks,
-# rename and save the existing /boot/runmode/bzImage kernel
-pkg_postinst_kernel-image_prepend() {
-	mv /${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE} /${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE}.orig || true
-}
-
-pkg_postrm_kernel-image_append() {
-	mv /${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE}.orig /${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE} || true
-}
