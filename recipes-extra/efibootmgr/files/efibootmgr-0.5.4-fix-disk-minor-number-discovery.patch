@@ -1,0 +1,29 @@
+From f9f4ee75ad745637a47bf17ed968101b1ffbcc1d Mon Sep 17 00:00:00 2001
+From: Matt Domsch <Matt_Domsch@dell.com>
+Date: Thu, 23 Jul 2009 14:20:19 -0500
+Subject: [PATCH 4/5] fix disk minor number discovery
+
+Raymund Will noted disk_info_from_fd() incorrectly used logical &&
+instead of bitwise & when obtaining the minor number.
+
+Reported in https://bugzilla.novell.com/show_bug.cgi?id=524529#c1
+---
+ src/lib/disk.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/lib/disk.c b/src/lib/disk.c
+index ebfe619..8ad590b 100644
+--- a/src/lib/disk.c
++++ b/src/lib/disk.c
+@@ -55,7 +55,7 @@ disk_info_from_fd(int fd,
+ 		return 1;
+ 	}
+ 	major = buf.st_dev >> 8;
+-	minor = buf.st_dev && 0xFF;
++	minor = buf.st_dev & 0xFF;
+ 
+ 	/* IDE disks can have up to 64 partitions, or 6 bits worth,
+ 	 * and have one bit for the disk number.
+-- 
+1.8.0
+
