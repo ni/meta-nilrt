@@ -26,6 +26,7 @@ RDEPENDS_${PN} = "\
 	${@base_contains("MACHINE_FEATURES", "acpi", "busybox-acpid", "", d)} \
 	coreutils-hostname \
 	dhcp-client \
+	distro-feed-configs \
 	dmidecode \
 	e2fsprogs \
 	e2fsprogs-mke2fs \
