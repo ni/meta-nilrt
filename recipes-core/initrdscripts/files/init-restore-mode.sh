@@ -13,5 +13,13 @@ early_setup() {
     modprobe atkbd 2> /dev/null
 }
 
+provision() {
+    #TODO: Find another solution to make sure all bring up messages are printed
+    # before starting the provisioning script
+    sleep 2
+    ./ni_provisioning
+}
+
 early_setup
+provision
 exec sh
