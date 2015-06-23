@@ -1,0 +1,256 @@
+#!/bin/bash
+
+USB_MOUNTPOINT=/var/volatile/usbrtdeploy
+
+cleanup_and_exit()
+{
+    umount -a -t vfat,ext4
+    exit $1
+}
+
+print_warning()
+{
+    printf "\n***Warning: %s\n" "$1"
+}
+
+die()
+{
+    printf "\n***Error: %s\n" "$1"
+    printf "PROVISIONING FAILED!"
+    cleanup_and_exit 1
+}
+
+show_help()
+{
+cat <<EOF
+    Usage: $0 [-h] [-t DEVICE]
+    Options
+        -h : Show help.
+        -t DEVICE : DEVICE is the device name for the disk to update. (e.g /dev/sda)
+        If DEVICE is not specificed, the first non-removable block device
+        that is not the recovery tool is used.
+EOF
+}
+
+install_default_error_handler()
+{
+    trap 'handle_err ${BASH_SOURCE} ${LINENO} ${FUNCNAME:-unknown} $? "$BASH_COMMAND"' ERR
+}
+
+handle_err()
+{
+    TMP_EVAL=`eval echo $5`
+    die "$1:$2 (fn=$3): Unexpected status code $4, while running command: '$TMP_EVAL'"
+}
+
+find_target_block_device()
+{
+    lsblk -inpo KNAME,TYPE,RM | while read KNAME TYPE RM; do
+        if [[ $TYPE == "disk" && $RM == "0" ]]; then
+            echo $KNAME
+            break;
+        fi
+    done
+}
+
+reset_minimal_image()
+{
+    echo "Formatting nilrt partition..."
+    mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}4 -L $PART4_LABEL || die "Format failed!"
+    NILRT_MOUNTPOINT=/var/volatile/nilrt
+    mkdir $NILRT_MOUNTPOINT -p
+    NILRT_ERROR=`mount -L nilrt $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
+    echo "Deploying minimal image..."
+    TAR_ERROR=`tar -xjf /payload/minimal-nilrt-image-x64.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1` || die "$TAR_ERROR"
+
+    umount $NILRT_MOUNTPOINT
+
+    echo "Minimal image deployed."
+}
+
+provision_target()
+{
+    echo "Installing restore to: $TARGET_DISK using $BOOT_STYLE boot style."
+
+    #find and mount USB key
+    mkdir -p $USB_MOUNTPOINT
+
+    # list partitions on recovery device using partition label
+    NIRECOVERY_PARTITION=`lsblk -inpo KNAME,LABEL,TYPE | grep NIRECOVERY | grep part | awk '{print $1;}'`
+
+    # try mounting the partition
+    mount $NIRECOVERY_PARTITION $USB_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
+
+    echo "Partitioning $TARGET_DISK..."
+
+    PARTED_ERROR=`parted -s $TARGET_DISK mklabel $PART_STYLE 2>&1` || die "$PARTED_ERROR"
+    PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART1_NAME 1MB 16MB 2>&1` || die "$PARTED_ERROR"
+    PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART2_NAME 16MB 200MB 2>&1` || die "$PARTED_ERROR"
+    PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART3_NAME 200MB 216MB 2>&1` || die "$PARTED_ERROR"
+    PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART4_NAME 216MB 100% 2>&1` || die "$PARTED_ERROR"
+
+    echo "Assigning EFI System Partition..."
+
+    if [[ "$BOOT_STYLE" == "efi" ]]; then
+        sgdisk --typecode=1:C12A7328-F81F-11D2-BA4B-00A0C93EC93B $TARGET_DISK
+    else
+        sfdisk -c $TARGET_DISK 1 EF
+    fi
+
+    wait_for_partitions $TARGET_DISK
+
+    echo "Formatting partitions..."
+
+    MKFS_ERROR=`mkfs.vfat -n $PART1_LABEL ${TARGET_DISK}1 2>&1` || die "$MKFS_ERROR"
+    mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}2 -L $PART2_LABEL || die "Format failed!"
+    mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}3 -L $PART3_LABEL || die "Format failed!"
+    mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}4 -L $PART4_LABEL || die "Format failed!"
+
+    #install grub
+
+    GRUB_MOUNTPOINT=/var/volatile/grub
+    mkdir $GRUB_MOUNTPOINT -p
+    MOUNT_ERROR=`mount -L $PART1_LABEL $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
+
+    if [[ "$BOOT_STYLE" == "efi" ]]; then
+        echo "Configuring EFI grub2..."
+        GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/efi/boot
+        mkdir -p $GRUB_TARGET_DIR
+        cp -r $USB_MOUNTPOINT/EFI/BOOT/* $GRUB_TARGET_DIR/
+        for ENTRY in `efibootmgr | grep "LabVIEW RT"| egrep -o '[0-9A-F]{4}' || true`
+        do
+            EFIMGR=`efibootmgr -b $ENTRY -B 2>&1` || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
+        done
+        efibootmgr -c -d ${TARGET_DISK} -p 1 -L 'LabVIEW RT' -l '\efi\boot\bootx64.efi'
+    else
+        echo "Configuring legacy grub2..."
+        GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/boot/grub
+        parted -s ${TARGET_DISK} set 1 boot on
+        grub-install --recheck --root-directory=$GRUB_MOUNTPOINT $TARGET_DISK
+    fi
+
+    echo "Installing kernel and ramdisk..."
+
+    cp /grub.cfg ${GRUB_TARGET_DIR}/grub.cfg
+
+    # TODO: do we need fonts dir?
+    #mkdir -p $GRUB_TARGET_DIR/fonts
+    #cp $USB_MOUNTPOINT/safemode_files/fonts/unicode.pf2 $GRUB_TARGET_DIR/fonts/
+
+    #install restore kernel and ramdisk
+    RESTORE_MOUNTPOINT=/var/volatile/restore
+    mkdir $RESTORE_MOUNTPOINT -p
+    RESTORE_ERROR=`mount -L $PART2_LABEL $RESTORE_MOUNTPOINT 2>&1` || die "$RESTORE_ERROR"
+
+    cp $USB_MOUNTPOINT/bzImage $RESTORE_MOUNTPOINT/
+    cp $USB_MOUNTPOINT/initrd $RESTORE_MOUNTPOINT/ramdisk
+
+    reset_minimal_image
+
+    # TODO: copy grub version file
+    #mkdir $BOOTFS_MOUNTPOINT/grub
+    #cp $USB_MOUNTPOINT/grub2/grub-ni-version $BOOTFS_MOUNTPOINT/grub/
+
+    echo "PROVISIONING SUCCESSFUL!"
+}
+
+#############
+#main script#
+#############
+
+install_default_error_handler
+
+LOG_LEVEL=`cut -f1 /proc/sys/kernel/printk`
+
+OPTIND=1
+
+while getopts "ht:" opt; do
+    case "$opt" in
+        h)  show_help
+            exit 1
+            ;;
+        t)  TARGET_DISK=$OPTARG
+            ;;
+        *)  show_help
+            exit 1
+            ;;
+    esac
+done
+
+shift $((OPTIND-1))
+
+[ "$1" = "--" ] && shift
+
+if [[ -z $TARGET_DISK ]]; then
+    TARGET_DISK=`find_target_block_device`
+    if [[ -z $TARGET_DISK ]]; then
+        die "No target device found for installation."
+    fi
+else
+    if [[ ! -e $TARGET_DISK ]]; then
+        echo "Error: DEVICE $TARGET_DISK does not exist."
+        show_help
+        exit 1
+    fi
+fi
+
+if [[ -d "/sys/firmware/efi" ]]; then
+    BOOT_STYLE="efi"
+else
+    BOOT_STYLE="legacy"
+fi
+
+echo 6 > /proc/sys/kernel/printk
+
+PART1_LABEL=nigrub
+PART2_LABEL=nirestore
+PART3_LABEL=niconfig
+PART4_LABEL=nilrt
+
+# GPT partitions must assign a partition name whereas
+# MSDOS partitions must assign a partition type (e.g. primary)
+if [[ "$BOOT_STYLE" == "efi" ]]; then
+    PART_STYLE=gpt
+    PART1_NAME=$PART1_LABEL
+    PART2_NAME=$PART2_LABEL
+    PART3_NAME=$PART3_LABEL
+    PART4_NAME=$PART4_LABEL
+else
+    PART_STYLE=msdos
+    PART1_NAME=primary
+    PART2_NAME=primary
+    PART3_NAME=primary
+    PART4_NAME=primary
+fi
+
+PROVISION_TARGET="n"
+RESET_MINIMAL_IMAGE="n"
+if [[ $restore == "provision" ]]; then
+    echo
+    echo "NI Real-Time Recovery."
+    echo
+    echo "The boot style is $BOOT_STYLE"
+    echo
+    echo "Continuing will partition, format and install minimal image to the target."
+    echo
+    read -p "Do you want to continue?[y/N]" PROVISION_TARGET
+    if [[ ${PROVISION_TARGET,,} == "y" ]]; then
+        provision_target
+    fi
+else
+    echo
+    echo "NI Real-Time Restore."
+    echo
+    echo "Continuing will format the nilrt partition and will install minimal image."
+    echo
+    read -p "Do you want to continue?[y/N]" RESET_MINIMAL_IMAGE
+    if [[ ${RESET_MINIMAL_IMAGE,,} == "y" ]]; then
+        reset_minimal_image
+    fi
+fi
+
+echo $LOG_LEVEL > /proc/sys/kernel/printk
+
+trap - ERR
+
+cleanup_and_exit 0
