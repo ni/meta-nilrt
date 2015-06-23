@@ -1,0 +1,28 @@
+From 2d8f962284f40b918c0fc8385e58fcba219ddc12 Mon Sep 17 00:00:00 2001
+From: Fedora Ninjas <pjones@fedoraproject.org>
+Date: Wed, 28 Nov 2012 17:13:24 -0500
+Subject: [PATCH 2/5] Remove device path padding on non-Itanium
+
+This code predates EFI support on any x86 hardware, and it's a strict
+violation of the specification. Windows doesn't do it either.
+---
+ src/include/efi.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/include/efi.h b/src/include/efi.h
+index be667ae..c2ac853 100644
+--- a/src/include/efi.h
++++ b/src/include/efi.h
+@@ -294,7 +294,9 @@ typedef struct {
+ 	uint8_t  signature[16];
+ 	uint8_t  mbr_type;
+ 	uint8_t  signature_type;
++#ifdef __ia64
+ 	uint8_t  padding[6]; /* Emperically needed */
++#endif
+ } __attribute__((packed)) HARDDRIVE_DEVICE_PATH;
+ 
+ typedef struct {
+-- 
+1.8.0
+

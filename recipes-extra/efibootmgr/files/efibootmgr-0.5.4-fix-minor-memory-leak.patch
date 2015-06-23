@@ -1,0 +1,29 @@
+From 36c3a19c62cc3b6841e363712c3c78ef5915122d Mon Sep 17 00:00:00 2001
+From: Matt Domsch <Matt_Domsch@dell.com>
+Date: Thu, 23 Jul 2009 14:18:11 -0500
+Subject: [PATCH 3/5] fix minor memory leak
+
+David Binderman noted new_data was being allocated but not freed.  Not
+a big deal as the program exits soon thereafter (and is thus freed),
+but worth fixing anyhow.
+
+Fixes https://bugzilla.novell.com/show_bug.cgi?id=524529#c1
+---
+ src/efibootmgr/efibootmgr.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/efibootmgr/efibootmgr.c b/src/efibootmgr/efibootmgr.c
+index b984143..de67af0 100644
+--- a/src/efibootmgr/efibootmgr.c
++++ b/src/efibootmgr/efibootmgr.c
+@@ -328,6 +328,7 @@ add_to_boot_order(uint16_t num)
+ 	/* Now new_data has what we need */
+ 	memcpy(&(boot_order.Data), new_data, new_data_size);
+ 	boot_order.DataSize = new_data_size;
++	free(new_data);
+ 	return create_or_edit_variable(&boot_order);
+ }
+ 
+-- 
+1.8.0
+

@@ -1,0 +1,47 @@
+From 5fcfccb39089febb89945b841f489b5acc7638ce Mon Sep 17 00:00:00 2001
+From: Lane Winner <lane.winner@oracle.com>
+Date: Tue, 24 Apr 2012 12:58:57 -0500
+Subject: [PATCH 5/5] make_boot_var does not check for failed status with
+ create_variable. This can result in a memory leak.
+ Additionally the user should be notified of the
+ problem.
+
+We encounter this issue on one system after filling up the UEFI boot list
+with dummy devices.
+
+The patch fix the problem. It was verified on a Mensa system using RHEL 6.0
+
+Signed-off-by: Yinghai Lu<yinghai@kernel.org>
+---
+ src/efibootmgr/efibootmgr.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/src/efibootmgr/efibootmgr.c b/src/efibootmgr/efibootmgr.c
+index de67af0..236365a 100644
+--- a/src/efibootmgr/efibootmgr.c
++++ b/src/efibootmgr/efibootmgr.c
+@@ -239,6 +239,7 @@ warn_duplicate_name(list_t *boot_list)
+ static var_entry_t *
+ make_boot_var(list_t *boot_list)
+ {
++	efi_status_t status;
+ 	var_entry_t *boot;
+ 	int free_number;
+ 	list_t *pos;
+@@ -271,7 +272,12 @@ make_boot_var(list_t *boot_list)
+ 		free(boot);
+ 		return NULL;
+ 	}
+-	create_variable(&boot->var_data);
++
++	status = create_variable(&boot->var_data);
++	if (status != EFI_SUCCESS) {
++		free(boot);
++		return NULL;
++	}
+ 	list_add_tail(&boot->list, boot_list);
+ 	return boot;
+ }
+-- 
+1.8.0
+
