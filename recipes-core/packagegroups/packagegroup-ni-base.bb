@@ -67,6 +67,7 @@ RDEPENDS_${PN} = "\
 
 RDEPENDS_${PN}_append_x64 += "\
 	efivar \
+	grub-cfg-nilrt \
 "
 
 RRECOMMENDS_${PN} = "\
