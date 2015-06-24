@@ -57,16 +57,4 @@ pkg_postinst_${PN} () {
 	# between niacctbase and base-files
 	chown ${user}:${group} $D/var/local/natinst
 	chown ${user}:${group} $D/var/local/natinst/log
-
-	sed -e 's/^passwd:\s*compat/passwd:         niauth [!SUCCESS=continue] compat/' \
-		-e 's/^group:\s*compat/group:          niauth [!SUCCESS=continue] compat/' \
-		-e 's/^shadow:\s*compat/shadow:         niauth [!SUCCESS=continue] compat/' \
-		-i $D${sysconfdir}/nsswitch.conf
-}
-
-pkg_prerm_${PN} () {
-	sed -e 's/passwd:         niauth [!SUCCESS=continue] compat/passwd:         compat/' \
-		-e 's/^group:          niauth [!SUCCESS=continue] compat/group:         compat/' \
-		-e 's/^shadow:         niauth [!SUCCESS=continue] compat/shadow:         compat/' \
-		-i $D${sysconfdir}/nsswitch.conf
 }
