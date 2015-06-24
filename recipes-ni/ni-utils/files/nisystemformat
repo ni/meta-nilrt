@@ -56,15 +56,11 @@ handle_err()
 }
 
 services_stop () {
-	/etc/init.d/systemWebServer stop || true
 	/etc/init.d/sshd stop || true
-	/etc/init.d/niauth stop || true
 }
 
 services_start () {
-	/etc/init.d/niauth start || true
 	/etc/init.d/sshd start || true
-	/etc/init.d/systemWebServer start || true
 }
 
 install_default_err_handler()
