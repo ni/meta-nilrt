@@ -3,7 +3,7 @@ DESCRIPTION = "Linux kernel, debug build, based on nilrt branch"
 require linux-nilrt.inc
 require linux-nilrt-squashfs.inc
 
-NI_RELEASE_VERSION = "15.0"
+NI_RELEASE_VERSION = "comms-2.0"
 LINUX_VERSION = "3.14"
 LINUX_VERSION_EXTENSION = "-nilrt-debug"
 KBRANCH = "nilrt/${NI_RELEASE_VERSION}/${LINUX_VERSION}"
