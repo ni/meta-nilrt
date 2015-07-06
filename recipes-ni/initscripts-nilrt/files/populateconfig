@@ -58,20 +58,15 @@ then
 	mkdir -p "/etc/natinst/share/certstore/server_certs"
 	mkdir -p "/etc/natinst/share/certstore/temp"
 
-	chown root:root "/etc/natinst/share/certstore"
 	chmod 755 "/etc/natinst/share/certstore"
-
-	chown webserv:root "/etc/natinst/share/certstore/open_csrs"
 	chmod 700 "/etc/natinst/share/certstore/open_csrs"
 
-	chown webserv:niwscerts "/etc/natinst/share/certstore/server_certs"
+	chown root:niwscerts "/etc/natinst/share/certstore/server_certs"
 	chmod 750 "/etc/natinst/share/certstore/server_certs"
 
-	chown webserv:root "/etc/natinst/share/certstore/temp"
 	chmod 700 "/etc/natinst/share/certstore/temp"
 
 	touch "/etc/natinst/share/certstore/nexthandle.dat"
-	chown webserv:root "/etc/natinst/share/certstore/nexthandle.dat"
 	chmod 600 "/etc/natinst/share/certstore/nexthandle.dat"
 
 	# wireless certificates
@@ -79,16 +74,9 @@ then
 	mkdir -p "/etc/natinst/share/certstore/wireless/pac"
 	mkdir -p "/etc/natinst/share/certstore/wireless/client"
 
-	chown webserv:root "/etc/natinst/share/certstore/wireless"
 	chmod 700 "/etc/natinst/share/certstore/wireless"
-
-	chown webserv:root "/etc/natinst/share/certstore/wireless/trusted"
 	chmod 700 "/etc/natinst/share/certstore/wireless/trusted"
-
-	chown webserv:root "/etc/natinst/share/certstore/wireless/pac"
 	chmod 700 "/etc/natinst/share/certstore/wireless/pac"
-
-	chown webserv:root "/etc/natinst/share/certstore/wireless/client"
 	chmod 700 "/etc/natinst/share/certstore/wireless/client"
 
 	#default wireless configuration
@@ -96,7 +84,7 @@ then
 
 	# ws_core
 	touch /etc/natinst/share/certstore/wsapi.key
-	chown webserv:niwscerts /etc/natinst/share/certstore/wsapi.key
+	chown root:niwscerts /etc/natinst/share/certstore/wsapi.key
 	chmod 640 /etc/natinst/share/certstore/wsapi.key
 
 	# END: Populate the certstore.
