@@ -119,7 +119,7 @@ check_file $BOOT_CONFIG_LOCATION
 case "$1" in
   start)
 	# The default boot mode is always runmode, we also change the permissions on
-	# the $BOOT_MODE_INPUT so the system webserver can change the mode to boot into
+	# the $BOOT_MODE_INPUT so NI service can change the mode to boot into
 	echo runtime >$BOOT_MODE_INPUT
 	chown lvuser:ni $BOOT_MODE_INPUT
 	chmod 660 $BOOT_MODE_INPUT
