@@ -224,7 +224,7 @@ usage()
 
 		-t	Filesystem type
 		-c	Format the config volume (otherwise rootfs + kernel)
-		-r	Relaunch the system webserver after format
+		-r	Relaunch system services after format
 		-n	Preserve network config according to <mode>:
 		        all		Preserve all settings
 		        primary		Preserve primary, reset secondary
