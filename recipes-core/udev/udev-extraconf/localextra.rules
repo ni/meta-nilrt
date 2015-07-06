@@ -22,10 +22,6 @@ KERNEL=="fb0",  SYMLINK+="fb"
 # Make all input devices read-write to the input group
 SUBSYSTEM=="input", GROUP="input", MODE="660"
 
-# webserv requires access to rfkill forthe web server
-# configuration of wifi.
-KERNEL=="rfkill", GROUP="ni", MODE="660"
-
 # skip modprobe for wl12xx device to prevent 30s delay issues with 3.2 kernel
 ACTION=="add", DEVPATH=="/devices/*", ENV{MODALIAS}=="platform:wl12xx", RUN="/bin/true"
 
