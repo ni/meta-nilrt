@@ -12,7 +12,7 @@ PACKAGES =+ " ${PN}-acpid"
 DEPENDS =+ " libselinux"
 
 FILES_${PN}-mdev += "${sysconfdir}/mdev ${sysconfdir}/mdev/automount.sh ${sysconfdir}/mdev/usb.sh "
-FILES_${PN}-ifplugd = "${sysconfdir}/init.d/busybox-ifplugd ${D}${sysconfdir}/ifplugd/ifplugd.script"
+FILES_${PN}-ifplugd = "${sysconfdir}/init.d/busybox-ifplugd ${sysconfdir}/ifplugd/ifplugd.script"
 FILES_${PN}-acpid = "${sysconfdir}/init.d/busybox-acpid ${sysconfdir}/acpid.conf ${sysconfdir}/acpi ${sysconfdir}/acpi/poweroff.sh"
 
 INITSCRIPT_PACKAGES =+ " ${PN}-ifplugd ${PN}-acpid"
