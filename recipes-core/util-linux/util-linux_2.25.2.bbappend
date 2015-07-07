@@ -8,9 +8,9 @@ SRC_URI =+ " file://removeSetUIDCheck.patch"
 
 group = "${LVRT_GROUP}"
 
-do_install_append() {
-	chmod 4550 ${D}${base_sbindir}/hwclock
-	chown 0:${group} ${D}${base_sbindir}/hwclock
+pkg_postinst_${PN} () {
+	chmod 4550 $D${base_sbindir}/hwclock
+	chown 0:${group} $D${base_sbindir}/hwclock
 }
 
 # To delay the execution of the postinst to first boot, check $D and error
