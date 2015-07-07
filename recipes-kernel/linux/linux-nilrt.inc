@@ -23,14 +23,15 @@ do_kernel_myconfig() {
 test ${DEFCONFIG_LOCATION}
 
 if [ "${TARGET_ARCH}" = "x86_64" ]; then
-    MYCONFIG="linux/arch/x86/configs/nati_x86_64_defconfig"
+    MYCONFIG="arch/x86/configs/nati_x86_64_defconfig"
 elif [ "${TARGET_ARCH}" = "arm" ]; then
-    MYCONFIG="linux/arch/arm/configs/nati_zynq_defconfig"
+    MYCONFIG="arch/arm/configs/nati_zynq_defconfig"
 else
     bberror "Could not set MYCONFIG for ${TARGET_ARCH}"
     exit 1
 fi
-    cp ${WORKDIR}/${MYCONFIG} ${THISDIR}/${DEFCONFIG_LOCATION}/defconfig
+
+    cp ${S}/${MYCONFIG} ${THISDIR}/${DEFCONFIG_LOCATION}/defconfig
 }
 
 # defconfig is consumed in patch task and .config file is used thereafter.
