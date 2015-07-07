@@ -19,6 +19,9 @@ do_install_append() {
 }
 
 pkg_postinst_coreutils-hostname () {
+	chmod 4550 $D${base_bindir}/hostname.coreutils
+	chown 0:${group} $D${base_bindir}/hostname.coreutils
+
 	update-alternatives --install ${base_bindir}/hostname hostname hostname.${BPN} 100
 }
 
