@@ -22,11 +22,12 @@ RDEPENDS_${PN} += "\
 do_install_append() {
 	# rename hostname manually since its not part of base_bindir_progs
 	mv ${D}${bindir}/hostname ${D}${base_bindir}/hostname.${BPN}
-	chmod 4550 ${D}${base_bindir}/hostname.coreutils
-	chown 0:${group} ${D}${base_bindir}/hostname.coreutils
 }
 
 pkg_postinst_coreutils-hostname () {
+	chmod 4550 $D${base_bindir}/hostname.coreutils
+	chown 0:${group} $D${base_bindir}/hostname.coreutils
+
 	update-alternatives --install ${base_bindir}/hostname hostname hostname.${BPN} 100
 }
 
