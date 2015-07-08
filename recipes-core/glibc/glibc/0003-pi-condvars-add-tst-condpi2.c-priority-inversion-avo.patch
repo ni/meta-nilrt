@@ -22,7 +22,7 @@ diff --git a/nptl/Makefile b/nptl/Makefile
 index b1ae194..b518486 100644
 --- a/nptl/Makefile
 +++ b/nptl/Makefile
-@@ -217,7 +217,7 @@ tests = tst-typesizes \
+@@ -218,7 +218,7 @@ tests = tst-typesizes \
  	tst-cond14 tst-cond15 tst-cond16 tst-cond17 tst-cond18 tst-cond19 \
  	tst-cond20 tst-cond21 tst-cond22 tst-cond23 tst-cond24 tst-cond25 \
  	tst-cond-except \
