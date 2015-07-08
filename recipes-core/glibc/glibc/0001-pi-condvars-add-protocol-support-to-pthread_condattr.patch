@@ -23,6 +23,8 @@ Signed-off-by: Darren Hart <dvhltc@us.ibm.com>
 <Ported to glibc 2.19 by Gratian Crisan>
 Signed-off-by: Gratian Crisan <gratian.crisan@ni.com>
 Signed-off-by: Darren Hart <dvhart@linux.intel.com>
+<Ported to glibc 2.21 by Adrian Ratiu>
+Signed-off-by: Adrian Ratiu <adrian.ratiu@ni.com>
 
 ---
 Changes since v1:
@@ -43,6 +45,9 @@ Changes since v3:
 * Update version to 2.20
 * Fix bug related to missing COND_PROTOCOL_SHIFT when setting/getting the
 protocol in the __nwatiers filed.
+
+Changes since v4:
+* Update version to 2.21
 ---
  manual/threads.texi                                | 40 ++++++++++++++
  nptl/Makefile                                      |  3 +-
@@ -162,7 +167,7 @@ index 157fe62..f1329cb 100644
  		      pthread_condattr_getclock pthread_condattr_setclock \
  		      pthread_spin_init pthread_spin_destroy \
  		      pthread_spin_lock pthread_spin_trylock \
-@@ -104,7 +105,7 @@ libpthread-routines = nptl-init vars events version \
+@@ -105,7 +106,7 @@ libpthread-routines = nptl-init vars events version \
  		      cleanup_defer_compat unwind \
  		      pt-longjmp pt-cleanup\
  		      cancellation \
@@ -172,17 +177,19 @@ index 157fe62..f1329cb 100644
  		      ptw-write ptw-read ptw-close ptw-fcntl ptw-accept \
  		      ptw-connect ptw-recv ptw-recvfrom ptw-recvmsg ptw-send \
 diff --git a/nptl/Versions b/nptl/Versions
-index b7d4a9b..8ce1d9a 100644
+index 4e134fa..5870932 100644
 --- a/nptl/Versions
 +++ b/nptl/Versions
-@@ -264,6 +264,8 @@ libpthread {
+@@ -263,7 +263,9 @@ libpthread {
+     pthread_setattr_default_np;
    }
- 
-   GLIBC_2.20 {
+
+-  GLIBC_2.20 {
++  GLIBC_2.21 {
 +    pthread_condattr_getprotocol_np;
 +    pthread_condattr_setprotocol_np;
    }
- 
+
    GLIBC_PRIVATE {
 diff --git a/nptl/pthread_cond_broadcast.c b/nptl/pthread_cond_broadcast.c
 index 7c6c9ea..e611eae 100644
@@ -342,7 +349,7 @@ diff --git a/nptl/pthread_cond_timedwait.c b/nptl/pthread_cond_timedwait.c
 index 1698085..7b1efb2 100644
 --- a/nptl/pthread_cond_timedwait.c
 +++ b/nptl/pthread_cond_timedwait.c
-@@ -26,6 +26,8 @@
+@@ -27,6 +27,8 @@
  
  #include <shlib-compat.h>
  
@@ -351,7 +358,7 @@ index 1698085..7b1efb2 100644
  #ifndef HAVE_CLOCK_GETTIME_VSYSCALL
  # undef INTERNAL_VSYSCALL
  # define INTERNAL_VSYSCALL INTERNAL_SYSCALL
-@@ -70,13 +72,13 @@ __pthread_cond_timedwait (cond, mutex, abstime)
+@@ -69,13 +71,13 @@ __pthread_cond_timedwait (cond, mutex, abstime)
  #endif
  
    /* Make sure we are alone.  */
@@ -367,7 +374,7 @@ index 1698085..7b1efb2 100644
        return err;
      }
  
-@@ -121,8 +123,7 @@ __pthread_cond_timedwait (cond, mutex, abstime)
+@@ -120,8 +122,7 @@ __pthread_cond_timedwait (cond, mutex, abstime)
  # ifdef __NR_clock_gettime
  	INTERNAL_SYSCALL_DECL (err);
  	(void) INTERNAL_VSYSCALL (clock_gettime, err, 2,
@@ -377,7 +384,7 @@ index 1698085..7b1efb2 100644
  				  &rt);
  	/* Convert the absolute timeout value to a relative timeout.  */
  	rt.tv_sec = abstime->tv_sec - rt.tv_sec;
-@@ -155,7 +156,7 @@ __pthread_cond_timedwait (cond, mutex, abstime)
+@@ -154,7 +155,7 @@ __pthread_cond_timedwait (cond, mutex, abstime)
        unsigned int futex_val = cond->__data.__futex;
  
        /* Prepare to wait.  Release the condvar futex.  */
@@ -386,7 +393,7 @@ index 1698085..7b1efb2 100644
  
        /* Enable asynchronous cancellation.  Required by the standard.  */
        cbuffer.oldtype = __pthread_enable_asynccancel ();
-@@ -205,7 +206,7 @@ __pthread_cond_timedwait (cond, mutex, abstime)
+@@ -204,7 +205,7 @@ __pthread_cond_timedwait (cond, mutex, abstime)
        __pthread_disable_asynccancel (cbuffer.oldtype);
  
        /* We are going to look at shared data again, so get the lock.  */
@@ -395,7 +402,7 @@ index 1698085..7b1efb2 100644
  
        /* If a broadcast happened, we are done.  */
        if (cbuffer.bc_seq != cond->__data.__broadcast_seq)
-@@ -245,7 +246,7 @@ __pthread_cond_timedwait (cond, mutex, abstime)
+@@ -244,7 +245,7 @@ __pthread_cond_timedwait (cond, mutex, abstime)
      lll_futex_wake (&cond->__data.__nwaiters, 1, pshared);
  
    /* We are done with the condvar.  */
@@ -435,7 +442,7 @@ index fc5eac4..6c0eb00 100644
  
    /* Wake everybody to make sure no condvar signal gets lost.  */
    if (! destroying)
-@@ -116,13 +118,13 @@ __pthread_cond_wait (cond, mutex)
+@@ -114,13 +116,13 @@ __pthread_cond_wait (cond, mutex)
    LIBC_PROBE (cond_wait, 2, cond, mutex);
  
    /* Make sure we are alone.  */
@@ -451,7 +458,7 @@ index fc5eac4..6c0eb00 100644
        return err;
      }
  
-@@ -157,7 +159,7 @@ __pthread_cond_wait (cond, mutex)
+@@ -155,7 +157,7 @@ __pthread_cond_wait (cond, mutex)
      {
        unsigned int futex_val = cond->__data.__futex;
        /* Prepare to wait.  Release the condvar futex.  */
@@ -460,7 +467,7 @@ index fc5eac4..6c0eb00 100644
  
        /* Enable asynchronous cancellation.  Required by the standard.  */
        cbuffer.oldtype = __pthread_enable_asynccancel ();
-@@ -191,7 +193,7 @@ __pthread_cond_wait (cond, mutex)
+@@ -189,7 +191,7 @@ __pthread_cond_wait (cond, mutex)
        __pthread_disable_asynccancel (cbuffer.oldtype);
  
        /* We are going to look at shared data again, so get the lock.  */
@@ -469,7 +476,7 @@ index fc5eac4..6c0eb00 100644
  
        /* If a broadcast happened, we are done.  */
        if (cbuffer.bc_seq != cond->__data.__broadcast_seq)
-@@ -217,7 +219,7 @@ __pthread_cond_wait (cond, mutex)
+@@ -215,7 +217,7 @@ __pthread_cond_wait (cond, mutex)
      lll_futex_wake (&cond->__data.__nwaiters, 1, pshared);
  
    /* We are done with the condvar.  */
@@ -752,7 +759,7 @@ diff --git a/sysdeps/nptl/internaltypes.h b/sysdeps/nptl/internaltypes.h
 index d127f68..baa6646 100644
 --- a/sysdeps/nptl/internaltypes.h
 +++ b/sysdeps/nptl/internaltypes.h
-@@ -69,18 +69,36 @@ struct pthread_condattr
+@@ -71,18 +71,36 @@ struct pthread_condattr
       Bit 0  : flag whether conditional variable will be sharable between
  	      processes.
  
@@ -828,8 +835,8 @@ index 5520312..caf6309 100644
   GLIBC_2.18 A
   pthread_getattr_default_np F
   pthread_setattr_default_np F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
 diff --git a/sysdeps/unix/sysv/linux/alpha/libpthread.abilist b/sysdeps/unix/sysv/linux/alpha/libpthread.abilist
@@ -840,8 +847,8 @@ index 4c75b17..33f9f16 100644
  GLIBC_2.2.6
   GLIBC_2.2.6 A
   __nanosleep F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
  GLIBC_2.3.2
@@ -855,8 +862,8 @@ index ac46302..21b4554 100644
   GLIBC_2.18 A
   pthread_getattr_default_np F
   pthread_setattr_default_np F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
  GLIBC_2.4
@@ -870,8 +877,8 @@ index 865364e..3f26272 100644
  GLIBC_2.2.6
   GLIBC_2.2.6 A
   __nanosleep F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
  GLIBC_2.3.2
@@ -885,8 +892,8 @@ index a84c113..90f50a8 100644
  GLIBC_2.2.6
   GLIBC_2.2.6 A
   __nanosleep F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
  GLIBC_2.3.2
@@ -900,8 +907,8 @@ index ac46302..21b4554 100644
   GLIBC_2.18 A
   pthread_getattr_default_np F
   pthread_setattr_default_np F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
  GLIBC_2.4
@@ -915,8 +922,8 @@ index 865364e..3f26272 100644
  GLIBC_2.2.6
   GLIBC_2.2.6 A
   __nanosleep F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
  GLIBC_2.3.2
@@ -930,8 +937,8 @@ index f25407d..a5d94a8 100644
   wait F
   waitpid F
   write F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
 diff --git a/sysdeps/unix/sysv/linux/mips/mips32/libpthread.abilist b/sysdeps/unix/sysv/linux/mips/mips32/libpthread.abilist
@@ -942,8 +949,8 @@ index 00ad3ab..f5417d9 100644
  GLIBC_2.2.6
   GLIBC_2.2.6 A
   __nanosleep F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
  GLIBC_2.3.2
@@ -957,8 +964,8 @@ index fdcd0cc..0b8605d 100644
  GLIBC_2.2.6
   GLIBC_2.2.6 A
   __nanosleep F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
  GLIBC_2.3.2
@@ -972,8 +979,8 @@ index c8a2a04..6705ff7 100644
  GLIBC_2.2.6
   GLIBC_2.2.6 A
   __nanosleep F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
  GLIBC_2.3.2
@@ -987,8 +994,8 @@ index 0faa1b8..0210aca 100644
   GLIBC_2.18 A
   pthread_getattr_default_np F
   pthread_setattr_default_np F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
  GLIBC_2.3
@@ -1002,8 +1009,8 @@ index 699de01..8bb0457 100644
  GLIBC_2.2.6
   GLIBC_2.2.6 A
   __nanosleep F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
  GLIBC_2.3.2
@@ -1017,8 +1024,8 @@ index 51a8a7f..68a0b49 100644
  GLIBC_2.2.6
   GLIBC_2.2.6 A
   __nanosleep F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
  GLIBC_2.3.2
@@ -1032,8 +1039,8 @@ index 6613c09..9b1bf84 100644
  GLIBC_2.2.6
   GLIBC_2.2.6 A
   __nanosleep F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
  GLIBC_2.3.2
@@ -1047,8 +1054,8 @@ index 4c75b17..33f9f16 100644
  GLIBC_2.2.6
   GLIBC_2.2.6 A
   __nanosleep F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
  GLIBC_2.3.2
@@ -1062,8 +1069,8 @@ index a84c113..90f50a8 100644
  GLIBC_2.2.6
   GLIBC_2.2.6 A
   __nanosleep F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
  GLIBC_2.3.2
@@ -1077,8 +1084,8 @@ index f3c2600..47e9502 100644
   GLIBC_2.18 A
   pthread_getattr_default_np F
   pthread_setattr_default_np F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
 diff --git a/sysdeps/unix/sysv/linux/tile/tilegx/tilegx64/libpthread.abilist b/sysdeps/unix/sysv/linux/tile/tilegx/tilegx64/libpthread.abilist
@@ -1089,8 +1096,8 @@ index f3c2600..47e9502 100644
   GLIBC_2.18 A
   pthread_getattr_default_np F
   pthread_setattr_default_np F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
 diff --git a/sysdeps/unix/sysv/linux/tile/tilepro/libpthread.abilist b/sysdeps/unix/sysv/linux/tile/tilepro/libpthread.abilist
@@ -1101,8 +1108,8 @@ index f3c2600..47e9502 100644
   GLIBC_2.18 A
   pthread_getattr_default_np F
   pthread_setattr_default_np F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
 diff --git a/sysdeps/unix/sysv/linux/x86_64/64/libpthread.abilist b/sysdeps/unix/sysv/linux/x86_64/64/libpthread.abilist
@@ -1113,79 +1120,13 @@ index 1b5192b..b4cc132 100644
  GLIBC_2.2.6
   GLIBC_2.2.6 A
   __nanosleep F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
  GLIBC_2.3.2
   GLIBC_2.3.2 A
   pthread_cond_broadcast F
-diff --git a/sysdeps/unix/sysv/linux/x86_64/lowlevellock.h b/sysdeps/unix/sysv/linux/x86_64/lowlevellock.h
-index 55b4e16..94e639b 100644
---- a/sysdeps/unix/sysv/linux/x86_64/lowlevellock.h
-+++ b/sysdeps/unix/sysv/linux/x86_64/lowlevellock.h
-@@ -124,6 +124,17 @@
-     __status;								      \
-   })
- 
-+#define lll_futex_timed_wait_bitset(futexp, val, timespec, clockbit, private) \
-+  ({									\
-+    INTERNAL_SYSCALL_DECL (__err);					\
-+    long int __ret;							\
-+    int __op = FUTEX_WAIT_BITSET | clockbit;				\
-+    __ret = INTERNAL_SYSCALL (futex, __err, 6, (futexp),		\
-+			      __lll_private_flag (__op, private),	\
-+			      (val), (timespec), NULL /* Unused.  */,	\
-+			      FUTEX_BITSET_MATCH_ANY);			\
-+    __ret;								\
-+  })
- 
- #define lll_futex_wake(futex, nr, private) \
-   ({									      \
-@@ -393,6 +404,43 @@ extern int __lll_timedlock_elision (int *futex, short *adapt_count,
- 		       : "cx", "r11", "cc", "memory");			      \
-      __res < 0; })
- 
-+/* Returns non-zero if error happened, zero if success.  */
-+#define lll_futex_wake_unlock(futexp, nr_wake, nr_wake2, futexp2, private) \
-+  ({									      \
-+    INTERNAL_SYSCALL_DECL (__err);					      \
-+    long int __ret;							      \
-+    __ret = INTERNAL_SYSCALL (futex, __err, 6, (futexp),		      \
-+			      __lll_private_flag (FUTEX_WAKE_OP, private),    \
-+			      (nr_wake), (nr_wake2), (futexp2),		      \
-+			      FUTEX_OP_CLEAR_WAKE_IF_GT_ONE);		      \
-+    INTERNAL_SYSCALL_ERROR_P (__ret, __err);				      \
-+  })
-+
-+#define lll_futex_wait_requeue_pi(futexp, val, mutex, private) \
-+  lll_futex_timed_wait_requeue_pi (futexp, val, NULL, 0, mutex, private)
-+
-+#define lll_futex_timed_wait_requeue_pi(futexp, val, timespec, clockbit,      \
-+					mutex, private)			      \
-+  ({									      \
-+    INTERNAL_SYSCALL_DECL (__err);					      \
-+    int __op = FUTEX_WAIT_REQUEUE_PI | clockbit;			      \
-+									      \
-+    INTERNAL_SYSCALL (futex, __err, 5, (futexp),			      \
-+		      __lll_private_flag (__op, private),		      \
-+		      (val), (timespec), mutex); 			      \
-+  })
-+
-+#define lll_futex_cmp_requeue_pi(futexp, nr_wake, nr_move, mutex, val, priv)  \
-+  ({									      \
-+    INTERNAL_SYSCALL_DECL (__err);					      \
-+    long int __ret;							      \
-+									      \
-+    __ret = INTERNAL_SYSCALL (futex, __err, 6, (futexp),		      \
-+			      __lll_private_flag (FUTEX_CMP_REQUEUE_PI, priv),\
-+			      (nr_wake), (nr_move), (mutex), (val));	      \
-+    INTERNAL_SYSCALL_ERROR_P (__ret, __err);				      \
-+  })
-+
- #define lll_islocked(futex) \
-   (futex != LLL_LOCK_INITIALIZER)
- 
 diff --git a/sysdeps/unix/sysv/linux/x86_64/x32/libpthread.abilist b/sysdeps/unix/sysv/linux/x86_64/x32/libpthread.abilist
 index 328f69a..c558b30 100644
 --- a/sysdeps/unix/sysv/linux/x86_64/x32/libpthread.abilist
@@ -1194,8 +1135,8 @@ index 328f69a..c558b30 100644
   GLIBC_2.18 A
   pthread_getattr_default_np F
   pthread_setattr_default_np F
-+GLIBC_2.20
-+ GLIBC_2.20 A
++GLIBC_2.21
++ GLIBC_2.21 A
 + pthread_condattr_getprotocol_np F
 + pthread_condattr_setprotocol_np F
 -- 

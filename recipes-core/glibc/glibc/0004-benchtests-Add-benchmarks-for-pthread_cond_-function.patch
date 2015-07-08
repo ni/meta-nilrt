@@ -19,9 +19,12 @@ pthread_cond_timedwait return for N threads.
 or pthread_cond_timedwait return for N threads.
 
 Signed-off-by: Gratian Crisan <gratian.crisan@ni.com>
+<Ported to glibc 2.21 by Adrian Ratiu>
+Signed-off-by: Adrian Ratiu <adrian.ratiu@ni.com>
 
 ---
 Changes since v1:
+* Update version to 2.21
 * Removed debugging leftover '-g' option from Makefile.
 * Replaced bzero() with memset().
 * Use size_t where appropriate.
@@ -43,7 +46,7 @@ index fd3036d..3ea254a 100644
  
  bench := $(bench-math) $(bench-pthread)
  
-@@ -39,13 +40,14 @@ string-bench-all := $(string-bench)
+@@ -40,7 +40,7 @@ string-bench-all := $(string-bench)
  
  stdlib-bench := strtod
  
@@ -52,10 +55,12 @@ index fd3036d..3ea254a 100644
  
  CFLAGS-bench-ffs.c += -fno-builtin
  CFLAGS-bench-ffsll.c += -fno-builtin
+@@ -48,7 +49,8 @@ bench-malloc := malloc-thread
  
  $(addprefix $(objpfx)bench-,$(bench-math)): $(libm)
  $(addprefix $(objpfx)bench-,$(bench-pthread)): $(shared-thread-library)
 +$(addprefix $(objpfx)bench-,$(bench-pthread-set)): $(shared-thread-library) $(libm)
+ $(objpfx)bench-malloc-thread: $(shared-thread-library)
  
  
  

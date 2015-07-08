@@ -61,9 +61,11 @@ broadcast/wait          100000/100     33400.2    11810  247194720  455105
 broadcast/timedwait     100000/100     35022.1    13610  161552720  30328
 
 Signed-off-by: Gratian Crisan <gratian.crisan@ni.com>
-
+<Ported to glibc 2.21 by Adrian Ratiu>
+Signed-off-by: Adrian Ratiu <adrian.ratiu@ni.com>
 ---
 Changes since v1:
+* Update version to 2.21
 * Re-run tests on "Intel(R) Xeon(R) CPU E5-1620 @ 3.60GHz" due to
 inadvertently using a debug version of the benchmark before.
 ---
@@ -79,11 +81,11 @@ inadvertently using a debug version of the benchmark before.
 
 diff --git a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_broadcast.S b/sysdeps/unix/sysv/linux/x86_64/pthread_cond_broadcast.S
 deleted file mode 100644
-index 985e0f1..0000000
+index df635af..0000000
 --- a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_broadcast.S
 +++ /dev/null
 @@ -1,179 +0,0 @@
--/* Copyright (C) 2002-2014 Free Software Foundation, Inc.
+-/* Copyright (C) 2002-2015 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 -
@@ -264,11 +266,11 @@ index 985e0f1..0000000
 -		  GLIBC_2_3_2)
 diff --git a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_signal.S b/sysdeps/unix/sysv/linux/x86_64/pthread_cond_signal.S
 deleted file mode 100644
-index 53d65b6..0000000
+index 0e8fe0c..0000000
 --- a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_signal.S
 +++ /dev/null
 @@ -1,164 +0,0 @@
--/* Copyright (C) 2002-2014 Free Software Foundation, Inc.
+-/* Copyright (C) 2002-2015 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 -
@@ -434,11 +436,11 @@ index 53d65b6..0000000
 -		  GLIBC_2_3_2)
 diff --git a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_timedwait.S b/sysdeps/unix/sysv/linux/x86_64/pthread_cond_timedwait.S
 deleted file mode 100644
-index 0dc2340..0000000
+index bb88937..0000000
 --- a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_timedwait.S
 +++ /dev/null
 @@ -1,840 +0,0 @@
--/* Copyright (C) 2002-2014 Free Software Foundation, Inc.
+-/* Copyright (C) 2002-2015 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 -
@@ -1280,11 +1282,11 @@ index 0dc2340..0000000
 -#endif
 diff --git a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_wait.S b/sysdeps/unix/sysv/linux/x86_64/pthread_cond_wait.S
 deleted file mode 100644
-index 0e61d0a..0000000
+index 2e564a7..0000000
 --- a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_wait.S
 +++ /dev/null
 @@ -1,555 +0,0 @@
--/* Copyright (C) 2002-2014 Free Software Foundation, Inc.
+-/* Copyright (C) 2002-2015 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 -
