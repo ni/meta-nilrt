@@ -1,6 +1,8 @@
 inherit kernel
 require recipes-kernel/linux/linux-yocto.inc
 
+machine_srcrev="${SRCREV}"
+
 # The NI kernel build includes on-target versioning tools that
 # link against the gcc provided runtime
 do_kernel_configme[depends] += "libgcc:do_populate_sysroot"
