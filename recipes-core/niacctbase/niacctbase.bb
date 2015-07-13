@@ -10,13 +10,14 @@ inherit allarch useradd
 
 USERADD_PACKAGES = "${PN}"
 
+# Note: With the parsing that happens with these varaibles, you need to be sure
+# to avoid "... ;", no trailing semicolons
 GROUPADD_PARAM_${PN} = " --system -g 500 ${LVRT_GROUP}; \
 	--system -g 499 ${OPENVPN_GROUP}; \
 	--system -g 498 niwscerts"
 
 USERADD_PARAM_${PN} = " -u 500 -N -g ${LVRT_GROUP} -G niwscerts,plugdev,tty -c 'LabVIEW user' ${LVRT_USER}; \
-		-u 499 -N -g ${OPENVPN_GROUP} -c 'OpenVPN user' -r ${OPENVPN_USER}; \
-"
+		-u 499 -N -g ${OPENVPN_GROUP} -c 'OpenVPN user' -r ${OPENVPN_USER}"
 
 useradd_preinst_append () {
 eval ${PSEUDO} chmod g+s ${SYSROOT}/home/${LVRT_USER} || true
