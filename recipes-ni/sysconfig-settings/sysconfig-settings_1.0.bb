@@ -16,6 +16,8 @@ FILES_${PN} += "/usr/local/natinst/share/uixml/sysconfig/* \
 DEPENDS += "niacctbase"
 RDEPENDS_${PN} += "niacctbase"
 
+do_install[depends] += "niacctbase:do_populate_sysroot"
+
 S = "${WORKDIR}"
 
 user = "${LVRT_USER}"
