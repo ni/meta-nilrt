@@ -12,6 +12,6 @@ do_compile_append() {
     done
 
     # XXX We don't provide x86_64 feeds, but they're listed in ${PACKAGE_EXTRA_ARCHS}
-    rm ${S}/${sysconfdir}/opkg/x86_64-feed.conf
-    rm ${S}/${sysconfdir}/opkg/${DISTRO_FEED_PREFIX_02}-x86_64-feed.conf
+    rm -f ${S}/${sysconfdir}/opkg/x86_64-feed.conf
+    rm -f ${S}/${sysconfdir}/opkg/${DISTRO_FEED_PREFIX_02}-x86_64-feed.conf
 }
