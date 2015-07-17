@@ -6,5 +6,5 @@ inherit packagegroup
 
 RDEPENDS_${PN} = "\
 	mono mono-helloworld fsharp gtk-sharp mono-basic \
-	mozroot-certdata mono-xsp \
+	mozroot-certdata \
 	"
