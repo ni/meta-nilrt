@@ -1,1 +1,0 @@
-DEPENDS = "popt util-linux"

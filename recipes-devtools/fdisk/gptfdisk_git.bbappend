@@ -1,4 +1,7 @@
+DEPENDS = "popt util-linux"
+
 PACKAGES =+ "${PN}-gdisk ${PN}-cgdisk ${PN}-sgdisk ${PN}-fixparts"
+
 FILES_${PN}-gdisk = "${sbindir}/gdisk"
 FILES_${PN}-cgdisk = "${sbindir}/cgdisk"
 FILES_${PN}-sgdisk = "${sbindir}/sgdisk"
@@ -10,5 +13,6 @@ RDEPENDS_${PN} += "\
        ${PN}-sgdisk \
        ${PN}-fixparts \
 "
-
 ALLOW_EMPTY_${PN} = "1"
+
+DEFAULT_PREFERENCE = "1"
