@@ -7,440 +7,342 @@ inherit packagegroup
 RDEPENDS_${PN} = "\
 	packagegroup-core-sdk \
 	packagegroup-core-standalone-sdk-target \
-	packagegroup-core-buildessential \
 	packagegroup-core-basic \
+	packagegroup-core-device-devel \
 	packagegroup-core-tools-debug \
+	packagegroup-self-hosted \
+	packagegroup-core-lsb \
+	packagegroup-core-qt \
 "
 
-# packagegroup-self-hosted-graphics - x11
-
-
-# packagegroup-self-hosted-host-tools - x11
 RDEPENDS_${PN} += "\
-	connman \
-	connman-plugin-ethernet \
-	dhcp-client \
-	e2fsprogs \
-	e2fsprogs-e2fsck \
-	e2fsprogs-mke2fs \
-	e2fsprogs-tune2fs \
-	hdparm \
-	iptables \
-	lsb \
-	mc \
-	parted \
-	pseudo \
-	screen \
-${@base_contains("DISTRO_FEATURES", "x11", " \
-	vte \
-", "", d)} \
-"
-
-# packagegroup-self-hosted-debug - x11
-RDEPENDS_${PN} += "\
-	gdb \
-	gdbserver \
-	rsync \
-	strace \
-	tcf-agent \
-"
-# packagegroup-self-hosted-sdk - x11
-RDEPENDS_${PN} += "\
-	autoconf \
-	automake \
-	binutils \
-	binutils-symlinks \
-	ccache \
-	coreutils \
-	cpp \
-	cpp-symlinks \
-	distcc \
-	glibc-utils \
-	glibc-gconv-ibm850 \
-	file \
-	findutils \
-	g++ \
-	g++-symlinks \
-	gcc \
-	gcc-symlinks \
-	intltool \
-	ldd \
-	less \
-	libssp \
-	libssp-dev \
-	libssp-staticdev \
-	libstdc++ \
-	libstdc++-dev \
-	libtool \
-	make \
-	mktemp \
-	perl-module-re \
-	perl-module-text-wrap \
-	pkgconfig \
-	quilt \
-	sed \
-"
-
-# packagegroup-self-hosted-extended - x11
-RDEPENDS_${PN} += "\
-	bzip2 \
-	chkconfig \
-	chrpath \
-	cpio \
-	curl \
-	diffstat \
-	diffutils \
-	elfutils \
-	expat \
-	gamin \
-	gawk \
-	gdbm \
-	gettext \
-	gettext-runtime \
-	git \
-	grep \
-	groff \
-	gzip \
-	hicolor-icon-theme \
-	libaio \
-	libusb1 \
-	libxml2 \
-	lrzsz \
-	lsof \
-	lzo \
-	man \
-	man-pages \
-	mdadm \
-	minicom \
-	mtools \
-	ncurses \
-	neon \
-	nfs-utils \
-	nfs-utils-client \
-	openssl \
-	openssh-sftp-server \
-	opkg \
-	opkg-utils \
-	patch \
-	perl \
-	perl-dev \
-	perl-modules \
-	perl-pod \
-	python \
-	python-compile \
-	python-compiler \
-	python-compression \
-	python-core \
-	python-curses \
-	python-datetime \
-	python-distutils \
-	python-elementtree \
-	python-email \
-	python-fcntl \
-	python-jinja2 \
-	python-logging \
-	python-markupsafe \
-	python-misc \
-	python-msgpack \
-	python-multiprocessing \
-	python-netclient \
-	python-netserver \
-	python-pickle \
-	python-pkgutil \
-	python-pycrypto \
-	python-pyzmq \
-	python-re \
-	python-requests \
-	python-rpm \
-	python-shell \
-	python-sqlite3 \
-	python-subprocess \
-	python-textutils \
-	python-unixadmin \
-	python-xmlrpc \
-	quota \
-	readline \
-	rpm \
-	setserial \
-	socat \
-	subversion \
-	sudo \
-	sysstat \
-	tar \
-	tcl \
-	texi2html \
-	texinfo \
-	unzip \
-	usbutils \
-	watchdog \
-	wget \
-	which \
-	xinetd \
-	zip \
-	zlib \
-"
-
-#    ${PTH} 
-
-RDEPENDS_${PN} += "\
+	avahi \
 	bind \
-	connman \
 	cifs-utils \
 	dhcp \
 	libpcap \
-	nfs-utils \
+	ofono \
+	portmap \
 	ppp \
-	socat \
+	ppp-dialin \
+	resolvconf \
 "
 
 RDEPENDS_${PN} += "\
+	os-release \
+	psplash \
+	sysfsutils \
+"
+
+# openembedded-core/meta/recipes-bsp
+RDEPENDS_${PN} += "\
+	alsa-state \
+	keymaps \
+	lrzsz \
+	setserial \
+	usbutils \
+"
+
+# openembedded-core/meta/recipes-devtools
+RDEPENDS_${PN} += "\
+	apt \
 	bison \
+	bootchart2 \
 	btrfs-tools \
+	cmake \
+	distcc \
 	dosfstools \
+	dpkg \
+	expect \
+	file \
 	flex \
-	mtools \
-	perl \
-	libxml-sax-perl \
-	libxml-namespacesupport-perl \
-	libtimedate-perl \
-	libconvert-asn1-perl \
-	perf \
+	gnu-config \
+	i2c-tools \
+	insserv \
+	mkelfimage \
+	mmc-utils \
+	mtd-utils \
+	opensp \
+	ossp-uuid \
+	patchelf \
+	pax-utils \
 	prelink \
-	python \
-	rsync \
+	python-dbus \
+	python-distribute \
+	python-docutils \
+	python-mako \
+	python-nose \
+	python-numpy \
+	python-zip \
+	python3 \
+	python3-distribute \
+	rpm \
+	sgml-common \
+	unfs3 \
+	vala \
 	valgrind \
-	trace-cmd \
-${@base_contains("DISTRO_FEATURES", "x11", " \
-qemu \
-", "", d)} \
+	xmlto \
 "
-# nasm - zynq
+# perf
+# python-imaging: hangs on install
 
+# openembedded-core/meta/recipes-extended
 RDEPENDS_${PN} += "\
+	at \
 	augeas \
+	bc \
 	blktool \
+	byacc \
 	cups \
 	foomatic-filters \
 	gamin \
 	ghostscript \
-	groff \
-	hdparm \
 	iputils \
-	lsof \
+	libarchive \
+	lighttpd \
+	ltp \
 	mailx \
-	man \
-	man-pages \
-	minicom \
 	msmtp \
-	parted \
+	net-tools \
+	pax \
+	libconvert-asn1-perl \
+	libtimedate-perl \
+	libxml-namespacesupport-perl \
+	libxml-sax-perl \
+	procps \
 	psmisc \
-	screen \
-	sed \
+	shadow \
+	slang \
 	stat \
-	texi2html \
-	texinfo \
+	sysklogd \
+	tcp-wrappers \
 	time \
-	wget \
-	which \
-	xinetd \
-	xz \
-	zip \
 "
 
+# openembedded-core/meta/recipes-support
 RDEPENDS_${PN} += "\
-	libdumpvalue-perl \
-	libenv-perl \
-	libfile-checktree-perl \
-	libi18n-collate-perl \
-	libpod-plainer-perl \
-	rt-tests \
+	apr \
 	aspell \
+	attr \
+	acl \
 	boost \
+	ca-certificates \
+	consolekit \
 	createrepo \
 	curl \
 	enchant \
 	gnupg \
-	lzo \
+	gnutls \
+	gpgme \
+	lz4 \
 	lzop \
-${@base_contains("DISTRO_FEATURES", "x11", " \
-consolekit \
-", "", d)} \
+	nspr \
+	nss \
+	nss-myhostname \
+	pinentry \
+	ptest-runner \
+	sqlite \
+	vte \
 "
 
+# openembedded-core/meta/recipes-kernel
+RDEPENDS_${PN} += "\
+	blktrace \
+	dtc \
+	kexec-tools \
+	kmod \
+	latencytop \
+	oprofile \
+	oprofileui \
+	oprofileui-server \
+	sysprof \
+	systemtap \
+	trace-cmd \
+"
+
+# powertop: "error: C compiler cannot build executables"
+
+# openembedded-gore/meta/recipes-multimedia
+RDEPENDS_${PN} += "\
+	alsa-tools \
+	alsa-utils \
+	alsa-utils-alsaconf \
+	flac \
+	pulseaudio \
+	speex \
+"
+
+# meta-openembedded/meta-oe/recipes-benchmark
 RDEPENDS_${PN} += "\
 	bonnie++ \
+	dbench \
+	fio \
 	iozone3 \
 	iperf \
 	iperf3 \
+	libhugetlbfs \
 	lmbench \
 	memtester \
-	iw \
-	krb5 \
-	rfkill \
-	samba \
-	smbnetfs \
-	sshfs-fuse \
-${@base_contains("DISTRO_FEATURES", "x11", " \
-networkmanager \
-\
-", "", d)} \
+	nbench-byte \
+	phoronix-test-suite \
+	tiobench \
 "
 
-# meta-oe/recipes-connectivity
+# meta-openembedded/meta-oe/recipes-connectivity
 RDEPENDS_${PN} += "\
+	gammu \
+	gnokii \
+	hostapd \
+	irssi \
+	iw \
+	krb5 \
+	linuxptp \
+	mosh \
+	networkmanager \
+	rfkill \
+	samba \
 	ser2net \
+	ti-wifi-utils \
+	usbmuxd \
 	zeromq \
 "
 
-# oe-core/recipes-devtools
+# meta-openembedded/meta-oe/recipes-core
 RDEPENDS_${PN} += "\
-	cmake \
-	guile \
+	fakeroot \
+	usleep \
 "
 
-# meta-oe/recipes-devtools
+# meta-openembedded/meta-oe/recipes-devtools
 RDEPENDS_${PN} += "\
 	bootchart \
+	breakpad \
 	cgdb \
 	cppunit \
+	dejagnu \
+	geany \
+	i2c-tools \
+	icon-slicer \
+	jq \
 	lemon \
+	log4cplus \
 	ltrace \
 	lua \
-	nodejs4 \
+	luajit \
+	mcpp \
+	memstat \
+	nodejs \
+	libio-pty-perl \
 	php \
-${@base_contains("DISTRO_FEATURES", "x11", " \
-packagekit \
-tk \
-", "", d)} \
+	pm-qa \
+	protobuf \
+	python-futures \
+	python-pyopenssl \
+	python-pyqt \
+	python-simplejson \
+	python-tornado \
+	swig \
+	tclap \
+	tk \
+	vala-dbus-binding-tool \
+	yajl \
+	yasm \
 "
-
 RDEPENDS_${PN}_append_x64 += "\
+	concurrencykit \
 	msr-tools \
 "
 
-# nodejs - nodejs4 builds (included above), but nodejs is broken (tested on dizzy)
 
-# meta-oe/recipes-devtools/python (most now in meta-oe/meta-python)
+# meta-openembedded/meta-oe/recipes-extended
 RDEPENDS_${PN} += "\
-	pyrtm \
-	python-autobahn \
-	python-cheetah \
-	python-cloudeebus \
-	python-cython \
-	python-dateutil \
-	python-decorator \
-	python-docutils \
-	python-epydoc \
-	python-feedparser \
-	python-gdata \
-	python-gevent \
-	python-greenlet \
-	python-ldap \
-	python-lxml \
-	python-m2crypto \
-	python-mako \
-	python-matplotlib \
-	python-nose \
-	python-numeric \
-	python-pexpect \
-	python-pip \
-	python-psutil \
-	python-pyalsaaudio \
-	python-pyopenssl \
-	python-pyserial \
-	python-pytz \
-	python-pyudev \
-	python-pyusb \
-	python-pyyaml \
-	python-simplejson \
-	python-slip-dbus \
-	python-smbus \
-	python-snakefood \
-	python-sqlalchemy \
-	python-tornado \
-	python-twisted \
-	python-vobject \
-	python-webdav \
-	python-zopeinterface \
-${@base_contains("DISTRO_FEATURES", "x11", " \
-python-sip python-pyqt \
-", "", d)} \
-"
-
-# meta-cloud-services/meta-openstack/recipes-devtools/python
-RDEPENDS_${PN} += "\
-	python-jinja2 \
-	python-markupsafe \
-	python-msgpack \
-	python-requests \
-"
-
-# python-numpy
-RDEPENDS_${PN} += "\
-	python-numpy \
-"
-
-# meta-oe/recipes-extended
-RDEPENDS_${PN} += "\
+	acpica \
+	acpitests \
+	collectd \
+	ddrescue \
 	dialog \
+	efivar \
+	flashrom \
+	gnuplot \
 	hexedit \
 	hplip \
 	iotop \
+	jansson \
+	leveldb \
+	libcec \
+	libconfig \
+	liblockfile \
+	liblognorm \
+	libmodbus \
+	libwmf \
+	md5deep \
+	polkit \
 	redis \
+	rrdtool \
 	rsyslog \
+	sip \
+	smartmontools \
+	canutils \
+	t1lib \
 	tcsh \
+	tipcutils \
 	tmux \
 	zram \
-${@base_contains("DISTRO_FEATURES", "x11", " \
-gnuplot polkit \
-", "", d)} \
 "
 
+# meta-openembedded/meta-oe/recipes-graphics
 # meta-oe/recipes-graphics
 RDEPENDS_${PN} += "\
-${@base_contains("DISTRO_FEATURES", "x11", " \
 	gimp \
 	jasper \
+	lxdm \
+	numlockx \
 	openbox \
+	packagegroup-fonts-truetype \
+	terminus-font \
+	tesseract \
 	ttf-dejavu \
 	ttf-droid \
 	ttf-gentium \
 	ttf-inconsolata \
 	ttf-liberation \
+	ttf-mplus \
+	ttf-pt-sans \
 	ttf-ubuntu-font-family \
+	xcursorgen \
+	xdotool \
 	iceauth \
 	sessreg \
 	setxkbmap \
 	twm \
+	xclock \
+	xfontsel \
+	xlsfonts \
+	xmag \
+	xrdb \
 	xterm \
-", "", d)} \
+	xwd \
+	xbitmaps \
+	xorg-sgml-doctools \
 "
 
-# meta-oe/recipes-multimedia
+
+# meta-openembedded/meta-oe/recipes-multimedia
 RDEPENDS_${PN} += "\
-${@base_contains("DISTRO_FEATURES", "x11", " \
+	alsa-oss \
 	audiofile \
+	jack \
 	media-ctl \
+	opus-tools \
 	v4l-utils \
-", "", d)} \
+	wavpack \
+	libwebp \
 "
 # vlc, mplayer requires libmad which is on a non-whitelisted license
 
-# meta-oe/recipes-networking
+# meta-openembedded/meta-oe/recipes-support
 RDEPENDS_${PN} += "\
-	bridge-utils \
-	cifs \
-	ntp \
-	net-snmp \
-	netcat \
-	nuttcp \
-	traceroute \
-	tunctl \
-"
-
-# meta-oe/recipes-support
-RDEPENDS_${PN} += "\
-	ca-certificates \
+	bash-completion \
 	ccid \
 	ckermit \
 	cpufrequtils \
@@ -448,65 +350,213 @@ RDEPENDS_${PN} += "\
 	debianutils \
 	daemonize \
 	devmem2 \
+	dfu-util \
 	eject \
+	enca \
+	espeak \
+	eventlog \
+	farsight2 \
+	fbset \
+	fbset-modes \
 	fftw \
-	fuse \
+	fltk \
 	gd \
-	i2c-tools \
+	glog \
+	gperftools \
+	gsl \
+	gsoap \
+	hddtemp \
+	htop \
+	iksemel \
+	imagemagick \
+	libinih \
+	iso-codes \
+	joe \
+	lcms \
 	links \
 	lmsensors \
 	lockdev \
+	log4c \
 	lzip \
 	lvm2 \
 	mbuffer \
 	mg \
+	mime-support \
+	mariadb \
+	mysql-python \
 	multipath-tools \
-	mysql5 \
 	nano \
 	nmon \
-	ntfs-3g-ntfsprogs \
+	onig \
 	opencv \
 	opencv-samples \
 	openldap \
+	p11-kit \
+	p910nd \
+	pcsc-lite \
 	picocom \
+	pidgin \
+	poppler \
+	portaudio-v19 \
 	postgresql \
-	serial-forward \
+	pps-tools \
+	pv \
+	read-edid \
 	rng-tools \
-	sqlite \
+	rsnapshot \
+	sdparm \
+	serial-forward \
+	sg3-utils \
+	sharutils \
 	start-stop-daemon \
 	strongswan \
-	tcpdump \
+	talloc \
+	tbb \
+	toscoterm \
+	tree \
+	udisks \
+	upower \
+	usb-modeswitch \
 	usbpath \
 	vim \
-	xmlto \
-	yasm \
-${@base_contains("DISTRO_FEATURES", "x11", " \
-lcms \
-pidgin \
-poppler \
-imagemagick \
-", "", d)} \
+	xchat \
+	xdelta3 \
+	xmlstarlet \
+	zile \
 "
-# emacs - fail (blacklisted on dizzy)
-# openmotif - fail (blacklisted on dizzy)
 
-# meta-oe/meta-gnome
-RDEPENDS_${PN} += "${@base_contains("DISTRO_FEATURES", "x11", " florence ", "", d)}"
+RDEPENDS_${PN}_append_x64 += "\
+	numactl \
+"
 
-# meta-oe/meta-xfce
+# meta-openembedded/meta-filesystems
 RDEPENDS_${PN} += "\
-${@base_contains("DISTRO_FEATURES", "x11", " \
-	xfce4-screenshooter \
-", "", d)} \
+	fuse-exfat \
+	ntfs-3g-ntfsprogs \
+	smbnetfs \
+	sshfs-fuse \
+	unionfs-fuse \
+	fuse \
+	physfs \
+	aufs-util \
+	exfat-utils \
+	xfsprogs \
 "
 
-# meta-selinux
-RDEPENDS_${PN} += "packagegroup-ni-selinux"
+# meta-openembedded/meta-gnome
+RDEPENDS_${PN} += "\
+	florence \
+"
 
-# meta-ruby (from meta-openembedded)
+# meta-openembedded/meta-networking
+RDEPENDS_${PN} += "\
+	inetutils \
+	polarssl \
+	vlan \
+	vpnc \
+	atftp \
+	autofs \
+	cyrus-sasl \
+	iscsi-initiator-utils \
+	postfix \
+	radvd \
+	squid \
+	tftp-hpa \
+	conntrack-tools \
+	ebtables \
+	net-snmp \
+	openflow \
+	pptp-linux \
+	quagga \
+	rp-pppoe \
+	xl2tpd \
+	zeroconf \
+	arptables \
+	bridge-utils \
+	cifs \
+	dnsmasq \
+	dovecot \
+	fetchmail \
+	fping \
+	ifenslave \
+	iftop \
+	ipsec-tools \
+	macchanger \
+	memcached \
+	mtr \
+	ndisc6 \
+	ntp \
+	netcat \
+	netcat-openbsd \
+	netcf \
+	ypbind-mt \
+	yp-tools \
+	nuttcp \
+	pimd \
+	ssmping \
+	strongswan \
+	stunnel \
+	tcpdump \
+	tnftp \
+	traceroute \
+	tunctl \
+	wireshark \
+"
+
+# ptpd: 
+# /ssd/rtollert/nioefeeds-objects/x64_feeds/linuxU/x64/gcc-4.7-oe/release/build/tmp-glibc/sysroots/x86_64-linux/usr/libexec/x86_64-nilrt-linux/gcc/x86_64-nilrt-linux/4.8.2/ld: warning: library search path "/usr/lib" is unsafe for cross-compilation
+# /usr/lib/librt.so: undefined reference to `__shm_directory@GLIBC_PRIVATE'
+
+
+# meta-oe/recipes-devtools/python (most now in meta-oe/meta-python)
+RDEPENDS_${PN} += "\
+	python-pycrypto \
+	python-feedparser \
+	python-requests \
+	python-pyzmq \
+	python-m2crypto \
+	python-cheetah \
+	python-lxml \
+	python-numeric \
+	python-pyudev \
+	python-autobahn \
+	python-pyalsaaudio \
+	python-pip \
+	python-pyusb \
+	python-markupsafe \
+	python-jinja2 \
+	python-pexpect \
+	python-cloudeebus \
+	python-webdav \
+	python-dateutil \
+	python-ldap \
+	python-epydoc \
+	python-gevent \
+	python-cython \
+	python-smbus \
+	python-snakefood \
+	python-psutil \
+	python-msgpack \
+	python-vobject \
+	python-twisted \
+	python-pyserial \
+	python-slip-dbus \
+	python-gdata \
+	pyrtm \
+	python-sqlalchemy \
+	python-pyyaml \
+	python-decorator \
+	python-greenlet \
+	python-pytz \
+	python-zopeinterface \
+	python-pyparted \
+"
+# python-matplotlib: hang on do_install
+
+# meta-openembedded/meta-ruby
 RDEPENDS_${PN} += "ruby"
 
-# meta-oe/meta-webserver
+# meta-openembedded/meta-webserver
 RDEPENDS_${PN} += "\
 	apache2 \
 	cherokee \
@@ -519,5 +569,143 @@ RDEPENDS_${PN} += "\
 	sthttpd \
 "
 
-# modphp - fail (blacklisted on dizzy)
-# xdebug - fail (blacklisted on dizzy)
+# meta-oe/meta-xfce
+RDEPENDS_${PN} += "\
+	packagegroup-xfce-extended \
+"
+
+# meta-cloud-services/meta-openstack/recipes-devtools
+RDEPENDS_${PN} += "\
+	erlang \
+	libconfig-general-perl \
+	python-amqp \
+	python-amqplib \
+	python-anyjson \
+	python-beautifulsoup4 \
+	python-boto \
+	python-cephclient \
+	python-cliff \
+	python-cmd2 \
+	python-colorama \
+	python-coverage \
+	python-croniter \
+	python-cssselect \
+	python-decorator \
+	python-django \
+	python-django-appconf \
+	python-django-compressor \
+	python-django-nose \
+	python-dnspython \
+	python-eventlet \
+	python-extras \
+	python-falcon \
+	python-fixtures \
+	python-flake8 \
+	python-futures \
+	python-greenlet \
+	python-html5lib \
+	python-httplib2 \
+	python-httpretty \
+	python-ipaddr \
+	python-iso8601 \
+	python-jinja2 \
+	python-jsonpatch \
+	python-jsonpath-rw \
+	python-jsonpointer \
+	python-jsonschema \
+	python-keyring \
+	python-kombu \
+	python-lesscpy \
+	python-lockfile \
+	python-logutils \
+	python-lxml \
+	python-mako \
+	python-markupsafe \
+	python-mccabe \
+	python-memcache \
+	python-memcached \
+	python-mimeparse \
+	python-mock \
+	python-mox \
+	python-mox3 \
+	python-msgpack \
+	python-netaddr \
+	python-netifaces \
+	python-networkx \
+	python-requests \
+	python-oauth2 \
+	python-oauthlib \
+	python-pam \
+	python-paramiko \
+	python-passlib \
+	python-paste \
+	python-pastedeploy \
+	python-pbr \
+	python-pep8 \
+	python-ply \
+	python-posix-ipc \
+	python-prettytable \
+	python-psycopg2 \
+	python-py \
+	python-pyasn1 \
+	python-pycrypto \
+	python-pyflakes \
+	python-pymongo \
+	python-pyparsing \
+	python-pyscss \
+	python-pysnmp \
+	python-pysqlite \
+	python-pytest \
+	python-pytz \
+	python-pyudev \
+	python-requests \
+	python-rfc3986 \
+	python-rtslib-fb \
+	python-setuptools \
+	python-simplegeneric \
+	python-singledispatch \
+	python-six \
+	python-sqlalchemy \
+	python-stevedore \
+	python-subunit \
+	python-suds \
+	python-sysv-ipc \
+	python-taskflow \
+	python-tempita \
+	python-termcolor \
+	python-testrepository \
+	python-testresources \
+	python-testscenarios \
+	python-testtools \
+	python-tooz \
+	python-tox \
+	python-virtualenv \
+	python-waitress \
+	python-warlock \
+	python-websockify \
+	python-webtest \
+	python-wsgiref \
+	python-wsme \
+	python-xattr \
+"
+
+# meta-cloud-services/meta-openstack/recipes-devtools
+RDEPENDS_${PN} += "\
+	uwsgi \
+"
+
+# meta-cloud-services/meta-openstack/recipes-support
+RDEPENDS_${PN} += "\
+	chef \
+	hiera \
+	mod-wsgi \
+	nss-pam-ldapd \
+	puppet \
+	tgt \
+"
+
+# meta-selinux
+RDEPENDS_${PN} += "packagegroup-ni-selinux"
+
+# meta-mono
+RDEPENDS_${PN} += "packagegroup-ni-mono-extra"
