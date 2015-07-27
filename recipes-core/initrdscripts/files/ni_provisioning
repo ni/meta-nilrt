@@ -225,7 +225,7 @@ fi
 
 PROVISION_TARGET="n"
 RESET_MINIMAL_IMAGE="n"
-if [[ $recovery == "provision" ]]; then
+if [[ $restore == "provision" ]]; then
     echo
     echo "NI Real-Time Recovery."
     echo
