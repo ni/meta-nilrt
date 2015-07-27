@@ -1,6 +1,9 @@
 #!/bin/bash
 
 USB_MOUNTPOINT=/var/volatile/usbrtdeploy
+NIGRUB_LABEL=nigrub
+NIRESTORE_LABEL=nirestore
+NILRT_LABEL=nilrt
 
 cleanup_and_exit()
 {
@@ -55,11 +58,11 @@ find_target_block_device()
 
 reset_minimal_image()
 {
-    echo "Formatting nilrt partition..."
-    mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}4 -L $PART4_LABEL || die "Format failed!"
+    echo "Formatting $NILRT_LABEL partition..."
+    disk_config partition_format $TARGET_DISK $NILRT_LABEL
     NILRT_MOUNTPOINT=/var/volatile/nilrt
     mkdir $NILRT_MOUNTPOINT -p
-    NILRT_ERROR=`mount -L nilrt $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
+    NILRT_ERROR=`mount -L $NILRT_LABEL $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
     echo "Deploying minimal image..."
     TAR_ERROR=`tar -xjf /payload/minimal-nilrt-image-x64.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1` || die "$TAR_ERROR"
 
@@ -75,42 +78,17 @@ provision_target()
     #find and mount USB key
     mkdir -p $USB_MOUNTPOINT
 
-    # list partitions on recovery device using partition label
-    NIRECOVERY_PARTITION=`lsblk -inpo KNAME,LABEL,TYPE | grep NIRECOVERY | grep part | awk '{print $1;}'`
-
     # try mounting the partition
-    mount $NIRECOVERY_PARTITION $USB_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
+    mount -L NIRECOVERY $USB_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
 
     echo "Partitioning $TARGET_DISK..."
-
-    PARTED_ERROR=`parted -s $TARGET_DISK mklabel $PART_STYLE 2>&1` || die "$PARTED_ERROR"
-    PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART1_NAME 1MB 16MB 2>&1` || die "$PARTED_ERROR"
-    PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART2_NAME 16MB 200MB 2>&1` || die "$PARTED_ERROR"
-    PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART3_NAME 200MB 216MB 2>&1` || die "$PARTED_ERROR"
-    PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART4_NAME 216MB 100% 2>&1` || die "$PARTED_ERROR"
-
-    echo "Assigning EFI System Partition..."
-
-    if [[ "$BOOT_STYLE" == "efi" ]]; then
-        sgdisk --typecode=1:C12A7328-F81F-11D2-BA4B-00A0C93EC93B $TARGET_DISK
-    else
-        sfdisk -c $TARGET_DISK 1 EF
-    fi
-
-    wait_for_partitions $TARGET_DISK
-
-    echo "Formatting partitions..."
-
-    MKFS_ERROR=`mkfs.vfat -n $PART1_LABEL ${TARGET_DISK}1 2>&1` || die "$MKFS_ERROR"
-    mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}2 -L $PART2_LABEL || die "Format failed!"
-    mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}3 -L $PART3_LABEL || die "Format failed!"
-    mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}4 -L $PART4_LABEL || die "Format failed!"
+    disk_config disk_setup $TARGET_DISK
 
     #install grub
 
     GRUB_MOUNTPOINT=/var/volatile/grub
     mkdir $GRUB_MOUNTPOINT -p
-    MOUNT_ERROR=`mount -L $PART1_LABEL $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
+    MOUNT_ERROR=`mount -L $NIGRUB_LABEL $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
 
     if [[ "$BOOT_STYLE" == "efi" ]]; then
         echo "Configuring EFI grub2..."
@@ -140,7 +118,7 @@ provision_target()
     #install restore kernel and ramdisk
     RESTORE_MOUNTPOINT=/var/volatile/restore
     mkdir $RESTORE_MOUNTPOINT -p
-    RESTORE_ERROR=`mount -L $PART2_LABEL $RESTORE_MOUNTPOINT 2>&1` || die "$RESTORE_ERROR"
+    RESTORE_ERROR=`mount -L $NIRESTORE_LABEL $RESTORE_MOUNTPOINT 2>&1` || die "$RESTORE_ERROR"
 
     cp $USB_MOUNTPOINT/bzImage $RESTORE_MOUNTPOINT/
     cp $USB_MOUNTPOINT/initrd $RESTORE_MOUNTPOINT/ramdisk
@@ -201,27 +179,6 @@ else
 fi
 
 echo 6 > /proc/sys/kernel/printk
-
-PART1_LABEL=nigrub
-PART2_LABEL=nirestore
-PART3_LABEL=niconfig
-PART4_LABEL=nilrt
-
-# GPT partitions must assign a partition name whereas
-# MSDOS partitions must assign a partition type (e.g. primary)
-if [[ "$BOOT_STYLE" == "efi" ]]; then
-    PART_STYLE=gpt
-    PART1_NAME=$PART1_LABEL
-    PART2_NAME=$PART2_LABEL
-    PART3_NAME=$PART3_LABEL
-    PART4_NAME=$PART4_LABEL
-else
-    PART_STYLE=msdos
-    PART1_NAME=primary
-    PART2_NAME=primary
-    PART3_NAME=primary
-    PART4_NAME=primary
-fi
 
 PROVISION_TARGET="n"
 RESET_MINIMAL_IMAGE="n"

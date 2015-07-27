@@ -1,0 +1,62 @@
+#!/bin/bash
+
+partition_format()
+{
+
+    mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}4 -L $PART4_LABEL || die "Format failed!"
+}
+
+disk_setup()
+{
+    PARTED_ERROR=`parted -s $TARGET_DISK mklabel $PART_STYLE 2>&1` || die "$PARTED_ERROR"
+    PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART1_NAME 1MB 16MB 2>&1` || die "$PARTED_ERROR"
+    PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART2_NAME 16MB 200MB 2>&1` || die "$PARTED_ERROR"
+    PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART3_NAME 200MB 216MB 2>&1` || die "$PARTED_ERROR"
+    PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART4_NAME 216MB 100% 2>&1` || die "$PARTED_ERROR"
+
+    if [[ "$BOOT_STYLE" == "efi" ]]; then
+        sgdisk --typecode=1:C12A7328-F81F-11D2-BA4B-00A0C93EC93B $TARGET_DISK
+    else
+        sfdisk -c $TARGET_DISK 1 EF
+    fi
+
+    MKFS_ERROR=`mkfs.vfat -n $PART1_LABEL ${TARGET_DISK}1 2>&1` || die "$MKFS_ERROR"
+    mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}2 -L $PART2_LABEL || die "Format failed!"
+    mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}3 -L $PART3_LABEL || die "Format failed!"
+    mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}4 -L $PART4_LABEL || die "Format failed!"
+}
+
+PART1_LABEL=nigrub
+PART2_LABEL=nirestore
+PART3_LABEL=niconfig
+PART4_LABEL=nilrt
+
+# GPT partitions must assign a partition name whereas
+# MSDOS partitions must assign a partition type (e.g. primary)
+if [[ "$BOOT_STYLE" == "efi" ]]; then
+    PART_STYLE=gpt
+    PART1_NAME=$PART1_LABEL
+    PART2_NAME=$PART2_LABEL
+    PART3_NAME=$PART3_LABEL
+    PART4_NAME=$PART4_LABEL
+else
+    PART_STYLE=msdos
+    PART1_NAME=primary
+    PART2_NAME=primary
+    PART3_NAME=primary
+    PART4_NAME=primary
+fi
+
+TARGET_DISK=$2
+LABEL=$3
+
+case $1 in
+    "disk_setup")
+        disk_setup $TARGET_DISK
+        ;;
+    "partition_format")
+        partition_format $TARGET_DISK $LABEL
+        ;;
+    *)
+        die "Unkown command $1!"
+esac
