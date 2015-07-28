@@ -23,6 +23,8 @@ PACKAGES = "${PN}-dbg ${PN}-staticdev ${PN}-dev ${PN} ${PN}-doc ${PN}-locale"
 FILES_${PN} += "README_File_Paths.txt \
 		README_File_Transfer.txt \
 		/usr/share/doc/LICENSES \
+		/usr/lib/${TARGET_ARCH}-linux-gnu${ABIEXTENSION} \
+		/etc/ld.so.conf.d/multiarch_libs.conf \
 "
 
 S = "${WORKDIR}"
@@ -42,11 +44,16 @@ do_install () {
 	install -d ${D}/usr/share/doc/
 	install -m 0644 ${WORKDIR}/LICENSES ${D}/usr/share/doc/
 
+	# Create multiarch installation directory and write proper path to
+	# multiarch.conf
+	install -d ${D}/usr/lib/${TARGET_ARCH}-linux-gnu${ABIEXTENSION}
+
 	# ld.so.conf includes the directory /etc/ld.so.conf.d, a standard
 	# practice in linux distros, adding extra files to map our directories
 	install -d ${D}${sysconfdir}/ld.so.conf.d/
 	install -m 0644 ${WORKDIR}/natinst_libs.conf ${D}${sysconfdir}/ld.so.conf.d/
 	install -m 0644 ${WORKDIR}/local_libs.conf ${D}${sysconfdir}/ld.so.conf.d/
+	echo /usr/lib/${TARGET_ARCH}-linux-gnu${ABIEXTENSION} > ${D}${sysconfdir}/ld.so.conf.d/multiarch_libs.conf
 
 	install -d ${D}${sysconfdir}/profile.d/
 
