@@ -129,6 +129,7 @@ RDEPENDS_${PN} += "\
 	consolekit \
 	createrepo \
 	curl \
+	debianutils \
 	enchant \
 	gnupg \
 	gnutls \
@@ -196,12 +197,17 @@ RDEPENDS_${PN} += "\
 	iw \
 	krb5 \
 	linuxptp \
+	lirc \
+	modemmanager \
 	mosh \
 	networkmanager \
+	rarpd \
 	rfkill \
 	samba \
 	ser2net \
 	ti-wifi-utils \
+	tiptop \
+	umip \
 	usbmuxd \
 	zeromq \
 "
@@ -218,6 +224,7 @@ RDEPENDS_${PN} += "\
 	breakpad \
 	cgdb \
 	cppunit \
+	cunit \
 	dejagnu \
 	geany \
 	i2c-tools \
@@ -243,6 +250,7 @@ RDEPENDS_${PN} += "\
 	swig \
 	tclap \
 	tk \
+	uw-imap \
 	vala-dbus-binding-tool \
 	yajl \
 	yasm \
@@ -256,15 +264,18 @@ RDEPENDS_${PN}_append_x64 += "\
 # meta-openembedded/meta-oe/recipes-extended
 RDEPENDS_${PN} += "\
 	acpica \
-	acpitests \
 	collectd \
+	corosync \
+	dash \
 	ddrescue \
 	dialog \
 	efivar \
 	flashrom \
 	gnuplot \
+	haveged \
 	hexedit \
 	hplip \
+	indent \
 	iotop \
 	jansson \
 	leveldb \
@@ -274,7 +285,13 @@ RDEPENDS_${PN} += "\
 	liblognorm \
 	libmodbus \
 	libwmf \
+	lockfile-progs \
+	logcheck \
+	logwatch \
 	md5deep \
+	nana \
+	nicstat \
+	p7zip \
 	polkit \
 	redis \
 	rrdtool \
@@ -346,12 +363,15 @@ RDEPENDS_${PN} += "\
 	ckermit \
 	cpufrequtils \
 	cryptsetup \
-	debianutils \
 	daemonize \
+	daemontools \
 	devmem2 \
+	dstat \
 	dfu-util \
+	edac-utils \
 	eject \
 	enca \
+	engine-pkcs11 \
 	espeak \
 	eventlog \
 	farsight2 \
@@ -362,6 +382,7 @@ RDEPENDS_${PN} += "\
 	gd \
 	glog \
 	gperftools \
+	gradm \
 	gsl \
 	gsoap \
 	hddtemp \
@@ -372,13 +393,20 @@ RDEPENDS_${PN} += "\
 	iso-codes \
 	joe \
 	lcms \
+	lcov \
+	libcap-ng \
+	libftdi \
+	libutempter \
 	links \
 	lmsensors \
 	lockdev \
 	log4c \
+	log4cpp \
 	lzip \
 	lvm2 \
+	mailcap \
 	mbuffer \
+	mcelog \
 	mg \
 	mime-support \
 	mariadb \
@@ -387,17 +415,23 @@ RDEPENDS_${PN} += "\
 	nano \
 	nmon \
 	onig \
+	openct \
 	opencv \
 	openldap \
+	opensc \
+	openwbem \
 	p11-kit \
 	p910nd \
+	pam-passwdqc \
 	pcsc-lite \
 	picocom \
 	pidgin \
+	pkcs11-helper \
 	poppler \
 	portaudio-v19 \
 	postgresql \
 	pps-tools \
+	procmail \
 	pv \
 	read-edid \
 	rng-tools \
@@ -406,8 +440,13 @@ RDEPENDS_${PN} += "\
 	serial-forward \
 	sg3-utils \
 	sharutils \
+	smem \
+	soci \
+	spitools \
 	start-stop-daemon \
 	strongswan \
+	system-config-keyboard \
+	system-setup-keyboard \
 	talloc \
 	tbb \
 	toscoterm \
@@ -425,6 +464,11 @@ RDEPENDS_${PN} += "\
 
 RDEPENDS_${PN}_append_x64 += "\
 	numactl \
+"
+
+# meta-openembedded/meta-oe/recipes-kernel
+RDEPENDS_${PN} += "\
+	crash \
 "
 
 # meta-openembedded/meta-filesystems
@@ -450,22 +494,36 @@ RDEPENDS_${PN} += "\
 RDEPENDS_${PN} += "\
 	inetutils \
 	polarssl \
+	ufw \
 	vlan \
 	vpnc \
 	atftp \
 	autofs \
 	cyrus-sasl \
+	dnrd \
 	iscsi-initiator-utils \
+	lldpad \
+	ncftp \
+	opensaf \
 	postfix \
 	radvd \
 	squid \
 	tftp-hpa \
 	conntrack-tools \
 	ebtables \
+	netkit-ftp \
+	netkit-rpc \
+	netkit-rsh \
+	netkit-rusers \
+	netkit-rwho \
+	netkit-telnet \
+	netkit-tftp \
 	net-snmp \
 	openflow \
+	openl2tp \
 	pptp-linux \
 	quagga \
+	radiusclient-ng \
 	rp-pppoe \
 	xl2tpd \
 	zeroconf \
@@ -473,9 +531,13 @@ RDEPENDS_${PN} += "\
 	bridge-utils \
 	cifs \
 	dnsmasq \
+	dnssec-conf \
 	dovecot \
+	drbd \
+	esmtp \
 	fetchmail \
 	fping \
+	geoip \
 	ifenslave \
 	iftop \
 	ipsec-tools \
@@ -491,6 +553,7 @@ RDEPENDS_${PN} += "\
 	yp-tools \
 	nuttcp \
 	pimd \
+	smcroute \
 	ssmping \
 	strongswan \
 	stunnel \
@@ -559,6 +622,7 @@ RDEPENDS_${PN} += "\
 	apache2 \
 	cherokee \
 	fcgi \
+	spawn-fcgi \
 	hiawatha \
 	monkey \
 	nginx \
