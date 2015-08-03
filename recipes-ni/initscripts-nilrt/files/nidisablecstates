@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# For x86_64 architectures, disable all c_states except for C0 (state0)
+# in all CPU cores
+shopt -s nullglob
+for CSTATE_DISABLE in /sys/devices/system/cpu/cpu*/cpuidle/state[^0]/disable; do
+	echo 1 > $CSTATE_DISABLE
+done
