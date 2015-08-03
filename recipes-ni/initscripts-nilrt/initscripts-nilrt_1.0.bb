@@ -28,6 +28,8 @@ SRC_URI = "file://mountconfig \
 	   file://nisetupirqpriority \
 "
 
+SRC_URI_append_x64 = "file://nidisablecstates"
+
 S = "${WORKDIR}"
 
 group = "${LVRT_GROUP}"
@@ -88,4 +90,9 @@ do_install () {
      else
           update-rc.d -r ${D} nisetupirqpriority start 30 5 .
      fi
+}
+
+do_install_append_x64 () {
+     install -m 0755   ${WORKDIR}/nidisablecstates      ${D}${sysconfdir}/init.d
+     update-rc.d -r ${D} nidisablecstates start 2 3 4 5 S .
 }
