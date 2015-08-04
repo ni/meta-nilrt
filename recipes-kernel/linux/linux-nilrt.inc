@@ -18,8 +18,3 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${KBUILD_FRAGMENTS_LOCATION}:"
 KBUILD_DEFCONFIG_x64 = "nati_x86_64_defconfig"
 KBUILD_DEFCONFIG_xilinx-zynq = "nati_zynq_defconfig"
 KCONFIG_MODE="--alldefconfig"
-
-# for some reason defconfig isn't copied to builddir, do it manually to be sure
-do_configure_prepend() {
-     cp ${B}/../defconfig ${B}/.config
-}
