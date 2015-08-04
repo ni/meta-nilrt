@@ -1,1 +1,1 @@
-DEPENDS_class-target += " openldap"
+DEPENDS_append_class-target = " openldap"
