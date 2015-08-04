@@ -194,7 +194,6 @@ RDEPENDS_${PN} += "\
 	gammu \
 	gnokii \
 	hostapd \
-	irssi \
 	iw \
 	krb5 \
 	linuxptp \
