@@ -772,3 +772,14 @@ RDEPENDS_${PN} += "packagegroup-ni-selinux"
 
 # meta-mono
 RDEPENDS_${PN} += "packagegroup-ni-mono-extra"
+
+# meta-virtualization
+RDEPENDS_${PN} += "\
+	cgroup-lite \
+	docker \
+	iasl \
+	ipxe \
+	lxc \
+	multipath-tools \
+	openvswitch \
+"
