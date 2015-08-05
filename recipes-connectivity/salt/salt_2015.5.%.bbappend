@@ -21,3 +21,5 @@ SRCREV = "${AUTOREV}"
 PV = "2015.5+git${SRCPV}"
 
 S="${WORKDIR}/git"
+
+RDEPENDS_${PN} += "python-pyinotify"
