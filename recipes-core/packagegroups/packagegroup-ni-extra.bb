@@ -521,3 +521,10 @@ RDEPENDS_${PN} += "\
 
 # modphp - fail (blacklisted on dizzy)
 # xdebug - fail (blacklisted on dizzy)
+
+# Shared libraries needed to run FireFox
+RDEPENDS_${PN} += "\
+    alsa-lib \
+    gtk+3 \
+"
+
