@@ -783,3 +783,9 @@ RDEPENDS_${PN} += "\
 	multipath-tools \
 	openvswitch \
 "
+
+# Shared libraries needed to run FireFox
+RDEPENDS_${PN} += "\
+    alsa-lib \
+    gtk+3 \
+"
