@@ -9,7 +9,7 @@ IMAGE_INSTALL = "\
 	${ni_external_components} \
     "
 
-IMAGE_FSTYPES = "tar.bz2"
+IMAGE_FSTYPES = "tar.bz2 ext2"
 
 require include/niconsole-image.inc
 
