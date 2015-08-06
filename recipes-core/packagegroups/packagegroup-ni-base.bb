@@ -48,6 +48,7 @@ RDEPENDS_${PN} = "\
 	niacctbase \
 	openssh-sshd \
 	openssh-scp \
+	openssh-sftp-server \
 	openssh-ssh \
 	opkg \
         opkg-utils \
