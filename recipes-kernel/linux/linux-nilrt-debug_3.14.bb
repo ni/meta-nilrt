@@ -6,7 +6,7 @@ require linux-nilrt-squashfs.inc
 NI_RELEASE_VERSION = "15.0"
 LINUX_VERSION = "3.14"
 LINUX_VERSION_EXTENSION = "-nilrt-debug"
-KBRANCH = "nilrt/${NI_RELEASE_VERSION}/${LINUX_VERSION}"
+KBRANCH = "nilrt_pub/${NI_RELEASE_VERSION}/${LINUX_VERSION}"
 
 KERNEL_MODULES_META_PACKAGE = "kernel-modules-debug"
 KERNEL_MODULE_PACKAGE_NAME_PREPEND = "kernel-module-debug"
