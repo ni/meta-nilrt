@@ -8,6 +8,7 @@ RDEPENDS_${PN} = "\
 	packagegroup-core-standalone-sdk-target \
 	packagegroup-core-basic \
 	packagegroup-core-device-devel \
+	packagegroup-core-buildessential \
 	packagegroup-core-tools-debug \
 	packagegroup-self-hosted \
 	packagegroup-core-lsb \
