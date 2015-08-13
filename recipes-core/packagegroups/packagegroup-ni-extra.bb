@@ -632,7 +632,7 @@ RDEPENDS_${PN} += "\
 "
 
 # Shared libraries needed to run FireFox
-RDEPENDS_${PN}_append_x64 += "\
+RDEPENDS_${PN} += "\
     alsa-lib \
     gtk+3 \
 "
@@ -787,4 +787,13 @@ RDEPENDS_${PN} += "\
 	lxc \
 	multipath-tools \
 	openvswitch \
+"
+
+# meta-security
+RDEPENDS_${PN} += "\
+	packagegroup-core-security \
+	clamav \
+	libhtp \
+	python-pycrypto \
+	samhain-server \
 "
