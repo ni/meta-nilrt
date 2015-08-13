@@ -790,3 +790,12 @@ RDEPENDS_${PN} += "\
     alsa-lib \
     gtk+3 \
 "
+
+# meta-security
+RDEPENDS_${PN} += "\
+	packagegroup-core-security \
+	clamav \
+	libhtp \
+	python-pycrypto \
+	samhain-server \
+"
