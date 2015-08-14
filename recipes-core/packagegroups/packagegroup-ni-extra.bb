@@ -368,7 +368,6 @@ RDEPENDS_${PN} += "\
 	devmem2 \
 	dstat \
 	dfu-util \
-	edac-utils \
 	eject \
 	enca \
 	engine-pkcs11 \
@@ -406,7 +405,6 @@ RDEPENDS_${PN} += "\
 	lvm2 \
 	mailcap \
 	mbuffer \
-	mcelog \
 	mg \
 	mime-support \
 	mariadb \
@@ -463,6 +461,8 @@ RDEPENDS_${PN} += "\
 "
 
 RDEPENDS_${PN}_append_x64 += "\
+	edac-utils \
+	mcelog \
 	numactl \
 "
 
@@ -783,10 +783,12 @@ RDEPENDS_${PN} += "\
 	cgroup-lite \
 	docker \
 	iasl \
-	ipxe \
 	lxc \
 	multipath-tools \
 	openvswitch \
+"
+RDEPENDS_${PN}_append_x64 += "\
+	ipxe \
 "
 
 # meta-security
