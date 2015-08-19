@@ -22,4 +22,9 @@ provision() {
 
 early_setup
 provision
-exec sh
+while true;do
+    echo ""
+    echo "To reboot the system execute the command \"reboot -f\""
+    echo ""
+    /sbin/getty -l sh -n 38400 tty0
+done
