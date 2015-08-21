@@ -23,3 +23,7 @@ PV = "2015.5+git${SRCPV}"
 S="${WORKDIR}/git"
 
 RDEPENDS_${PN} += "python-pyinotify"
+
+inherit update-rc.d
+
+INITSCRIPT_PARAMS_${PN}-minion = "defaults 25 25"
