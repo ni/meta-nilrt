@@ -27,6 +27,10 @@
 # This sets the default machine to be x64 if no other machine is selected:
 MACHINE ??= "x64"
 
+# Distribution selection
+# Default to NI Linux RT for the distro
+DISTRO ?= "nilrt"
+
 #
 # Where to place downloads
 #
