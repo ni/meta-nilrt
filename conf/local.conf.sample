@@ -31,8 +31,9 @@ MACHINE ??= "x64"
 # Default to NI Linux RT for the distro
 DISTRO ?= "nilrt"
 
-# Clean package work directories
+# Clean *most* package work directories
 INHERIT += " rm_work "
+RM_WORK_EXCLUDE += " restore-mode-image "
 
 #
 # Where to place downloads
