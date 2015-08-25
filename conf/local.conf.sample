@@ -35,6 +35,11 @@ DISTRO ?= "nilrt"
 INHERIT += " rm_work "
 RM_WORK_EXCLUDE += " restore-mode-image "
 
+# Include buildhistory as it is used by toaster as well as generally
+# useful in detecting changes in builds/configurations
+INHERIT += " buildhistory "
+BUILDHISTORY_COMMIT = "1"
+
 #
 # Where to place downloads
 #
