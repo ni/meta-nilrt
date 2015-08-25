@@ -31,6 +31,9 @@ MACHINE ??= "x64"
 # Default to NI Linux RT for the distro
 DISTRO ?= "nilrt"
 
+# Clean package work directories
+INHERIT += " rm_work "
+
 #
 # Where to place downloads
 #
