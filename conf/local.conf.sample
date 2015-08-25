@@ -40,6 +40,10 @@ RM_WORK_EXCLUDE += " restore-mode-image "
 INHERIT += " buildhistory "
 BUILDHISTORY_COMMIT = "1"
 
+# This is needed if you are using a 64-bit system to ensure that pseudo
+# works correctly
+NO32LIBS = "1"
+
 #
 # Where to place downloads
 #
