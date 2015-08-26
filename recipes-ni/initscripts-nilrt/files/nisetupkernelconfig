@@ -16,4 +16,7 @@ do
   echo 1 > $x
 done 2> /dev/null
 
+# Set affinity for running IRQ threads to Core-0
+grep -l irq/ /proc/*/comm | cut -d/ -f3 | xargs -n1 taskset -p 1 >/dev/null
+
 [ "${VERBOSE}" != "no" ] && echo "done"
