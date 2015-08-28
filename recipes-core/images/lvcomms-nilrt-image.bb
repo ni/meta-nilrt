@@ -11,5 +11,6 @@ DESCRIPTION = " \
 # Append additional software
 IMAGE_INSTALL += " \
     lvrt \
+    niminionagent \
 "
 
