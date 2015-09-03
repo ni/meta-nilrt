@@ -41,7 +41,7 @@ DISTRO ?= "nilrt"
 
 # Clean *most* package work directories
 INHERIT += " rm_work "
-RM_WORK_EXCLUDE += " restore-mode-image "
+RM_WORK_EXCLUDE += " restore-mode-image lvcomms-restore-mode-image"
 
 # Include buildhistory as it is used by toaster as well as generally
 # useful in detecting changes in builds/configurations

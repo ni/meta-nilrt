@@ -64,7 +64,7 @@ reset_minimal_image()
     mkdir $NILRT_MOUNTPOINT -p
     NILRT_ERROR=`mount -L $NILRT_LABEL $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
     echo "Deploying minimal image..."
-    TAR_ERROR=`tar -xjf /payload/minimal-nilrt-image-x64.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1` || die "$TAR_ERROR"
+    TAR_ERROR=`tar -xjf /payload/factory-image.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1` || die "$TAR_ERROR"
 
     umount $NILRT_MOUNTPOINT
 
