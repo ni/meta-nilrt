@@ -12,9 +12,16 @@ SRC_URI = "file://status_led \
 "
 
 SRC_URI_append_arm = " file://fw_env.config"
-SRC_URI_append_x64 = " file://fw_printenv"
+SRC_URI_append_x64 = " file://fw_printenv \
+                       file://EFI_NI_vars \
+                       file://SMBIOS_NI_vars \
+                       file://grubvar_readonly \
+"
 
 FILES_${PN} += "/usr/local/natinst/bin/* \
+"
+
+FILES_${PN}_append_x64 = "${datadir}/fw_printenv/* \
 "
 
 DEPENDS += "niacctbase"
@@ -27,10 +34,13 @@ group = "${LVRT_GROUP}"
 
 S = "${WORKDIR}"
 
+fw_printenv_dir = "${datadir}/fw_printenv"
+
 do_install () {
 	install -d ${D}/usr/local/natinst/bin/
 	install -d ${D}${sysconfdir}
 	install -d ${D}${base_sbindir}
+	install -d ${D}${fw_printenv_dir}
 	install -m 0755   ${WORKDIR}/status_led         ${D}/usr/local/natinst/bin
 	install -m 0755   ${WORKDIR}/nisafemodeversion         ${D}/usr/local/natinst/bin
 	install -m 0755   ${WORKDIR}/nicompareversion         ${D}/usr/local/natinst/bin
@@ -42,8 +52,13 @@ do_install () {
 
 	if [ "${TARGET_ARCH}" = "x86_64" ]; then
 		install -m 0550   ${WORKDIR}/fw_printenv         ${D}${base_sbindir}
+		sed -i -e 's,@FW_PRINTENV_DIR@,${fw_printenv_dir},g' ${D}${base_sbindir}/fw_printenv
+
 		chown 0:${group} ${D}${base_sbindir}/fw_printenv
 		ln -fs fw_printenv ${D}${base_sbindir}/fw_setenv
+		install -m 0444   ${WORKDIR}/EFI_NI_vars         ${D}${fw_printenv_dir}
+		install -m 0444   ${WORKDIR}/SMBIOS_NI_vars      ${D}${fw_printenv_dir}
+		install -m 0444   ${WORKDIR}/grubvar_readonly    ${D}${fw_printenv_dir}
 	fi
 
 	chown 0:${group} ${D}/usr/local/natinst/bin/status_led

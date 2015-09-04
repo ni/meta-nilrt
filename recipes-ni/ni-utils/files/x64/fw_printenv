@@ -1,5 +1,7 @@
 #!/bin/bash
 
+VAR_MAPPING_DIR=@FW_PRINTENV_DIR@
+
 print_help(){
 cat <<EOF
 fw_printenv/fw_setenv, an implementation of the U-Boot environment variable facility in Grub/EFI
@@ -54,7 +56,7 @@ show_variable_grub(){
 
 readonly_grub_variable()
 {
-	grub_readonly_vars_file=/boot/.safe/GRUB_NI_readonly_vars
+	grub_readonly_vars_file=$VAR_MAPPING_DIR/GRUB_NI_readonly_vars
 	if [ ! -f  $grub_readonly_vars_file ]; then
 		#GRUB_NI read-only vars file does not exist
 		return 1
@@ -64,22 +66,20 @@ readonly_grub_variable()
 }
 
 show_variable_smbios(){
-	smbios_file=/boot/.safe/SMBIOS_NI_vars
-        if [ ! -f  $smbios_file ]; then
-                #SMBIOS vars file doed not exist
-                return 1
-        fi
+	smbios_file=$VAR_MAPPING_DIR/SMBIOS_NI_vars
+	if [ ! -f  $smbios_file ]; then
+		#SMBIOS vars file does not exist
+		return 1
+	fi
 	set -o pipefail
 	while IFS=';' read -r key head name prefix
 	do
 		value=${prefix}$(/usr/sbin/dmidecode | sed -n "/$head/,/^$/p" | grep -- "$name" | awk -F "$name" '{print $2}')
-		if [ $? -ne 0 ]; then
-			return 1
-		fi
-		if [ $# -eq 0 ] ; then
+		ret=$?
+		if [ $# -eq 0 -a $ret -eq 0 ] ; then
 			#show each variable
 			echo "$key=$value"
-		elif [ "$1" = "$key" ] ; then
+		elif [ "$1" = "$key" -a $ret -eq 0 ] ; then
 			#value was found
 			return 0
 		fi
@@ -93,21 +93,19 @@ show_variable_smbios(){
 }
 
 show_variable_efi(){
-	efi_file=/boot/.safe/EFI_NI_vars
-        if [ ! -f  $efi_file ]; then
-                #EFI vars file doed not exist
-                return 1
-        fi
+	efi_file=$VAR_MAPPING_DIR/EFI_NI_vars
+	if [ ! -f  $efi_file ]; then
+		#EFI vars file does not exist
+		return 1
+	fi
 	while IFS=';' read -r key name
 	do
-		value=$(/usr/sbin/efivar -n="$name" -d);
-		if [ $? -ne 0 ]; then
-			return 1
-		fi
-		if [ $# -eq 0 ] ; then
+		value=$(efivar -n="$name" -d 2>/dev/null)
+		ret=$?
+		if [ $# -eq 0 -a $ret -eq 0 ] ; then
 			#show each variable
 			echo "$key=$value"
-		elif [ "$1" = "$key" ] ; then
+		elif [ "$1" = "$key" -a $ret -eq 0 ] ; then
 			#pass $value to caller
 			return 0
 		fi
@@ -154,9 +152,10 @@ add_rem_vars(){
 	if show_variable_efi "$var_name"; then
 		#recognized ni efi variable
 		#get variable efi name
-		echo -e -n $'\x'$new_value >/boot/.safe/efi_val
-		/usr/sbin/efivar -n="$name" -w -f=/boot/.safe/efi_val
-		rm /boot/.safe/efi_val
+		EFI_VAL_TMP=/tmp/efi_val.$$
+		echo -e -n $'\x'$new_value >$EFI_VAL_TMP
+		efivar -n="$name" -w -f=$EFI_VAL_TMP
+		rm $EFI_VAL_TMP
 		return
 	fi
 
@@ -179,7 +178,7 @@ read_vars_from_file(){
 		if [ -f $s_file ]; then
 			#not valid file
 			echo "I cannot open $file for reading" >&2
-                        exit 1
+			exit 1
 		fi
 		exec {fd_file}>"$s_file"
 	fi
@@ -223,13 +222,13 @@ parse_opt(){
 		esac
 	done
 
-        #check if there are other options passed incorrectly
-        shift $(($OPTIND - 1))
-        if [ "x$(echo $* | grep ' \-')" != "x" ]; then
-                echo "$0:  invalid syntax" >&2
-                echo "Try '$0 --help' for more information"
-                exit 1
-        fi
+	#check if there are other options passed incorrectly
+	shift $(($OPTIND - 1))
+	if [ "x$(echo $* | grep ' \-')" != "x" ]; then
+		echo "$0:  invalid syntax" >&2
+		echo "Try '$0 --help' for more information"
+		exit 1
+	fi
 
 	if (( ! is_setenv && s_opt )); then
 		print_invalid_opt "s" >&2
