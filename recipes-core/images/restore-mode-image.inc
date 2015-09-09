@@ -7,6 +7,7 @@ PACKAGE_INSTALL = "${ROOTFS_BOOTSTRAP_INSTALL} \
                    packagegroup-ni-restoremode \
 "
 
+DEPENDS += "init-restore-mode"
 do_rootfs[depends] = "${FACTORY_IMAGE}:do_rootfs"
 
 # Remove any kernel-image that the kernel-module-* packages may have pulled in.
