@@ -22,7 +22,7 @@ PV = "2015.5+git${SRCPV}"
 
 S="${WORKDIR}/git"
 
-RDEPENDS_${PN}-minion += "python-pyinotify"
+RDEPENDS_${PN}-minion += "python-pyinotify python-pyroute2"
 
 inherit update-rc.d
 
