@@ -65,6 +65,26 @@ readonly_grub_variable()
 	return $?
 }
 
+get_8135_ethernet_MAC_address()
+{
+	devaddr="00000000"
+
+	#Iterate through all adapters to find the onboard NIC address of
+	#a PXIe-8135. If not found, do not return a unique serial number.
+	for devpath in /sys/class/net/*; do
+		devvendorid="$(cat $devpath/device/vendor 2>/dev/null)" || continue
+		devdeviceid="$(cat $devpath/device/device 2>/dev/null)" || continue
+
+		if [ "$devvendorid" = "0x8086" -a "$devdeviceid" = "0x1502" ]; then
+			devaddr="$(cat $devpath/address)"
+			break
+		fi
+	done
+
+	echo "$devaddr"
+	return 0
+}
+
 show_variable_smbios(){
 	smbios_file=$VAR_MAPPING_DIR/SMBIOS_NI_vars
 	if [ ! -f  $smbios_file ]; then
@@ -76,6 +96,36 @@ show_variable_smbios(){
 	do
 		value=${prefix}$(/usr/sbin/dmidecode | sed -n "/$head/,/^$/p" | grep -- "$name" | awk -F "$name" '{print $2}')
 		ret=$?
+
+		#Set 'PXI' target type for unknown targets
+		if [ "$key" = "TargetClass" -a $ret -ne 0 ] ; then
+			value=PXI
+			ret=0
+		fi
+
+		#Set PXIe-8135 target code for unknown targets
+		if [ "$key" = "DeviceCode" -a $ret -ne 0 ] ; then
+			value=${prefix}75F4
+			ret=0
+		fi
+
+		#If DeviceDesc cannot be read, or if DeviceDesc does not match
+		#the NI SMBIOS Specification requirement of the product name
+		#starting with "NI ", then consider the target unknown and
+		#emulate the PXIe-8135.
+		if [ "$key" = "DeviceDesc" ]; then
+			if [ $ret -ne 0 -o "${value:0:3}" != "NI " ]; then
+				value="NI PXIe-8135 Embedded Controller"
+				ret=0
+			fi
+		fi
+
+		#Set serial number using PXIe-8135 eth0 MAC address if available
+		if [ "$key" = "serial#" -a "$value" = "Not Applicable" ] ; then
+			value=$(get_8135_ethernet_MAC_address | tr -d ":\n" | tail -c8)
+			ret=0
+		fi
+
 		if [ $# -eq 0 -a $ret -eq 0 ] ; then
 			#show each variable
 			echo "$key=$value"
