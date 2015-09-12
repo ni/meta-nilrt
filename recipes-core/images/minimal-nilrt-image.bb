@@ -6,7 +6,6 @@ IMAGE_PREPROCESS_COMMAND = "rootfs_update_timestamp"
 IMAGE_INSTALL = "\
 	packagegroup-ni-base \
 	packagegroup-ni-tzdata \
-	${ni_external_components} \
     "
 
 IMAGE_FSTYPES = "tar.bz2 ext2"
