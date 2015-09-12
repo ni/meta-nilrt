@@ -9,7 +9,7 @@ DESCRIPTION = " \
 "
 
 # Append additional software
-IMAGE_INSTALL += " \
+IMAGE_INSTALL_NODEPS += " \
     lvrt \
     niminionagent \
 "
