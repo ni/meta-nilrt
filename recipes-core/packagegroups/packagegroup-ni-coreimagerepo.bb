@@ -13,6 +13,7 @@ RDEPENDS_${PN} = "\
 	packagegroup-ni-crio \
 	packagegroup-ni-restoremode \
 	packagegroup-core-x11 \
+	packagegroup-kernel-module-build \
 	opkg-collateral \
 	apache2 \
 "
