@@ -194,6 +194,8 @@ if [[ $restore == "provision" ]]; then
     if [[ ${PROVISION_TARGET,,} == "y" ]]; then
         provision_target
     fi
+elif [[ $restore == "auto-restore" ]]; then
+    reset_minimal_image
 else
     echo
     echo "NI Real-Time Restore."
