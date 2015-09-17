@@ -20,7 +20,18 @@ provision() {
     ./ni_provisioning
 }
 
+# Removes the /boot/bootmode file that may force
+# grub to boot into restore over and over again.
+remove_bootmode() {
+    NILRT_MOUNT_POINT=/mnt
+    if mount -L nilrt $NILRT_MOUNT_POINT; then
+        rm $NILRT_MOUNT_POINT/boot/bootmode
+        umount $NILRT_MOUNT_POINT
+    fi
+}
+
 early_setup
+remove_bootmode 2> /dev/null
 provision
 while true;do
     echo ""
