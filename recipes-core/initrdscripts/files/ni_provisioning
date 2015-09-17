@@ -8,6 +8,11 @@ NILRT_LABEL=nilrt
 cleanup_and_exit()
 {
     umount -a -t vfat,ext4
+    if (( $1 == 0  && $REBOOT_REQUIRED == 1 )); then
+        echo u > /proc/sysrq-trigger
+        sync
+        echo b > /proc/sysrq-trigger
+    fi
     exit $1
 }
 
@@ -69,6 +74,7 @@ reset_minimal_image()
     umount $NILRT_MOUNTPOINT
 
     echo "Minimal image deployed."
+    REBOOT_REQUIRED=1
 }
 
 provision_target()
@@ -130,6 +136,8 @@ provision_target()
     #cp $USB_MOUNTPOINT/grub2/grub-ni-version $BOOTFS_MOUNTPOINT/grub/
 
     echo "PROVISIONING SUCCESSFUL!"
+    REBOOT_REQUIRED=1
+    read -s -n 1 -p "Press any key to continue..." KEY
 }
 
 #############
@@ -182,6 +190,7 @@ echo 6 > /proc/sys/kernel/printk
 
 PROVISION_TARGET="n"
 RESET_MINIMAL_IMAGE="n"
+REBOOT_REQUIRED=0
 if [[ $restore == "provision" ]]; then
     echo
     echo "NI Real-Time Recovery."
