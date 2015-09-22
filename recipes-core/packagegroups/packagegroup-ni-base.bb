@@ -42,6 +42,7 @@ RDEPENDS_${PN} = "\
 	libnss-mdns \
 	libpam \
 	lsb \
+	lsbinitscripts \
 	modutils-initscripts \
 	ni-utils \
 	netbase \
@@ -62,6 +63,7 @@ RDEPENDS_${PN} = "\
 	util-linux-hwclock \
 	util-linux-mount \
 	util-linux-umount \
+	${VIRTUAL-RUNTIME_mountpoint} \
 	${VIRTUAL-RUNTIME_dev_manager} \
 	${MACHINE_ESSENTIAL_EXTRA_RDEPENDS} \
 "
