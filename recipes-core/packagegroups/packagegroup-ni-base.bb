@@ -46,6 +46,7 @@ RDEPENDS_${PN} = "\
 	libstdc++ \
 	mtd-utils \
 	mtd-utils-ubifs \
+	lsbinitscripts \
 	netbase \
 	niacctbase \
 	niwatchdogpet \
@@ -70,6 +71,7 @@ RDEPENDS_${PN} = "\
 	util-linux-mount \
 	util-linux-umount \
 	vlan \
+	${VIRTUAL-RUNTIME_mountpoint} \
 	${VIRTUAL-RUNTIME_dev_manager} \
 	${MACHINE_ESSENTIAL_EXTRA_RDEPENDS}"
 
