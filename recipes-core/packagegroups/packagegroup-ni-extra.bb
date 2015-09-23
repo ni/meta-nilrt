@@ -801,3 +801,8 @@ RDEPENDS_${PN} += "\
 	python-pycrypto \
 	samhain-server \
 "
+
+# meta-sdr
+RDEPENDS_${PN} += "\
+	gnuradio \
+"
