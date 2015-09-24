@@ -96,11 +96,13 @@ provision_target()
     mkdir $GRUB_MOUNTPOINT -p
     MOUNT_ERROR=`mount -L $NIGRUB_LABEL $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
 
+    # Always configure for UEFI boot
+    EFI_GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/efi/boot
+    mkdir -p $EFI_GRUB_TARGET_DIR
+    cp -r $USB_MOUNTPOINT/EFI/BOOT/* $EFI_GRUB_TARGET_DIR/
+
     if [[ "$BOOT_STYLE" == "efi" ]]; then
         echo "Configuring EFI grub2..."
-        GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/efi/boot
-        mkdir -p $GRUB_TARGET_DIR
-        cp -r $USB_MOUNTPOINT/EFI/BOOT/* $GRUB_TARGET_DIR/
         for ENTRY in `efibootmgr | grep "LabVIEW RT"| egrep -o '[0-9A-F]{4}' || true`
         do
             EFIMGR=`efibootmgr -b $ENTRY -B 2>&1` || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
@@ -108,14 +110,15 @@ provision_target()
         efibootmgr -c -d ${TARGET_DISK} -p 1 -L 'LabVIEW RT' -l '\efi\boot\bootx64.efi'
     else
         echo "Configuring legacy grub2..."
-        GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/boot/grub
+        LEGACY_GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/boot/grub
         parted -s ${TARGET_DISK} set 1 boot on
         grub-install --recheck --root-directory=$GRUB_MOUNTPOINT $TARGET_DISK
+        cp /grub.cfg ${LEGACY_GRUB_TARGET_DIR}/grub.cfg
     fi
 
     echo "Installing kernel and ramdisk..."
 
-    cp /grub.cfg ${GRUB_TARGET_DIR}/grub.cfg
+    cp /grub.cfg ${EFI_GRUB_TARGET_DIR}/grub.cfg
 
     #install restore kernel and ramdisk
     RESTORE_MOUNTPOINT=/var/volatile/restore
