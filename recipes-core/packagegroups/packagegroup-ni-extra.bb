@@ -211,6 +211,7 @@ RDEPENDS_${PN} += "\
 	umip \
 	usbmuxd \
 	zeromq \
+	wireless-tools \
 "
 
 # meta-openembedded/meta-oe/recipes-core
