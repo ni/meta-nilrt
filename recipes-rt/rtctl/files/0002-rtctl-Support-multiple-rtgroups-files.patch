@@ -1,0 +1,48 @@
+From 22e21d1299fbeba7bfa51b4b3b081922d62dd737 Mon Sep 17 00:00:00 2001
+From: Haris Okanovic <haris.okanovic@ni.com>
+Date: Thu, 1 Oct 2015 14:56:41 -0500
+Subject: [PATCH 2/2] rtctl: Support multiple rtgroups files
+
+Load rtgroups files from /etc/rtgroups.d/ in addition to the default
+/etc/rtgroups when the default is selected (I.e. when --file option
+is not specified).
+
+Upstream-Status: Pending
+
+Signed-off-by: Haris Okanovic <haris.okanovic@ni.com>
+---
+ rtctl | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/rtctl b/rtctl
+index e3550d709040308276a2260a23d8d410ffd2f1be..1631f4a9cebb619ff5440d354874ce77af462d28 100755
+--- a/rtctl
++++ b/rtctl
+@@ -24,8 +24,8 @@ case "$1" in
+ 	;;
+ esac
+ 
+-# search for the default rtgroups files (ordered by priority)
+ if [ -z "${RTGROUPFILE}" ]; then
++	# search for the default rtgroups files (ordered by priority)
+ 	RTGROUPFILE=/etc/rtgroups
+ 	SUFFIX="`uname -r`"
+ 	if [ ! -f "${RTGROUPFILE}-${SUFFIX}" ]; then
+@@ -38,6 +38,14 @@ if [ -z "${RTGROUPFILE}" ]; then
+ 	if [ -n "${SUFFIX}" ]; then
+ 		RTGROUPFILE="${RTGROUPFILE}-${SUFFIX}"
+ 	fi
++
++	# append RT group files from RTGROUPDIR
++	RTGROUPDIR=/etc/rtgroups.d
++	for fname in `[ -d "$RTGROUPDIR" ] && ls "$RTGROUPDIR"`; do
++		if [[ "${fname}" =~ ^.+\.rtgroups$ ]]; then
++			RTGROUPFILE="${RTGROUPFILE} ${RTGROUPDIR}/${fname}"
++		fi;
++	done;
+ fi
+ 
+ CMD=$1
+-- 
+2.4.5
+

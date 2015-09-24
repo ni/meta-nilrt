@@ -1,0 +1,90 @@
+From 5099c4cfdc4999ea9a67bd1f9592c7d60d10b92c Mon Sep 17 00:00:00 2001
+From: Haris Okanovic <haris.okanovic@ni.com>
+Date: Tue, 29 Sep 2015 10:42:16 -0500
+Subject: [PATCH 1/2] rtctl: Read task IDs from procfs instead of `ps`
+
+Read task IDs from procfs instead of running `ps -eo pid,cmd`
+which is not implemented by BusyBox.
+
+Upstream-Status: Pending
+
+Signed-off-by: Haris Okanovic <haris.okanovic@ni.com>
+---
+ rtctl | 29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
+
+diff --git a/rtctl b/rtctl
+index 9ccd5042175651761445bea81c52ccb0d8cbbe78..e3550d709040308276a2260a23d8d410ffd2f1be 100755
+--- a/rtctl
++++ b/rtctl
+@@ -4,7 +4,7 @@ usage ()
+ {
+     echo "Usage: $0 [--file <filename>] set <groupname> <prio> <fifo|batch|rr|other>"
+     echo "       $0 [--file <filename>] reset [<groupname>]"
+-    echo "       $0 [--file <filename>] show <groupname> [<ps_fmt>]"
++    echo "       $0 [--file <filename>] show <groupname>"
+     exit 1
+ }
+ 
+@@ -43,6 +43,25 @@ fi
+ CMD=$1
+ shift
+ 
++PROCFS_PATH="/proc"
++
++#
++# Prints each running PID and command line
++# Equivalent to `ps -eo pid,cmd`, but filters out user space tasks
++#
++get_kernel_tasks ()
++{
++    for procId in `ls "$PROCFS_PATH" | egrep '^[0-9]+$'`; do
++        procPth="$PROCFS_PATH/$procId"
++        exe="`readlink "$procPth/exe" 2>/dev/null`" || true
++        cmdLine="`cat "$procPth/cmdline" 2>/dev/null`" || true
++        comm="`cat "$procPth/comm" 2>/dev/null`" || true
++        if [ -z "$exe" -a -z "$cmdLine" -a -n "$comm" ]; then
++            echo "$procId [$comm]"
++        fi
++    done;
++}
++
+ GROUPNAME=""
+ 
+ #
+@@ -51,7 +70,7 @@ GROUPNAME=""
+ #
+ group_pids ()
+ {
+-  ps -eo pid,cmd | awk '
++  get_kernel_tasks | awk '
+     /^[a-zA-Z_0-9-]+:[*orbf]:[0-9]+:.+$/ {
+       split($0, parts, ":") 
+       if (parts[1] == groupname) {
+@@ -76,7 +95,7 @@ group_pids ()
+ 
+ set_group_defaults ()
+ {
+-  ps -eo pid,cmd | awk '
++  get_kernel_tasks | awk '
+     /^[a-zA-Z_0-9-]+:[*orbf]:[0-9]+:.+$/ {
+       split($0, conf, ":")
+       if (groupname == "" || conf[1] == groupname) {
+@@ -110,12 +129,12 @@ set_group_defaults ()
+ 
+ 
+ #
+-# show "ps" output for group of threads
++# show group of threads
+ #
+ do_show ()
+ {
+     ps_fmt=$1
+-    ( group_pids; ps -eo $ps_fmt ) | awk '
++    ( group_pids; get_kernel_tasks ) | awk '
+     /^[0-9]+$/ {
+       pids[$1] = 1
+     }
+-- 
+2.4.5
+
