@@ -9,6 +9,7 @@ SRC_URI = "file://status_led \
 	   file://nicompareversion \
 	   file://nisystemformat \
 	   file://nisetbootmode.functions \
+	   file://nisetbootmode \
 "
 
 SRC_URI_append_arm = " file://fw_env.config"
@@ -47,6 +48,7 @@ do_install () {
 	install -m 0755   ${WORKDIR}/nicompareversion   ${D}${bindir}
 	install -m 0550   ${WORKDIR}/nisystemformat     ${D}${bindir}
 	install -m 0440   ${WORKDIR}/nisetbootmode.functions         ${D}${libdir}
+	install -m 0550   ${WORKDIR}/nisetbootmode         ${D}${bindir}
 
 	if [ "${TARGET_ARCH}" = "arm" ]; then
 		install -m 0644   ${WORKDIR}/fw_env.config         ${D}${sysconfdir}

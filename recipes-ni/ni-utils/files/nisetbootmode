@@ -1,0 +1,53 @@
+#! /bin/sh
+# Copyright (c) 2012-2013 National Instruments.
+# All rights reserved.
+#
+# Usage: nisetbootmode
+#     This script will be found under /etc/init.d and will be called during
+#     startup and shutdown.  It is also designed to be run by the user to
+#     force the target to boot into one of the 3 boot modes.
+#
+#     1)default:      -boots from the main disk and uses that disk's filesystem
+#                     -$BOOT_MODE_INPUT file is deleted
+#
+#     2)restore:      -boots the target into restore mode which prompts the user
+#                      for image reinstall
+#                     -$BOOT_MODE_INPUT contains BOOT_MODE=restore
+#
+#     3)auto-restore: -boots the target into restore mode and reinstalls
+#                      the image without user prompt
+#                     -$BOOT_MODE_INPUT contains BOOT_MODE=auto-restore
+#
+#     According to $BOOT_MODE_INPUT the $BOOT_CONFIG_LOCATION file will be set
+#     for next boot mode.
+
+if [[ -f /usr/lib/nisetbootmode.functions ]]; then
+	source /usr/lib/nisetbootmode.functions
+else
+	echo "Missing file:/usr/lib/nisetbootmode.functions"
+	exit 1
+fi
+
+# Verify all the necessary utilities exist
+check_file $BOOT_CONFIG_LOCATION
+
+case "$1" in
+  auto-restore)
+    echo auto-restore >$BOOT_MODE_INPUT
+    ;;
+  restore)
+    echo restore >$BOOT_MODE_INPUT
+    ;;
+  default)
+    rm $BOOT_MODE_INPUT 2>/dev/null
+    ;;
+  *)
+    echo "Usage: $progname {restore|auto-restore|default}" >&2
+    exit 1
+    ;;
+esac
+
+checkbootmode
+
+exit 0
+
