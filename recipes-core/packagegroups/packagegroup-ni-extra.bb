@@ -755,6 +755,16 @@ RDEPENDS_${PN} += "\
 	uwsgi \
 "
 
+# meta-nilrt/recipes-devtools
+RDEPENDS_${PN} += "\
+	libubox \
+"
+
+# meta-nilrt/recipes-connectivity
+RDEPENDS_${PN} += "\
+	relayd \
+"
+
 # meta-cloud-services/meta-openstack/recipes-support
 RDEPENDS_${PN} += "\
 	chef \
