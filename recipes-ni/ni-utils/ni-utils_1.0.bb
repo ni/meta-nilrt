@@ -6,7 +6,6 @@ LIC_FILES_CHKSUM = "file://${COREBASE}/LICENSE;md5=4d92cd373abda3937c2bc47fbc49d
 SECTION = "base"
 
 SRC_URI = "file://status_led \
-	   file://nisafemodeversion \
 	   file://nicompareversion \
 	   file://nisystemformat \
 "
@@ -16,9 +15,6 @@ SRC_URI_append_x64 = " file://fw_printenv \
                        file://EFI_NI_vars \
                        file://SMBIOS_NI_vars \
                        file://grubvar_readonly \
-"
-
-FILES_${PN} += "/usr/local/natinst/bin/* \
 "
 
 FILES_${PN}_append_x64 = "${datadir}/fw_printenv/* \
@@ -37,14 +33,13 @@ S = "${WORKDIR}"
 fw_printenv_dir = "${datadir}/fw_printenv"
 
 do_install () {
-	install -d ${D}/usr/local/natinst/bin/
+	install -d ${D}${bindir}
 	install -d ${D}${sysconfdir}
 	install -d ${D}${base_sbindir}
 	install -d ${D}${fw_printenv_dir}
-	install -m 0755   ${WORKDIR}/status_led         ${D}/usr/local/natinst/bin
-	install -m 0755   ${WORKDIR}/nisafemodeversion         ${D}/usr/local/natinst/bin
-	install -m 0755   ${WORKDIR}/nicompareversion         ${D}/usr/local/natinst/bin
-	install -m 0550   ${WORKDIR}/nisystemformat         ${D}/usr/local/natinst/bin
+	install -m 0755   ${WORKDIR}/status_led         ${D}${bindir}
+	install -m 0755   ${WORKDIR}/nicompareversion   ${D}${bindir}
+	install -m 0550   ${WORKDIR}/nisystemformat     ${D}${bindir}
 
 	if [ "${TARGET_ARCH}" = "arm" ]; then
 		install -m 0644   ${WORKDIR}/fw_env.config         ${D}${sysconfdir}
@@ -61,7 +56,7 @@ do_install () {
 		install -m 0444   ${WORKDIR}/grubvar_readonly    ${D}${fw_printenv_dir}
 	fi
 
-	chown 0:${group} ${D}/usr/local/natinst/bin/status_led
-	chown 0:${group} ${D}/usr/local/natinst/bin/nisystemformat
+	chown 0:${group} ${D}${bindir}/status_led
+	chown 0:${group} ${D}${bindir}/nisystemformat
 
 }
