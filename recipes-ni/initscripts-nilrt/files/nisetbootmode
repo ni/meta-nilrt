@@ -1,104 +1,11 @@
 #! /bin/sh
-# Copyright (c) 2012-2013 National Instruments.
-# All rights reserved.
-#
-# Usage: nisetbootmode
-#     This script will be found under /etc/init.d and will be called during
-#     startup and shutdown.  It is also designed to be run by the user to
-#     force the target to boot into one of the 3 boot modes.
-#
-#     1)default:      -boots from the main disk and uses that disk's filesystem
-#                     -$BOOT_MODE_INPUT file is deleted
-#
-#     2)restore:      -boots the target into restore mode which prompts the user
-#                      for image reinstall
-#                     -$BOOT_MODE_INPUT contains BOOT_MODE=restore
-#
-#     3)auto-restore: -boots the target into restore mode and reinstalls
-#                      the image without user prompt
-#                     -$BOOT_MODE_INPUT contains BOOT_MODE=auto-restore
-#
-#     According to $BOOT_MODE_INPUT the $BOOT_CONFIG_LOCATION file will be set
-#     for next boot mode.
 
-arch=`uname -m`
-if [ "$arch" = "armv7l" ]; then
-    BOOT_CONFIG_LOCATION=/sys/bus/i2c/devices/0-0040/bootmode
-    write_config() {
-        echo -n $1 > $BOOT_CONFIG_LOCATION
-    }
-    read_config() {
-        read tmp_cfg < $BOOT_CONFIG_LOCATION
-        echo $tmp_cfg
-    }
-elif [ "$arch" = "x86_64" ]; then
-    BOOT_CONFIG_LOCATION=/boot/bootmode
-    write_config() {
-        echo set BOOT_MODE=$1 > $BOOT_CONFIG_LOCATION
-    }
-    read_config() {
-        read tmp_cfg < $BOOT_CONFIG_LOCATION
-        echo $tmp_cfg | awk -F '=' '{print $2}';
-    }
-
-    # if the bootmode file doesn't exist, this is the first run of this
-    # script for this boot, so set it to the default mode (default)
-    if [ ! -f "$BOOT_CONFIG_LOCATION" ]; then
-        write_config default
-    fi
+if [[ -f /usr/lib/nisetbootmode.functions ]]; then
+	source /usr/lib/nisetbootmode.functions
+else
+	echo "Missing file:/usr/lib/nisetbootmode.functions"
+	exit 1
 fi
-
-BOOT_MODE_INPUT=/tmp/ni_boot_mode_input
-
-fail() { echo "$@" >&2; exit 1; }
-
-check_file() {
-    [ -f "$1" ] || fail "$0 error: Unable to find $1";
-}
-
-setbootmode() {
-    case "$1" in
-    default)
-        write_config default
-        ;;
-    restore)
-        write_config restore
-        ;;
-    auto-restore)
-        write_config auto-restore
-        ;;
-    esac
-}
-
-checkbootmode() {
-    if [ ! -f $BOOT_MODE_INPUT ];then
-        NEXT_BOOT_MODE=default
-    else
-        read NEXT_BOOT_MODE < $BOOT_MODE_INPUT
-    fi
-    if [ -n "$NEXT_BOOT_MODE" ]; then
-        case "$NEXT_BOOT_MODE" in
-        default|restore|auto-restore)
-            CUR_BOOT_CONFIG=$(read_config)
-            if [ "$NEXT_BOOT_MODE" != "$CUR_BOOT_CONFIG" ]; then
-                echo Configuring next boot mode to $NEXT_BOOT_MODE.
-                setbootmode $NEXT_BOOT_MODE
-            else
-                # The current boot mode and the requested boot mode are
-                # the same. Ignoring the request.  However, this is not
-                # a warning or a fatal error just an optimization.
-                echo "Next boot mode is $NEXT_BOOT_MODE"
-            fi
-            ;;
-        *)
-            fail "Fatal error: The file $BOOT_MODE_INPUT contains invalid boot mode"
-            ;;
-        esac
-    fi
-}
-
-# Verify all the necessary utilities exist
-check_file $BOOT_CONFIG_LOCATION
 
 case "$1" in
   start)
@@ -108,17 +15,7 @@ case "$1" in
   stop)
     # Will hit checkbootmode just before exit 0 below
     ;;
-  auto-restore)
-    echo auto-restore >$BOOT_MODE_INPUT
-    ;;
-  restore)
-    echo restore >$BOOT_MODE_INPUT
-    ;;
-  default)
-    rm $BOOT_MODE_INPUT 2>/dev/null
-    ;;
   *)
-    echo "Usage: $progname {restore|auto-restore|default}" >&2
     exit 1
     ;;
 esac
