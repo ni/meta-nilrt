@@ -148,16 +148,22 @@ show_variable_efi(){
 		#EFI vars file does not exist
 		return 1
 	fi
-	while IFS=';' read -r key name
+	while IFS=';' read -r key name offset
 	do
 		value=$(efivar -n="$name" -d 2>/dev/null)
 		ret=$?
-		if [ $# -eq 0 -a $ret -eq 0 ] ; then
-			#show each variable
-			echo "$key=$value"
-		elif [ "$1" = "$key" -a $ret -eq 0 ] ; then
-			#pass $value to caller
-			return 0
+		if [ $ret -eq 0 ]; then
+			#if EFI var is greater than 1 byte, save all bytes to an array
+			#in case we need to update the original EFI var later
+			arr_value=($value)
+			value=${arr_value[$offset]}
+			if [ $# -eq 0 ] ; then
+				#show each variable
+				echo "$key=$value"
+			elif [ "$1" = "$key" ] ; then
+				#pass $value to caller
+				return 0
+			fi
 		fi
 		value=""
 	done < $efi_file
@@ -201,9 +207,11 @@ add_rem_vars(){
 	name=''
 	if show_variable_efi "$var_name"; then
 		#recognized ni efi variable
-		#get variable efi name
+		#update value of interest and rewrite efi variable
+		arr_value[$offset]=$new_value
+		#currently efivar only writes updated values read from a file
 		EFI_VAL_TMP=/tmp/efi_val.$$
-		echo -e -n $'\x'$new_value >$EFI_VAL_TMP
+		printf '\\x%02x' ${arr_value[@]} | xargs -0 echo -e -n >$EFI_VAL_TMP
 		efivar -n="$name" -w -f=$EFI_VAL_TMP
 		rm $EFI_VAL_TMP
 		return
