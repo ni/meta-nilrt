@@ -8,6 +8,7 @@ SECTION = "base"
 SRC_URI = "file://status_led \
 	   file://nicompareversion \
 	   file://nisystemformat \
+	   file://nisetbootmode.functions \
 "
 
 SRC_URI_append_arm = " file://fw_env.config"
@@ -17,9 +18,9 @@ SRC_URI_append_x64 = " file://fw_printenv \
                        file://grubvar_readonly \
 "
 
-# Add an empty FILES assignment because the architecture-specific
-# FILES_append will fail if FILES is not previously defined.
-FILES_${PN} += ""
+FILES_${PN} += "\
+	/usr/lib/nisetbootmode.functions \
+"
 
 FILES_${PN}_append_x64 = "${datadir}/fw_printenv/* \
 "
@@ -41,9 +42,11 @@ do_install () {
 	install -d ${D}${sysconfdir}
 	install -d ${D}${base_sbindir}
 	install -d ${D}${fw_printenv_dir}
+	install -d ${D}${libdir}
 	install -m 0755   ${WORKDIR}/status_led         ${D}${bindir}
 	install -m 0755   ${WORKDIR}/nicompareversion   ${D}${bindir}
 	install -m 0550   ${WORKDIR}/nisystemformat     ${D}${bindir}
+	install -m 0440   ${WORKDIR}/nisetbootmode.functions         ${D}${libdir}
 
 	if [ "${TARGET_ARCH}" = "arm" ]; then
 		install -m 0644   ${WORKDIR}/fw_env.config         ${D}${sysconfdir}
