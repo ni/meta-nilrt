@@ -63,9 +63,17 @@ do_install_append() {
 	--exclude=".*.cmd" \
 	--include="/arch/${ARCH}/include/generated/**" \
 	--include="/include/**" \
-	--include="/scripts/**" \
+	--include="/scripts/**${CROSS_COMPILE}*" \
+	--include="/scripts/**.h" \
 	--include=".config" \
 	--include="Module.symvers" \
 	--exclude="*" \
 	. $kerneldevdir
+
+	# Strip cross compile prefix from target-specific binaries
+	for u in recordmcount fixdep modpost genksyms; do
+		find $kerneldevdir/scripts -name "${CROSS_COMPILE}$u" -printf %h | \
+		xargs -n 1 -I '{}' mv -f '{}'"/${CROSS_COMPILE}$u" '{}'"/$u"
+	done
+
 }
