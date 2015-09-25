@@ -773,6 +773,11 @@ RDEPENDS_${PN} += "\
 	tgt \
 "
 
+# meta-cloud-services/meta-openstack/recipes-extended
+RDEPENDS_${PN} += "\
+	qpid \
+"
+
 # meta-selinux
 RDEPENDS_${PN} += "packagegroup-ni-selinux"
 
