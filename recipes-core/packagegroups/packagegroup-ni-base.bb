@@ -73,5 +73,9 @@ RDEPENDS_${PN}_append_x64 += "\
 	grub-cfg-nilrt \
 "
 
+RDEPENDS_${PN}_append_xilinx-zynq += "\
+	mtd-utils \
+"
+
 RRECOMMENDS_${PN} = "\
 	${MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS}"
