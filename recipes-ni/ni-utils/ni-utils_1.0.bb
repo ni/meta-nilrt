@@ -17,6 +17,10 @@ SRC_URI_append_x64 = " file://fw_printenv \
                        file://grubvar_readonly \
 "
 
+# Add an empty FILES assignment because the architecture-specific
+# FILES_append will fail if FILES is not previously defined.
+FILES_${PN} += ""
+
 FILES_${PN}_append_x64 = "${datadir}/fw_printenv/* \
 "
 
