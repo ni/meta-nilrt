@@ -563,12 +563,8 @@ RDEPENDS_${PN} += "\
 	traceroute \
 	tunctl \
 	wireshark \
+	ptpd \
 "
-
-# ptpd: 
-# /ssd/rtollert/nioefeeds-objects/x64_feeds/linuxU/x64/gcc-4.7-oe/release/build/tmp-glibc/sysroots/x86_64-linux/usr/libexec/x86_64-nilrt-linux/gcc/x86_64-nilrt-linux/4.8.2/ld: warning: library search path "/usr/lib" is unsafe for cross-compilation
-# /usr/lib/librt.so: undefined reference to `__shm_directory@GLIBC_PRIVATE'
-
 
 # meta-oe/recipes-devtools/python (most now in meta-oe/meta-python)
 RDEPENDS_${PN} += "\
