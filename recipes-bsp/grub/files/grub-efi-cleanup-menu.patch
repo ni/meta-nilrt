@@ -1,0 +1,36 @@
+diff -Nurp a/grub-core/normal/main.c b/grub-core/normal/main.c
+--- a/grub-core/normal/main.c	2015-09-14 09:03:12.720396815 -0500
++++ b/grub-core/normal/main.c	2015-09-14 09:11:24.816393373 -0500
+@@ -208,7 +208,7 @@ grub_normal_init_page (struct grub_term_
+  
+   grub_term_cls (term);
+ 
+-  msg_formatted = grub_xasprintf (_("GNU GRUB  version %s"), PACKAGE_VERSION);
++  msg_formatted = grub_xasprintf (_("NI Linux Real-Time Boot Options"));
+   if (!msg_formatted)
+     return;
+  
+diff -Nurp a/grub-core/normal/menu_text.c b/grub-core/normal/menu_text.c
+--- a/grub-core/normal/menu_text.c	2015-09-14 09:03:12.720396815 -0500
++++ b/grub-core/normal/menu_text.c	2015-09-14 09:11:58.976393134 -0500
+@@ -181,17 +181,13 @@ command-line or ESC to discard edits and
+       if (nested)
+ 	{
+ 	  ret += grub_print_message_indented_real
+-	    (_("Press enter to boot the selected OS, "
+-	       "`e' to edit the commands before booting "
+-	       "or `c' for a command-line. ESC to return previous menu."),
++	    (_("Press enter to boot the selected OS. "),
+ 	     STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
+ 	}
+       else
+ 	{
+ 	  ret += grub_print_message_indented_real
+-	    (_("Press enter to boot the selected OS, "
+-	       "`e' to edit the commands before booting "
+-	       "or `c' for a command-line."),
++	    (_("Press enter to boot the selected OS. "),
+ 	     STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
+ 	}	
+     }
+
