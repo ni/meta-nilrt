@@ -14,6 +14,7 @@ SRC_URI = "git://git.savannah.gnu.org/grub.git \
            file://grub-2.00-add-oe-kernel.patch \
            file://cfg \
            file://add_inbit_comm.patch \
+	   file://grub-efi-cleanup-menu.patch \
            "
 
 S = "${WORKDIR}/git"
