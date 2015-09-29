@@ -828,3 +828,8 @@ RDEPENDS_${PN} += "\
 RDEPENDS_${PN} += "\
 	gnuradio \
 "
+
+# meta-nilrt/recipes-graphics
+RDEPENDS_${PN} += "\
+	libvncserver \
+"
