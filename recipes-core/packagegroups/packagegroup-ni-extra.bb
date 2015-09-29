@@ -634,6 +634,11 @@ RDEPENDS_${PN} += "\
     gtk+3 \
 "
 
+# meta-nilrt/recipes-devtools
+RDEPENDS_${PN} += " \
+	debootstrap \
+"
+
 # meta-oe/meta-xfce
 RDEPENDS_${PN} += "\
 	packagegroup-xfce-extended \
