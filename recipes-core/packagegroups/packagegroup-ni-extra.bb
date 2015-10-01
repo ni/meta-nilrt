@@ -780,6 +780,11 @@ RDEPENDS_${PN} += "packagegroup-ni-selinux"
 # meta-mono
 RDEPENDS_${PN} += "packagegroup-ni-mono-extra"
 
+# meta-java
+RDEPENDS_${PN} += "\
+	openjdk-7-jre \
+"
+
 # meta-virtualization
 RDEPENDS_${PN} += "\
 	cgroup-lite \
