@@ -24,9 +24,8 @@ if [[ -d /sys/firmware/efi ]];then
         parted -s "$disk" --align optimal   \
             mklabel gpt                     \
             mkpart nigrub         1MB  16MB \
-            mkpart nirestore     16MB 200MB \
-            mkpart niconfig     200MB 216MB \
-            mkpart nilrt        216MB  100%
+            mkpart nirestore     16MB 1200MB \
+            mkpart nilrt        1200MB  100%
 
         sgdisk --typecode=1:C12A7328-F81F-11D2-BA4B-00A0C93EC93B $TARGET_DISK
     }
@@ -38,9 +37,8 @@ else
         parted -s "$disk" --align optimal   \
             mklabel msdos                   \
             mkpart primary       1MB  16MB  \
-            mkpart primary      16MB 200MB  \
-            mkpart primary     200MB 216MB  \
-            mkpart primary     216MB  100%
+            mkpart primary      16MB 1200MB  \
+            mkpart primary     1200MB  100%
 
         sfdisk -c "$disk" 1 EF
     }
@@ -57,11 +55,8 @@ partition_format()
         nirestore)
             mkfs.ext4 -L nirestore "$disk"2
             ;;
-        niconfig)
-            mkfs.ext4 -L niconfig "$disk"3
-            ;;
         nilrt)
-            mkfs.ext4 -L nilrt "$disk"4
+            mkfs.ext4 -L nilrt "$disk"3
             ;;
         *)
             die "Invalid or unspecified label!"
@@ -74,7 +69,6 @@ disk_format()
 
    partition_format "$disk" nigrub
    partition_format "$disk" nirestore
-   partition_format "$disk" niconfig
    partition_format "$disk" nilrt
 }
 
