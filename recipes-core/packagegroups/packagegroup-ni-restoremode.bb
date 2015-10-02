@@ -16,6 +16,7 @@ RDEPENDS_${PN} += "\
     e2fsprogs-mke2fs    \
     e2fsprogs-tune2fs   \
     efibootmgr          \
+    efivar              \
     gptfdisk-sgdisk     \
     grub                \
     grub-editenv        \
