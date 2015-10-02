@@ -25,7 +25,9 @@ SRC_URI = "file://populateconfig \
 	   file://nisetupirqpriority \
 "
 
-SRC_URI_append_x64 = "file://nidisablecstates"
+SRC_URI_append_x64 = "file://nidisablecstates \
+                      file://nicheckbiosconfig \
+"
 
 S = "${WORKDIR}"
 
@@ -86,4 +88,6 @@ do_install () {
 do_install_append_x64 () {
      install -m 0755   ${WORKDIR}/nidisablecstates      ${D}${sysconfdir}/init.d
      update-rc.d -r ${D} nidisablecstates start 2 3 4 5 S .
+     install -m 0755   ${WORKDIR}/nicheckbiosconfig      ${D}${sysconfdir}/init.d
+     update-rc.d -r ${D} nicheckbiosconfig start 99 5 .
 }
