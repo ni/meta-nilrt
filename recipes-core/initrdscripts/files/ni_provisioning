@@ -117,10 +117,6 @@ provision_target()
 
     cp /grub.cfg ${GRUB_TARGET_DIR}/grub.cfg
 
-    # TODO: do we need fonts dir?
-    #mkdir -p $GRUB_TARGET_DIR/fonts
-    #cp $USB_MOUNTPOINT/safemode_files/fonts/unicode.pf2 $GRUB_TARGET_DIR/fonts/
-
     #install restore kernel and ramdisk
     RESTORE_MOUNTPOINT=/var/volatile/restore
     mkdir $RESTORE_MOUNTPOINT -p
