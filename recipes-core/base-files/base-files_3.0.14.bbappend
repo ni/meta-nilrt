@@ -3,7 +3,6 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 hostname = ""
 
 SRC_URI += "file://natinst-path.sh \
-	    file://safemode-ps1.sh \
 	    file://functions.common \
 	    file://udhcpc.script \
 	    file://zcip.script \
@@ -31,7 +30,6 @@ do_install_append () {
 
 	install -d ${D}${sysconfdir}/profile.d/
 	install ${WORKDIR}/natinst-path.sh ${D}${sysconfdir}/profile.d/
-	install ${WORKDIR}/safemode-ps1.sh ${D}${sysconfdir}/profile.d/
 
 	# scripts for network configuration
 	install -d ${D}${sysconfdir}/natinst/networking/
