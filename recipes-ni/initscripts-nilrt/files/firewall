@@ -2,7 +2,7 @@
 # Copyright (c) 2012-2013 National Instruments.
 # All rights reserved.
 
-IPTABLES_CONF=/etc/natinst/share/iptables.conf
+IPTABLES_CONF=/etc/sysconfig/iptables
 [ -f $IPTABLES_CONF ] || exit 0
 
 # The VERBOSE setting in /etc/default/rcS is deliberately ignored: the existence
