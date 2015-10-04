@@ -1,7 +1,6 @@
 
 FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/files:${THISDIR}/${PN}:"
 
-SRC_URI =+ "file://automount.sh file://usb.sh"
 SRC_URI =+ "file://busybox-ifplugd file://ifplugd.conf file://ifplugd.script"
 SRC_URI =+ "file://busybox-acpid file://acpid.conf file://acpid_poweroff.sh"
 SRC_URI =+ "file://acpid-logrotate.conf"
@@ -11,7 +10,6 @@ PACKAGES =+ " ${PN}-acpid"
 
 DEPENDS =+ " libselinux"
 
-FILES_${PN}-mdev += "${sysconfdir}/mdev ${sysconfdir}/mdev/automount.sh ${sysconfdir}/mdev/usb.sh "
 FILES_${PN}-ifplugd = "${sysconfdir}/init.d/busybox-ifplugd ${sysconfdir}/ifplugd/ifplugd.script"
 FILES_${PN}-acpid = "${sysconfdir}/init.d/busybox-acpid ${sysconfdir}/acpid.conf ${sysconfdir}/acpi ${sysconfdir}/acpi/poweroff.sh"
 
@@ -38,12 +36,5 @@ do_install_append () {
 		install -m 0755 ${WORKDIR}/acpid_poweroff.sh ${D}${sysconfdir}/acpi/poweroff.sh
 		install -d ${D}${sysconfdir}/logrotate.d
 		install -m 0644 ${WORKDIR}/acpid-logrotate.conf ${D}${sysconfdir}/logrotate.d/acpid.conf
-	fi
-        if grep "CONFIG_MDEV=y" ${B}/.config; then
-               if grep "CONFIG_FEATURE_MDEV_CONF=y" ${B}/.config; then
-		       install -d ${D}${sysconfdir}/mdev
-		       install -m 0755 ${WORKDIR}/automount.sh ${D}${sysconfdir}/mdev/automount.sh
-		       install -m 0755 ${WORKDIR}/usb.sh ${D}${sysconfdir}/mdev/usb.sh
-               fi
 	fi
 }
