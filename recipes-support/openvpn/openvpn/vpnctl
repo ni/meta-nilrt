@@ -3,7 +3,7 @@
 # Copyright (c) 2013 National Instruments
 #
 
-VPN_CONFIG_DIR=/etc/natinst/share/openvpn
+VPN_CONFIG_DIR=/etc/openvpn
 OPENVPN_DAEMON=/usr/sbin/openvpn
 OPENVPN_CONFIG=client.conf
 OPENVPN_PIDFILE=/var/run/openvpn/openvpn.pid
