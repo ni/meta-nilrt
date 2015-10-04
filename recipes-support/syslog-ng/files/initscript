@@ -4,23 +4,16 @@
 #
 
 syslog_ng=/usr/sbin/syslog-ng
-NIRTCFG=/usr/local/natinst/bin/nirtcfg
 
 [ -x "$syslog_ng" ] || exit 1
-[ -x "$NIRTCFG" ] || exit 1
 
 syslog_opts="--process-mode=background"
 
 start_syslog()
 {
-  if [ `$NIRTCFG --get section=RTLog,token=disableSyslog,value=false | tr "[:upper:]" "[:lower:]"` = "false" -o "$1" = "force" ]
-  then
     [ "${VERBOSE}" != "no" ] && echo -n "Starting syslog-ng"
     start-stop-daemon --start --quiet --user root --exec $syslog_ng -- $syslog_opts
     [ "${VERBOSE}" != "no" ] && echo "."
-  else
-    [ "${VERBOSE}" != "no" ] && echo "Syslog-ng disabled from ni-rt.ini"
-  fi
 }
 
 case "$1" in
