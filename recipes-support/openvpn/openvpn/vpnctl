@@ -20,12 +20,6 @@ IPROUTE=/usr/lib/iproute2-openvpn/ip
 OPENVPN_WAIT_STOP_SECONDS=10
 VPN_DISABLED=no
 
-# /etc/default/vpn is meant to allow configuration of VPN_LOAD_ON_STARTUP,
-# OPENVPN_WAIT_STOP_SECONDS, and VPN_DISABLED. By design, THIS IS NOT READ IN
-# SAFEMODE: safemode will always try to connect to a VPN if a configuration
-# exists. This permits users to manually start/stop the VPN from their own
-# applications in runmode, while ensuring that the target is accessible over
-# the VPN in safemode.
 DEFAULTS=/etc/default/vpn
 [ -f $DEFAULTS ] && . $DEFAULTS
 
