@@ -65,8 +65,4 @@ do_install () {
 
 	# add sysctl.conf file to adjust system configuration parameters
 	install -m 0644 ${WORKDIR}/sysctl.conf ${D}${sysconfdir}/
-
-	# Certstore on config partition
-	install -d -m 0775 ${D}/var/local/natinst/
-	ln -s ${sysconfdir}/natinst/share/certstore ${D}/var/local/natinst/certstore
 }
