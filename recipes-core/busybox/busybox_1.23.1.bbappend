@@ -1,7 +1,7 @@
 
 FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/files:${THISDIR}/${PN}:"
 
-SRC_URI =+ "file://busybox-ifplugd file://ifplugd.conf file://ifplugd.script"
+SRC_URI =+ "file://busybox-ifplugd file://ifplugd.conf file://ifplugd.action"
 SRC_URI =+ "file://busybox-acpid file://acpid.conf file://acpid_poweroff.sh"
 SRC_URI =+ "file://acpid-logrotate.conf"
 
@@ -10,7 +10,7 @@ PACKAGES =+ " ${PN}-acpid"
 
 DEPENDS =+ " libselinux"
 
-FILES_${PN}-ifplugd = "${sysconfdir}/init.d/busybox-ifplugd ${sysconfdir}/ifplugd/ifplugd.script"
+FILES_${PN}-ifplugd = "${sysconfdir}/init.d/busybox-ifplugd ${sysconfdir}/ifplugd/ifplugd.action"
 FILES_${PN}-acpid = "${sysconfdir}/init.d/busybox-acpid ${sysconfdir}/acpid.conf ${sysconfdir}/acpi ${sysconfdir}/acpi/poweroff.sh"
 
 INITSCRIPT_PACKAGES =+ " ${PN}-ifplugd ${PN}-acpid"
@@ -25,9 +25,7 @@ do_install_append () {
 		install -d ${D}${sysconfdir}/ifplugd/
 		install -m 0755 ${WORKDIR}/busybox-ifplugd ${D}${sysconfdir}/init.d/
 		install -m 0644 ${WORKDIR}/ifplugd.conf ${D}${sysconfdir}/ifplugd/
-		install -d ${D}${sysconfdir}/natinst/networking/
-		install -m 0755 ${WORKDIR}/ifplugd.script ${D}${sysconfdir}/natinst/networking/
-		ln -s ${sysconfdir}/natinst/networking/ifplugd.script ${D}${sysconfdir}/ifplugd/ifplugd.action
+		install -m 0755 ${WORKDIR}/ifplugd.action ${D}${sysconfdir}/ifplugd/
 	fi
 	if grep "CONFIG_ACPID=y" ${B}/.config; then
 		install -m 0755 ${WORKDIR}/busybox-acpid ${D}${sysconfdir}/init.d/
