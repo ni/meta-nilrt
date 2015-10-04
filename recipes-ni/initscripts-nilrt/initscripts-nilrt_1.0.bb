@@ -22,7 +22,6 @@ SRC_URI = "file://mountconfig \
 	   file://nisetupkernelconfig \
 	   file://nisetcommitratio \
 	   file://nivalidatesystem \
-	   file://nifswritebackconfig \
 	   file://wirelesssetdomain \
 	   file://iso3166-translation.txt \
 	   file://nisetupirqpriority \
@@ -50,7 +49,6 @@ do_install () {
      install -m 0755   ${WORKDIR}/nisetupkernelconfig         ${D}${sysconfdir}/init.d
      install -m 0755   ${WORKDIR}/nisetcommitratio         ${D}${sysconfdir}/init.d
      install -m 0755   ${WORKDIR}/nivalidatesystem         ${D}${sysconfdir}/init.d
-     install -m 0755   ${WORKDIR}/nifswritebackconfig         ${D}${sysconfdir}/init.d
      install -m 0755   ${WORKDIR}/wirelesssetdomain         ${D}${sysconfdir}/init.d
      install -m 0755   ${S}/nisetupirqpriority         ${D}${sysconfdir}/init.d
 
@@ -70,7 +68,6 @@ do_install () {
      update-rc.d -r ${D} nisetupkernelconfig start 3 5 .
      update-rc.d -r ${D} nisetcommitratio start 99 S .
      update-rc.d -r ${D} nivalidatesystem start 40 S .
-     update-rc.d -r ${D} nifswritebackconfig start 41 S .
      update-rc.d -r ${D} wirelesssetdomain start 36 S .
 
      # CAR 450019: Remove this code (and associated script) and migrate responsibility for
