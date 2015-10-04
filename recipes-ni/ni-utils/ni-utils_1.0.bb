@@ -6,7 +6,6 @@ LIC_FILES_CHKSUM = "file://${COREBASE}/LICENSE;md5=4d92cd373abda3937c2bc47fbc49d
 SECTION = "base"
 
 SRC_URI = "file://status_led \
-	   file://nicompareversion \
 	   file://nisetbootmode.functions \
 	   file://nisetbootmode \
 "
@@ -44,7 +43,6 @@ do_install () {
 	install -d ${D}${fw_printenv_dir}
 	install -d ${D}${libdir}
 	install -m 0755   ${WORKDIR}/status_led         ${D}${bindir}
-	install -m 0755   ${WORKDIR}/nicompareversion   ${D}${bindir}
 	install -m 0440   ${WORKDIR}/nisetbootmode.functions         ${D}${libdir}
 	install -m 0550   ${WORKDIR}/nisetbootmode         ${D}${bindir}
 
