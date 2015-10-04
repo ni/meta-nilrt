@@ -12,7 +12,6 @@
 
 CROND=/usr/sbin/crond
 CONFIG=/etc/sysconfig/crond
-NIRTCFG=/usr/local/natinst/bin/nirtcfg
 
 [ -f $CONFIG ] || exit 1
 [ -x $CROND ] || exit 1
@@ -24,8 +23,6 @@ NIRTCFG=/usr/local/natinst/bin/nirtcfg
 
 start_cron()
 {
-    if [ `$NIRTCFG --get section=RTLog,token=disableCron,value=false | tr "[:upper:]" "[:lower:]"` = "false" -o "$1" = "force" ]
-    then
         MIN_CRON_STACK=1024
         OLD_STACK_SIZE=`ulimit -s`
         [ $OLD_STACK_SIZE -lt $MIN_CRON_STACK ] && ulimit -s $MIN_CRON_STACK
@@ -38,9 +35,6 @@ start_cron()
         else
             echo "FAIL"
         fi
-    else
-        [ "${VERBOSE}" != "no" ] && echo "Cron disabled from ni-rt.ini"
-    fi
 }
 
 case "$1" in
