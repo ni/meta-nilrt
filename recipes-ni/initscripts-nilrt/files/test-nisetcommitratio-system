@@ -1,0 +1,60 @@
+#!/bin/bash
+
+source "${0%/*}/test-nisetcommitratio-common.sh"
+
+
+: ${nisetcommitratio:=/etc/init.d/nisetcommitratio}
+: ${tmpdir:=/tmp/test-nisetcommitratio-system}
+: ${stderr:=$tmpdir/stderr.txt}
+
+rm -rf "$tmpdir"
+mkdir -p "$tmpdir"
+
+declare -g FAILED=0
+fail () {
+	verbose "failed on line ${BASH_LINENO[0]}"
+	FAILED=1
+}
+
+verbose () {
+	(( VERBOSE )) && echo "$@" >&2
+}
+
+test_prep () {
+	rm -f "$stderr"
+	FAILED=0
+	echo "Test: $*"
+}
+
+test_cleanup () {
+	rm -f $stderr
+	echo -n "Result: "
+	if (( FAILED )); then
+		echo "FAIL"
+	else
+		echo "PASS"
+	fi
+}
+
+declare -Ag REMAINING_TESTS=(
+	["In the live system configuration, if we reserve an additional 2% of memory, the commit ratio should decrease by the appropriate amount"]=
+)
+
+t="In the live system configuration, if we reserve an additional 2% of memory, the commit ratio should decrease by the appropriate amount"
+test_start "$t"
+reservefile=/etc/memreserve.d/test-nisetcommitratio
+rm -f "$reservefile"
+toreserve=$(awk 'BEGIN {s=0} /MemTotal/{s=$2} END {print int(s/1024*0.02)}' /proc/meminfo)
+verbose "reserving $toreserve"
+echo 100 > /proc/sys/vm/overcommit_ratio
+$nisetcommitratio start >/dev/null || fail
+orig_ratio=$(</proc/sys/vm/overcommit_ratio)
+mkdir -p /etc/memreserve.d/
+echo $toreserve > "$reservefile"
+$nisetcommitratio start >/dev/null || fail
+final_ratio=$(</proc/sys/vm/overcommit_ratio)
+rm -f "$reservefile"
+$nisetcommitratio start >/dev/null || fail
+verbose "orig_ratio: $orig_ratio final_ratio: $final_ratio"
+(( orig_ratio-final_ratio > 0 && orig_ratio-final_ratio < 4 )) || fail
+test_finish "$t"
