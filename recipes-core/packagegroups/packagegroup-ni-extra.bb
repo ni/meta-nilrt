@@ -377,7 +377,7 @@ RDEPENDS_${PN} += "\
 	farsight2 \
 	fbset \
 	fbset-modes \
-	fftw \
+	fftwf \
 	fltk \
 	gd \
 	glog \
