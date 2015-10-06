@@ -12,5 +12,6 @@ DESCRIPTION = " \
 IMAGE_INSTALL_NODEPS += " \
     lvrt \
     niminionagent \
+    ni-pxiplatformservices \
 "
 
