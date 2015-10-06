@@ -11,7 +11,6 @@ RDEPENDS_${PN} += "niacctbase"
 
 SRC_URI = "file://mountconfig \
 	   file://populateconfig \
-	   file://nisetupdump \
 	   file://nisetbootmode \
 	   file://nisetprimarymac \
 	   file://firewall \
@@ -37,7 +36,6 @@ do_install () {
      install -d ${D}${sysconfdir}/init.d/
      install -m 0755   ${S}/mountconfig         ${D}${sysconfdir}/init.d
      install -m 0755    ${S}/populateconfig     ${D}${sysconfdir}/init.d
-     install -m 0755    ${S}/nisetupdump        ${D}${sysconfdir}/init.d
      install -m 0550   ${S}/nisetbootmode       ${D}${sysconfdir}/init.d
      chown 0:${group} ${D}${sysconfdir}/init.d/nisetbootmode
      install -m 0755    ${WORKDIR}/nisetprimarymac    ${D}${sysconfdir}/init.d
@@ -57,7 +55,6 @@ do_install () {
 
      update-rc.d -r ${D} mountconfig start 36 S .
      update-rc.d -r ${D} populateconfig start 36 S .
-     update-rc.d -r ${D} nisetupdump start 1 5 .
      update-rc.d -r ${D} nisetbootmode start 80 S . stop 0 0 6 .
      update-rc.d -r ${D} nisetprimarymac start 4 5 .
      update-rc.d -r ${D} firewall start 39 S .
