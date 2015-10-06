@@ -5,9 +5,12 @@ LIC_FILES_CHKSUM = "file://${COREBASE}/LICENSE;md5=4d92cd373abda3937c2bc47fbc49d
 LICENSE = "MIT"
 SECTION = "base"
 
+inherit ptest
+
 DEPENDS += "niacctbase"
 
-RDEPENDS_${PN} += "niacctbase"
+RDEPENDS_${PN} += "bash niacctbase"
+RDEPENDS_${PN}-ptest += "bash"
 
 SRC_URI = "file://populateconfig \
 	   file://nisetbootmode \
@@ -19,10 +22,14 @@ SRC_URI = "file://populateconfig \
 	   file://nicreatecpuacctgroups \
 	   file://nisetupkernelconfig \
 	   file://nisetcommitratio \
+	   file://test-nisetcommitratio-common.sh \
+	   file://test-nisetcommitratio-system \
+	   file://test-nisetcommitratio-unit \
 	   file://nivalidatesystem \
 	   file://wirelesssetdomain \
 	   file://iso3166-translation.txt \
 	   file://nisetupirqpriority \
+	   file://run-ptest \
 "
 
 SRC_URI_append_x64 = "file://nidisablecstates \
@@ -90,4 +97,8 @@ do_install_append_x64 () {
      update-rc.d -r ${D} nidisablecstates start 2 3 4 5 S .
      install -m 0755   ${WORKDIR}/nicheckbiosconfig      ${D}${sysconfdir}/init.d
      update-rc.d -r ${D} nicheckbiosconfig start 99 5 .
+}
+
+do_install_ptest () {
+	cp ${WORKDIR}/test-nisetcommitratio-* ${D}${PTEST_PATH}/
 }
