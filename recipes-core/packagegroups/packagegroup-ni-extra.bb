@@ -731,7 +731,7 @@ RDEPENDS_${PN} += "\
 	python-requests \
 	python-rfc3986 \
 	python-rtslib-fb \
-	python-setuptools \
+	python-setuptools-git \
 	python-simplegeneric \
 	python-singledispatch \
 	python-six \
