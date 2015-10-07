@@ -315,10 +315,9 @@ add_group_kitchensink () {
 	TOKENS+=(
 		"SYSTEMSETTINGS;Host_Name"
 	)
-	add_to_files etc/natinst/share/iptables.conf
-	add_to_files etc/natinst/share/openvpn
-	add_to_files etc/natinst/share/certstore
-	add_to_files etc/natinst/share/ssh
+	add_to_files etc/sysconfig/iptables
+	add_to_files etc/openvpn
+	add_to_files etc/ssh
 }
 
 add_group_primary () {
