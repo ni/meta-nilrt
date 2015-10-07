@@ -267,7 +267,7 @@ add_to_files () {
 
 rm_files () {
 	if (( ${#FILES[@]} )); then
-		cd /mnt/userfs
+		cd /
 		run_cmd rm -rf "${FILES[@]}"
 		cd "$OLDPWD"
 	fi
@@ -376,7 +376,7 @@ do_save () {
 	genscript_ini_sections "$SAVE_CMD" "$SCRIPT_PATH"
 	genscript_ini_tokens "$SAVE_CMD" "$SCRIPT_PATH"
 	if (( ${#FILES[@]} )); then
-		local -a CMDLINE=(tar cf "$DIR/$TARBALL" -C /mnt/userfs \
+		local -a CMDLINE=(tar cf "$DIR/$TARBALL" -C / \
 			"${BASE_TAR_OPTS[@]}" "${FILES[@]}")
 		(( $VERBOSE >= 2 )) && CMDLINE+=(-v)
 		run_cmd "${CMDLINE[@]}"
@@ -439,7 +439,7 @@ do_restore () {
 
 	local -r TAR_PATH="$DIR/$TARBALL"
 	echo_verbose 2 "Extracting tarball $TAR_PATH..."
-	local -a TAR_ARGS=(-f "$TAR_PATH" "${BASE_TAR_OPTS[@]}" -C /mnt/userfs)
+	local -a TAR_ARGS=(-f "$TAR_PATH" "${BASE_TAR_OPTS[@]}" -C /)
 	if (( $VERBOSE >= 2 )); then TAR_ARGS+=(-v); fi
 	echo_verbose 1 "tar x ${TAR_ARGS[*]}"
 	if [[ -z $NOEXEC ]]; then
