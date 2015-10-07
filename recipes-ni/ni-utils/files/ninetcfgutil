@@ -1,0 +1,633 @@
+#!/bin/bash
+# Copyright (c) 2013 National Instruments Corporation. All rights reserved.
+set -eEu -o pipefail
+shopt -s dotglob
+
+. /etc/natinst/networking/functions.common
+. /usr/lib/ninetcfgutil_platdep.sh
+
+##
+## Globals
+##
+
+declare -i VERBOSE=0
+
+declare -r BASENAME=${0##*/}
+
+# operating mode
+MODE=
+
+# If non-empty, don't modify anything
+NOEXEC=
+
+# working directory for configuration state storage
+DIR=
+
+# list of network interfaces. Currently constructed from
+# IF_GROUPS, but interfaces could be explicitly added instead.
+DEVS=()
+
+# list of sections from ni-rt.ini to manipulate. Constructed from DEVS.
+SECTIONS=()
+
+# list of semicolon-delimited section;keyname pairs, describing individual
+# tokens of ni-rt.ini to manipulate. Constructed from DEVS.
+TOKENS=()
+
+# list of relative paths (relative to userfs root) to manipulate. Constructed
+# from DEVS. Every element of this array must actually exist! Please use
+# `add_to_files` to append to this.
+FILES=()
+
+# groups of interfaces to select, supplied on command line
+IF_GROUPS=()
+
+# AUTO_KITCHENSINK is an undocumented configuration setting which controls the
+# "kitchensink" configuration group. If it's set, then:
+# - If (MODE=erase) AND (IF_GROUPS includes primary and secondary),
+# - OR if (MODE=save or push or restore) AND (IF_GROUPS includes primary or secondary),
+# - THEN IF_GROUPS+=(kitchensink).
+#
+# This effects the following:
+# - If formatting/imaging with "reset all", also reset the kitchensink.
+# - If imaging with "apply all", "apply+reset" or (theoretical option)
+#   "reset+apply", also apply the kitchensink. (Some assistance from
+#   nisystemimage is necessary; see netcfg_pre_apply_reset().)
+# - Otherwise, always preserve the kitchensink.
+#
+# This behavior is meant to best satisfy the following (somewhat contradictory)
+# goals:
+# - There are a lot of network settings unrelated to the primary/secondary
+#   network configuration. These settings are important, and users will
+#   generally want them to be preserved except under specific conditions.
+# - The primary/secondary configuration groups should include only the
+#   configuration settings for those literal network interfaces, and not include
+#   the aforementioned (completely unrelated) network settings.
+# - The behavior of the IP Reset virtual dip switch should correspond to some
+#   invocation(s) of ninetcfgutil -- specifically, reset primary + preserve
+#   secondary.
+# - When we format/set image with the network config setting "reset all
+#   settings" or "apply all settings", by "all settings", we don't mean "both
+#   primary and secondary": we really mean EVERYTHING, including those unrelated
+#   network settings.
+#   - "apply+reset" and "reset+apply" are variants of "apply all".
+#   - "apply+preserve" and "preserve+apply" aren't.
+# - All of this logic belongs here, not in nisystemimage/nisystemformat.
+AUTO_KITCHENSINK=yes
+
+# ini file settings are stored as invocations to `nirtcfg` in this script
+SCRIPT="run.sh"
+
+# saved config files are tar'd up here
+TARBALL="save.tar"
+
+# tar xattr extract defaults to only extract user xattrs, not system xattrs.
+# Override this with --xattrs-include=*.
+#
+# User-supplied blacklist files are nominally not quoted, and `printf %q` deals
+# with quoting paths as necessary, so use --no-unquote to keep tar from
+# doing its own quoting.
+BASE_TAR_OPTS=(--xattrs --xattrs-include=\* --no-selinux --no-acls --anchored --no-unquote)
+
+NIRTCFG=/usr/local/natinst/bin/nirtcfg
+
+SCRIPT_ROOTFS=/etc/default/ninetcfgutil
+SCRIPT_CONFIGFS=/etc/natinst/share/ninetcfgutil_defaults
+
+##
+## General utility functions
+##
+
+declare -Ar EXITCODES=(
+	[UNKNOWN]=1
+	[INVALID_ARGUMENT]=10
+	[FILE_NOT_FOUND]=11
+)
+
+# $@: text
+die_with_help () {
+	echo -e "ERROR: $BASENAME: $@\n" >&2
+	print_help >&2
+	exit ${EXITCODES[INVALID_ARGUMENT]}
+}
+
+# $1: exit code (key from EXITCODES)
+# ${@:2}: text
+die () {
+	RET=${EXITCODES[$1]}
+	echo -e "$(date '+%T') ERROR: $BASENAME[$$]:${BASH_LINENO[0]}:" \
+		"${FUNCNAME[1]:-unknown}: ${@:2}" >&2
+	exit $RET
+}
+
+# $1: required verbosity level
+# ${@:2}: text
+echo_verbose () {
+	if (( $VERBOSE >= $1 )); then
+		echo -e "$BASENAME[$$]:${BASH_LINENO[0]}:" \
+			"${FUNCNAME[1]:-unknown}: $2" >&2
+		if (($# > 2)); then printf '\t%s\n' "${@:3}" >&2; fi
+	fi
+	return 0
+}
+
+# $1: ${BASH_SOURCE}
+# $2: ${LINENO}
+# $3: ${FUNCNAME}
+handle_err () {
+	echo -e "$1:$2: $3: Unhandled error encountered, exiting." >&2
+}
+
+run_cmd () {
+	echo_verbose 1 "$*"
+	[[ $NOEXEC ]] || "$@"
+}
+
+run_hook () {
+	[[ "$(type -t $1)" == "function" ]] && $@ || true
+}
+
+# Returns true (0) if ${@:2} contains $1, and false (1) otherwise
+list_contains () {
+        local a="$1"
+        for b in "${@:2}"; do [[ $a == $b ]] && return 0; done
+        return 1
+}
+
+##
+## Program-specific utility functions
+##
+
+print_help () {
+cat <<EOF
+Usage: $BASENAME <mode> -d <dir> [-hnv] [-g group]
+
+Perform the specified operation across the configurations of the specified
+network interfaces.
+
+<mode>		Select operation mode
+-d <dir>	Specify temporary working directory
+-g <group>	Operate on the specified network interface group; stackable
+-h		Print this help
+-n		"Dry run" mode: Don't modify anything
+-v		Increase debug verbosity level; stackable
+
+Allowed operation modes:		save restore erase push pulldefault
+Allowed network interface groups:	primary secondary
+
+Directory <dir> must exist. With save, the network state is saved to <dir>,
+which must be empty. With restore, the network state is restored from <dir>;
+any existing network settings not set in <dir> are erased. With erase and
+push, <dir> is used for temporary storage. With pulldefault, <dir> is unused.
+
+EOF
+}
+
+genscript_core () {
+	local -r GREP_REGEX="$1" REPLACE_TERM="$2" FILE="$3"
+	# REPLACE_TERM is allowed to have forward-slashes and is typically
+	# constructed from "real" paths (like $NIRTCFG) whose forward slashes
+	# would be complicated to escape. We therefore choose ']' as an s/
+	# delimiter which is unlikely to appear in a section/token name and
+	# is reasonable to hand-escape in REPLACE_TERM.
+	local -r SED_REGEX="s]^\[\([^]]*\)\]\([^=]*\)=\(.*\)]$REPLACE_TERM]"
+	local -ar CMDLINE1=($NIRTCFG --list)
+	local -ar CMDLINE2=(grep -i "$GREP_REGEX")
+	local -ar CMDLINE3=(sed -e "$SED_REGEX")
+	echo_verbose 2 "FILE='$FILE'" \
+		"CMDLINE='${CMDLINE1[*]} | ${CMDLINE2[*]} | ${CMDLINE3[*]}'"
+	if [[ ! $NOEXEC ]]; then
+		# Unfortunately we need to throw away exit status because of the
+		# possibility that no lines were matched
+		"${CMDLINE1[@]}" | "${CMDLINE2[@]}" | "${CMDLINE3[@]}" \
+			>> $FILE || true
+		mapfile -t OUT < "$FILE"
+		echo_verbose 1 "Contents of $FILE" "${OUT[@]:+${OUT[@]}}"
+	else
+		if (( $VERBOSE >= 1 )); then
+			echo_verbose 1 "CMDLINE output:"
+			"${CMDLINE1[@]}" | "${CMDLINE2[@]}" | "${CMDLINE3[@]}" \
+				>&2 || true
+			echo "---" >&2
+		fi
+	fi
+}
+
+# 1) Finds all tokens under a list of sections in ni-rt.ini.
+# 2) Fills out a specified remplate (regex replace string) for each token.
+# 3) Appends each templated line to a file.
+#
+# $1: Regular expression replace term, where \1=section, \2=token, \3=value
+# $2: script to save to
+# Globals: SECTIONS
+genscript_ini_sections () {
+	echo_verbose 2 "starting"
+	local REPLACE_TERM="$1" FILE="$2"
+	(( ${#SECTIONS[@]} )) || return 0
+
+	local GREP_REGEX=
+	for s in "${SECTIONS[@]}"; do
+		[[ $GREP_REGEX ]] && GREP_REGEX+="\\|"
+		GREP_REGEX+="$s"
+	done
+	GREP_REGEX="^\[\($GREP_REGEX\)\][^=]*="
+	genscript_core "$GREP_REGEX" "$REPLACE_TERM" "$FILE"
+	echo_verbose 2 "finished"
+}
+
+# 1) From a list of tokens, enumerate which of them exist in ni-rt.ini.
+# 2) Fills out a specified remplate (regex replace string) for each token.
+# 3) Appends each templated line to a file.
+#
+# $1: Regular expression replace term, where \1=section, \2=token, \3=value
+# $2: script to save to
+# Globals: TOKENS
+genscript_ini_tokens () {
+	echo_verbose 2 "starting"
+	local REPLACE_TERM="$1" FILE="$2"
+	(( ${#TOKENS[@]} )) || return 0
+
+	local GREP_REGEX=
+	for term in "${TOKENS[@]}"; do
+		[[ $GREP_REGEX ]] && GREP_REGEX+="\\|"
+		IFS=";" read -r SECTION TOKEN <<< "$term"
+		GREP_REGEX+="\[$SECTION\]$TOKEN"
+	done
+	GREP_REGEX="^\($GREP_REGEX\)="
+
+	genscript_core "$GREP_REGEX" "$REPLACE_TERM" "$FILE"
+	echo_verbose 2 "finished"
+}
+
+add_to_files () {
+	for f in "$@"; do
+		[[ -a /$f ]] && FILES+=("$f")
+	done
+	return 0
+}
+
+rm_files () {
+	if (( ${#FILES[@]} )); then
+		cd /mnt/userfs
+		run_cmd rm -rf "${FILES[@]}"
+		cd "$OLDPWD"
+	fi
+}
+
+##
+## Interface processing
+##
+
+# process_if_* functions:
+# Arguments: <if name>
+# Globals: SECTIONS, TOKENS, FILES
+
+process_if_wlan0 () {
+	TOKENS+=("SYSTEMSETTINGS;wirelessRegionUser")
+	SECTIONS+=("SUPPORTEDWIRELESSSECURITYTYPES")
+	add_to_files etc/natinst/share/wpa_supplicant.conf
+	process_if_default $@
+}
+
+process_if_default () {
+	SECTIONS+=("$1")
+}
+
+# Arguments: none
+# Globals: DEVS, SECTIONS, TOKENS, FILES
+process_devs () {
+	for i in "${DEVS[@]:+${DEVS[@]}}"; do
+		local FN="process_if_$i"
+		[[ $(type -t $FN) == function ]] || FN="process_if_default"
+		echo_verbose 2 "Running handler $FN for if $i..."
+		$FN $i || die UNKNOWN "Handler $FN for if $i failed"
+	done
+}
+
+##
+## Interface group processing
+##
+
+# add_group_*:
+# Arguments: none
+# Globals: DEVS
+
+add_group_kitchensink () {
+	TOKENS+=(
+		"SYSTEMSETTINGS;Host_Name"
+	)
+	add_to_files etc/natinst/share/iptables.conf
+	add_to_files etc/natinst/share/openvpn
+	add_to_files etc/natinst/share/certstore
+	add_to_files etc/natinst/share/ssh
+}
+
+add_group_primary () {
+	DEVS+=("$(get_primary_device)")
+}
+
+add_group_secondary () {
+	DEVS+=($(get_secondary_interfaces))
+}
+
+
+check_kitchensink () {
+	(( ${#IF_GROUPS[@]} )) || return 0
+	case "$MODE" in
+		erase|pulldefault)
+			if list_contains primary   "${IF_GROUPS[@]}" && \
+			   list_contains secondary "${IF_GROUPS[@]}"
+			then
+				IF_GROUPS+=(kitchensink)
+			fi ;;
+		restore|save|push)
+			if list_contains primary   "${IF_GROUPS[@]}" || \
+			   list_contains secondary "${IF_GROUPS[@]}"
+			then
+				IF_GROUPS+=(kitchensink)
+			fi ;;
+	esac
+}
+
+# Arguments: none
+# Globals: IF_GROUPS, DEVS, MODE
+add_groups () {
+	if [[ $AUTO_KITCHENSINK != no ]]; then check_kitchensink; fi
+	for g in "${IF_GROUPS[@]:+${IF_GROUPS[@]}}"; do
+		local FN="add_group_$g"
+		$FN || die UNKNOWN "Handler $FN for interface group $g failed"
+	done
+}
+
+add_additional_settings () {
+	return 0
+}
+
+##
+## Operating mode implementations
+##
+
+# do_* functions:
+# Arguments: none
+# Globals: FILES, DIR, SCRIPT, TARBALL
+do_save () {
+	echo_verbose 2 "starting"
+	local -r SAVE_CMD="$NIRTCFG -s \"section=\1,token=\2,value=\3\""
+	local -r SCRIPT_PATH="$DIR/$SCRIPT"  TMP=
+	genscript_ini_sections "$SAVE_CMD" "$SCRIPT_PATH"
+	genscript_ini_tokens "$SAVE_CMD" "$SCRIPT_PATH"
+	if (( ${#FILES[@]} )); then
+		local -a CMDLINE=(tar cf "$DIR/$TARBALL" -C /mnt/userfs \
+			"${BASE_TAR_OPTS[@]}" "${FILES[@]}")
+		(( $VERBOSE >= 2 )) && CMDLINE+=(-v)
+		run_cmd "${CMDLINE[@]}"
+	fi
+	echo_verbose 2 "finished"
+}
+
+# Arguments: <script path>
+run_script () {
+	local -r SCRIPT_PATH="$1"
+	if [[ -f $SCRIPT_PATH ]]; then
+		# Run the script through `bash` instead of `source` so that we
+		# can use the -v and -n options
+		local -a SHCMD=("$BASH")
+		(( $VERBOSE > 0 )) && SHCMD+=(-v)
+		[[ $NOEXEC ]] && SHCMD+=(-n)
+		SHCMD+=("$SCRIPT_PATH")
+		echo_verbose 1 "Executing ${SCRIPT_PATH}:" "${SHCMD[*]}"
+		${SHCMD[@]}
+	else
+		echo_verbose 1 "Executing ${SCRIPT_PATH}: (file not found)"
+	fi
+	echo_verbose 2 "complete"
+}
+
+do_restore () {
+	echo_verbose 2 "starting"
+
+	# Workaround for CAR 476288. THIS BEHAVIOR IS SUBJECT TO CHANGE WITHOUT NOTICE.
+
+	# Under nisystemimage restore operations, there appears to be a race condition
+	# which may reproduce between erasing the extracted configuration and restoring
+	# the original configuration. To attempt to partially mitigate this, do_restore
+	# elides these two steps: configuration entries which are not present in the
+	# preserved configuration are erased here, instead of do_erase (which is no longer
+	# called on restore).
+
+
+	# We are creating a script here ($ERASE_SCRIPT_PATH) that will have an entry for
+	# every configuration group that present in the current ni-rt.ini. Under normal
+	# operations this should be the modified ni-rt.ini and we are now trying to restore
+	# back to some old settings. Each line in $ERASE_SCRIPT_PATH will check to see if
+	# that key/token pair is present in the restore script. If it isn't present it will delete
+	# the key/token pair.
+	local -r SCRIPT_PATH="$DIR/$SCRIPT"
+	local -r CLEAR_CMD="grep -qi \"section=\1,token=\2,value\" $SCRIPT_PATH || $NIRTCFG -c \"section=\1,token=\2\""
+	local -r ERASE_SCRIPT_PATH="$DIR/$SCRIPT.erase"
+	genscript_ini_sections "$CLEAR_CMD" "$ERASE_SCRIPT_PATH"
+	genscript_ini_tokens "$CLEAR_CMD" "$ERASE_SCRIPT_PATH"
+	run_script "$ERASE_SCRIPT_PATH"
+
+	# Run the restore script
+	run_script "$SCRIPT_PATH"
+
+	# Delete all configuration files prior to unpacking the tar to guarantee we don't
+	# end up with configuration files present after a restore that weren't present
+	# before a restore (presumably because they are present in the image and are no
+	# longer getting deleted with an explicit call to erase. See CAR 476288.
+	rm_files
+
+	local -r TAR_PATH="$DIR/$TARBALL"
+	echo_verbose 2 "Extracting tarball $TAR_PATH..."
+	local -a TAR_ARGS=(-f "$TAR_PATH" "${BASE_TAR_OPTS[@]}" -C /mnt/userfs)
+	if (( $VERBOSE >= 2 )); then TAR_ARGS+=(-v); fi
+	echo_verbose 1 "tar x ${TAR_ARGS[*]}"
+	if [[ -z $NOEXEC ]]; then
+		if [[ ! -f $TAR_PATH ]]; then
+			echo_verbose 1 "('$TAR_PATH' not found)"
+		else
+			tar x "${TAR_ARGS[@]}"
+		fi
+	else
+		if (( $VERBOSE >= 2 )); then
+			echo_verbose 2 "'tar t' output:"
+			if [[ ! -f $TAR_PATH ]]; then
+				echo_verbose 2 "('$TAR_PATH' not found)"
+			else
+				tar t "${TAR_ARGS[@]}" || true
+			fi
+		fi
+	fi
+
+	# Although PrimaryMAC is stored in ni-rt.ini it represents a value
+	# unique to a given target and must not change. After an operation
+	# manipulating ni-rt.ini, do not assume the value of PrimaryMAC has
+	# been correctly preserved.
+	reset_primary_mac
+	echo_verbose 2 "finished"
+}
+
+impl_erase_kitchensink() {
+	# this will re-populate an empty certstore, which avoids straight up
+	# failure of certain operations, but we rely on code elsewhere to
+	# properly restore the certstore
+	run_cmd /etc/init.d/populateconfig start
+}
+
+do_erase () {
+	echo_verbose 2 "starting"
+
+	local -r SCRIPT_PATH="$DIR/$SCRIPT"
+	local -r CLEAR_CMD="$NIRTCFG -c \"section=\1,token=\2\""
+	genscript_ini_sections "$CLEAR_CMD" "$SCRIPT_PATH"
+	genscript_ini_tokens "$CLEAR_CMD" "$SCRIPT_PATH"
+	run_script "$SCRIPT_PATH"
+
+	rm_files
+
+	if list_contains kitchensink "${IF_GROUPS[@]}"; then
+		impl_erase_kitchensink
+	fi
+
+	echo_verbose 2 "finished"
+}
+
+do_push () {
+	echo_verbose 2 "starting"
+	local -r SCRIPT_PATH="$DIR/$SCRIPT"
+	local CMD="$NIRTCFG -s \"section=\1,token=\2,value=\3\""
+	genscript_ini_sections "$CMD" "$SCRIPT_PATH"
+	genscript_ini_tokens "$CMD" "$SCRIPT_PATH"
+	run_script "$SCRIPT_PATH"
+
+	# Although PrimaryMAC is stored in ni-rt.ini it represents a value
+	# unique to a given target and must not change. After an operation
+	# manipulating ni-rt.ini, do not assume the value of PrimaryMAC has
+	# been correctly preserved.
+	reset_primary_mac
+	echo_verbose 2 "finished"
+}
+
+impl_pulldefault_kitchensink () {
+	# Set hostname to default value
+	run_cmd $NIRTCFG -s section=SYSTEMSETTINGS,token=host_name,value=
+
+	# hostname.sh is responsible for populating the default hostname
+	/etc/init.d/hostname.sh start
+
+	# populateconfig creates /etc/natinst/share/{ssh,certstore} if they don't
+	# exist
+	run_cmd /etc/init.d/populateconfig start
+}
+
+# Pull default network settings from u-boot. Specifically:
+# - primary: Everything set from "ipresetcmd" is applied
+# - kitchensink: hostname and other settings not associated
+#   with a specific network adapter are reset to default
+do_pulldefault () {
+	(( ${#IF_GROUPS[@]} )) || return 0
+	echo_verbose 2 "starting"
+	if list_contains kitchensink "${IF_GROUPS[@]}"; then
+		impl_pulldefault_kitchensink
+	fi
+	if list_contains primary "${IF_GROUPS[@]}"; then
+		impl_pulldefault_primary
+	fi
+
+	# Although PrimaryMAC is stored in ni-rt.ini it represents a value
+	# unique to a given target and must not change. After an operation
+	# manipulating ni-rt.ini, do not assume the value of PrimaryMAC has
+	# been correctly preserved.
+	reset_primary_mac
+	echo_verbose 2 "finished"
+}
+
+##
+## Settings/options processing
+##
+
+dump_settings () {
+	# There's no need to display globals which are included verbatim in
+	# other debugging output displayed when VERBOSE>=1. This includes
+	# BASE_TAR_OPTS, TARBALL, etc.
+	echo_verbose 1 \
+		"MODE=$MODE" \
+		"NOEXEC=$NOEXEC" \
+		"DIR=$DIR" \
+		"VERBOSE=$VERBOSE" \
+		"IF_GROUPS=(${IF_GROUPS[*]:+${IF_GROUPS[*]}})" \
+		"DEVS=(${DEVS[*]:+${DEVS[*]}})" \
+		"SECTIONS=(${SECTIONS[*]:+${SECTIONS[*]}})" \
+		"TOKENS=(${TOKENS[*]:+${TOKENS[*]}})" \
+		"FILES=(${FILES[*]:+${FILES[*]}})" \
+		"PRIMARY=$(get_primary_device)" \
+		"AUTO_KITCHENSINK=$AUTO_KITCHENSINK"
+}
+
+parse_settings () {
+	while getopts :d:g:hnv opt ; do
+		case $opt in
+			d) DIR="$OPTARG" ;;
+			g) IF_GROUPS+=("$OPTARG") ;;
+			h) print_help; exit 0 ;;
+			n) NOEXEC=1 ;;
+			v) ((VERBOSE+=1)) && true ;;
+			\?) die_with_help "Unknown option '$OPTARG'";;
+		esac
+	done
+}
+
+check_settings () {
+	case $MODE in
+		"-h") print_help; exit 0 ;;
+		restore) ;;
+		save|erase|push|pulldefault)
+			[[ ! -f $DIR/$TARBALL ]] || die INVALID_ARGUMENT \
+				"Found $DIR/$TARBALL; $DIR must be empty"
+			[[ ! -f $DIR/$SCRIPT ]] || die INVALID_ARGUMENT \
+				"Found $DIR/$SCRIPT; $DIR must be empty"
+			;;
+		"") die_with_help "Mode must be specified" ;;
+		*) die_with_help "Invalid mode '$MODE'" ;;
+	esac
+
+	[[ $DIR ]] || die FILE_NOT_FOUND "Directory (-d) not specified"
+	[[ -d $DIR ]] || die FILE_NOT_FOUND "Directory $DIR does not exist"
+}
+
+process_settings () {
+	check_settings
+	add_groups
+	process_devs
+	add_additional_settings
+	dump_settings
+}
+
+cleanup () { return 0; }
+
+##
+## Execution starts here
+##
+
+trap cleanup EXIT
+trap 'handle_err ${BASH_SOURCE} ${LINENO} ${FUNCNAME:-unknown}' ERR
+
+MODE="${1:-}"
+
+[[ -f $SCRIPT_ROOTFS ]] && . "$SCRIPT_ROOTFS"
+[[ -f $SCRIPT_CONFIGFS ]] && . "$SCRIPT_CONFIGFS"
+
+# Process settings
+run_hook hook_settings_pre
+parse_settings "${@:2}"
+echo_verbose 2 "starting, command line: $0 $*"
+process_settings
+run_hook hook_settings_post
+
+# Perform the configuration operation
+run_hook hook_do_${MODE}_pre
+do_$MODE
+run_hook hook_do_${MODE}_post
+
+exit 0
