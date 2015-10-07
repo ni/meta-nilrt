@@ -833,3 +833,9 @@ RDEPENDS_${PN} += "\
 RDEPENDS_${PN} += "\
 	libvncserver \
 "
+
+# meta-nilrt/recipes-ni
+RDEPENDS_${PN} += "\
+	sysconfig-settings \
+	${@base_contains("DISTRO_FEATURES", "x11", "sysconfig-settings-ui", "", d)} \
+"

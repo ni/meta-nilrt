@@ -37,12 +37,10 @@ RDEPENDS_${PN} = "\
 	parted \
 	${@base_contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
 	pigz \
-	sysconfig-settings \
 	usbutils-ids \
 	util-linux-findfs \
 	util-linux-sfdisk \
 	udev-cache \
 	vlan \
 	zip \
-	${@base_contains("DISTRO_FEATURES", "x11", "sysconfig-settings-ui", "", d)} \
 "
