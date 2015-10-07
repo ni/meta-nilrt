@@ -25,26 +25,4 @@ then
 			/usr/local/natinst/bin/nirtcfg --set section=SystemSettings,token="IPReset.enabled",value=false
 		fi
 	fi
-
-	# TODO: review this sharing of settings between safe (restore?) mode and
-	#       run mode. If we want to keep some or all of it, consider merging
-	#       the timezone change from os-common's populateconfig as well
-	mkdir -p /etc/natinst/share/ssh
-	chmod -t /etc/natinst/share
-	test -L /etc/natinst/share/localtime || ( rm -f /etc/natinst/share/localtime && ln -s /usr/share/zoneinfo/UTC /etc/natinst/share/localtime )
-
-	# Ensure that /etc/natinst/share/timestamp exists and that /etc/timestamp symlinks to it.
-	LCLTIMESTAMP="/etc/timestamp"
-	SHAREDTIMESTAMP="/etc/natinst/share/timestamp"
-	if [ -f $LCLTIMESTAMP ]; then
-		# If /etc/natinst/share/timestamp doesn't exist, use /etc/timestamp to create it
-		if [ ! -e $SHAREDTIMESTAMP ]; then
-			mv $LCLTIMESTAMP $SHAREDTIMESTAMP
-		fi
-	elif [ ! -e $SHAREDTIMESTAMP ]; then
-		touch $SHAREDTIMESTAMP
-	fi
-
-	ln -sf $SHAREDTIMESTAMP $LCLTIMESTAMP
-
 fi
