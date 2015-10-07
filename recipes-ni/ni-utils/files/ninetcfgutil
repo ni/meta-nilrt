@@ -92,7 +92,6 @@ BASE_TAR_OPTS=(--xattrs --xattrs-include=\* --no-selinux --no-acls --anchored --
 NIRTCFG=/usr/local/natinst/bin/nirtcfg
 
 SCRIPT_ROOTFS=/etc/default/ninetcfgutil
-SCRIPT_CONFIGFS=/etc/natinst/share/ninetcfgutil_defaults
 
 ##
 ## General utility functions
@@ -616,7 +615,6 @@ trap 'handle_err ${BASH_SOURCE} ${LINENO} ${FUNCNAME:-unknown}' ERR
 MODE="${1:-}"
 
 [[ -f $SCRIPT_ROOTFS ]] && . "$SCRIPT_ROOTFS"
-[[ -f $SCRIPT_CONFIGFS ]] && . "$SCRIPT_CONFIGFS"
 
 # Process settings
 run_hook hook_settings_pre
