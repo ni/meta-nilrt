@@ -467,10 +467,7 @@ do_restore () {
 }
 
 impl_erase_kitchensink() {
-	# this will re-populate an empty certstore, which avoids straight up
-	# failure of certain operations, but we rely on code elsewhere to
-	# properly restore the certstore
-	run_cmd /etc/init.d/populateconfig start
+	:
 }
 
 do_erase () {
@@ -513,10 +510,6 @@ impl_pulldefault_kitchensink () {
 
 	# hostname.sh is responsible for populating the default hostname
 	/etc/init.d/hostname.sh start
-
-	# populateconfig creates /etc/natinst/share/{ssh,certstore} if they don't
-	# exist
-	run_cmd /etc/init.d/populateconfig start
 }
 
 # Pull default network settings from u-boot. Specifically:
