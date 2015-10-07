@@ -8,9 +8,12 @@ SECTION = "base"
 SRC_URI = "file://status_led \
 	   file://nisetbootmode.functions \
 	   file://nisetbootmode \
+	   file://ninetcfgutil \
 "
 
-SRC_URI_append_arm = " file://fw_env.config"
+SRC_URI_append_arm = " file://fw_env.config file://ninetcfgutil_platdep.sh"
+SRC_URI_append_x64 = " file://ninetcfgutil_platdep.sh \
+"
 
 FILES_${PN} += "\
 	/usr/lib/nisetbootmode.functions \
@@ -35,6 +38,8 @@ do_install () {
 	install -m 0755   ${WORKDIR}/status_led         ${D}${bindir}
 	install -m 0440   ${WORKDIR}/nisetbootmode.functions         ${D}${libdir}
 	install -m 0550   ${WORKDIR}/nisetbootmode         ${D}${bindir}
+	install -m 0755   ${WORKDIR}/ninetcfgutil       ${D}${bindir}
+	install -m 0444   ${WORKDIR}/ninetcfgutil_platdep.sh ${D}${libdir}
 
 	if [ "${TARGET_ARCH}" = "arm" ]; then
 		install -m 0644   ${WORKDIR}/fw_env.config         ${D}${sysconfdir}
