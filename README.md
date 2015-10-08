@@ -5,14 +5,44 @@ This layer provides support for the NI Linux Real-Time distribution. The NI Linu
 
 This layer depends on:
 
-URI: git://github.com/openembedded-core.git  
-branch: dylan  
-revision: HEAD  
+URI: git://github.com/ni/openembedded-core.git
+branch: nilrt/comms-2.0/fido
+revision: HEAD
 
-URI: git://github.com/openembedded/meta-oe.git  
-layers: meta-oe, meta-gnome, meta-xfce, meta-networking  
-branch: dylan  
-revision: HEAD  
+URI: git://github.com/ni/meta-oe.git
+layers: meta-oe, meta-gnome, meta-xfce, meta-networking, meta-webserver, meta-filesystems,
+meta-perl, meta-python, meta-ruby
+branch: nilrt/comms-2.0/fido
+revision: HEAD
+
+URI: git://github.com/ni/meta-cloud-services.git
+layers: meta-openstack
+branch: nilrt/comms-2.0/fido
+revision: HEAD
+
+URI: git://github.com/ni/meta-selinux.git
+branch: nilrt/comms-2.0/fido
+revision: HEAD
+
+URI: git://github.com/ni/meta-virtualization.git
+branch: nilrt/comms-2.0/fido
+revision: HEAD
+
+URI: git://github.com/ni/meta-mono.git
+branch: nilrt/comms-2.0/fido
+revision: HEAD
+
+URI: git://github.com/ni/meta-security.git
+branch: nilrt/comms-2.0/fido
+revision: HEAD
+
+URI: git://github.com/ni/meta-sdr.git
+branch: nilrt/comms-2.0/fido
+revision: HEAD
+
+URI: git://github.com/ni/meta-java.git
+branch: nilrt/comms-2.0/fido
+revision: HEAD
 
 About NI Linux Real-Time
 ------------------------
