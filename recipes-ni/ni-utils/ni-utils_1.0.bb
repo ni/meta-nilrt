@@ -7,7 +7,6 @@ SECTION = "base"
 
 SRC_URI = "file://status_led \
 	   file://nicompareversion \
-	   file://nisystemformat \
 	   file://nisetbootmode.functions \
 	   file://nisetbootmode \
 "
@@ -46,7 +45,6 @@ do_install () {
 	install -d ${D}${libdir}
 	install -m 0755   ${WORKDIR}/status_led         ${D}${bindir}
 	install -m 0755   ${WORKDIR}/nicompareversion   ${D}${bindir}
-	install -m 0550   ${WORKDIR}/nisystemformat     ${D}${bindir}
 	install -m 0440   ${WORKDIR}/nisetbootmode.functions         ${D}${libdir}
 	install -m 0550   ${WORKDIR}/nisetbootmode         ${D}${bindir}
 
@@ -66,6 +64,5 @@ do_install () {
 	fi
 
 	chown 0:${group} ${D}${bindir}/status_led
-	chown 0:${group} ${D}${bindir}/nisystemformat
 
 }
