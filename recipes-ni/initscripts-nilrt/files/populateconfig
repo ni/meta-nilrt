@@ -11,7 +11,7 @@ then
 		cp -f /boot/grub/grubenv.bak /boot/grub/grubenv
 		#do an ip reset
 		mkdir -p /tmp/ip_reset_dir
-		/usr/local/natinst/bin/ninetcfgutil pulldefault -d /tmp/ip_reset_dir -g primary
+		ninetcfgutil pulldefault -d /tmp/ip_reset_dir -g primary
 		rm -rf /tmp/ip_reset_dir
 	fi
 
