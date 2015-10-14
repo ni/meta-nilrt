@@ -53,6 +53,7 @@ RDEPENDS_${PN} = "\
 	openssh-ssh \
 	opkg \
 	opkg-utils \
+	python-futures \
 	salt-minion \
 	start-stop-daemon \
 	syslog-ng \
