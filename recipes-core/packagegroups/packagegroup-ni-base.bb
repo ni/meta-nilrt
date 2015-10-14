@@ -52,8 +52,8 @@ RDEPENDS_${PN} = "\
 	openssh-sftp-server \
 	openssh-ssh \
 	opkg \
-        opkg-utils \
-        salt-minion \
+	opkg-utils \
+	salt-minion \
 	start-stop-daemon \
 	syslog-ng \
 	sysvinit \
