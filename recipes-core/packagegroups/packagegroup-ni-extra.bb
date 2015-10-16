@@ -840,3 +840,8 @@ RDEPENDS_${PN} += "\
 	sysconfig-settings \
 	${@base_contains("DISTRO_FEATURES", "x11", "sysconfig-settings-ui", "", d)} \
 "
+
+# meta-nilrt/recipes-rt
+RDEPENDS_${PN} += "\
+	rtctl \
+"
