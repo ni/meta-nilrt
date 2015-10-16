@@ -1,0 +1,62 @@
+#! /bin/sh
+set -e
+
+PROGRAM_NAME='rtctld'
+EXE_PATH='/usr/sbin/rtctld'
+
+# Uncomment these lines if you wish to run rtcrld in a higher priority
+# context. This might be necessary in some application where timely
+# irq thread configuration is needed.
+#CHRT_SCHED_POLICY='f'
+#CHRT_SCHED_PRIOR='95'
+
+setsched()
+{
+    set -e
+    echo -n "Setting $PROGRAM_NAME scheduler priority to $CHRT_SCHED_POLICY:$CHRT_SCHED_PRIOR "
+    daemonPid="`pidof "$EXE_PATH"`"
+
+    # root check
+    [ -n "`cat "/proc/$daemonPid/status" | egrep '^Uid:(\W+0){4}$'`" ]
+    [ -n "`cat "/proc/$daemonPid/status" | egrep '^Gid:(\W+0){4}$'`" ]
+
+    # set scheduler policy
+    chrt -p -"$CHRT_SCHED_POLICY" "$CHRT_SCHED_PRIOR" "$daemonPid" >/dev/null
+
+    echo "done"
+}
+
+startdaemon()
+{
+    set -e
+    echo -n "Starting $PROGRAM_NAME: "
+    start-stop-daemon --start -x "$EXE_PATH"
+    echo "done"
+
+    [ -z "$CHRT_SCHED_POLICY" ] || setsched
+}
+
+stopdaemon()
+{
+    set -e
+    echo -n "Stopping $PROGRAM_NAME: "
+    start-stop-daemon --stop --retry 30 -x "$EXE_PATH"
+    echo "done"
+}
+
+case "$1" in
+    start)
+        startdaemon
+        ;;
+    stop)
+        stopdaemon
+        ;;
+    force-reload|restart|reload)
+        stopdaemon
+        startdaemon
+        ;;
+    *)
+        echo >&2 "Usage: $PROGRAM_NAME {start|stop|restart|reload|force-reload}"
+        exit 1
+        ;;
+esac
