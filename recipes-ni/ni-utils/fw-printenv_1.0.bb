@@ -20,7 +20,10 @@ FILES_${PN} += ""
 FILES_${PN}_append_x64 = "${datadir}/fw_printenv/* \
 "
 
+DEPENDS += "niacctbase \
+"
 RDEPENDS_${PN} += "${@base_contains("MACHINE_FEATURES", "x86", "grub-editenv", "", d)} \
+    niacctbase \
 "
 
 group = "${LVRT_GROUP}"
