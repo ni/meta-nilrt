@@ -32,6 +32,29 @@ KBUILD_DEFCONFIG_xilinx-zynq = "nati_zynq_defconfig"
 KBUILD_DEFCONFIG_xilinx-zynqhf = "nati_zynq_defconfig"
 KCONFIG_MODE="--alldefconfig"
 
+#create dtb-s fromt dts files for xilinx-zynqhf targets
+DEPENDS_xilinx-zynqhf += "dtc-native"
+KERNEL_DEVICETREE_xilinx-zynqhf = "\
+        ni-762F.dtb \
+        ni-76D3.dtb \
+        ni-76D6.dtb \
+        ni-76F2.dtb \
+        ni-7740.dtb \
+        ni-7741.dtb \
+        ni-7742.dtb \
+        ni-7743.dtb \
+        ni-7744.dtb \
+        ni-774C.dtb \
+        ni-774E.dtb \
+        ni-775E.dtb \
+        ni-77AC.dtb \
+        ni-77B1.dtb \
+        ni-77B2.dtb \
+        ni-77D4.dtb \
+        ni-77D5.dtb \
+        ni-77D6.dtb \
+        ni-7885.dtb "
+
 # Install headers and build objects for kernel versioning into
 # /lib/modules/${KERNEL_VERSION}/build for inclusion in kernel-dev.
 do_install_append() {
