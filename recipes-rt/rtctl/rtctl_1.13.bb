@@ -2,7 +2,7 @@ SUMMARY = "rtctl - Utilities for controlling scheduling priorities of system thr
 SECTION = "System Environment/Daemons"
 LICENSE = "GPL"
 
-# No license fine included in source. Hashing the "License" line in
+# No license file included in source. Hashing the "License" line in
 # spec file.
 LIC_FILES_CHKSUM = "file://${S}/rtctl.spec;beginline=6;endline=6;md5=cb929ed8d4eeb8a538033622343c6f94"
 
