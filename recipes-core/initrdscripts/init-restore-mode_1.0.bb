@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384
 SRC_URI = "file://init-restore-mode.sh      \
            file://ni_provisioning           \
            file://grub.cfg                  \
-           file://disk_config_x64           \
+           file://disk_config_${MACHINE}    \
            "
 
 PR = "r1"
