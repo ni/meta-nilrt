@@ -9,11 +9,14 @@ RDEPENDS_${PN} = "\
 	packagegroup-ni-tzdata \
 	packagegroup-ni-wifi \
 	packagegroup-ni-runmode \
-	packagegroup-ni-xfce \
 	packagegroup-ni-crio \
 	packagegroup-ni-restoremode \
 	packagegroup-core-x11 \
 	packagegroup-kernel-module-build \
 	opkg-collateral \
 	apache2 \
+"
+
+RDEPENDS_${PN}_append_x64 = "\
+	packagegroup-ni-xfce \
 "
