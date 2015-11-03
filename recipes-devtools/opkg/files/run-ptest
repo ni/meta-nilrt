@@ -1,0 +1,10 @@
+#! /bin/sh
+
+for test in $(ls test*); do
+	./$test
+	if [ $? -ne 0 ]; then
+		echo "FAIL: $test"
+		continue
+	fi
+	echo "PASS: $test"
+done
