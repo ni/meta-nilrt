@@ -10,4 +10,5 @@ IMAGE_INSTALL += "\
 	ptest-runner \
 	rt-tests \
 	kernel-tests \
+	glibc-tests \
 "
