@@ -12,3 +12,5 @@ IMAGE_INSTALL += "\
 	kernel-tests \
 	glibc-tests \
 "
+
+IMAGE_ROOTFS_EXTRA_SPACE = "1000000"
