@@ -4,16 +4,21 @@
 
 permissions_string="a+w"
 debugfs_path="/sys/kernel/debug"
+tracefs_path="/sys/kernel/debug/tracing"
 
 # If not mounted, mount the debugfs so we can use ftrace
 grep -qs '/sys/kernel/debug' /proc/mounts || mount -t debugfs nodev $debugfs_path
 
+# tracefs is created in a weird state; poke it to make it real
+touch -c $tracefs_path/dummy
+
 # Change the permissions so a non-root user can control ftrace
 chmod a+rx $debugfs_path
-chmod -R $permissions_string $debugfs_path/tracing/events
-chmod $permissions_string $debugfs_path/tracing/tracing_on
-[ -e $debugfs_path/tracing/tracing_enabled ] && chmod $permissions_string $debugfs_path/tracing/tracing_enabled
-chmod $permissions_string $debugfs_path/tracing/trace
-chmod $permissions_string $debugfs_path/tracing/trace_marker
-chmod $permissions_string $debugfs_path/tracing/trace_ni_ett_marker
-chmod $permissions_string $debugfs_path/tracing/buffer_size_kb
+chmod a+rx $tracefs_path
+chmod -R $permissions_string $tracefs_path/events
+chmod $permissions_string $tracefs_path/tracing_on
+[ -e $tracefs_path/tracing_enabled ] && chmod $permissions_string $tracefs_path/tracing_enabled
+chmod $permissions_string $tracefs_path/trace
+chmod $permissions_string $tracefs_path/trace_marker
+chmod $permissions_string $tracefs_path/trace_ni_ett_marker
+chmod $permissions_string $tracefs_path/buffer_size_kb
