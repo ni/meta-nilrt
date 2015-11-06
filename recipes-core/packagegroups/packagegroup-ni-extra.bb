@@ -564,6 +564,7 @@ RDEPENDS_${PN} += "\
 	tunctl \
 	wireshark \
 	ptpd \
+	snort \
 "
 
 # meta-oe/recipes-devtools/python (most now in meta-oe/meta-python)
