@@ -4,6 +4,7 @@ USB_MOUNTPOINT=/var/volatile/usbrtdeploy
 NIGRUB_LABEL=nigrub
 NIRESTORE_LABEL=nirestore
 NILRT_LABEL=nilrt
+REBOOT_REQUIRED=0
 
 cleanup_and_exit()
 {
@@ -189,7 +190,6 @@ echo 6 > /proc/sys/kernel/printk
 
 PROVISION_TARGET="n"
 RESET_MINIMAL_IMAGE="n"
-REBOOT_REQUIRED=0
 CONTINUE="n"
 if [[ $restore == "provision" ]]; then
     echo
