@@ -65,6 +65,7 @@ RDEPENDS_${PN} = "\
 	util-linux-hwclock \
 	util-linux-mount \
 	util-linux-umount \
+	util-linux-runuser \
 	${VIRTUAL-RUNTIME_mountpoint} \
 	${VIRTUAL-RUNTIME_dev_manager} \
 	${MACHINE_ESSENTIAL_EXTRA_RDEPENDS} \
