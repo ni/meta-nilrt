@@ -24,8 +24,8 @@ do_install_append () {
 
 	# Symlink /lib64 to /lib on x86_64
 	if [ "${TARGET_ARCH}" = "x86_64" ]; then
-		ln -s /lib ${D}/lib64
-		ln -s /usr/local/natinst/lib ${D}/usr/local/natinst/lib64
+		ln -sf lib ${D}/lib64
+		ln -sf lib ${D}/usr/local/natinst/lib64
 	fi
 
 	install -d ${D}${sysconfdir}/profile.d/
