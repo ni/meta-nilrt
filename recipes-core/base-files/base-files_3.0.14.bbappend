@@ -18,4 +18,11 @@ do_install_append () {
 
 	echo "d ${LVRT_USER} ${LVRT_GROUP} 0775 /run/natinst none" \
 		>> ${D}${sysconfdir}/default/volatiles/20_run_natinst
+
+	# Symlink /lib64 to /lib on x86_64
+	if [ "${TARGET_ARCH}" = "x86_64" ]; then
+		ln -sf lib ${D}/lib64
+		install -d ${D}/usr/local/natinst
+		ln -sf lib ${D}/usr/local/natinst/lib64
+	fi
 }
