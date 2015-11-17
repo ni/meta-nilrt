@@ -18,6 +18,7 @@ SRC_URI = " \
        file://50-plugdev.rules \
        file://61-removable-storage-polling.rules \
        file://70-usb-serial-permissions.rules \
+       file://leds.rules \
 "
 
 SRC_URI_append_xilinx-zynq = "file://fpga.rules"
@@ -32,6 +33,7 @@ do_install() {
     install -m 0644 ${WORKDIR}/50-plugdev.rules    ${D}${sysconfdir}/udev/rules.d/50-plugdev.rules
     install -m 0644 ${WORKDIR}/61-removable-storage-polling.rules    ${D}${sysconfdir}/udev/rules.d/61-removable-storage-polling.rules
     install -m 0644 ${WORKDIR}/70-usb-serial-permissions.rules ${D}${sysconfdir}/udev/rules.d/70-usb-serial-permissions.rules
+    install -m 0644 ${WORKDIR}/leds.rules          ${D}${sysconfdir}/udev/rules.d/leds.rules
 
     install -m 0644 ${WORKDIR}/mount.blacklist     ${D}${sysconfdir}/udev/
 
