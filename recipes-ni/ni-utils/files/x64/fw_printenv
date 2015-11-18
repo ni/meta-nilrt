@@ -109,6 +109,12 @@ show_variable_smbios(){
 			ret=0
 		fi
 
+		# Some BIOSs report a DeviceCode with a '0x' prefix. Some do not.
+		# Those that do end up with a second '0x' that needs to be stripped.
+		if [ "$key" = "DeviceCode" ] ; then
+			value=${value/#0x0x/0x}
+		fi
+
 		#If DeviceDesc cannot be read, or if DeviceDesc does not match
 		#the NI SMBIOS Specification requirement of the product name
 		#starting with "NI ", then consider the target unknown and
