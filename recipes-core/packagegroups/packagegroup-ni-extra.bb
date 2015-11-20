@@ -806,6 +806,7 @@ RDEPENDS_${PN} += "\
 	lxc \
 	multipath-tools \
 	openvswitch \
+	docker \
 "
 RDEPENDS_${PN}_append_x64 += "\
 	ipxe \
