@@ -73,7 +73,7 @@ RDEPENDS_${PN} = "\
 
 RDEPENDS_${PN}_append_x64 += "\
 	efivar \
-	grub-cfg-nilrt \
+	grub-efi-nilrt \
 "
 
 RDEPENDS_${PN}_append_xilinx-zynq += "\
