@@ -13,5 +13,6 @@ IMAGE_INSTALL_NODEPS += " \
     lvrt \
     niminionagent \
     ni-pxiplatformservices \
+    ni-flexrio \
 "
 
