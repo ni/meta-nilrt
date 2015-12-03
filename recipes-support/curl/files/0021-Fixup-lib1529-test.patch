@@ -1,0 +1,29 @@
+From 453a7d9f47bf974ae7aec809348ed2d39063c0be Mon Sep 17 00:00:00 2001
+From: Jonathan David <jonathan.david@ni.com>
+Date: Thu, 3 Mar 2016 11:20:21 -0600
+Subject: [PATCH 21/22] Fixup lib1529 test
+
+Include mprintf.h to allow test to compile when using msvc.
+
+Upstream-Status: Submitted [curl-library@cool.haxx.se]
+---
+ tests/libtest/lib1529.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/tests/libtest/lib1529.c b/tests/libtest/lib1529.c
+index 3def142..507b441 100644
+--- a/tests/libtest/lib1529.c
++++ b/tests/libtest/lib1529.c
+@@ -24,6 +24,9 @@
+ 
+ #include "memdebug.h"
+ 
++#define _MPRINTF_REPLACE
++#include <curl/mprintf.h>
++
+ int test(char *URL)
+ {
+   CURL *curl = NULL;
+-- 
+1.9.1
+

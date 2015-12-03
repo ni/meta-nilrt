@@ -1,0 +1,55 @@
+From 7e184ddcc513928c02fa6f1b835c64aa6375f8fd Mon Sep 17 00:00:00 2001
+From: Jonathan David <jonathan.david@ni.com>
+Date: Mon, 21 Jul 2014 15:02:35 -0500
+Subject: [PATCH 04/22] Added curl_easy_getinfo_va() API function
+
+Added API function with `va_list` variable argument parameter in
+addition to cURL's function using `...`.
+
+Upstream-Status: Submitted [curl-library@cool.haxx.se]
+---
+ lib/easy.c | 19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
+
+diff --git a/lib/easy.c b/lib/easy.c
+index 619312b..6ab92ac 100644
+--- a/lib/easy.c
++++ b/lib/easy.c
+@@ -857,20 +857,29 @@ void curl_easy_cleanup(CURL *curl)
+  * curl_easy_getinfo() is an external interface that allows an app to retrieve
+  * information from a performed transfer and similar.
+  */
+-#undef curl_easy_getinfo
+-CURLcode curl_easy_getinfo(CURL *curl, CURLINFO info, ...)
++
++CURLcode curl_easy_getinfo_va(CURL *curl, CURLINFO info, va_list arg)
+ {
+-  va_list arg;
+   void *paramp;
+   CURLcode result;
+   struct SessionHandle *data = (struct SessionHandle *)curl;
+ 
+-  va_start(arg, info);
+   paramp = va_arg(arg, void *);
+-
+   result = Curl_getinfo(data, info, paramp);
+ 
++  return result;
++}
++
++#undef curl_easy_getinfo
++CURLcode curl_easy_getinfo(CURL *curl, CURLINFO info, ...)
++{
++  CURLcode result;
++  va_list arg;
++  va_start(arg, info);
++
++  result = curl_easy_getinfo_va(curl, info, arg);
+   va_end(arg);
++
+   return result;
+ }
+ 
+-- 
+1.9.1
+
