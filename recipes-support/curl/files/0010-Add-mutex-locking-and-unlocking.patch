@@ -1,0 +1,153 @@
+From fd095bcc67c5380a97e2f75b40b1356962ee0b5f Mon Sep 17 00:00:00 2001
+From: Jonathan David <jonathan.david@ni.com>
+Date: Thu, 18 Feb 2016 11:30:26 -0600
+Subject: [PATCH 10/22] Add mutex locking and unlocking
+
+Include global_mutex.cpp and global_mutex.h to allow for
+thread-safe operation. Provides functions for recursive mutex
+locking and unlocking.
+
+Upstream-Status: Inappropriate [creates Linux dependency]
+---
+ lib/global_mutex.cpp | 103 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ lib/global_mutex.h   |  18 +++++++++
+ 2 files changed, 121 insertions(+)
+ create mode 100644 lib/global_mutex.cpp
+ create mode 100644 lib/global_mutex.h
+
+diff --git a/lib/global_mutex.cpp b/lib/global_mutex.cpp
+new file mode 100644
+index 0000000..88f57ee
+--- /dev/null
++++ b/lib/global_mutex.cpp
+@@ -0,0 +1,103 @@
++/* Implementation of curl_global_mutex_lock() and curl_global_mutex_unlock().
++ * 
++ * @note This C++ source file MUST NOT throw exceptions, use RTTI, or
++ *  declare try/catch blocks, as doing so would result in unpredictable
++ *  behavior in this C DLL since it doesn't link to libstdc++.
++ *  Nothing in this file is even capable of throwing since every
++ *  external function we call is a C API of the operating system.
++ * 
++ * ToDo: Rewrite this in C instead of C++.
++ */
++
++#include "global_mutex.h"
++
++#ifdef _WIN32
++	#include <windows.h>
++#elif defined VXWORKS_PPC
++	#include <semLib.h>
++#elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__) || defined(linux) || defined(__linux__) || defined(__gnu_linux__) || defined(__linux)
++	#include <pthread.h>
++#else
++	#error "Unsupported platform"
++#endif
++
++namespace
++{
++#if defined(linux) || defined(__linux__) || defined(__gnu_linux__) || defined(__linux)
++	static pthread_mutex_t mutex_ = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
++#elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
++	static pthread_mutex_t mutex_ = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
++#endif
++
++#if defined(_WIN32) || defined(VXWORKS_PPC)
++	struct _CriticalSection
++	{
++#ifdef _WIN32
++		CRITICAL_SECTION cs_;
++#elif defined VXWORKS_PPC
++		SEM_ID sem_;
++#endif
++
++		inline _CriticalSection()
++		{
++#ifdef _WIN32
++			InitializeCriticalSection(&cs_);
++#elif defined VXWORKS_PPC
++			sem_ = semMCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE | SEM_INVERSION_SAFE);
++#endif
++		}
++
++		inline ~_CriticalSection()
++		{
++#ifdef _WIN32
++			DeleteCriticalSection(&cs_);
++#elif defined VXWORKS_PPC
++			semDelete(sem_);
++#endif
++		}
++
++		inline void lock()
++		{
++#ifdef _WIN32
++			EnterCriticalSection(&cs_);
++#elif defined VXWORKS_PPC
++			semTake(sem_, WAIT_FOREVER);
++#endif
++		}
++
++		inline void unlock()
++		{
++#ifdef _WIN32
++			LeaveCriticalSection(&cs_);
++#elif defined VXWORKS_PPC
++			semGive(sem_);
++#endif
++		}
++	};
++
++	static _CriticalSection g_cs;
++#endif
++}
++
++extern "C"
++{
++	void curl_global_mutex_lock()
++	{
++		// Do NOT add try/catch blocks here. See comments above for details.
++#if defined (_WIN32) || defined(VXWORKS_PPC)
++		g_cs.lock();
++#elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__) || defined(linux) || defined(__linux__) || defined(__gnu_linux__) || defined(__linux)
++		pthread_mutex_lock(&mutex_);
++#endif
++	}
++
++	void curl_global_mutex_unlock()
++	{
++		// Do NOT add try/catch blocks here. See comments above for details.
++#if defined (_WIN32) || defined(VXWORKS_PPC)
++		g_cs.unlock();
++#elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__) || defined(linux) || defined(__linux__) || defined(__gnu_linux__) || defined(__linux)
++		pthread_mutex_unlock(&mutex_);
++#endif
++	}
++}
+diff --git a/lib/global_mutex.h b/lib/global_mutex.h
+new file mode 100644
+index 0000000..87aae31
+--- /dev/null
++++ b/lib/global_mutex.h
+@@ -0,0 +1,18 @@
++#ifndef HEADER_CURL_GLOBAL_MUTEX_H
++#define HEADER_CURL_GLOBAL_MUTEX_H
++
++/* 
++ * Implementation of curl_global_mutex_lock() and curl_global_mutex_unlock().
++ */
++
++#ifdef __cplusplus
++extern "C"
++{
++#endif
++	void curl_global_mutex_lock();
++	void curl_global_mutex_unlock();
++#ifdef __cplusplus
++}
++#endif
++
++#endif /* HEADER_CURL_GLOBAL_MUTEX_H */
+-- 
+1.9.1
+

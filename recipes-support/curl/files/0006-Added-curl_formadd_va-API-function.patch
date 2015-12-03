@@ -1,0 +1,43 @@
+From 5e79c3fe2e5007ab6e92f98341cbe2abbfd5e270 Mon Sep 17 00:00:00 2001
+From: Jonathan David <jonathan.david@ni.com>
+Date: Tue, 15 Mar 2016 14:13:28 -0500
+Subject: [PATCH 06/22] Added curl_formadd_va() API function
+
+Added API function with `va_list` variable argument parameter in
+addition to cURL's function using `...`.
+
+Upstream-Status: Submitted [curl-library@cool.haxx.se]
+---
+ lib/formdata.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/lib/formdata.c b/lib/formdata.c
+index 73d3b6d..9fae83f 100644
+--- a/lib/formdata.c
++++ b/lib/formdata.c
+@@ -726,6 +726,13 @@ CURLFORMcode FormAdd(struct curl_httppost **httppost,
+  * @unittest: 1308
+  */
+ 
++CURLFORMcode curl_formadd_va(struct curl_httppost **httppost,
++                             struct curl_httppost **last_post,
++                             va_list arg)
++{
++  return FormAdd(httppost, last_post, arg);
++}
++
+ CURLFORMcode curl_formadd(struct curl_httppost **httppost,
+                           struct curl_httppost **last_post,
+                           ...)
+@@ -733,7 +740,7 @@ CURLFORMcode curl_formadd(struct curl_httppost **httppost,
+   va_list arg;
+   CURLFORMcode result;
+   va_start(arg, last_post);
+-  result = FormAdd(httppost, last_post, arg);
++  result = curl_formadd_va(httppost, last_post, arg);
+   va_end(arg);
+   return result;
+ }
+-- 
+1.9.1
+
