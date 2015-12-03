@@ -1,0 +1,41 @@
+From e14ba6d7b9458fd6eb63861b80943474c2aedc80 Mon Sep 17 00:00:00 2001
+From: Jonathan David <jonathan.david@ni.com>
+Date: Mon, 21 Jul 2014 15:30:46 -0500
+Subject: [PATCH 13/22] Made curl_easy_init() thread safe
+
+Upstream-Status: Inappropriate [creates Linux dependency]
+---
+ lib/easy.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/lib/easy.c b/lib/easy.c
+index 2852e34..f7d531e 100644
+--- a/lib/easy.c
++++ b/lib/easy.c
+@@ -406,14 +406,23 @@ CURL *curl_easy_init(void)
+   struct SessionHandle *data;
+ 
+   /* Make sure we inited the global SSL stuff */
++#ifdef CURL_THREAD_SAFE_INIT
++  curl_global_mutex_lock();
++#endif
+   if(!initialized) {
+     result = curl_global_init(CURL_GLOBAL_DEFAULT);
+     if(result) {
+       /* something in the global init failed, return nothing */
+       DEBUGF(fprintf(stderr, "Error: curl_global_init failed\n"));
++#ifdef CURL_THREAD_SAFE_INIT
++      curl_global_mutex_unlock();
++#endif
+       return NULL;
+     }
+   }
++#ifdef CURL_THREAD_SAFE_INIT
++  curl_global_mutex_unlock();
++#endif
+ 
+   /* We use curl_open() with undefined URL so far */
+   result = Curl_open(&data);
+-- 
+1.9.1
+

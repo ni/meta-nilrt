@@ -1,0 +1,100 @@
+From 729ae6068a4f9b76c74438163863c03d5ad97b28 Mon Sep 17 00:00:00 2001
+From: Jonathan David <jonathan.david@ni.com>
+Date: Mon, 21 Jul 2014 15:25:28 -0500
+Subject: [PATCH 11/22] Made curl_global_init() thread safe
+
+Upstream-Status: Inappropriate [creates Linux dependency]
+---
+ lib/easy.c | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+
+diff --git a/lib/easy.c b/lib/easy.c
+index 0091d08..17cf28d 100644
+--- a/lib/easy.c
++++ b/lib/easy.c
+@@ -21,6 +21,7 @@
+  ***************************************************************************/
+ 
+ #include "curl_setup.h"
++#include "global_mutex.h"
+ 
+ /*
+  * See comment in curl_memory.h for the explanation of this sanity check.
+@@ -224,8 +225,16 @@ curl_calloc_callback Curl_ccalloc;
+  */
+ CURLcode curl_global_init(long flags)
+ {
++#ifdef CURL_THREAD_SAFE_INIT
++  curl_global_mutex_lock();
++#endif
+   if(initialized++)
++  {
++#ifdef CURL_THREAD_SAFE_INIT
++    curl_global_mutex_unlock();
++#endif
+     return CURLE_OK;
++  }
+ 
+   /* Setup the default memory functions here (again) */
+   Curl_cmalloc = (curl_malloc_callback)malloc;
+@@ -240,18 +249,27 @@ CURLcode curl_global_init(long flags)
+   if(flags & CURL_GLOBAL_SSL)
+     if(!Curl_ssl_init()) {
+       DEBUGF(fprintf(stderr, "Error: Curl_ssl_init failed\n"));
++#ifdef CURL_THREAD_SAFE_INIT
++      curl_global_mutex_unlock();
++#endif
+       return CURLE_FAILED_INIT;
+     }
+ 
+   if(flags & CURL_GLOBAL_WIN32)
+     if(win32_init()) {
+       DEBUGF(fprintf(stderr, "Error: win32_init failed\n"));
++#ifdef CURL_THREAD_SAFE_INIT
++      curl_global_mutex_unlock();
++#endif
+       return CURLE_FAILED_INIT;
+     }
+ 
+ #ifdef __AMIGA__
+   if(!Curl_amiga_init()) {
+     DEBUGF(fprintf(stderr, "Error: Curl_amiga_init failed\n"));
++#ifdef CURL_THREAD_SAFE_INIT
++    curl_global_mutex_unlock();
++#endif
+     return CURLE_FAILED_INIT;
+   }
+ #endif
+@@ -268,12 +286,18 @@ CURLcode curl_global_init(long flags)
+ 
+   if(Curl_resolver_global_init()) {
+     DEBUGF(fprintf(stderr, "Error: resolver_global_init failed\n"));
++#ifdef CURL_THREAD_SAFE_INIT
++    curl_global_mutex_unlock();
++#endif
+     return CURLE_FAILED_INIT;
+   }
+ 
+ #if defined(USE_LIBSSH2) && defined(HAVE_LIBSSH2_INIT)
+   if(libssh2_init(0)) {
+     DEBUGF(fprintf(stderr, "Error: libssh2_init failed\n"));
++#ifdef CURL_THREAD_SAFE_INIT
++    curl_global_mutex_unlock();
++#endif
+     return CURLE_FAILED_INIT;
+   }
+ #endif
+@@ -283,6 +307,10 @@ CURLcode curl_global_init(long flags)
+ 
+   init_flags  = flags;
+ 
++#ifdef CURL_THREAD_SAFE_INIT
++  curl_global_mutex_unlock();
++#endif
++
+   return CURLE_OK;
+ }
+ 
+-- 
+1.9.1
+

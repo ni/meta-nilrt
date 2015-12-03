@@ -1,0 +1,55 @@
+From 7e9ed85f14404ba3a97d0ec97a27d98d0cfd4fdd Mon Sep 17 00:00:00 2001
+From: Jonathan David <jonathan.david@ni.com>
+Date: Mon, 21 Jul 2014 14:58:37 -0500
+Subject: [PATCH 05/22] Added curl_easy_setopt_va() API function
+
+Added API function with `va_list` variable argument parameter in
+addition to cURL's function using `...`.
+
+Upstream-Status: Submitted [curl-library@cool.haxx.se]
+---
+ lib/easy.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
+
+diff --git a/lib/easy.c b/lib/easy.c
+index 6ab92ac..e5c2be3 100644
+--- a/lib/easy.c
++++ b/lib/easy.c
+@@ -386,21 +386,29 @@ CURL *curl_easy_init(void)
+  * easy handle.
+  */
+ 
+-#undef curl_easy_setopt
+-CURLcode curl_easy_setopt(CURL *curl, CURLoption tag, ...)
++CURLcode curl_easy_setopt_va(CURL *curl, CURLoption tag, va_list arg)
+ {
+-  va_list arg;
+   struct SessionHandle *data = curl;
+   CURLcode result;
+ 
+   if(!curl)
+     return CURLE_BAD_FUNCTION_ARGUMENT;
+ 
+-  va_start(arg, tag);
+-
+   result = Curl_setopt(data, tag, arg);
+ 
++  return result;
++}
++
++#undef curl_easy_setopt
++CURLcode curl_easy_setopt(CURL *curl, CURLoption tag, ...)
++{
++  CURLcode result;
++  va_list arg;
++  va_start(arg, tag);
++
++  result = curl_easy_setopt_va(curl, tag, arg);
+   va_end(arg);
++
+   return result;
+ }
+ 
+-- 
+1.9.1
+

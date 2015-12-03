@@ -1,0 +1,52 @@
+From 23993864286f4a3eccd1babdcd06326a73050492 Mon Sep 17 00:00:00 2001
+From: Jonathan David <jonathan.david@ni.com>
+Date: Mon, 21 Jul 2014 15:28:15 -0500
+Subject: [PATCH 12/22] Made curl_global_cleanup() thread safe
+
+Upstream-Status: Inappropriate [creates Linux dependency]
+---
+ lib/easy.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/lib/easy.c b/lib/easy.c
+index 17cf28d..2852e34 100644
+--- a/lib/easy.c
++++ b/lib/easy.c
+@@ -355,11 +355,24 @@ CURLcode curl_global_init_mem(long flags, curl_malloc_callback m,
+  */
+ void curl_global_cleanup(void)
+ {
++#ifdef CURL_THREAD_SAFE_INIT
++  curl_global_mutex_lock();
++#endif
+   if(!initialized)
++  {
++#ifdef CURL_THREAD_SAFE_INIT
++    curl_global_mutex_unlock();
++#endif
+     return;
++  }
+ 
+   if(--initialized)
++  {
++#ifdef CURL_THREAD_SAFE_INIT
++    curl_global_mutex_unlock();
++#endif
+     return;
++  }
+ 
+   Curl_global_host_cache_dtor();
+ 
+@@ -378,6 +391,9 @@ void curl_global_cleanup(void)
+ #endif
+ 
+   init_flags  = 0;
++#ifdef CURL_THREAD_SAFE_INIT
++  curl_global_mutex_unlock();
++#endif
+ }
+ 
+ /*
+-- 
+1.9.1
+
