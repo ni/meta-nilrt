@@ -2,22 +2,16 @@ DESCRIPTION = "Linux kernel, debug build, based on nilrt branch"
 
 require linux-nilrt.inc
 
+# This is an extra kernel package; zero out the PROVIDES set in kernel.bbclass
+# to avoid errors related to multiple recipes providing virtual/kernel
+PROVIDES = ""
+
 NI_RELEASE_VERSION = "comms-2.0"
 LINUX_VERSION = "4.1"
-LINUX_VERSION_EXTENSION = "-nilrt-debug"
+LINUX_VERSION_EXTENSION = "-debug"
 KBRANCH = "nilrt/${NI_RELEASE_VERSION}/${LINUX_VERSION}"
 
-KERNEL_MODULES_META_PACKAGE = "kernel-modules-debug"
-KERNEL_MODULE_PACKAGE_NAME_PREPEND = "kernel-module-debug"
-KERNEL_MODULE_PACKAGE_PREPEND = "${KERNEL_MODULE_PACKAGE_NAME_PREPEND}-%s"
-
-# Rename packages to avoid collision with stock kernel package names
-PKG_kernel = "kernel-debug"
-PKG_kernel-dev = "kernel-dev-debug"
-PKG_kernel-vmlinux = "kernel-vmlinux-debug"
-
-# Remove kernel firmware package (refer to kernel.bbclass)
-PACKAGESPLITFUNCS_remove = "split_kernel_packages"
+KERNEL_PACKAGE_NAME = "kernel${LINUX_VERSION_EXTENSION}"
 
 # Subfolder of the same name will be added to FILESEXTRAPATHS and also
 # used for nilrt-specific config fragment manipulation during build.
