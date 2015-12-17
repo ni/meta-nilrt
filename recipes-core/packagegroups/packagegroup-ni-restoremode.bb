@@ -29,3 +29,8 @@ RDEPENDS_${PN}_append_x64 = "\
     init-restore-mode   \
     kernel-module-atkbd \
     "
+
+RDEPENDS_${PN}_append_xilinx-zynqhf = "\
+    mtd-utils           \
+    mtd-utils-ubifs     \
+    "
