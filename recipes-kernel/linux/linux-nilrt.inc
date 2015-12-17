@@ -84,4 +84,8 @@ do_install_append() {
 		xargs -n 1 -I '{}' mv -f '{}'"/${CROSS_COMPILE}$u" '{}'"/$u"
 	done
 
+	# Remove VC-specific files
+	for f in $(find $kerneldevdir -name .gitignore); do
+		rm $f;
+	done
 }
