@@ -55,6 +55,12 @@ KERNEL_DEVICETREE_xilinx-zynqhf = "\
         ni-77D6.dtb \
         ni-7885.dtb "
 
+#create uImage for xilinx-zynqhf targets
+KERNEL_IMAGETYPE_xilinx-zynqhf = "uImage"
+UBOOT_LOADADDRESS ?= "0x8000"
+UBOOT_ENTRYPOINT ?= "${UBOOT_LOADADDRESS}"
+KERNEL_EXTRA_ARGS_xilinx-zynqhf += "LOADADDR=0x8000"
+
 # Install headers and build objects for kernel versioning into
 # /lib/modules/${KERNEL_VERSION}/build for inclusion in kernel-dev.
 do_install_append() {
