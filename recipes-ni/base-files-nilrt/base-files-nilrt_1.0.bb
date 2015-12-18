@@ -38,7 +38,7 @@ do_install () {
 
 	# /etc/issue
 	install -d ${D}${sysconfdir}/
-	install -m 0755 ${WORKDIR}/${MACHINE}/issue.template ${D}${sysconfdir}/
+	install -m 0644 ${WORKDIR}/${MACHINE}/issue.template ${D}${sysconfdir}/
 
 	# license information
 	install -d ${D}/usr/share/doc/
@@ -58,10 +58,10 @@ do_install () {
 	install -d ${D}${sysconfdir}/profile.d/
 
 	# script for limiting stack sizes when a user logs in
-	install -m 0755 ${WORKDIR}/ulimit.sh ${D}${sysconfdir}/profile.d/
+	install -m 0644 ${WORKDIR}/ulimit.sh ${D}${sysconfdir}/profile.d/
 
 	# script for setting locale when a user logs in
-	install -m 0755 ${WORKDIR}/nisetlocale.sh ${D}${sysconfdir}/profile.d/
+	install -m 0644 ${WORKDIR}/nisetlocale.sh ${D}${sysconfdir}/profile.d/
 
 	# add sysctl.conf file to adjust system configuration parameters
 	install -m 0644 ${WORKDIR}/sysctl.conf ${D}${sysconfdir}/
