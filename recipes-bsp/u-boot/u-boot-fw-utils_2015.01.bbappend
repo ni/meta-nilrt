@@ -5,6 +5,8 @@ SRC_URI = "\
         file://fw_env-nizynq.config \
         "
 
+SRC_URI_append_xilinx-zynqhf = "file://0001-Remove-hardcoded-softfp-from-arm-makefile.patch" 
+
 SRCREV = "${AUTOREV}"
 
 do_compile(){
