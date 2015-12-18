@@ -29,7 +29,7 @@ do_install_append () {
 	fi
 
 	install -d ${D}${sysconfdir}/profile.d/
-	install ${WORKDIR}/natinst-path.sh ${D}${sysconfdir}/profile.d/
+	install -m 0644 ${WORKDIR}/natinst-path.sh ${D}${sysconfdir}/profile.d/
 
 	# scripts for network configuration
 	install -d ${D}${sysconfdir}/natinst/networking/
