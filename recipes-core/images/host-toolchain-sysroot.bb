@@ -12,6 +12,7 @@ IMAGE_PREPROCESS_COMMAND = "rootfs_update_timestamp"
 IMAGE_INSTALL = "\
     packagegroup-ni-base \
     packagegroup-ni-tzdata \
+    packagegroup-core-standalone-sdk-target \
     "
 
 # Clean-up dangling and escaping symlinks which would fail `tar -h` for
