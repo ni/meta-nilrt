@@ -32,6 +32,7 @@ IMAGE_FEATURES = ""
 IMAGE_LINGUAS = ""
 
 IMAGE_FSTYPES = "${INITRAMFS_FSTYPES}"
+IMAGE_FSTYPES_xilinx-zynqhf += "cpio.gz.u-boot"
 inherit core-image
 
 BAD_RECOMMENDATIONS += "busybox-syslog"
