@@ -11,7 +11,7 @@ SRC_URI = "file://status_led \
 	   file://ninetcfgutil \
 "
 
-SRC_URI_append_arm = " file://fw_env.config file://ninetcfgutil_platdep.sh"
+SRC_URI_append_arm = " file://ninetcfgutil_platdep.sh"
 SRC_URI_append_x64 = " file://ninetcfgutil_platdep.sh \
 "
 
@@ -42,10 +42,6 @@ do_install () {
 	install -m 0550   ${WORKDIR}/nisetbootmode         ${D}${bindir}
 	install -m 0755   ${WORKDIR}/ninetcfgutil       ${D}${bindir}
 	install -m 0444   ${WORKDIR}/ninetcfgutil_platdep.sh ${D}${libdir}
-
-	if [ "${TARGET_ARCH}" = "arm" ]; then
-		install -m 0644   ${WORKDIR}/fw_env.config         ${D}${sysconfdir}
-	fi
 
 	chown 0:${group} ${D}${bindir}/status_led
 
