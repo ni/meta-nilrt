@@ -75,8 +75,9 @@ RDEPENDS_${PN}_append_x64 += "\
 	grub-efi-nilrt \
 "
 
-RDEPENDS_${PN}_append_xilinx-zynq += "\
+RDEPENDS_${PN}_append_xilinx-zynqhf += "\
 	mtd-utils \
+	u-boot-fw-utils	\
 "
 
 RRECOMMENDS_${PN} = "\
