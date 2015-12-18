@@ -13,7 +13,6 @@ RDEPENDS_${PN} += "\
     dosfstools          \
     e2fsprogs-mke2fs    \
     e2fsprogs-tune2fs   \
-    fw-printenv         \
     gptfdisk-sgdisk     \
     parted              \
     tar                 \
@@ -24,6 +23,7 @@ RDEPENDS_${PN}_append_x64 = "\
     dmidecode           \
     efibootmgr          \
     efivar              \
+    fw-printenv         \
     grub                \
     grub-editenv        \
     init-restore-mode   \
