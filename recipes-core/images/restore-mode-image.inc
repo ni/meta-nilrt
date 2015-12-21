@@ -8,6 +8,7 @@ PACKAGE_INSTALL = "${ROOTFS_BOOTSTRAP_INSTALL} \
 "
 
 DEPENDS += "init-restore-mode"
+DEPENDS_xilinx-zynqhf += "zynq-bootscripts"
 do_rootfs[depends] = "${FACTORY_IMAGE}:do_rootfs"
 
 # Remove any kernel-image that the kernel-module-* packages may have pulled in.
@@ -20,6 +21,12 @@ prune_unused_packages() {
 install_payload () {
 	install -d ${IMAGE_ROOTFS}/payload
 	install -m 0644 ${DEPLOY_DIR_IMAGE}/${FACTORY_IMAGE}-${MACHINE}.tar.bz2  ${IMAGE_ROOTFS}/payload/factory-image.tar.bz2
+}
+
+install_payload_append_xilinx-zynqhf(){
+	install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/boot.scr  ${IMAGE_ROOTFS}/payload/
+	install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/default.scr  ${IMAGE_ROOTFS}/payload/
+	install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/safemode.scr  ${IMAGE_ROOTFS}/payload/
 }
 
 ROOTFS_POSTPROCESS_COMMAND += "prune_unused_packages; install_payload; "
