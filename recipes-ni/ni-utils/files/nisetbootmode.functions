@@ -1,11 +1,36 @@
 arch=`uname -m`
 if [ "$arch" = "armv7l" ]; then
-	BOOT_CONFIG_LOCATION=/sys/bus/i2c/devices/0-0040/bootmode
+	# 00 - runtime
+	# 01 - safemode (hardcoded in U-Boot env)
+	# 02 - restore
+	# 03 - auto-restore
+	BOOT_CONFIG_LOCATION=/sys/bus/i2c/devices/0-0040/scratch_hardreset
 	write_config() {
-		echo -n $1 > $BOOT_CONFIG_LOCATION
+		case "$1" in
+		default)
+			echo -n 00 > $BOOT_CONFIG_LOCATION
+			;;
+		restore)
+			echo -n 02 > $BOOT_CONFIG_LOCATION
+			;;
+		auto-restore)
+			echo -n 03 > $BOOT_CONFIG_LOCATION
+			;;
+		esac
 	}
 	read_config() {
 		read tmp_cfg < $BOOT_CONFIG_LOCATION
+		case $tmp_cfg in
+		00)
+			echo default
+			;;
+		02)
+			echo restore
+			;;
+		03)
+			echo auto-restore
+			;;
+		esac
 		echo $tmp_cfg
 	}
 elif [ "$arch" = "x86_64" ]; then
