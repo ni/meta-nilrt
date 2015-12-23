@@ -8,7 +8,7 @@ PACKAGE_INSTALL = "${ROOTFS_BOOTSTRAP_INSTALL} \
 "
 
 DEPENDS += "init-restore-mode"
-DEPENDS_xilinx-zynqhf += "zynq-bootscripts"
+DEPENDS_xilinx-zynqhf += "zynq-bootscripts zynq-itb"
 do_rootfs[depends] = "${FACTORY_IMAGE}:do_rootfs"
 
 # Remove any kernel-image that the kernel-module-* packages may have pulled in.
@@ -27,6 +27,7 @@ install_payload_append_xilinx-zynqhf(){
 	install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/boot.scr  ${IMAGE_ROOTFS}/payload/
 	install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/default.scr  ${IMAGE_ROOTFS}/payload/
 	install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/safemode.scr  ${IMAGE_ROOTFS}/payload/
+	install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/linux_runmode.itb ${IMAGE_ROOTFS}/payload/
 }
 
 ROOTFS_POSTPROCESS_COMMAND += "prune_unused_packages; install_payload; "
