@@ -54,6 +54,7 @@ RDEPENDS_${PN} = "\
 	opkg \
 	opkg-utils \
 	python-futures \
+	rtctl \
 	salt-minion \
 	start-stop-daemon \
 	syslog-ng \
