@@ -27,7 +27,7 @@ if [[ -d /sys/firmware/efi ]];then
             mkpart nirestore     16MB 1200MB \
             mkpart nilrt        1200MB  100%
 
-        sgdisk --typecode=1:C12A7328-F81F-11D2-BA4B-00A0C93EC93B $TARGET_DISK
+        sgdisk --typecode=1:ef00 $TARGET_DISK
     }
 else
     disk_partition()
