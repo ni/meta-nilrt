@@ -10,7 +10,8 @@ EXTRA_OEMAKE += 'CFLAGS="${TOOLCHAIN_OPTIONS}"'
 
 # The default -hf arm tools don't default to -mfloat-abi=hard, and this
 # causes build failures when building the scripts utilities
-EXTRA_OEMAKE_xilinx-zynqhf += 'CFLAGS="${TOOLCHAIN_OPTIONS} -mfloat-abi=hard"'
+TOOLCHAIN_OPTIONS_append_xilinx-zynqhf = " -mfloat-abi=hard "
+EXTRA_OEMAKE_xilinx-zynqhf += 'CFLAGS="${CFLAGS} ${TOOLCHAIN_OPTIONS}"'
 
 # No need to do debug symbol handling for kernel builds; also the default behavior
 # incorrectly splits out some 'kernel-dev' files under /lib/modules/<ver>/build
