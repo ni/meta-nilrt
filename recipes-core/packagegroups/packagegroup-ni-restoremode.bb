@@ -14,6 +14,7 @@ RDEPENDS_${PN} += "\
     e2fsprogs-mke2fs    \
     e2fsprogs-tune2fs   \
     gptfdisk-sgdisk     \
+    init-restore-mode   \
     parted              \
     tar                 \
     util-linux          \
@@ -26,12 +27,11 @@ RDEPENDS_${PN}_append_x64 = "\
     fw-printenv         \
     grub                \
     grub-editenv        \
-    init-restore-mode   \
     kernel-module-atkbd \
     "
 
 RDEPENDS_${PN}_append_xilinx-zynqhf = "\
     mtd-utils           \
     mtd-utils-ubifs     \
-    u-boot-fw-utils		\
+    u-boot-fw-utils     \
     "
