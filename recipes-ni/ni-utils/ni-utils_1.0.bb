@@ -17,6 +17,7 @@ SRC_URI_append_x64 = " file://ninetcfgutil_platdep.sh \
 
 FILES_${PN} += "\
 	/usr/lib/nisetbootmode.functions \
+	/usr/lib/ninetcfgutil_platdep.sh \
 "
 
 DEPENDS += "niacctbase"
