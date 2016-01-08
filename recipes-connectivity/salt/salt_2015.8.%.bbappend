@@ -25,3 +25,9 @@ RDEPENDS_${PN}-common_remove = "python-dateutil python-requests"
 inherit update-rc.d
 
 INITSCRIPT_PARAMS_${PN}-minion = "defaults 25 25"
+
+# Remove zmq dependency since nilrt only supports the TCP Salt transport
+python () {
+    pn = d.getVar('PN', True)
+    d.setVar('RDEPENDS_%s-minion' % pn, d.getVar('RDEPENDS_%s-minion' % pn).replace('python-pyzmq (>= 13.1.0)',''))
+}
