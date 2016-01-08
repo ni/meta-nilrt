@@ -97,6 +97,11 @@ check_mounts() {
 
 case "$1" in
     start)
+        if [ "$ip_reset_mode" = "true" ];
+        then
+            mkdir -p /tmp/ip_reset_dir
+            ninetcfgutil erase -d /tmp/ip_reset_dir -g primary secondary
+        fi
         if check_mounts; then
             [ "${VERBOSE}" != "no" ] && echo -n "Configuring network interfaces... "
             if [ -e /sys/class/ieee80211 ];
