@@ -23,7 +23,7 @@ RDEPENDS_${PN} += "bash"
 
 inherit update-rc.d
 INITSCRIPT_NAME = "rtctl"
-INITSCRIPT_PARAMS = "start 99 S . stop 00 0 . stop 00 6 ."
+INITSCRIPT_PARAMS = "start 01 5 . stop 00 0 . stop 00 6 ."
 
 do_install() {
     install -m 0755 -d ${D}${sbindir}/
