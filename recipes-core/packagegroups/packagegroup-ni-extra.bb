@@ -334,6 +334,7 @@ RDEPENDS_${PN} += "\
 	sessreg \
 	setxkbmap \
 	twm \
+	x11vnc \
 	xclock \
 	xfontsel \
 	xlsfonts \
