@@ -139,9 +139,12 @@ provision_target()
     umount $GRUB_MOUNTPOINT || die "Failed to umount $GRUB_MOUNTPOINT"
     umount $USB_MOUNTPOINT || print_warning "Failed to umount $USB_MOUNTPOINT"
 
-    echo "PROVISIONING SUCCESSFUL!"
     REBOOT_REQUIRED=1
-    read -s -n 1 -p "Press any key to continue..." KEY
+
+    echo ""
+    echo "PROVISIONING SUCCESSFUL!"
+    read -s -p "Please eject the installation media and press ENTER to reboot... "
+    echo ""
 }
 
 #############
