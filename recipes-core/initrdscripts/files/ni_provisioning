@@ -72,7 +72,7 @@ reset_minimal_image()
     echo "Deploying minimal image..."
     TAR_ERROR=`tar -xjf /payload/factory-image.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1` || die "$TAR_ERROR"
 
-    umount $NILRT_MOUNTPOINT
+    umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
 
     echo "Minimal image deployed."
     REBOOT_REQUIRED=1
@@ -86,7 +86,7 @@ provision_target()
     mkdir -p $USB_MOUNTPOINT
 
     # try mounting the partition
-    mount -L NIRECOVERY $USB_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
+    mount -o ro -L NIRECOVERY $USB_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
 
     echo "Partitioning $TARGET_DISK..."
     disk_config disk_setup $TARGET_DISK
@@ -134,6 +134,10 @@ provision_target()
     # TODO: copy grub version file
     #mkdir $BOOTFS_MOUNTPOINT/grub
     #cp $USB_MOUNTPOINT/grub2/grub-ni-version $BOOTFS_MOUNTPOINT/grub/
+
+    umount $RESTORE_MOUNTPOINT || die "Failed to umount $RESTORE_MOUNTPOINT"
+    umount $GRUB_MOUNTPOINT || die "Failed to umount $GRUB_MOUNTPOINT"
+    umount $USB_MOUNTPOINT || print_warning "Failed to umount $USB_MOUNTPOINT"
 
     echo "PROVISIONING SUCCESSFUL!"
     REBOOT_REQUIRED=1
