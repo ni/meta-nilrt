@@ -8,7 +8,7 @@ REBOOT_REQUIRED=0
 
 cleanup_and_exit()
 {
-    umount -a -t vfat,ext4
+    umount -a -t vfat,ext4,iso9660
     if (( $1 == 0  && $REBOOT_REQUIRED == 1 )); then
         echo u > /proc/sysrq-trigger
         sync
