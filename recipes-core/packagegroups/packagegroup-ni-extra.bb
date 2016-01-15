@@ -44,6 +44,11 @@ RDEPENDS_${PN} += "\
 	usbutils \
 "
 
+# openembedded-core/meta/recipes-connectivity
+RDEPENDS_${PN} += "\
+	bluez5 \
+"
+
 # openembedded-core/meta/recipes-devtools
 RDEPENDS_${PN} += "\
 	apt \
