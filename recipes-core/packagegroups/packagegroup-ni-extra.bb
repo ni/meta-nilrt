@@ -802,6 +802,12 @@ RDEPENDS_${PN} += "\
 	openjdk-7-jre \
 "
 
+# meta-measured
+RDEPENDS_${PN} += "\
+	trousers \
+	tpm-tools \
+"
+
 # meta-virtualization
 RDEPENDS_${PN} += "\
 	cgroup-lite \
