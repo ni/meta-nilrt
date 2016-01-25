@@ -15,3 +15,6 @@ do_rootfs[depends] += "depmodwrapper-cross:do_populate_sysroot"
 
 # without package-management update-rc.d gets removed from image
 IMAGE_FEATURES += "package-management"
+
+# Grant some space for package installs after boot
+IMAGE_ROOTFS_EXTRA_SPACE = "500000"
