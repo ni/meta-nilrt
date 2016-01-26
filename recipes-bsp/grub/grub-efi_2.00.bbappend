@@ -22,6 +22,8 @@ S = "${WORKDIR}/git"
 
 PACKAGES =+ "grub-efi-nilrt"
 
+PROVIDES =+ " grub-efi-nilrt "
+
 GRUB_NILRT_IMAGE = "grubx64.efi"
 
 SUMMARY_grub-efi-nilrt = "Grub efi standalone image for NI Linux RT"
