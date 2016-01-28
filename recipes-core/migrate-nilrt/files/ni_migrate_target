@@ -1,0 +1,49 @@
+#!/bin/bash
+
+migrate_target()
+{
+    if [[ $target_flavor == "legacy" ]]; then
+        if [[ $ARCH == "x86_64" ]]; then
+            opkg update
+            opkg install lvnextos
+            mv /boot/.safe/bootimage.cfg /boot/.safe/bootimage_old.cfg
+            cp /boot/.newNILinuxRT/bootimage.cfg /boot/.safe/
+            fw_setenv consoleoutenable True
+            /etc/init.d/nisetbootmode force-safemode
+            reboot
+        elif [[ $ARCH == "arm" ]]; then
+            # TODO add arm migration
+            echo "Migrate ARM"
+        fi
+    elif [[ $target_flavor == "new" ]]; then
+        if [[ $ARCH == "x86_64" ]]; then
+            opkg update
+            opkg install lvoldos
+            mv /boot/grub.cfg /boot/grub_old.cfg
+            cp /boot/.oldNILinuxRT/grub.cfg /boot/
+            reboot
+        elif [[ $ARCH == "arm" ]]; then
+            # TODO add arm migration
+            echo "Migrate ARM"
+        fi
+    fi
+}
+
+# check target architecture
+ARCH=$(uname -m)
+# check NI software version
+target_flavor="legacy"
+command -v nisafemodeversion > /dev/null 2>&1 || target_flavor="new"
+
+echo
+if [[  $target_flavor == "legacy" ]]; then
+    echo "Continuing will partition, format and install <<to be decided the awesome name of LV NG>> to the target."
+elif [[  $target_flavor == "new" ]]; then
+    echo "Continuing will partition, format and install LV2016 to the target."
+fi
+echo "All user data will be lost and the target will no longer be discoverable from your current LV version"
+echo
+read -p "Do you want to continue?[y/N]" USER_AGREMENT
+if [[ ${USER_AGREMENT,,} == "y" ]]; then
+    migrate_target
+fi
