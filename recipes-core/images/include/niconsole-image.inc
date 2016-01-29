@@ -11,7 +11,7 @@ remove_unused_feeds() {
 PACKAGE_REMOVE = "kernel-*"
 
 prune_unused_packages() {
-	opkg-cl -o ${IMAGE_ROOTFS} -f ${IPKGCONF_TARGET} --force-depends remove ${PACKAGE_REMOVE}
+	opkg -o ${IMAGE_ROOTFS} -f ${IPKGCONF_TARGET} --force-depends remove ${PACKAGE_REMOVE}
 }
 
 IMAGE_PREPROCESS_COMMAND += "remove_kernel; "
