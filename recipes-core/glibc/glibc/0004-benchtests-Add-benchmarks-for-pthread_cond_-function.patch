@@ -1,4 +1,7 @@
-From d22d29b8c836512d13529c02e86cac4472deb4e5 Mon Sep 17 00:00:00 2001
+From 77cced046f9a8ebd2953ee8b3cc7d7b11c8b5ae4 Mon Sep 17 00:00:00 2001
+Message-Id: <77cced046f9a8ebd2953ee8b3cc7d7b11c8b5ae4.1454576819.git.adrian.ratiu@ni.com>
+In-Reply-To: <27e4d8d5345240036a018641a856e7999db97fcb.1454576819.git.adrian.ratiu@ni.com>
+References: <27e4d8d5345240036a018641a856e7999db97fcb.1454576819.git.adrian.ratiu@ni.com>
 From: Gratian Crisan <gratian.crisan@ni.com>
 Date: Mon, 30 Jun 2014 11:07:30 -0500
 Subject: [PATCH 4/5] benchtests: Add benchmarks for pthread_cond_* functions
@@ -19,12 +22,11 @@ pthread_cond_timedwait return for N threads.
 or pthread_cond_timedwait return for N threads.
 
 Signed-off-by: Gratian Crisan <gratian.crisan@ni.com>
-<Ported to glibc 2.21 by Adrian Ratiu>
-Signed-off-by: Adrian Ratiu <adrian.ratiu@ni.com>
-
+<Ported to glibc 2.22 by Ioan-Adrian Ratiu>
+Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
 ---
 Changes since v1:
-* Update version to 2.21
+* Update version to 2.22
 * Removed debugging leftover '-g' option from Makefile.
 * Replaced bzero() with memset().
 * Use size_t where appropriate.
@@ -35,7 +37,7 @@ Changes since v1:
  create mode 100644 benchtests/bench-pthread_cond.c
 
 diff --git a/benchtests/Makefile b/benchtests/Makefile
-index fd3036d..3ea254a 100644
+index 8e615e5..1252116 100644
 --- a/benchtests/Makefile
 +++ b/benchtests/Makefile
 @@ -26,6 +26,7 @@ bench-math := acos acosh asin asinh atan atanh cos cosh exp exp2 ffs ffsll \
@@ -46,16 +48,16 @@ index fd3036d..3ea254a 100644
  
  bench := $(bench-math) $(bench-pthread)
  
-@@ -40,7 +40,7 @@ string-bench-all := $(string-bench)
+@@ -50,7 +51,7 @@ stdlib-bench := strtod
  
- stdlib-bench := strtod
+ stdio-common-bench := sprintf
  
--benchset := $(string-bench-all) $(stdlib-bench)
-+benchset := $(string-bench-all) $(stdlib-bench) $(bench-pthread-set)
+-benchset := $(string-bench-all) $(stdlib-bench) $(stdio-common-bench)
++benchset := $(string-bench-all) $(stdlib-bench) $(stdio-common-bench) $(bench-pthread-set)
  
  CFLAGS-bench-ffs.c += -fno-builtin
  CFLAGS-bench-ffsll.c += -fno-builtin
-@@ -48,7 +49,8 @@ bench-malloc := malloc-thread
+@@ -59,6 +60,7 @@ bench-malloc := malloc-thread
  
  $(addprefix $(objpfx)bench-,$(bench-math)): $(libm)
  $(addprefix $(objpfx)bench-,$(bench-pthread)): $(shared-thread-library)
@@ -63,7 +65,6 @@ index fd3036d..3ea254a 100644
  $(objpfx)bench-malloc-thread: $(shared-thread-library)
  
  
- 
 diff --git a/benchtests/bench-pthread_cond.c b/benchtests/bench-pthread_cond.c
 new file mode 100644
 index 0000000..8accdb7
@@ -458,5 +459,5 @@ index 0000000..8accdb7
 +#define TEST_FUNCTION test_main ()
 +#include "../test-skeleton.c"
 -- 
-2.1.1
+2.7.0
 
