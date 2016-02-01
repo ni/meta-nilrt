@@ -1,13 +1,12 @@
 diff --git a/src/efivar.c b/src/efivar.c
-index a7b473d..9a63b62 100644
+index ac02aee..7d9f8c4 100644
 --- a/src/efivar.c
 +++ b/src/efivar.c
-@@ -33,11 +33,15 @@
- #define ACTION_PRINT	0x2
- #define ACTION_APPEND	0x4
+@@ -34,10 +34,14 @@
+ #define ACTION_APPEND		0x4
+ #define ACTION_LIST_GUIDS	0x8
  #define ACTION_OVERWRITE	0x10
-+#define ACTION_PRINT_DEC	0x20
- #define GUID_FORMAT "%08x-%04x-%04x-%04x-%02x%02x%02x%02x%02x%02x"
++ #define ACTION_PRINT_DEC	0x20
  
  #define APPEND	0
  #define WRITE	1
@@ -18,7 +17,7 @@ index a7b473d..9a63b62 100644
  static const char *attribute_names[] = {
  	"Non-Volatile",
  	"Boot Service Access",
-@@ -105,7 +109,7 @@ parse_name(const char *guid_name, char **name, efi_guid_t *guid)
+@@ -126,7 +130,7 @@ bad_name:
  }
  
  static void
@@ -27,12 +26,12 @@ index a7b473d..9a63b62 100644
  {
  	efi_guid_t guid;
  	char *name = NULL;
-@@ -124,49 +128,67 @@ show_variable(char *guid_name)
+@@ -145,48 +149,65 @@ show_variable(char *guid_name)
  		exit(1);
  	}
  
 -	printf("GUID: "GUID_FORMAT "\n",
--		 	guid.a, guid.b, guid.c, bswap_16(guid.d),
+-			guid.a, guid.b, guid.c, bswap_16(guid.d),
 -			guid.e[0], guid.e[1], guid.e[2], guid.e[3],
 -			guid.e[4], guid.e[5]);
 -	printf("Name: \"%s\"\n", name);
@@ -112,7 +111,8 @@ index a7b473d..9a63b62 100644
 +					break;
 +			}
 +			printf("|%s|\n", charbuf);
-+		}
+ 		}
+-		printf("|%s|\n", charbuf);
 +	}
 +	else if(display_type == DECIMAL) {
 +		uint32_t index = 0;
@@ -126,24 +126,12 @@ index a7b473d..9a63b62 100644
 +				if (index % 16 == 0)
 +					break;
 +			}
- 		}
--		printf("|%s|\n", charbuf);
++		}
 +		printf("\n");
  	}
-+	
  }
  
- static void
-@@ -266,6 +288,8 @@ int main(int argc, char *argv[])
- 		 "use data from <file>", "<file>" },
- 		{"write", 'w', POPT_ARG_VAL, &action,
-    		 ACTION_OVERWRITE, "write to variable specified by --name", NULL },
-+		{"decimal_print", 'd', POPT_ARG_VAL, &action,
-+   		 ACTION_PRINT_DEC, "print variable in decimal values specified by --name", NULL },
- 		POPT_AUTOALIAS
- 		POPT_AUTOHELP
- 		POPT_TABLEEND
-@@ -309,7 +333,11 @@ int main(int argc, char *argv[])
+@@ -337,7 +358,11 @@ int main(int argc, char *argv[])
  			break;
  		case ACTION_PRINT:
  			validate_name(name);
