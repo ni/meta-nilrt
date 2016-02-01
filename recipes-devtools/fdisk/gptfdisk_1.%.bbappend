@@ -1,5 +1,3 @@
-DEPENDS = "popt util-linux"
-
 PACKAGES =+ "${PN}-gdisk ${PN}-cgdisk ${PN}-sgdisk ${PN}-fixparts"
 
 FILES_${PN}-gdisk = "${sbindir}/gdisk"
