@@ -1,4 +1,7 @@
-From 9c805aa4821a06257d4596071cc3efc1a6fe741c Mon Sep 17 00:00:00 2001
+From 318b6fe6ad7ffa1354883924f880443bab4e3bbe Mon Sep 17 00:00:00 2001
+Message-Id: <318b6fe6ad7ffa1354883924f880443bab4e3bbe.1454576819.git.adrian.ratiu@ni.com>
+In-Reply-To: <27e4d8d5345240036a018641a856e7999db97fcb.1454576819.git.adrian.ratiu@ni.com>
+References: <27e4d8d5345240036a018641a856e7999db97fcb.1454576819.git.adrian.ratiu@ni.com>
 From: Gratian Crisan <gratian.crisan@ni.com>
 Date: Wed, 16 Oct 2013 15:35:00 -0500
 Subject: [PATCH 3/5] pi-condvars: add tst-condpi2.c, priority inversion
@@ -19,10 +22,10 @@ Signed-off-by: Gratian Crisan <gratian.crisan@ni.com>
  create mode 100644 nptl/tst-condpi2.c
 
 diff --git a/nptl/Makefile b/nptl/Makefile
-index b1ae194..b518486 100644
+index 7889569..d79f6ff 100644
 --- a/nptl/Makefile
 +++ b/nptl/Makefile
-@@ -218,7 +218,7 @@ tests = tst-typesizes \
+@@ -228,7 +228,7 @@ tests = tst-typesizes \
  	tst-cond14 tst-cond15 tst-cond16 tst-cond17 tst-cond18 tst-cond19 \
  	tst-cond20 tst-cond21 tst-cond22 tst-cond23 tst-cond24 tst-cond25 \
  	tst-cond-except \
@@ -328,5 +331,5 @@ index 0000000..6ae148e
 +#define TEST_FUNCTION do_test ()
 +#include "../test-skeleton.c"
 -- 
-2.1.1
+2.7.0
 
