@@ -14,6 +14,7 @@ RDEPENDS_${PN} = "\
 	packagegroup-self-hosted \
 	packagegroup-core-lsb \
 	packagegroup-core-qt \
+	packagegroup-ni-debug-kernel \
 "
 
 RDEPENDS_${PN} += "\
