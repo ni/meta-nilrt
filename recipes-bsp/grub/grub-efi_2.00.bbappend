@@ -40,9 +40,12 @@ GRUB_BUILDIN = "boot linux ext2 fat serial part_msdos part_gpt normal efi_gop se
                 minicmd test iorw loadenv echo reboot terminfo loopback memdisk tar help \
                 ls search_fs_uuid udf btrfs reiserfs xfs lvm ata "
 
-do_deploy_class-target () {
+do_compile_append_class-target () {
     grub-mkimage -p /boot/ -O ${GRUB_TARGET}-efi -d ./grub-core/ \
                  -o ${B}/${GRUB_NILRT_IMAGE} ${GRUB_BUILDIN}
+}
+
+do_install_append_class-target () {
     install -d ${D}/boot/
     install -m 0644 ${B}/${GRUB_NILRT_IMAGE} ${D}/boot/
     install -m 0644 ${WORKDIR}/grub.cfg ${D}/boot/
