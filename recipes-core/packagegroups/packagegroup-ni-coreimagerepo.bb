@@ -14,6 +14,7 @@ RDEPENDS_${PN} = "\
 	packagegroup-core-x11 \
 	packagegroup-core-standalone-sdk-target \
 	packagegroup-kernel-module-build \
+	linux-firmware \
 	opkg-collateral \
 	apache2 \
 "
