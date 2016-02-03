@@ -4,6 +4,7 @@ LICENSE = "MIT"
 IMAGE_PREPROCESS_COMMAND = "rootfs_update_timestamp"
 
 IMAGE_INSTALL = "\
+	kernel \
 	packagegroup-ni-base \
 	packagegroup-ni-tzdata \
     "

@@ -10,6 +10,8 @@ DESCRIPTION = " \
 
 # Append additional software
 IMAGE_INSTALL_NODEPS += " \
+    kernel-modules \
+    linux-firmware \
     lvrt \
     niminionagent \
     ni-pxiplatformservices \
