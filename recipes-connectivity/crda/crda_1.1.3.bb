@@ -3,10 +3,13 @@ SECTION = "base"
 LICENSE = "ISC"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=07c4f6dea3845b02a18dc00c8c87699c"
 
-PR = "r3"
+PR = "r4"
 
 DEPENDS = "libnl"
-RDEPENDS_${PN} = "wireless-regdb"
+RDEPENDS_${PN} = "\
+	       wireless-regdb \
+	       udev \
+"
 
 S = "${WORKDIR}/git"
 
@@ -22,4 +25,9 @@ do_compile() {
 do_install() {
 	install -m 0755 -d ${D}${bindir}
         install -m 0755 ${S}/crda ${D}${bindir}
+	install -m 0755 -d ${D}/lib/udev/rules.d
+	sed 's:$(SBINDIR):${bindir}/:' ${S}/udev/regulatory.rules > ${S}/udev/regulatory.rules.parsed
+	install -m 0755 ${S}/udev/regulatory.rules.parsed ${D}/lib/udev/rules.d/85-regulatory.rules
 }
+
+FILES_${PN} += "${base_libdir}/udev/rules.d/85-regulatory.rules"
