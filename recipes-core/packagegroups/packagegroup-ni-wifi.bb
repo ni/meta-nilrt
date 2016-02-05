@@ -12,7 +12,6 @@ inherit packagegroup
 
 RDEPENDS_${PN} = "\
 	crda \
-	crdd \
 	iw \
 	libnl \
 	openssl \
