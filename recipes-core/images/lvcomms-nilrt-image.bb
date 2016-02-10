@@ -14,5 +14,6 @@ IMAGE_INSTALL_NODEPS += " \
     niminionagent \
     ni-pxiplatformservices \
     ni-flexrio \
+    ni-usrp-rio \
 "
 
