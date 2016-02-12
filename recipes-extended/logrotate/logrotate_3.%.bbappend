@@ -1,6 +1,9 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
-SRC_URI += "file://logrotate.crontab \
+SRC_URI += " \
+		file://logrotate.crontab \
+		file://logrotate.conf \
+		file://0001-Support-system-dates-back-to-the-year-1970.patch \
 "
 
 do_install_append(){
