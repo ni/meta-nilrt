@@ -1,0 +1,33 @@
+From bdbfea38a154b45832daf9c188d1829da2e63996 Mon Sep 17 00:00:00 2001
+From: Matt Bennett <matt.bennett@alliedtelesis.co.nz>
+Date: Wed, 21 Oct 2015 09:23:06 +1300
+Subject: [PATCH] Support system dates back to the year 1970
+
+The system time on Linux can be set back as far as 1970 (the epoch time).
+Currently logrotate stops working correctly if the time goes before 1996.
+This value (1996) appears to have been hard coded since the code was written
+back in 1996. Testing and code analysis shows this can simply be modified
+to 1970.
+
+Signed-off-by: Brad Mouring <brad.mouring@ni.com>
+Upstream-Status: Backport (https://github.com/logrotate/logrotate/commit/bdbfea38a154b45832daf9c188d1829da2e63996)
+---
+ logrotate.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/logrotate.c b/logrotate.c
+index a85fdf9..7f7be41 100644
+--- a/logrotate.c
++++ b/logrotate.c
+@@ -2335,7 +2335,7 @@ static int readState(char *stateFilename)
+ 	}
+ 
+ 	/* Hack to hide earlier bug */
+-	if ((year != 1900) && (year < 1996 || year > 2100)) {
++	if ((year != 1900) && (year < 1970 || year > 2100)) {
+ 	    message(MESS_ERROR,
+ 		    "bad year %d for file %s in state file %s\n", year,
+ 		    argv[0], stateFilename);
+-- 
+2.7.1
+
