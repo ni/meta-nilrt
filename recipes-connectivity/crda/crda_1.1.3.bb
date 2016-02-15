@@ -30,4 +30,4 @@ do_install() {
 	install -m 0755 ${S}/udev/regulatory.rules.parsed ${D}/lib/udev/rules.d/85-regulatory.rules
 }
 
-FILES_${PN} += "${D}/udev/rules.d/85-regulatory.rules"
+FILES_${PN} += "${base_libdir}/udev/rules.d/85-regulatory.rules"
