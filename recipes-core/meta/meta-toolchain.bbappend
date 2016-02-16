@@ -10,3 +10,6 @@ create_sdk_files_append() {
     rm -f "${SDK_OUTPUT}/${SDKTARGETSYSROOT}/usr/lib/lsb/install_initd"
     rm -f "${SDK_OUTPUT}/${SDKTARGETSYSROOT}/usr/lib/lsb/remove_initd"
 }
+
+# Error if SDK sysroots contain broken symlinks
+CHECK_SDK_SYSROOTS = "1"
