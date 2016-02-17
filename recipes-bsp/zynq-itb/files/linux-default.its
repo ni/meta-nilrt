@@ -1,0 +1,26 @@
+/*
+ * Runmode image tree
+ */
+
+/dts-v1/;
+
+/ {
+	description = "LV Comms";
+	version = "2.0";
+	#address-cells = <1>;
+
+	images {
+
+		bootscript@1 {
+			description = "Booting nilrt";
+			data = /incbin/("./bootscript-default.txt");
+			type = "script";
+			arch = "arm";
+			compression = "none";
+			hash@1 {
+				algo = "crc32";
+			};
+		};
+
+	};
+};

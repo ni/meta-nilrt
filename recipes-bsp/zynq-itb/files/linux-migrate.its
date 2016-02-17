@@ -1,0 +1,22 @@
+/dts-v1/;
+
+/ {
+	description = "LV Comms";
+	version = "2.0";
+	#address-cells = <1>;
+
+	images {
+
+		bootscript@1 {
+			description = "Booting migrate image";
+			data = /incbin/("./bootscript-migrate.txt");
+			type = "script";
+			arch = "arm";
+			compression = "none";
+			hash@1 {
+				algo = "crc32";
+			};
+		};
+
+	};
+};
