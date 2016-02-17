@@ -1,0 +1,31 @@
+From f946c0f3228a640f2a4d60579ebab9fcdebb35e4 Mon Sep 17 00:00:00 2001
+From: Haris Okanovic <haris.okanovic@ni.com>
+Date: Fri, 12 Feb 2016 16:56:58 -0600
+Subject: [PATCH 09/14] rand_win.c: Stub RAND_poll() on Phar Lap ETS
+
+Stub RAND_poll() on Phar Lap ETS to match VxWorks implementation
+in rand_unix.c.
+
+Upstream-Status: Inappropriate [Phar Lap ETS support]
+---
+ crypto/rand/rand_win.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/crypto/rand/rand_win.c b/crypto/rand/rand_win.c
+index 2e05335..458406b 100644
+--- a/crypto/rand/rand_win.c
++++ b/crypto/rand/rand_win.c
+@@ -750,3 +750,10 @@ static void readscreen(void)
+ }
+ 
+ #endif
++
++#if defined(PHARLAP)
++int RAND_poll(void)
++{
++    return 0;
++}
++#endif
+-- 
+2.6.2
+
