@@ -1,16 +1,16 @@
 #!/bin/sh
 
+ARCH=`uname -m`
+
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
 early_setup() {
     mkdir -p /proc
     mkdir -p /sys
+    mkdir -p /run/lock
     mount -t proc proc /proc
     mount -t sysfs sysfs /sys
     mount -t devtmpfs none /dev
-
-    # support VMWare image keyboard
-    modprobe atkbd 2> /dev/null
 }
 
 provision() {
@@ -30,12 +30,26 @@ remove_bootmode() {
     fi
 }
 
-early_setup
-remove_bootmode 2> /dev/null
-provision
-while true;do
-    echo ""
-    echo "To reboot the system execute the command \"reboot -f\""
-    echo ""
-    /sbin/getty -l sh -n 38400 tty0
-done
+if [[ $ARCH == "x86_64" ]];then
+    early_setup
+    # support VMWare image keyboard
+    modprobe atkbd 2> /dev/null
+    remove_bootmode 2> /dev/null
+    provision
+    while true;do
+        echo ""
+        echo "To reboot the system execute the command \"reboot -f\""
+        echo ""
+        /sbin/getty -l sh -n 38400 tty0
+    done
+elif [[ $ARCH == "armv7l" ]];then
+    early_setup
+    #fw_printenv/setenv requires the existence of /run/lock to create the lock file
+    provision
+    while true;do
+        echo ""
+        echo "To reboot the system execute the command \"reboot -f\""
+        echo ""
+        /sbin/getty -l sh -n 115200 ttyS0
+    done
+fi

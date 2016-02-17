@@ -1,0 +1,331 @@
+#!/bin/sh
+# Copyright (c) 2012-2013 National Instruments.
+# All rights reserved.
+
+# find_mtd_device_number - returns a mtd device number based on a partition label
+# usage: <variable>=$(find_mtd_device "partition_label")
+find_mtd_device_number()
+{
+	local line
+	local number
+
+	while read line; do {
+		case "$line" in
+		*"\"$1\""*)
+			IFS=":"
+			set $line
+			number=${1##mtd}
+			unset IFS
+			break
+			;;
+		esac
+	} done </proc/mtd
+
+	echo $number
+}
+
+# find_mtd_device - returns a mtd device name based on a partition label
+# usage: <variable>=$(find_mtd_device "partition_label")
+find_mtd_device()
+{
+	local device_number
+	local device_prefix
+
+	device_prefix="/dev/mtd"
+	if [ -d "$device_prefix" ]; then
+		device_prefix="$device_prefix/"
+	fi
+
+	device_number=$(find_mtd_device_number "$1")
+	if [ ! -z device_number ]; then
+		echo "${device_number:+$device_prefix$device_number}"
+	fi
+}
+
+# find_mtd_block_device - returns a mtd block device name based on a partition label
+# usage: <variable>=$(find_mtd_block_device "partition_label")
+find_mtd_block_device()
+{
+
+	local device_number
+	local device_prefix
+
+	device_prefix="/dev/mtdblock"
+	if [ -d "$device_prefix" ]; then
+		device_prefix="$device_prefix/"
+	fi
+
+	device_number=$(find_mtd_device_number "$1")
+	if [ ! -z device_number ]; then
+		echo "${device_number:+$device_prefix$device_number}"
+	fi
+}
+
+# delete_partition() - erases the partition referenced by a partition label 
+#		       input argument
+# usage: delete_partition "partition_label"
+# WARNING: Do not use for UBI partitions - it will destroy the erase counters
+# used for NAND wear leveling
+delete_partition()
+{
+	local device
+
+	device=$(find_mtd_device "$1")
+	if [ -z $device ]; then
+		echo "could not find a mtd partition named '$1'" >&2
+		exit 1
+	fi
+
+	flash_eraseall "$device"
+}
+
+# find_ubi_mount_point - finds the ubi mount point for a device
+# usage: <variable>=$(find_ubi_mount_point "device_name")
+find_ubi_mount_point()
+{
+	local device_name=$1
+	grep "ubifs" /proc/mounts | grep -m 1 $device_name | awk '{print $2}'
+}
+
+# find_current_mount_point - finds the mount point for a device
+# usage: <variable>=$(find_current_mount_point "device_name")
+find_current_mount_point()
+{
+	local device_name=$1
+	grep -m 1 $device_name /proc/mounts | awk '{print $2}'
+}
+
+# find_mount_fs_type - finds the filesystem type for a device
+# usage: <variable>=$(find_mount_fs_type "device_name")
+find_mount_fs_type()
+{
+	local device_name=$1
+	grep -m 1 $device_name /proc/mounts | awk '{print $3}'
+}
+
+# map_mtd_name_to_ubi_dev - returns the ubi device number corresponding to a
+#			    given mtd partition label
+# usage <ubi_device_number>=$(map_mtd_name_to_ubi_dev "partition_label")
+map_mtd_name_to_ubi_dev()
+{
+	local device_number
+	local ubidev
+
+	device_number=$(find_mtd_device_number "$1")
+
+	for ubidev in /sys/class/ubi/*
+	do
+		if [ -d "${ubidev}" ]; then
+			if [ -f "${ubidev}/mtd_num" ]; then
+				if [ "$(cat "${ubidev}/mtd_num")" = "${device_number}" ]; then
+					echo "${ubidev}" | grep -oE "[0-9]+$"
+				fi
+			fi
+		fi
+	done
+}
+
+# get_ubi_volumes_count - returns the number of volumes contained in a given
+#			  ubi device (identified by the device number)
+# usage <volumes_count>=$(get_ubi_volumes_count <ubi_device_number>)
+get_ubi_volumes_count()
+{
+	cat "/sys/class/ubi/ubi$1/volumes_count"
+}
+
+# find_ubi_volume - for a given ubi device $1 finds the volume corresponding
+#                   to name $2
+# usage: <variable>=$(find_ubi_volume "ubi_device" "volume_name")
+find_ubi_volume()
+{
+	local ubi_volume
+
+	for ubi_volume in /sys/class/ubi/ubi$1_*
+	do
+		if [ -d "${ubi_volume}" ]; then
+			if [ -f "${ubi_volume}/name" ]; then
+				if [ "$(cat "${ubi_volume}/name")" = "$2" ]; then
+					echo "${ubi_volume}" | grep -oE "[0-9]+$"
+				fi
+			fi
+		fi
+	done
+}
+
+# find_ubi_volume_name - for a given ubi device $1 finds the volume corresponding
+#                   to volume number $2
+# usage: <variable>=$(find_ubi_volume_name "ubi_device" "volume_number")
+find_ubi_volume_name()
+{
+	cat /sys/class/ubi/ubi$1_$2/name
+}
+
+ubi_attach_error()
+{
+	echo "could not find an ubi device attached to mtd partition '$1'" >&2
+	exit 1
+}
+
+# format_ubi_partition() - erases the ubi/mtd partition referenced by a
+#			   partition label input argument
+# usage: format_ubi_partition "partition_label"
+format_ubi_partition()
+{
+	local device
+	local ubidev
+
+	device=$(find_mtd_device "$1")
+	if [ -z $device ]; then
+		echo "could not find a mtd partition named '$1'" >&2
+		exit 1
+	fi
+
+	ubidev=$(map_mtd_name_to_ubi_dev "$1")
+	if [ ! -z $ubidev ]; then
+		ubidetach -p "$device"
+	fi
+	ubiformat -y "$device"
+	ubiattach -p "$device"
+
+	ubidev=$(map_mtd_name_to_ubi_dev "$1")
+	if [ -z $ubidev ]; then
+		ubi_attach_error "$1"
+	fi
+}
+
+# format_ubi_volume() - erases the ubi/mtd partition referenced by a
+#			   partition label input argument
+# usage: format_ubi_volume "partition_label" "volume_number" "volume_label"
+format_ubi_volume()
+{
+	local device
+	local ubidev
+
+	if [ `id -u` != 0 ]; then
+		echo "must be root!" >&2
+		exit 1;
+	fi
+
+	device=$(find_mtd_device "$1")
+	if [ -z $device ]; then
+		echo "could not find a mtd partition named '$1'" >&2
+		exit 1
+	fi
+
+	ubidev=$(map_mtd_name_to_ubi_dev "$1")
+	if [ -z $ubidev ]; then
+		ubi_attach_error "$1"
+	fi
+
+	# truncate (wipe out) the volume
+	/usr/sbin/ubiupdatevol -t /dev/ubi${ubidev}_$2
+
+	# Make sure the name is correct
+	current_name=$(find_ubi_volume_name $ubidev $2)
+	if [ $current_name != $3 ]; then
+		ubirename /dev/ubi${ubidev} $current_name $3
+	fi
+}
+
+# mount_ubi_volume() - mounts an ubi volume
+#			If the volume does not exist or cannot be mounted,
+#			it is formatted and mount is reattempted
+# usage: mount_ubi_volume "partition_label" "volume_label" "volume_number" "mount_point" "extra_arguments"
+mount_ubi_volume()
+{
+	local partition_label=$1
+	local volume_label=$2
+	local volume_number=$3
+	local mount_point=$4
+	local extra_arguments=$5
+
+	if [ `id -u` != 0 ]; then
+		# 1. find the ubi device corresponding to the user fs partition
+		ubi_device=$(map_mtd_name_to_ubi_dev "$partition_label")
+		if [ -z $ubi_device ]; then
+			echo "$partition_label does not exist!" >&2
+			exit 1
+		fi
+
+		# 2. find out if it's already mounted
+		current_mount_point=$(find_ubi_mount_point "$volume_label")
+		if [ "$current_mount_point" = "$mount_point" ]; then
+			return 0
+		elif [ -n "$current_mount_point" -a "$current_mount_point" != "$mount_point" ]; then
+			echo "Cannot mount at $mount_point.  Already mounted at $current_mount_point!" >&2
+			exit 1
+		fi
+
+		# 3. mount the partition
+		mount $extra_arguments ubi$ubi_device:$volume_label
+
+		# 4. make sure the mount point agrees with what we want
+		current_mount_point=$(find_ubi_mount_point "$volume_label")
+		if [ "$current_mount_point" != "$mount_point" ]; then
+			echo "fstab mount point disagrees with $mount_point. Cannot mount!" >&2
+			umount $current_mount_point
+			exit 1
+		fi
+
+		return 0
+	fi
+
+	# 1. find the ubi device corresponding to the user fs partition
+	ubi_device=$(map_mtd_name_to_ubi_dev "$partition_label")
+	if [ -z $ubi_device ]; then
+		# it doesn't exist, so we may as well ubiformat it
+		format_ubi_partition "$partition_label"
+		ubi_device=$(map_mtd_name_to_ubi_dev "$partition_label")
+		if [ -z ubi_device ]; then
+			ubi_attach_error $partition_label
+		fi
+	fi
+
+	# 2. find out if it's already mounted
+	current_mount_point=$(find_ubi_mount_point "$volume_label")
+	if [ "$current_mount_point" != "$mount_point" ]; then
+		if [ -n "$current_mount_point" ]; then
+			#echo "unmounting 'ubi$ubi_device:$volume_label' from '$current_mount_point'"
+			umount "$current_mount_point"
+		fi
+
+		# 3. if there are no volumes defined, create one now
+		ubi_volumes=$(get_ubi_volumes_count "$ubi_device")
+		if [ $ubi_volumes -eq 0 ]; then
+			#echo "creating '$volume_label' volume on /dev/ubi$ubi_device" >&2
+			ubimkvol /dev/ubi$ubi_device -N $volume_label -m
+		else
+			ubi_volume_number=$(find_ubi_volume "$ubi_device" "$volume_label")
+			if [ -z $ubi_volume_number ]; then
+				echo "could not find '$volume_label' volume on /dev/ubi$ubi_device'" >&2
+				exit 1
+			fi
+		fi
+
+		# 4. mount
+		mkdir -p $mount_point
+		mount -t ubifs $extra_arguments ubi$ubi_device:$volume_label $mount_point
+
+		# 5. check if the mount operation succeeded
+		current_mount_point=$(find_ubi_mount_point "$volume_label")
+		if [ -z $current_mount_point ]; then
+			#echo "failed to mount 'ubi$ubi_device:$volume_label' at '$mount_point'" >&2
+
+			# attempt to re-format
+			#echo "re-formatting rootfs volume" >&2
+			format_ubi_volume $partition_label $volume_number $volume_label
+
+			# retry mount
+			mount -t ubifs ubi$ubi_device:$volume_label $mount_point
+
+			current_mount_point=$(find_ubi_mount_point "$volume_label")
+			if [ -z $current_mount_point ]; then
+				echo "failed again to mount 'ubi$ubi_device:$volume_label' at '$mount_point'" >&2
+				exit 1
+			fi
+		fi
+		#echo "mounted 'ubi$ubi_device:$volume_label' at '$mount_point'" >&2
+	#else
+		#echo "'ubi$ubi_device:$volume_label' already mounted at '$current_mount_point'" >&2
+	fi
+}

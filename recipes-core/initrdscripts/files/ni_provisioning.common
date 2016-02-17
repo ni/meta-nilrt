@@ -1,0 +1,272 @@
+#this file contains the functions needed by the provisioning tool
+
+REBOOT_REQUIRED=0
+USB_MOUNTPOINT=/var/volatile/usbrtdeploy
+NILRT_MOUNTPOINT=/var/volatile/nilrt
+NIRESTORE_MOUNTPOINT=/var/volatile/nirestore
+GRUB_MOUNTPOINT=/var/volatile/nigrub
+BOOTFS_MOUNTPOINT=/var/volatile/nibootfs
+ROOTFS_MOUNTPOINT=/var/volatile/nirootfs
+TEMP_MOUNTPOINT=/var/volatile/temp_dir
+NIGRUB_LABEL=nigrub
+NIRESTORE_LABEL=nirestore
+NILRT_LABEL=nilrt
+NIBOOTFS_LABEL=bootfs
+NIROOTFS_LABEL=rootfs
+LOG_LEVEL=7
+
+ARCH=`uname -m`
+
+if [ -e /disk_config ]; then
+    source /disk_config
+else
+    die "disk_config not found!"
+fi
+
+if [ "$ARCH" = "armv7l" ]; then
+
+    restore_minimal_image()
+    {
+        echo "Formatting ubi1:rootfs..."
+        format_ubi_volume root 0 rootfs
+        echo "Done"
+        mkdir -p $NILRT_MOUNTPOINT
+        mkdir -p $NIRESTORE_MOUNTPOINT
+        MOUNT_ERROR=`mount -t ubifs ubi1:rootfs $NILRT_MOUNTPOINT` || die "$MOUNT_ERROR"
+        echo "Deploying minimal image..."
+        TAR_ERROR=`tar -xjf /payload/factory-image.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1` || die "$TAR_ERROR"
+        cp /payload/*.scr $NILRT_MOUNTPOINT/boot/
+        ln -sf $NILRT_MOUNTPOINT/boot/uImage-* /boot/uImage
+        MOUNT_ERROR=`mount -t ubifs ubi0:bootfs $NIRESTORE_MOUNTPOINT` || die "$MOUNT_ERROR"
+        cp $NIRESTORE_MOUNTPOINT/.restore/ni-*.dtb $NILRT_MOUNTPOINT/boot/
+        cp /payload/linux_runmode.itb $NIRESTORE_MOUNTPOINT/linux_runmode.itb
+        umount $NILRT_MOUNTPOINT
+        umount $NIRESTORE_MOUNTPOINT
+        echo "Minimal image deployed."
+        REBOOT_REQUIRED=1
+        echo "PROVISIONING SUCCESSFUL!"
+    }
+
+    provision_target()
+    {
+        mkdir -p $NILRT_MOUNTPOINT
+        mkdir -p $NIRESTORE_MOUNTPOINT
+        mkdir -p $TEMP_MOUNTPOINT
+        MOUNT_ERROR=`mount -t ubifs ubi1:rootfs $NILRT_MOUNTPOINT` || die "$MOUNT_ERROR"
+        MOUNT_ERROR=`mount -t ubifs ubi0:bootfs $NIRESTORE_MOUNTPOINT` || die "$MOUNT_ERROR"
+        DEVICE_CODE=`fw_printenv -n DeviceCode`
+        #replace the linux_safemode.itb with the fake one
+        cp $NILRT_MOUNTPOINT/.newNILinuxRT/.safe/linux_safemode.itb $NIRESTORE_MOUNTPOINT/.safe/linux_safemode.itb
+        #copy all the necessary files for restore-mode
+        mkdir $NIRESTORE_MOUNTPOINT/.restore
+        cp $NILRT_MOUNTPOINT/.newNILinuxRT/.restore/dtbs/ni-$DEVICE_CODE.dtb $NIRESTORE_MOUNTPOINT/.restore/ || die "ni-$DEVICE_CODE.dtb file not found!"
+        cp $NILRT_MOUNTPOINT/.newNILinuxRT/.restore/uImage $NIRESTORE_MOUNTPOINT/.restore/ || die "Kernel not found!"
+        cp $NILRT_MOUNTPOINT/.newNILinuxRT/.restore/ramdisk $NIRESTORE_MOUNTPOINT/.restore/ || die "Ramdisk not found!"
+        cp $NILRT_MOUNTPOINT/.newNILinuxRT/.restore/restore.scr $NIRESTORE_MOUNTPOINT/.restore/ || die "Restore script not found!"
+
+        sync
+        umount $NILRT_MOUNTPOINT
+        umount $NIRESTORE_MOUNTPOINT
+
+        restore_minimal_image
+    }
+
+elif [ "$ARCH" = "x86_64" ]; then
+
+    show_help()
+    {
+cat <<EOF
+    Usage: $0 [-h] [-t DEVICE]
+    Options
+        -h : Show help.
+        -t DEVICE : DEVICE is the device name for the disk to update. (e.g /dev/sda)
+        If DEVICE is not specificed, the first non-removable block device
+        that is not the recovery tool is used.
+EOF
+    }
+
+    find_target_block_device()
+    {
+        lsblk -inpo KNAME,TYPE,RM | while read KNAME TYPE RM; do
+            if [[ $TYPE == "disk" && $RM == "0" ]]; then
+                echo $KNAME
+                break;
+            fi
+        done
+    }
+
+    restore_minimal_image()
+    {
+        echo "Formatting $NILRT_LABEL partition..."
+        partition_format $TARGET_DISK $NILRT_LABEL
+        NILRT_MOUNTPOINT=/var/volatile/nilrt
+        mkdir $NILRT_MOUNTPOINT -p
+        NILRT_ERROR=`mount -L $NILRT_LABEL $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
+        echo "Deploying minimal image..."
+        TAR_ERROR=`tar -xjf /payload/factory-image.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1` || die "$TAR_ERROR"
+
+        umount $NILRT_MOUNTPOINT
+
+        echo "Minimal image deployed."
+        REBOOT_REQUIRED=1
+    }
+
+    provision_target()
+    {
+        if [ "$1" = "usb" ]; then
+            mkdir -p $USB_MOUNTPOINT
+            mount -L NIRECOVERY $USB_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
+            SOURCE_DIR=$USB_MOUNTPOINT
+        elif [ "$1" = "onboard" ]; then
+            mkdir -p $TEMP_MOUNTPOINT
+            mkdir -p $BOOTFS_MOUNTPOINT
+            mount -L nibootfs $TEMP_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
+            cp -r $TEMP_MOUNTPOINT/.newNILinuxRT/* $BOOTFS_MOUNTPOINT/
+            umount $TEMP_MOUNTPOINT
+            SOURCE_DIR=$BOOTFS_MOUNTPOINT
+        fi
+
+        echo "Installing restore to: $TARGET_DISK using $BOOT_STYLE boot style."
+
+        echo "Partitioning $TARGET_DISK..."
+        disk_setup $TARGET_DISK
+
+        #install grub
+
+        GRUB_MOUNTPOINT=/var/volatile/grub
+        mkdir $GRUB_MOUNTPOINT -p
+        MOUNT_ERROR=`mount -L $NIGRUB_LABEL $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
+
+        # Always configure for UEFI boot
+        EFI_GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/efi/boot
+        mkdir -p $EFI_GRUB_TARGET_DIR
+        cp -r $SOURCE_DIR/EFI/BOOT/* $EFI_GRUB_TARGET_DIR/
+
+        if [[ "$BOOT_STYLE" == "efi" ]]; then
+            echo "Configuring EFI grub2..."
+            for ENTRY in `efibootmgr | grep "LabVIEW RT"| egrep -o '[0-9A-F]{4}' || true`
+            do
+            EFIMGR=`efibootmgr -b $ENTRY -B 2>&1` || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
+            done
+            efibootmgr -c -d ${TARGET_DISK} -p 1 -L 'LabVIEW RT' -l '\efi\boot\bootx64.efi'
+        else
+            echo "Configuring legacy grub2..."
+            LEGACY_GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/boot/grub
+            parted -s ${TARGET_DISK} set 1 boot on
+            grub-install --recheck --root-directory=$GRUB_MOUNTPOINT $TARGET_DISK
+            cp /grub.cfg ${LEGACY_GRUB_TARGET_DIR}/grub.cfg
+        fi
+
+        echo "Installing kernel and ramdisk..."
+
+        cp /grub.cfg ${EFI_GRUB_TARGET_DIR}/grub.cfg
+
+        #install restore kernel and ramdisk
+        RESTORE_MOUNTPOINT=/var/volatile/restore
+        mkdir $RESTORE_MOUNTPOINT -p
+        RESTORE_ERROR=`mount -L $NIRESTORE_LABEL $RESTORE_MOUNTPOINT 2>&1` || die "$RESTORE_ERROR"
+
+        cp $SOURCE_DIR/bzImage $RESTORE_MOUNTPOINT/
+        cp $SOURCE_DIR/initrd $RESTORE_MOUNTPOINT/ramdisk
+
+        restore_minimal_image
+
+        echo "PROVISIONING SUCCESSFUL!"
+        REBOOT_REQUIRED=1
+        if [[ $AUTO_REBOOT -ne 1 ]]; then
+            read -s -n 1 -p "Press any key to continue..." KEY
+        fi
+    }
+
+fi
+
+#common functions for both architectures with little differences
+
+print_warning()
+{
+    printf "\n***Warning: %s\n" "$1"
+}
+
+die()
+{
+    printf "\n***Error: %s\n" "$1"
+    printf "PROVISIONING FAILED!"
+    cleanup_and_exit 1
+}
+
+install_default_error_handler()
+{
+    trap 'handle_err ${BASH_SOURCE} ${LINENO} ${FUNCNAME:-unknown} $? "$BASH_COMMAND"' ERR
+}
+
+handle_err()
+{
+    TMP_EVAL=`eval echo $5`
+    die "$1:$2 (fn=$3): Unexpected status code $4, while running command: '$TMP_EVAL'"
+}
+
+cleanup_and_exit()
+{
+    echo $LOG_LEVEL > /proc/sys/kernel/printk
+    trap - ERR
+
+    if [ "$ARCH" = "armv7l" ]; then
+        #set the bootmode to default
+        echo -n 00 >  /sys/bus/i2c/devices/0-0040/scratch_hardreset
+    elif [ "$ARCH" = "x86_64" ]; then
+        umount -a -t vfat,ext4
+    fi
+    if (( $1 == 0  && $REBOOT_REQUIRED == 1 )); then
+        echo u > /proc/sysrq-trigger
+        sync
+        echo b > /proc/sysrq-trigger
+    fi
+    exit $1
+}
+
+early_setup()
+{
+    install_default_error_handler
+    LOG_LEVEL=`cut -f1 /proc/sys/kernel/printk`
+    echo 6 > /proc/sys/kernel/printk
+
+        if [ "$ARCH" = "x86_64" ]; then
+        OPTIND=1
+
+        while getopts "ht:" opt; do
+            case "$opt" in
+                h)  show_help
+                    exit 1
+                    ;;
+                t)  TARGET_DISK=$OPTARG
+                    ;;
+                *)  show_help
+                    exit 1
+                    ;;
+            esac
+            done
+
+        shift $((OPTIND-1))
+
+        [ "$1" = "--" ] && shift
+
+        if [[ -z $TARGET_DISK ]]; then
+            TARGET_DISK=`find_target_block_device`
+            if [[ -z $TARGET_DISK ]]; then
+                die "No target device found for installation."
+            fi
+        else
+            if [[ ! -e $TARGET_DISK ]]; then
+                echo "Error: DEVICE $TARGET_DISK does not exist."
+                show_help
+                exit 1
+            fi
+        fi
+
+        if [[ -d "/sys/firmware/efi" ]]; then
+            BOOT_STYLE="efi"
+        else
+            BOOT_STYLE="legacy"
+        fi
+        fi
+}

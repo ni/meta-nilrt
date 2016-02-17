@@ -1,199 +1,14 @@
 #!/bin/bash
 
-USB_MOUNTPOINT=/var/volatile/usbrtdeploy
-NIGRUB_LABEL=nigrub
-NIRESTORE_LABEL=nirestore
-NILRT_LABEL=nilrt
-REBOOT_REQUIRED=0
-
-cleanup_and_exit()
-{
-    umount -a -t vfat,ext4,iso9660
-    if (( $1 == 0  && $REBOOT_REQUIRED == 1 )); then
-        echo u > /proc/sysrq-trigger
-        sync
-        echo b > /proc/sysrq-trigger
-    fi
-    exit $1
-}
-
-print_warning()
-{
-    printf "\n***Warning: %s\n" "$1"
-}
-
-die()
-{
-    printf "\n***Error: %s\n" "$1"
-    printf "PROVISIONING FAILED!"
-    cleanup_and_exit 1
-}
-
-show_help()
-{
-cat <<EOF
-    Usage: $0 [-h] [-t DEVICE]
-    Options
-        -h : Show help.
-        -t DEVICE : DEVICE is the device name for the disk to update. (e.g /dev/sda)
-        If DEVICE is not specificed, the first non-removable block device
-        that is not the recovery tool is used.
-EOF
-}
-
-install_default_error_handler()
-{
-    trap 'handle_err ${BASH_SOURCE} ${LINENO} ${FUNCNAME:-unknown} $? "$BASH_COMMAND"' ERR
-}
-
-handle_err()
-{
-    TMP_EVAL=`eval echo $5`
-    die "$1:$2 (fn=$3): Unexpected status code $4, while running command: '$TMP_EVAL'"
-}
-
-find_target_block_device()
-{
-    lsblk -inpo KNAME,TYPE,RM | while read KNAME TYPE RM; do
-        if [[ $TYPE == "disk" && $RM == "0" ]]; then
-            echo $KNAME
-            break;
-        fi
-    done
-}
-
-reset_minimal_image()
-{
-    echo "Formatting $NILRT_LABEL partition..."
-    disk_config partition_format $TARGET_DISK $NILRT_LABEL
-    NILRT_MOUNTPOINT=/var/volatile/nilrt
-    mkdir $NILRT_MOUNTPOINT -p
-    NILRT_ERROR=`mount -L $NILRT_LABEL $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
-    echo "Deploying minimal image..."
-    TAR_ERROR=`tar -xjf /payload/factory-image.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1` || die "$TAR_ERROR"
-
-    umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
-
-    echo "Minimal image deployed."
-    REBOOT_REQUIRED=1
-}
-
-provision_target()
-{
-    echo "Installing restore to: $TARGET_DISK using $BOOT_STYLE boot style."
-
-    #find and mount USB key
-    mkdir -p $USB_MOUNTPOINT
-
-    # try mounting the partition
-    mount -o ro -L NIRECOVERY $USB_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
-
-    echo "Partitioning $TARGET_DISK..."
-    disk_config disk_setup $TARGET_DISK
-
-    #install grub
-
-    GRUB_MOUNTPOINT=/var/volatile/grub
-    mkdir $GRUB_MOUNTPOINT -p
-    MOUNT_ERROR=`mount -L $NIGRUB_LABEL $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
-
-    # Always configure for UEFI boot
-    EFI_GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/efi/boot
-    mkdir -p $EFI_GRUB_TARGET_DIR
-    cp -r $USB_MOUNTPOINT/EFI/BOOT/* $EFI_GRUB_TARGET_DIR/
-
-    if [[ "$BOOT_STYLE" == "efi" ]]; then
-        echo "Configuring EFI grub2..."
-        for ENTRY in `efibootmgr | grep "LabVIEW RT"| egrep -o '[0-9A-F]{4}' || true`
-        do
-            EFIMGR=`efibootmgr -b $ENTRY -B 2>&1` || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
-        done
-        efibootmgr -c -d ${TARGET_DISK} -p 1 -L 'LabVIEW RT' -l '\efi\boot\bootx64.efi'
-    else
-        echo "Configuring legacy grub2..."
-        LEGACY_GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/boot/grub
-        parted -s ${TARGET_DISK} set 1 boot on
-        grub-install --recheck --root-directory=$GRUB_MOUNTPOINT $TARGET_DISK
-        cp /grub.cfg ${LEGACY_GRUB_TARGET_DIR}/grub.cfg
-    fi
-
-    echo "Installing kernel and ramdisk..."
-
-    cp /grub.cfg ${EFI_GRUB_TARGET_DIR}/grub.cfg
-
-    #install restore kernel and ramdisk
-    RESTORE_MOUNTPOINT=/var/volatile/restore
-    mkdir $RESTORE_MOUNTPOINT -p
-    RESTORE_ERROR=`mount -L $NIRESTORE_LABEL $RESTORE_MOUNTPOINT 2>&1` || die "$RESTORE_ERROR"
-
-    cp $USB_MOUNTPOINT/bzImage $RESTORE_MOUNTPOINT/
-    cp $USB_MOUNTPOINT/initrd $RESTORE_MOUNTPOINT/ramdisk
-
-    reset_minimal_image
-
-    # TODO: copy grub version file
-    #mkdir $BOOTFS_MOUNTPOINT/grub
-    #cp $USB_MOUNTPOINT/grub2/grub-ni-version $BOOTFS_MOUNTPOINT/grub/
-
-    umount $RESTORE_MOUNTPOINT || die "Failed to umount $RESTORE_MOUNTPOINT"
-    umount $GRUB_MOUNTPOINT || die "Failed to umount $GRUB_MOUNTPOINT"
-    umount $USB_MOUNTPOINT || print_warning "Failed to umount $USB_MOUNTPOINT"
-
-    REBOOT_REQUIRED=1
-
-    echo ""
-    echo "PROVISIONING SUCCESSFUL!"
-    read -s -p "Please eject the installation media and press ENTER to reboot... "
-    echo ""
-}
-
-#############
-#main script#
-#############
-
-install_default_error_handler
-
-LOG_LEVEL=`cut -f1 /proc/sys/kernel/printk`
-
-OPTIND=1
-
-while getopts "ht:" opt; do
-    case "$opt" in
-        h)  show_help
-            exit 1
-            ;;
-        t)  TARGET_DISK=$OPTARG
-            ;;
-        *)  show_help
-            exit 1
-            ;;
-    esac
-done
-
-shift $((OPTIND-1))
-
-[ "$1" = "--" ] && shift
-
-if [[ -z $TARGET_DISK ]]; then
-    TARGET_DISK=`find_target_block_device`
-    if [[ -z $TARGET_DISK ]]; then
-        die "No target device found for installation."
-    fi
+if [ -e /ni_provisioning.common ]; then
+	source /ni_provisioning.common
 else
-    if [[ ! -e $TARGET_DISK ]]; then
-        echo "Error: DEVICE $TARGET_DISK does not exist."
-        show_help
-        exit 1
-    fi
+	printf "\n***Error: File ni_provisioning.common not found!\n"
+	printf "PROVISIONING FAILED!"
+	exit 1
 fi
 
-if [[ -d "/sys/firmware/efi" ]]; then
-    BOOT_STYLE="efi"
-else
-    BOOT_STYLE="legacy"
-fi
-
-echo 6 > /proc/sys/kernel/printk
+early_setup
 
 PROVISION_TARGET="n"
 RESET_MINIMAL_IMAGE="n"
@@ -216,24 +31,23 @@ if [[ $restore == "provision" ]]; then
     echo
     read -p "Do you want to continue?[y/N]" PROVISION_TARGET
     if [[ ${PROVISION_TARGET,,} == "y" ]]; then
-        provision_target
+        provision_target usb
     fi
+elif [[ $restore == "migrate" ]]; then
+    AUTO_REBOOT=1
+    provision_target onboard
 elif [[ $restore == "auto-restore" ]]; then
-    reset_minimal_image
+    restore_minimal_image
 else
     echo
     echo "NI Real-Time Restore."
     echo
     echo "Continuing will format the nilrt partition and will install minimal image."
     echo
-    read -p "Do you want to continue?[y/N]" RESET_MINIMAL_IMAGE
-    if [[ ${RESET_MINIMAL_IMAGE,,} == "y" ]]; then
-        reset_minimal_image
+    read -p "Do you want to continue?[y/N]" RESTORE_MINIMAL_IMAGE
+    if [[ ${RESTORE_MINIMAL_IMAGE,,} == "y" ]]; then
+        restore_minimal_image
     fi
 fi
-
-echo $LOG_LEVEL > /proc/sys/kernel/printk
-
-trap - ERR
 
 cleanup_and_exit 0

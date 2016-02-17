@@ -48,6 +48,7 @@ partition_format()
 {
     local disk="$1" label="$2"
 
+    disk_check "$disk"
     case "$label" in
         nigrub)
             mkfs.vfat -n nigrub "$disk"1
@@ -79,22 +80,10 @@ disk_check()
     [[ -b "$disk" ]] || die "Invalid or unspecified disk!"
 }
 
-install_default_error_handler
-
-cmd="$1"
-disk="$2"
-label="$3"
-
-case "$cmd" in
-    "disk_setup")
-        disk_check "$disk"
-        disk_partition "$disk"
-        disk_format "$disk"
-        ;;
-    "partition_format")
-        disk_check "$disk"
-        partition_format "$disk" "$label"
-        ;;
-    *)
-        die "Unknown command $cmd!"
-esac
+disk_setup()
+{
+    disk="$1"
+    disk_check "$disk"
+    disk_partition "$disk"
+    disk_format "$disk"
+}
