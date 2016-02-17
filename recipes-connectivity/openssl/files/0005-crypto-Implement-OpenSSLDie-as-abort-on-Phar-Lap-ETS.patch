@@ -1,0 +1,27 @@
+From 48964ae759bc8262e372a886829a95c8e5a809cf Mon Sep 17 00:00:00 2001
+From: Haris Okanovic <haris.okanovic@ni.com>
+Date: Thu, 2 Apr 2015 13:06:51 -0500
+Subject: [PATCH 05/14] crypto: Implement OpenSSLDie() as abort() on Phar Lap
+ ETS
+
+Upstream-Status: Inappropriate [Phar Lap ETS support]
+---
+ crypto/cryptlib.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/crypto/cryptlib.c b/crypto/cryptlib.c
+index ca0e3cc..a5f17f5 100644
+--- a/crypto/cryptlib.c
++++ b/crypto/cryptlib.c
+@@ -982,7 +982,7 @@ void OpenSSLDie(const char *file, int line, const char *assertion)
+     OPENSSL_showfatal
+         ("%s(%d): OpenSSL internal error, assertion failed: %s\n", file, line,
+          assertion);
+-#if !defined(_WIN32) || defined(__CYGWIN__)
++#if !defined(_WIN32) || defined(__CYGWIN__) || defined(PHARLAP)
+     abort();
+ #else
+     /*
+-- 
+2.6.2
+

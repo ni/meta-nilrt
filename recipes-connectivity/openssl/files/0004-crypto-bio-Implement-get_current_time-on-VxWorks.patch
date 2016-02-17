@@ -1,0 +1,29 @@
+From 23ffe77e66a9ebb65c7077c4982f18befb13e7bb Mon Sep 17 00:00:00 2001
+From: Haris Okanovic <haris.okanovic@ni.com>
+Date: Thu, 2 Apr 2015 17:11:33 -0500
+Subject: [PATCH 04/14] crypto/bio: Implement get_current_time() on VxWorks
+
+Upstream-Status: Inappropriate [VxWorks support]
+---
+ crypto/bio/bss_dgram.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/crypto/bio/bss_dgram.c b/crypto/bio/bss_dgram.c
+index 7fcd831..b7f1378 100644
+--- a/crypto/bio/bss_dgram.c
++++ b/crypto/bio/bss_dgram.c
+@@ -2075,6 +2075,11 @@ static void get_current_time(struct timeval *t)
+     ftime(&tb);
+     t->tv_sec = (long)tb.time;
+     t->tv_usec = (long)tb.millitm * 1000;
++#elif defined(OPENSSL_SYSNAME_VXWORKS)
++    struct timespec ts;
++    clock_gettime(CLOCK_REALTIME, &ts);
++    t->tv_sec = ts.tv_sec;
++    t->tv_usec = ts.tv_nsec / 1000;
+ # else
+     gettimeofday(t, NULL);
+ # endif
+-- 
+2.6.2
+

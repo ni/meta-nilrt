@@ -1,0 +1,39 @@
+From 942b9f9ae5c5922da5d4b4df5775d92f64b9ddbf Mon Sep 17 00:00:00 2001
+From: Jacob Champion <jacob.champion@ni.com>
+Date: Fri, 22 Nov 2013 11:42:23 -0600
+Subject: [PATCH 01/14] crypto/rand: Fix VxWorks platform detection in
+ randfile.c
+
+randfile.c relies on the OPENSSL_SYS_VXWORKS macro in order to disable
+the _XOPEN_SOURCE setting; however, that macro won't be defined until
+e_os.h is included.
+
+e_os.h can't be included before the check, because _XOPEN_SOURCE must be
+set before any system headers are included. Instead, include
+opensslconf.h and switch to using OPENSSL_SYSNAME_VXWORKS.
+
+Natinst-ReviewBoard-ID: 53589
+
+Upstream-Status: Inappropriate [VxWorks support]
+---
+ crypto/rand/randfile.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/crypto/rand/randfile.c b/crypto/rand/randfile.c
+index 9537c56..4af9751 100644
+--- a/crypto/rand/randfile.c
++++ b/crypto/rand/randfile.c
+@@ -56,8 +56,9 @@
+  * [including the GNU Public Licence.]
+  */
+ 
++#include <openssl/opensslconf.h>
+ /* We need to define this to get macros like S_IFBLK and S_IFCHR */
+-#if !defined(OPENSSL_SYS_VXWORKS)
++#if !defined(OPENSSL_SYSNAME_VXWORKS)
+ # define _XOPEN_SOURCE 500
+ #endif
+ 
+-- 
+2.6.2
+

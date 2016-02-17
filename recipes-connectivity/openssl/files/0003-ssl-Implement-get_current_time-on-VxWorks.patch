@@ -1,0 +1,29 @@
+From 1a6bfeb8407a6ebe6ee1071e35f2b0c5374554c5 Mon Sep 17 00:00:00 2001
+From: Haris Okanovic <haris.okanovic@ni.com>
+Date: Thu, 2 Apr 2015 17:10:42 -0500
+Subject: [PATCH 03/14] ssl: Implement get_current_time() on VxWorks
+
+Upstream-Status: Inappropriate [VxWorks support]
+---
+ ssl/d1_lib.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/ssl/d1_lib.c b/ssl/d1_lib.c
+index ee78921..cb1ee8b 100644
+--- a/ssl/d1_lib.c
++++ b/ssl/d1_lib.c
+@@ -534,6 +534,11 @@ static void get_current_time(struct timeval *t)
+     ftime(&tb);
+     t->tv_sec = (long)tb.time;
+     t->tv_usec = (long)tb.millitm * 1000;
++#elif defined(OPENSSL_SYS_VXWORKS)
++    struct timespec ts;
++    clock_gettime(CLOCK_REALTIME, &ts);
++    t->tv_sec = ts.tv_sec;
++    t->tv_usec = ts.tv_nsec / 1000;
+ #else
+     gettimeofday(t, NULL);
+ #endif
+-- 
+2.6.2
+
