@@ -1,0 +1,29 @@
+From 623d4facf4746a6b81e8afc492d1efb5b5ade289 Mon Sep 17 00:00:00 2001
+From: Antony Vance <antony.vance@ni.com>
+Date: Sun, 21 Feb 2016 01:18:05 +0530
+Subject: [PATCH] opencv : Download ippicv from NI server
+
+CMake is not able to download ippicv package from sourceforge https server due to disabled openssl option. This breaks opencv build with download hash mismatch error.
+This change downloads ippicv pacakge from NI http server  to avoid build error.
+
+Signed-off-by: Antony Vance <antony.vance@ni.com>
+---
+ 3rdparty/ippicv/downloader.cmake | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/3rdparty/ippicv/downloader.cmake b/3rdparty/ippicv/downloader.cmake
+index f25e5cc..bc32ff8 100644
+--- a/3rdparty/ippicv/downloader.cmake
++++ b/3rdparty/ippicv/downloader.cmake
+@@ -62,7 +62,7 @@ function(_icv_downloader)
+       if(DEFINED ENV{OPENCV_ICV_URL})
+         set(OPENCV_ICV_URL $ENV{OPENCV_ICV_URL})
+       else()
+-        set(OPENCV_ICV_URL "http://sourceforge.net/projects/opencvlibrary/files/3rdparty/ippicv")
++        set(OPENCV_ICV_URL "http://download.ni.com/ni-linux-rt/src/")
+       endif()
+     endif()
+ 
+-- 
+1.9.1
+

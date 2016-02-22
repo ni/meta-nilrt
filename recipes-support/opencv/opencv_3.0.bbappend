@@ -1,6 +1,9 @@
+FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+
 DEFAULT_PREFERENCE ="0"
 
 SRC_URI_remove = "git://github.com/Itseez/opencv_contrib.git;destsuffix=contrib;name=contrib"
+SRC_URI =+ "file://0001-opencv-Download-ippicv-from-NI-server.patch"
 
 python () {
     d.delVar("SRCREV_contrib")
