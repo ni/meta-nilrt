@@ -10,5 +10,6 @@ python () {
 }
 
 EXTRA_OECMAKE_remove = "-DOPENCV_EXTRA_MODULES_PATH=${WORKDIR}/contrib/modules"
+EXTRA_OECMAKE =+ "-DWITH_GPHOTO2=OFF"
 
 ALLOW_EMPTY_${PN}-java = "1"
