@@ -16,6 +16,7 @@ RDEPENDS_${PN} = "\
 	packagegroup-kernel-module-build \
 	linux-firmware \
 	apache2 \
+	apr-iconv \
 "
 
 RDEPENDS_${PN}_append_x64 = "\
