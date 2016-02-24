@@ -25,6 +25,7 @@ RDEPENDS_${PN} = "\
 	busybox-ifplugd \
 	${@base_contains("MACHINE_FEATURES", "acpi", "busybox-acpid", "", d)} \
 	coreutils-hostname \
+	cronie \
 	dhcp-client \
 	dmidecode \
 	e2fsprogs \
@@ -44,9 +45,10 @@ RDEPENDS_${PN} = "\
 	libnss-mdns \
 	libpam \
 	libstdc++ \
+	logrotate \
+	lsbinitscripts \
 	mtd-utils \
 	mtd-utils-ubifs \
-	lsbinitscripts \
 	netbase \
 	niacctbase \
 	niwatchdogpet \

@@ -11,7 +11,6 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS_${PN} = "\
-	cronie \
 	dosfstools \
 	e2fsprogs-e2fsck \
 	e2fsprogs-tune2fs \
@@ -19,7 +18,6 @@ RDEPENDS_${PN} = "\
 	glibc-gconv-cp932 \
 	glibc-gconv-cp936 \
 	glibc-gconv-iso8859-1 \
-	logrotate \
 	parted \
 	util-linux-sfdisk \
 	udev-cache \
