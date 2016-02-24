@@ -15,6 +15,7 @@ RDEPENDS_${PN} = "\
 	packagegroup-core-standalone-sdk-target \
 	packagegroup-kernel-module-build \
 	apache2 \
+	apr-iconv \
 "
 
 RDEPENDS_${PN}_append_x64 = "\
