@@ -2,6 +2,8 @@ ENABLE_SRC_INSTALL_${PN} = "1"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
+SRC_URI_remove = "file://debian/pic.patch"
+
 # Patches for NI VxWorks in NIBuild
 SRC_URI += " \
     file://0001-crypto-rand-Fix-VxWorks-platform-detection-in-randfi.patch \
