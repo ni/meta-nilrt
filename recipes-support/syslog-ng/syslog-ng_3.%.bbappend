@@ -6,6 +6,7 @@ SRC_URI += "file://nikern.conf \
 RDEPENDS_${PN} += "niacctbase"
 
 do_install_append (){
+   install -d ${D}${sysconfdir}/syslog-ng.d
    install -d ${D}${sysconfdir}/logrotate.d
    install -m 644 ${WORKDIR}/nikern.conf ${D}${sysconfdir}/logrotate.d/
    install -d -m 0755 ${D}${localstatedir}/local/natinst/log/
