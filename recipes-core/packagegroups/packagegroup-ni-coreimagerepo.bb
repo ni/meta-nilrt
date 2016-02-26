@@ -15,6 +15,7 @@ RDEPENDS_${PN} = "\
 	packagegroup-core-standalone-sdk-target \
 	packagegroup-kernel-module-build \
 	apache2 \
+	apache-websocket \
 	apr-iconv \
 "
 
