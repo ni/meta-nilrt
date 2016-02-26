@@ -16,6 +16,7 @@ RDEPENDS_${PN} = "\
 	packagegroup-kernel-module-build \
 	linux-firmware \
 	apache2 \
+	apache-websocket \
 	apr-iconv \
 "
 
