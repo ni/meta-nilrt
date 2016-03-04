@@ -521,7 +521,7 @@ RDEPENDS_${PN} += "\
 # xdebug - fail (blacklisted on dizzy)
 
 # Shared libraries needed to run FireFox
-RDEPENDS_${PN} += "\
+RDEPENDS_${PN}_append_x64 += "\
     alsa-lib \
     gtk+3 \
 "
