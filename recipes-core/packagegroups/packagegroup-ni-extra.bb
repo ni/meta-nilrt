@@ -465,7 +465,6 @@ RDEPENDS_${PN} += "\
 	nmon \
 	ntfs-3g-ntfsprogs \
 	opencv \
-	opencv-samples \
 	openldap \
 	picocom \
 	postgresql \
