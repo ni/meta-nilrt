@@ -422,7 +422,6 @@ RDEPENDS_${PN} += "\
 	onig \
 	openct \
 	opencv \
-	opencv-samples \
 	openldap \
 	opensc \
 	openwbem \
