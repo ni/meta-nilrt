@@ -1,6 +1,6 @@
 SUMMARY = "rtctl - Utilities for controlling scheduling priorities of system threads"
 SECTION = "System Environment/Daemons"
-LICENSE = "GPL"
+LICENSE = "GPLv2"
 
 # No license file included in source. Hashing the "License" line in
 # spec file.
