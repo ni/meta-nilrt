@@ -7,6 +7,8 @@ SRC_URI = "file://init-restore-mode.sh      \
            file://disk_config_${MACHINE}    \
            "
 
+RDEPENDS_${PN} += "bash"
+
 PR = "r1"
 
 S = "${WORKDIR}"
