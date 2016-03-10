@@ -24,6 +24,7 @@ DEPENDS += "niacctbase \
 "
 RDEPENDS_${PN} += "${@base_contains("MACHINE_FEATURES", "x86", "grub-editenv", "", d)} \
     niacctbase \
+    bash \
 "
 
 group = "${LVRT_GROUP}"
