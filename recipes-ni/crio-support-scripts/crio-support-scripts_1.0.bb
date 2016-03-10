@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://${COREBASE}/LICENSE;md5=4d92cd373abda3937c2bc47fbc49d
                     file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384361b4de20420"
 SECTION = "base"
 DEPENDS = "niacctbase update-rc.d-native"
-RDEPENDS_${PN} += "niacctbase"
+RDEPENDS_${PN} += "niacctbase bash"
 
 SRC_URI_append_x64 = "file://nisetfpgaautoload \
                       file://nisetconsoleout \
