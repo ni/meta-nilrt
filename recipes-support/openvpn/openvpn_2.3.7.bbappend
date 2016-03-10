@@ -17,7 +17,6 @@ INITSCRIPT_NAME = "vpn"
 INITSCRIPT_PARAMS = "start 42 S . stop 5 0 1 2 6 ."
 
 do_install_append () {
-     install -d ${D}${base_bindir}
      install -d ${D}${sysconfdir}/default/volatiles/
      install -p -m 644 ${WORKDIR}/99_openvpn ${D}${sysconfdir}/default/volatiles/
      install -p -m 755 ${WORKDIR}/vpn ${D}${sysconfdir}/init.d/
