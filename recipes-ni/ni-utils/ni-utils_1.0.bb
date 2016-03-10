@@ -23,6 +23,7 @@ FILES_${PN} += "\
 DEPENDS += "niacctbase"
 
 RDEPENDS_${PN} += "niacctbase \
+	bash \
 "
 
 RDEPENDS_${PN}_append_x64 = "fw-printenv \
