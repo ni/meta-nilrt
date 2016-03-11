@@ -539,7 +539,6 @@ RDEPENDS_${PN} += "\
 	zeroconf \
 	arptables \
 	bridge-utils \
-	cifs \
 	dnsmasq \
 	dnssec-conf \
 	dovecot \
