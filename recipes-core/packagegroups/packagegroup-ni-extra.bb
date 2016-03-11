@@ -80,7 +80,7 @@ RDEPENDS_${PN} += "\
 	python-numpy \
 	python-zip \
 	python3 \
-	python3-distribute \
+	python3-setuptools \
 	rpm \
 	sgml-common \
 	unfs3 \
