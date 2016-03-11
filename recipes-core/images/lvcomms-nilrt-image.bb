@@ -15,5 +15,6 @@ IMAGE_INSTALL_NODEPS += " \
     ni-pxiplatformservices \
     ni-flexrio \
     ni-usrp-rio \
+    ni-sync \
     mt \
 "
