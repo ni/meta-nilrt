@@ -230,6 +230,7 @@ RDEPENDS_${PN} += "\
 	breakpad \
 	cgdb \
 	cppunit \
+	ctags \
 	cunit \
 	dejagnu \
 	geany \
