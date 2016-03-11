@@ -64,7 +64,6 @@ RDEPENDS_${PN} += "\
 	flex \
 	gnu-config \
 	i2c-tools \
-	insserv \
 	mkelfimage \
 	mmc-utils \
 	mtd-utils \
