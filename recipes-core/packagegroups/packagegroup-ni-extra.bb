@@ -172,7 +172,7 @@ RDEPENDS_${PN} += "\
 RDEPENDS_${PN} += "\
 	alsa-tools \
 	alsa-utils \
-	alsa-utils-alsaconf \
+	alsa-utils-scripts \
 	flac \
 	pulseaudio \
 	speex \
