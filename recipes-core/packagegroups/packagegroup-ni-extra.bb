@@ -100,7 +100,6 @@ RDEPENDS_${PN} += "\
 	byacc \
 	cups \
 	foomatic-filters \
-	gamin \
 	ghostscript \
 	iputils \
 	libarchive \
