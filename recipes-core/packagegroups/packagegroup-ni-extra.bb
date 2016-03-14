@@ -541,7 +541,7 @@ RDEPENDS_${PN} += "\
 	dnsmasq \
 	dnssec-conf \
 	dovecot \
-	drbd \
+	drbd-utils \
 	esmtp \
 	fetchmail \
 	fping \
