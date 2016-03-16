@@ -8,19 +8,11 @@ SRC_URI += "file://natinst-path.sh \
 	    file://zcip.script \
 "
 
-RDEPENDS_${PN} += "niacctbase"
-
-user = "${LVRT_USER}"
-group = "${LVRT_GROUP}"
-
 do_install_append () {
 	install -d ${D}/usr/local/natinst/lib/
 
 	# Create empty directory for user libraries
 	install -d ${D}/usr/local/lib/
-
-	# create log directory
-	install -d -m 0755 ${D}${localstatedir}/local/natinst/log/
 
 	# Symlink /lib64 to /lib on x86_64
 	if [ "${TARGET_ARCH}" = "x86_64" ]; then
@@ -48,11 +40,4 @@ do_install_append () {
 
         # Overwrite changes to issue.net on do_install_basefilesissue
         install -m 644 ${WORKDIR}/issue.net  ${D}${sysconfdir}
-}
-
-pkg_postinst_${PN} () {
-	# Change ownership on postinst instead of at build time to avoid circular dependency 
-	# between niacctbase and base-files
-	chown ${user}:${group} $D/var/local/natinst
-	chown ${user}:${group} $D/var/local/natinst/log
 }
