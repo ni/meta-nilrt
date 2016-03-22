@@ -16,3 +16,5 @@ do_install_append(){
     install -m 0644 ${WORKDIR}/logrotate.d-cron.conf ${D}${sysconfdir}/logrotate.d/cron.conf
     install -m 0644 ${WORKDIR}/logrotate.d-messages.conf ${D}${sysconfdir}/logrotate.d/messages.conf
 }
+
+INITSCRIPT_PARAMS = "start 19 2 3 4 5 . stop 90 0 1 6 ."
