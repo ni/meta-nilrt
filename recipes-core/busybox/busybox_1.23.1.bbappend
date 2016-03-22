@@ -1,8 +1,12 @@
 
 FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/files:${THISDIR}/${PN}:"
 
-SRC_URI =+ "file://busybox-ifplugd"
-SRC_URI =+ "file://busybox-acpid file://acpid.conf file://acpid_poweroff.sh"
+SRC_URI =+ " \
+            file://busybox-ifplugd \
+            file://busybox-acpid \
+            file://acpid.conf \
+            file://acpid_poweroff.sh \
+            file://0001-zcip-fix-wrong-comparison-of-source-IP-with-our-IP.patch"
 
 PACKAGES =+ " ${PN}-ifplugd"
 PACKAGES =+ " ${PN}-acpid"
