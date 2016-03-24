@@ -1,6 +1,5 @@
 SUMMARY = "Bag of goodies for NI Linux Realtime distribution"
 LICENSE = "MIT"
-PR = "r1"
 
 inherit packagegroup
 
