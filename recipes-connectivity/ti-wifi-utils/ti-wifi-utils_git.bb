@@ -3,9 +3,7 @@ LICENSE = "CLOSED"
 
 DEPENDS = "libnl"
 
-PR ="r8"
-PV ="0.0"
-PR_append = "+gitr${SRCPV}"
+PV ="0.0-git${SRCPV}"
 
 SRCREV = "f4508cf40df603456d806e2c64fd4a99b13d1aaf"
 SRC_URI = "git://github.com/TI-OpenLink/ti-utils.git;protocol=git \

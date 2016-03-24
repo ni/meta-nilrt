@@ -4,7 +4,6 @@
 
 SUMMARY = "SELinux packages for the NI Linux Real-Time distribution"
 LICENSE = "MIT"
-PR = "r1"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 

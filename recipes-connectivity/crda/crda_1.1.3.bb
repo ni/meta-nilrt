@@ -3,7 +3,6 @@ SECTION = "base"
 LICENSE = "ISC"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=07c4f6dea3845b02a18dc00c8c87699c"
 
-PR = "r4"
 
 DEPENDS = "libnl"
 RDEPENDS_${PN} = "\

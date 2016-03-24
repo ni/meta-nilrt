@@ -4,7 +4,6 @@
 
 SUMMARY = "CompactRIO support packages for NI Linux Real-Time distribution"
 LICENSE = "MIT"
-PR = "r0"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 

@@ -1,6 +1,5 @@
 SUMMARY = "Packagegroup that contains all of the components required for building the OE feeds"
 LICENSE = "MIT"
-PR = "r1"
 
 inherit packagegroup
 

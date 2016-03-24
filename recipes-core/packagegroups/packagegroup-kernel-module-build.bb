@@ -1,6 +1,5 @@
 SUMMARY = "Packages for building external kernel modules"
 LICENSE = "MIT"
-PR = "r1"
 
 inherit packagegroup
 
