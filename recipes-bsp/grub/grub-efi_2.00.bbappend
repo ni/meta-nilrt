@@ -12,6 +12,8 @@ SRC_URI = "git://git.savannah.gnu.org/grub.git \
            file://autogen.sh-exclude-pc.patch \
            file://0001-Fix-build-with-glibc-2.20.patch \
            file://grub-2.00-add-oe-kernel.patch \
+           file://0001-Define-SMBIOS3-entry-point-structures-for-EFI.patch \
+           file://0002-Add-a-module-for-retrieving-SMBIOS-information.patch \
            file://cfg \
            file://add_inbit_comm.patch \
 	   file://grub-efi-cleanup-menu.patch \
@@ -38,7 +40,7 @@ FILES_grub-efi-nilrt = "/boot/${GRUB_NILRT_IMAGE} \
 GRUB_BUILDIN = "boot linux ext2 fat serial part_msdos part_gpt normal efi_gop search \
                 chain configfile multiboot efi_uga font gfxterm gfxmenu terminal \
                 minicmd test iorw loadenv echo reboot terminfo loopback memdisk tar help \
-                ls search_fs_uuid udf btrfs reiserfs xfs lvm ata "
+                ls search_fs_uuid udf btrfs reiserfs xfs lvm ata smbios "
 
 do_compile_append_class-target () {
     grub-mkimage -p /boot/ -O ${GRUB_TARGET}-efi -d ./grub-core/ \
