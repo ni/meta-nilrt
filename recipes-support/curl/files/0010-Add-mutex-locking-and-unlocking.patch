@@ -1,7 +1,7 @@
-From fd095bcc67c5380a97e2f75b40b1356962ee0b5f Mon Sep 17 00:00:00 2001
+From 215849695855605bd6f618478dec36220f9ca933 Mon Sep 17 00:00:00 2001
 From: Jonathan David <jonathan.david@ni.com>
 Date: Thu, 18 Feb 2016 11:30:26 -0600
-Subject: [PATCH 10/22] Add mutex locking and unlocking
+Subject: [PATCH 10/21] Add mutex locking and unlocking
 
 Include global_mutex.cpp and global_mutex.h to allow for
 thread-safe operation. Provides functions for recursive mutex
@@ -9,18 +9,18 @@ locking and unlocking.
 
 Upstream-Status: Inappropriate [creates Linux dependency]
 ---
- lib/global_mutex.cpp | 103 +++++++++++++++++++++++++++++++++++++++++++++++++++
- lib/global_mutex.h   |  18 +++++++++
- 2 files changed, 121 insertions(+)
+ lib/global_mutex.cpp | 173 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ lib/global_mutex.h   |  18 ++++++
+ 2 files changed, 191 insertions(+)
  create mode 100644 lib/global_mutex.cpp
  create mode 100644 lib/global_mutex.h
 
 diff --git a/lib/global_mutex.cpp b/lib/global_mutex.cpp
 new file mode 100644
-index 0000000..88f57ee
+index 0000000..d842ece
 --- /dev/null
 +++ b/lib/global_mutex.cpp
-@@ -0,0 +1,103 @@
+@@ -0,0 +1,173 @@
 +/* Implementation of curl_global_mutex_lock() and curl_global_mutex_unlock().
 + * 
 + * @note This C++ source file MUST NOT throw exceptions, use RTTI, or
@@ -32,6 +32,8 @@ index 0000000..88f57ee
 + * ToDo: Rewrite this in C instead of C++.
 + */
 +
++#include <stdio.h>
++#include <stdlib.h>
 +#include "global_mutex.h"
 +
 +#ifdef _WIN32
@@ -48,17 +50,17 @@ index 0000000..88f57ee
 +{
 +#if defined(linux) || defined(__linux__) || defined(__gnu_linux__) || defined(__linux)
 +	static pthread_mutex_t mutex_ = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
-+#elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
-+	static pthread_mutex_t mutex_ = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
 +#endif
 +
-+#if defined(_WIN32) || defined(VXWORKS_PPC)
++#if defined(_WIN32) || defined(VXWORKS_PPC) || defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
 +	struct _CriticalSection
 +	{
 +#ifdef _WIN32
 +		CRITICAL_SECTION cs_;
 +#elif defined VXWORKS_PPC
 +		SEM_ID sem_;
++#elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
++		pthread_mutex_t mutex_;
 +#endif
 +
 +		inline _CriticalSection()
@@ -67,15 +69,55 @@ index 0000000..88f57ee
 +			InitializeCriticalSection(&cs_);
 +#elif defined VXWORKS_PPC
 +			sem_ = semMCreate(SEM_Q_PRIORITY | SEM_DELETE_SAFE | SEM_INVERSION_SAFE);
++			if (sem_ == NULL)
++			{
++				perror("cURL fatal error: Error initializing mutex");
++				exit(-1);
++			}
++#elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
++			/* PTHREAD_RECURSIVE_MUTEX_INITIALIZER not supported by xcode3.2-gcc4.2
++			 * create a mutex that can be locked recursively by the same thread */
++			pthread_mutexattr_t attr;
++			if (pthread_mutexattr_init(&attr))
++			{
++				perror("cURL fatal error: Error initializing mutex attribute");
++				exit(-1);
++			}
++			if (pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE))
++                        {
++                                perror("cURL fatal error: Error setting mutex recursive attribute");
++                                exit(-1);
++                        }
++			if (pthread_mutex_init(&mutex_, &attr))
++                        {
++                                perror("cURL fatal error: Error initializing mutex");
++                                exit(-1);
++                        }
++			if (pthread_mutexattr_destroy(&attr))
++                        {
++                                perror("cURL fatal error: Error destroying mutex attribute");
++                                exit(-1);
++                        }
 +#endif
 +		}
++
 +
 +		inline ~_CriticalSection()
 +		{
 +#ifdef _WIN32
 +			DeleteCriticalSection(&cs_);
 +#elif defined VXWORKS_PPC
-+			semDelete(sem_);
++			if (semDelete(sem_))
++			{
++				perror("cURL fatal error: Error deleting mutex");
++				exit(-1);
++			}
++#elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
++			if (pthread_mutex_destroy(&mutex_))
++			{
++                                perror("cURL fatal error: Error deleting mutex");
++                                exit(-1);
++			}
 +#endif
 +		}
 +
@@ -84,7 +126,17 @@ index 0000000..88f57ee
 +#ifdef _WIN32
 +			EnterCriticalSection(&cs_);
 +#elif defined VXWORKS_PPC
-+			semTake(sem_, WAIT_FOREVER);
++			if (semTake(sem_, WAIT_FOREVER))
++			{
++				perror("cURL fatal error: Error locking mutex");
++				exit(-1);
++			}
++#elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
++			if (pthread_mutex_lock(&mutex_))
++	                {
++	                        perror("cURL fatal error: Error locking mutex");
++	                        exit(-1);
++	                }
 +#endif
 +		}
 +
@@ -93,7 +145,17 @@ index 0000000..88f57ee
 +#ifdef _WIN32
 +			LeaveCriticalSection(&cs_);
 +#elif defined VXWORKS_PPC
-+			semGive(sem_);
++			if (semGive(sem_))
++			{
++				perror("cURL fatal error: Error unlocking mutex");
++				exit(-1);
++			}
++#elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
++			if (pthread_mutex_unlock(&mutex_))
++	                {
++	                        perror("cURL fatal error: Error unlocking mutex");
++	                        exit(-1);
++	                }
 +#endif
 +		}
 +	};
@@ -107,20 +169,28 @@ index 0000000..88f57ee
 +	void curl_global_mutex_lock()
 +	{
 +		// Do NOT add try/catch blocks here. See comments above for details.
-+#if defined (_WIN32) || defined(VXWORKS_PPC)
++#if defined(_WIN32) || defined(VXWORKS_PPC) || defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
 +		g_cs.lock();
-+#elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__) || defined(linux) || defined(__linux__) || defined(__gnu_linux__) || defined(__linux)
-+		pthread_mutex_lock(&mutex_);
++#elif defined(linux) || defined(__linux__) || defined(__gnu_linux__) || defined(__linux)
++                if (pthread_mutex_lock(&mutex_))
++                {
++                        perror("cURL fatal error: Error locking mutex");
++                        exit(-1);
++                }
 +#endif
 +	}
 +
 +	void curl_global_mutex_unlock()
 +	{
 +		// Do NOT add try/catch blocks here. See comments above for details.
-+#if defined (_WIN32) || defined(VXWORKS_PPC)
++#if defined(_WIN32) || defined(VXWORKS_PPC) || defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
 +		g_cs.unlock();
-+#elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__) || defined(linux) || defined(__linux__) || defined(__gnu_linux__) || defined(__linux)
-+		pthread_mutex_unlock(&mutex_);
++#elif defined(linux) || defined(__linux__) || defined(__gnu_linux__) || defined(__linux)
++                if (pthread_mutex_unlock(&mutex_))
++                {
++                        perror("cURL fatal error: Error unlocking mutex");
++                        exit(-1);
++                }
 +#endif
 +	}
 +}
