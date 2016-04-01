@@ -1,7 +1,7 @@
-From 0dc6128ebd850069569b90235bb8516dc9054140 Mon Sep 17 00:00:00 2001
-From: Haris Okanovic <haris.okanovic@ni.com>
-Date: Tue, 12 Aug 2014 15:18:20 -0500
-Subject: [PATCH 17/22] Add NI specific changes to VxWorks config file
+From 6cb2c6ea169d5e15d446dd8981390597c8e92e40 Mon Sep 17 00:00:00 2001
+From: Jonathan David <jonathan.david@ni.com>
+Date: Fri, 1 Apr 2016 10:10:50 -0500
+Subject: [PATCH] Add NI specific changes to VxWorks config file
 
 - Enabled FTP protocol
 - Disabled IPv6
@@ -22,15 +22,15 @@ Subject: [PATCH 17/22] Add NI specific changes to VxWorks config file
 - Fixed recv() configuration
 - Fixed send() configuration
 - Changed SIZEOF_OFF_T to 4
-- Unset USE_OPENSSL and USE_SSLEAY; they're set by out MAK files
+- Unset USE_OPENSSL; it is set by our MAK files
 
 Upstream-Status: Inappropriate [configuration]
 ---
- lib/config-vxworks.h | 58 ++++++++++++++++++++++++++--------------------------
- 1 file changed, 29 insertions(+), 29 deletions(-)
+ lib/config-vxworks.h | 56 ++++++++++++++++++++++++++--------------------------
+ 1 file changed, 28 insertions(+), 28 deletions(-)
 
 diff --git a/lib/config-vxworks.h b/lib/config-vxworks.h
-index 05220b5..4a3f5e6 100644
+index d889efc..c689341 100644
 --- a/lib/config-vxworks.h
 +++ b/lib/config-vxworks.h
 @@ -45,7 +45,7 @@
@@ -239,16 +239,12 @@ index 05220b5..4a3f5e6 100644
  
  /* The size of `short', as computed by sizeof. */
  #define SIZEOF_SHORT 2
-@@ -881,10 +881,10 @@
+@@ -881,7 +881,7 @@
  /* #undef USE_NSS */
  
  /* if OpenSSL is in use */
 -#define USE_OPENSSL 1
 +/* #define USE_OPENSSL 1 */   /* NI-CHANGE: Will be set by MAK file only for SSL-enabled builds. */
- 
- /* if SSL is enabled */
--#define USE_SSLEAY 1
-+/* #define USE_SSLEAY 1 */   /* NI-CHANGE: Will be set by MAK file only for SSL-enabled builds. */
  
  /* Define to 1 if you are building a Windows target without large file
     support. */
