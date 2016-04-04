@@ -1,5 +1,7 @@
 LIC_FILES_CHKSUM = "file://LICENSE;md5=b59c9134761722281bb895f65cb15e9a"
 
+FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+
 SRC_URI = "${NILRT_GIT}/salt.git;protocol=git;branch=nilrt/comms-2.0/2015.8 \
            file://set_python_location_hashbang.patch \
            file://minion \
