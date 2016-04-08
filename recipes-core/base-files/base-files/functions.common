@@ -812,44 +812,6 @@ netif_set_device()
     fi
 }
 
-# Usage: setup_wireless <interface_name>
-setup_wireless()
-{
-    INTERFACEW=$1
-
-    export DISABLE_CERTIFICATE_TIME_STAMP_VERIFICATION=1
-
-    WIRELESS_REGION_FACTORY=`fw_printenv -n wirelessRegionFactory`
-    if [ $? -ne 0 ]; then
-        WIRELESS_REGION_FACTORY=-1
-    fi
-
-    # If wirelessRegionUser isn't set, we should default to the factory region (if set)
-    WIRELESS_REGION_USER=$(/usr/local/natinst/bin/nirtcfg --get section=SystemSettings,token=wirelessRegionUser,value=${WIRELESS_REGION_FACTORY})
-
-    WIRELESS_REGION_USER_ALPHA2=$(grep -v ^\# /etc/natinst/iso3166-translation.txt | grep -- $(printf "%03d" "${WIRELESS_REGION_USER}") | awk -F ' ' '{print $2}')
-    if [ -n "${WIRELESS_REGION_USER_ALPHA2}" ]; then
-        # Only set if we found something. This should always be the case unless new
-        # countries were added in a future release and the user downgraded. In that
-        # case we don't apply wirelessRegionUser settings, we just use the settings
-        # from wirelessRegionFactory.
-        iw reg set ${WIRELESS_REGION_USER_ALPHA2}
-    fi
-
-    # Bring the interface up, unless the radio's disabled, in which case rfkill it so
-    # it can't be brought up inadvertantly (e.g. by wpa_supplicant).
-    RADIOENABLED=`/usr/local/natinst/bin/nirtcfg --get section=${INTERFACEW},token=radioenabled,value=0`
-    if [ ${RADIOENABLED} = 1 ] ; then
-       ifconfig $INTERFACEW up
-    else
-       rfkill block wlan 0
-    fi
-
-    iw dev ${INTERFACEW} set power_save off
-
-    /etc/network/wpa_supplicant_conf
-}
-
 # Usage: add_linklocal_route <INTERFACE> <MIN_METRIC> <MAX_METRIC>
 # Description: this function will try to add a 169.254.0.0/16 route
 # in the routing table. It will try with different metrics (starting
