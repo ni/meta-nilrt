@@ -2,7 +2,7 @@ DESCRIPTION = "Linux kernel based on nilrt branch"
 
 require linux-nilrt.inc
 
-NI_RELEASE_VERSION = "comms-2.0"
+NI_RELEASE_VERSION = "cardassia"
 LINUX_VERSION = "4.1"
 LINUX_VERSION_EXTENSION = "-nilrt"
 KBRANCH = "nilrt/${NI_RELEASE_VERSION}/${LINUX_VERSION}"

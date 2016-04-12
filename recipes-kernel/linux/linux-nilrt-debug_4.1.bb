@@ -6,7 +6,7 @@ require linux-nilrt.inc
 # to avoid errors related to multiple recipes providing virtual/kernel
 PROVIDES = ""
 
-NI_RELEASE_VERSION = "comms-2.0"
+NI_RELEASE_VERSION = "cardassia"
 LINUX_VERSION = "4.1"
 LINUX_VERSION_EXTENSION = "-debug"
 KBRANCH = "nilrt/${NI_RELEASE_VERSION}/${LINUX_VERSION}"
