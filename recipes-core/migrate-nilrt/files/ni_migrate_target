@@ -1,5 +1,21 @@
 #!/bin/bash
 
+# gross hack for ARM: currentgen is all soft-float but the lvnextos.ipk
+# is created from next-gen + OE which is hard-float, therefore opkg on
+# the target will refuse to install (arch mismatch cortexa9hf-vfpv3 vs.
+# cortexa9-vfpv3). This hacks opkg.conf to allow installing lvnextos.
+hack_arm_opkg_arch()
+{
+    echo "arch cortexa9hf-vfpv3 60" >> /etc/opkg/arch.conf
+}
+
+# currentgen's safemode needs to install the lvnextos payload to userfs
+# so add it as a destination otherwise opkg won't know how to install.
+add_opkg_userfs_dest()
+{
+    echo "dest userfs /mnt/userfs" >> /etc/opkg/opkg.conf
+}
+
 migrate_target()
 {
     if [[ $target_flavor == "legacy" ]]; then
@@ -11,9 +27,21 @@ migrate_target()
             fw_setenv consoleoutenable True
             /etc/init.d/nisetbootmode force-safemode
             reboot
-        elif [[ $ARCH == "arm" ]]; then
-            # TODO add arm migration
-            echo "Migrate ARM"
+        elif [[ $ARCH =~ "arm" ]]; then
+	    hack_arm_opkg_arch
+	    opkg update
+	    if [ -f "/etc/natinst/safemode" ]; then
+		# safemode ramfs is too small so we install in the userfs
+		cd /mnt/userfs
+		opkg download lvnextos
+		add_opkg_userfs_dest
+		opkg install lvnextos* -d userfs
+		cp .newNILinuxRT/linux_migrate.itb /boot/linux_runmode.itb
+	    else
+		opkg install lvnextos
+		cp /.newNILinuxRT/linux_migrate.itb /boot/linux_runmode.itb
+	    fi
+	    reboot
         fi
     elif [[ $target_flavor == "new" ]]; then
         if [[ $ARCH == "x86_64" ]]; then
