@@ -29,7 +29,8 @@ inherit update-rc.d
 INITSCRIPT_PARAMS_${PN}-minion = "defaults 25 25"
 
 # Remove zmq dependency since nilrt only supports the TCP Salt transport
+# Using the _remove syntax mangled the dependency string so use python instead
 python () {
     pn = d.getVar('PN', True)
-    d.setVar('RDEPENDS_%s-minion' % pn, d.getVar('RDEPENDS_%s-minion' % pn, True).replace('python-pyzmq (>= 13.1.0)',''))
+    d.setVar('RDEPENDS_%s-minion' % pn, d.getVar('RDEPENDS_%s-minion' % pn, False).replace('python-pyzmq (>= 13.1.0)',''))
 }
