@@ -4,4 +4,4 @@
 
 part /boot --source isoimage-isohybrid --sourceparams="loader=grub-efi,image_name=NI_RECOVERY_IMG" --ondisk cd --label NIRECOVERY --fstype=ext3
 
-bootloader  --timeout=10  --append="restore=provision"
+bootloader  --configfile="grub.cfg"
