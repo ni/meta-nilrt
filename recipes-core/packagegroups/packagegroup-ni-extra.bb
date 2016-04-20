@@ -10,9 +10,12 @@ RDEPENDS_${PN} = "\
 	packagegroup-core-device-devel \
 	packagegroup-core-buildessential \
 	packagegroup-core-tools-debug \
+"
+
+RDEPENDS_${PN}_append_x64 = "\
 	packagegroup-self-hosted \
-	packagegroup-core-lsb \
 	packagegroup-core-qt \
+	packagegroup-core-lsb \
 "
 
 RDEPENDS_${PN} += "\
@@ -132,7 +135,6 @@ RDEPENDS_${PN} += "\
 	acl \
 	boost \
 	ca-certificates \
-	consolekit \
 	createrepo \
 	curl \
 	debianutils \
@@ -148,6 +150,10 @@ RDEPENDS_${PN} += "\
 	pinentry \
 	ptest-runner \
 	sqlite \
+"
+
+RDEPENDS_${PN}_append_x64 += "\
+	consolekit \
 	vte \
 "
 
@@ -159,11 +165,14 @@ RDEPENDS_${PN} += "\
 	kmod \
 	latencytop \
 	oprofile \
-	oprofileui \
 	oprofileui-server \
-	sysprof \
 	systemtap \
 	trace-cmd \
+"
+
+RDEPENDS_${PN}_append_x64 += "\
+	oprofileui \
+	sysprof \
 "
 
 # powertop: "error: C compiler cannot build executables"
@@ -202,10 +211,7 @@ RDEPENDS_${PN} += "\
 	iw \
 	krb5 \
 	linuxptp \
-	lirc \
-	modemmanager \
 	mosh \
-	networkmanager \
 	rarpd \
 	rfkill \
 	samba \
@@ -216,6 +222,12 @@ RDEPENDS_${PN} += "\
 	usbmuxd \
 	zeromq \
 	wireless-tools \
+"
+
+RDEPENDS_${PN}_append_x64 += "\
+	lirc \
+	modemmanager \
+	networkmanager \
 "
 
 # meta-openembedded/meta-oe/recipes-core
@@ -233,7 +245,6 @@ RDEPENDS_${PN} += "\
 	ctags \
 	cunit \
 	dejagnu \
-	geany \
 	i2c-tools \
 	icon-slicer \
 	jq \
@@ -251,12 +262,10 @@ RDEPENDS_${PN} += "\
 	protobuf \
 	python-futures \
 	python-pyopenssl \
-	python-pyqt \
 	python-simplejson \
 	python-tornado \
 	swig \
 	tclap \
-	tk \
 	uw-imap \
 	vala-dbus-binding-tool \
 	yajl \
@@ -264,7 +273,10 @@ RDEPENDS_${PN} += "\
 "
 RDEPENDS_${PN}_append_x64 += "\
 	concurrencykit \
+	geany \
 	msr-tools \
+	python-pyqt \
+	tk \
 "
 
 
@@ -278,7 +290,6 @@ RDEPENDS_${PN} += "\
 	dialog \
 	efivar \
 	flashrom \
-	gnuplot \
 	haveged \
 	hexedit \
 	hplip \
@@ -291,7 +302,6 @@ RDEPENDS_${PN} += "\
 	liblockfile \
 	liblognorm \
 	libmodbus \
-	libwmf \
 	lockfile-progs \
 	logcheck \
 	logwatch \
@@ -299,23 +309,28 @@ RDEPENDS_${PN} += "\
 	nana \
 	nicstat \
 	p7zip \
-	polkit \
 	redis \
 	rrdtool \
 	rsyslog \
-	sip \
 	smartmontools \
 	canutils \
-	t1lib \
 	tcsh \
 	tipcutils \
 	tmux \
 	zram \
 "
 
+RDEPENDS_${PN}_append_x64 += "\
+	gnuplot \
+	libwmf \
+	polkit \
+	sip \
+	t1lib \
+"
+
 # meta-openembedded/meta-oe/recipes-graphics
 # meta-oe/recipes-graphics
-RDEPENDS_${PN} += "\
+RDEPENDS_${PN}_append_x64 += "\
 	gimp \
 	jasper \
 	lxdm \
@@ -385,7 +400,6 @@ RDEPENDS_${PN} += "\
 	fbset \
 	fbset-modes \
 	fftwf \
-	fltk \
 	gd \
 	glog \
 	gperftools \
@@ -431,7 +445,6 @@ RDEPENDS_${PN} += "\
 	pam-passwdqc \
 	pcsc-lite \
 	picocom \
-	pidgin \
 	pkcs11-helper \
 	poppler \
 	portaudio-v19 \
@@ -455,14 +468,10 @@ RDEPENDS_${PN} += "\
 	system-setup-keyboard \
 	talloc \
 	tbb \
-	toscoterm \
 	tree \
-	udisks \
-	upower \
 	usb-modeswitch \
 	usbpath \
 	vim \
-	xchat \
 	xdelta3 \
 	xmlstarlet \
 	zile \
@@ -470,8 +479,14 @@ RDEPENDS_${PN} += "\
 
 RDEPENDS_${PN}_append_x64 += "\
 	edac-utils \
+	fltk \
 	mcelog \
 	numactl \
+	pidgin \
+	toscoterm \
+	udisks \
+	upower \
+	xchat \
 "
 
 # meta-openembedded/meta-oe/recipes-kernel
@@ -494,7 +509,7 @@ RDEPENDS_${PN} += "\
 "
 
 # meta-openembedded/meta-gnome
-RDEPENDS_${PN} += "\
+RDEPENDS_${PN}_append_x64 += "\
 	florence \
 "
 
@@ -637,7 +652,7 @@ RDEPENDS_${PN} += "\
 "
 
 # Shared libraries needed to run FireFox
-RDEPENDS_${PN} += "\
+RDEPENDS_${PN}_append_x64 += "\
     alsa-lib \
     gtk+3 \
 "
@@ -648,7 +663,7 @@ RDEPENDS_${PN} += " \
 "
 
 # meta-oe/meta-xfce
-RDEPENDS_${PN} += "\
+RDEPENDS_${PN}_append_x64 += "\
 	packagegroup-xfce-extended \
 "
 
@@ -801,10 +816,10 @@ RDEPENDS_${PN} += "\
 RDEPENDS_${PN} += "packagegroup-ni-selinux"
 
 # meta-mono
-RDEPENDS_${PN} += "packagegroup-ni-mono-extra"
+RDEPENDS_${PN}_append_x64 += "packagegroup-ni-mono-extra"
 
 # meta-java
-RDEPENDS_${PN} += "\
+RDEPENDS_${PN}_append_x64 += "\
 	openjdk-7-jre \
 "
 
@@ -838,11 +853,11 @@ RDEPENDS_${PN} += "\
 "
 
 # meta-sdr
-RDEPENDS_${PN} += "\
+RDEPENDS_${PN}_append_x64 += "\
 	gnuradio \
 "
 
 # meta-nilrt/recipes-graphics
-RDEPENDS_${PN} += "\
+RDEPENDS_${PN}_append_x64 += "\
 	libvncserver \
 "
