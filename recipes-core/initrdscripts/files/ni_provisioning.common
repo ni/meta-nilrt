@@ -17,6 +17,12 @@ LOG_LEVEL=7
 
 ARCH=`uname -m`
 
+if $(grep -qF ni_silent_provision /proc/cmdline); then
+    do_silent() { "$@" &>/dev/null; };
+else
+    do_silent() { "$@"; }
+fi
+
 if [ -e /disk_config ]; then
     source /disk_config
 else
@@ -98,7 +104,7 @@ EOF
     restore_minimal_image()
     {
         echo "Formatting $NILRT_LABEL partition..."
-        partition_format $TARGET_DISK $NILRT_LABEL
+        do_silent partition_format $TARGET_DISK $NILRT_LABEL
         NILRT_MOUNTPOINT=/var/volatile/nilrt
         mkdir $NILRT_MOUNTPOINT -p
         NILRT_ERROR=`mount -L $NILRT_LABEL $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
@@ -129,7 +135,7 @@ EOF
         echo "Installing restore to: $TARGET_DISK using $BOOT_STYLE boot style."
 
         echo "Partitioning $TARGET_DISK..."
-        disk_setup $TARGET_DISK
+        do_silent disk_setup $TARGET_DISK
 
         #install grub
 
@@ -148,7 +154,7 @@ EOF
             do
             EFIMGR=`efibootmgr -b $ENTRY -B 2>&1` || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
             done
-            efibootmgr -c -d ${TARGET_DISK} -p 1 -L 'LabVIEW RT' -l '\efi\boot\bootx64.efi'
+            do_silent efibootmgr -c -d ${TARGET_DISK} -p 1 -L 'LabVIEW RT' -l '\efi\boot\bootx64.efi'
         else
             echo "Configuring legacy grub2..."
             LEGACY_GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/boot/grub
