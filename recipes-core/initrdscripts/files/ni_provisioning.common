@@ -115,7 +115,7 @@ EOF
     {
         if [ "$1" = "usb" ]; then
             mkdir -p $USB_MOUNTPOINT
-            mount -L NIRECOVERY $USB_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
+            mount -o ro -L NIRECOVERY $USB_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
             SOURCE_DIR=$USB_MOUNTPOINT
         elif [ "$1" = "onboard" ]; then
             mkdir -p $TEMP_MOUNTPOINT
