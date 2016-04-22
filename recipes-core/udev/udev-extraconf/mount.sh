@@ -8,7 +8,7 @@
 MOUNT="/bin/mount"
 PMOUNT="/usr/bin/pmount"
 UMOUNT="/bin/umount"
-sgdisk_sed="s/^\/dev\/(sd[a-z])([0-9]+)$/sgdisk -i \2 \/dev\/\1/"
+sgdisk_sed="s/^\/dev\/((sd[a-z]+)|(mmcblk[0-9]+)p)([0-9]+)$/sgdisk -i \4 \/dev\/\2\3/"
 efi_guid="C12A7328-F81F-11D2-BA4B-00A0C93EC93B"
 export PATH="$PATH:/usr/sbin"
 
