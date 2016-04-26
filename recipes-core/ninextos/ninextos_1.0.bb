@@ -21,7 +21,7 @@ do_install_append_x64() {
 }
 
 do_install_append_xilinx-zynqhf() {
-    #this hack is only to create the ipk, otherwise if only hidden folders are installed, the ipk won't be created 
+    #this hack is only to create the ipk, otherwise if only hidden folders are installed, the ipk won't be created
     install -d ${D}/boot
     install -d ${D}/.newNILinuxRT/.safe
     install -d ${D}/.newNILinuxRT/.restore/dtbs

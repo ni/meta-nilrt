@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# gross hack for ARM: currentgen is all soft-float but the lvnextos.ipk
+# gross hack for ARM: currentgen is all soft-float but the ninextos.ipk
 # is created from next-gen + OE which is hard-float, therefore opkg on
 # the target will refuse to install (arch mismatch cortexa9hf-vfpv3 vs.
-# cortexa9-vfpv3). This hacks opkg.conf to allow installing lvnextos.
+# cortexa9-vfpv3). This hacks opkg.conf to allow installing ninextos.
 hack_arm_opkg_arch()
 {
     echo "arch cortexa9hf-vfpv3 60" >> /etc/opkg/arch.conf
 }
 
-# currentgen's safemode needs to install the lvnextos payload to userfs
+# currentgen's safemode needs to install the ninextos payload to userfs
 # so add it as a destination otherwise opkg won't know how to install.
 add_opkg_userfs_dest()
 {
@@ -21,7 +21,7 @@ migrate_target()
     if [[ $target_flavor == "legacy" ]]; then
         if [[ $ARCH == "x86_64" ]]; then
             opkg update
-            opkg install lvnextos
+            opkg install ninextos
             mv /boot/.safe/bootimage.cfg /boot/.safe/bootimage_old.cfg
             cp /boot/.newNILinuxRT/bootimage.cfg /boot/.safe/
             fw_setenv consoleoutenable True
@@ -33,12 +33,12 @@ migrate_target()
 	    if [ -f "/etc/natinst/safemode" ]; then
 		# safemode ramfs is too small so we install in the userfs
 		cd /mnt/userfs
-		opkg download lvnextos
+		opkg download ninextos
 		add_opkg_userfs_dest
-		opkg install lvnextos* -d userfs
+		opkg install ninextos* -d userfs
 		cp .newNILinuxRT/linux_migrate.itb /boot/linux_runmode.itb
 	    else
-		opkg install lvnextos
+		opkg install ninextos
 		cp /.newNILinuxRT/linux_migrate.itb /boot/linux_runmode.itb
 	    fi
 	    reboot
