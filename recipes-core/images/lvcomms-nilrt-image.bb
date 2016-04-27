@@ -21,18 +21,16 @@ IMAGE_INSTALL_NODEPS += " \
     mt \
 "
 
-LICENSE_TAR = "${DEPLOY_DIR}/licenses.tar.gz"
+COPY_LIC_MANIFEST = "1"
+COPY_LIC_DIRS = "1"
+LICENSE_TAR = "${IMAGE_ROOTFS}/usr/share/common-licenses.bz2"
 
-addtask tar_licenses after do_populate_lic before do_rootfs
-
-do_tar_licenses() {
+tar_licenses() {
 	rm -f ${LICENSE_TAR}
-	tar cfz ${LICENSE_TAR} -C ${DEPLOY_DIR} licenses
+	tar cf ${LICENSE_TAR} -C ${IMAGE_ROOTFS}/usr/share -I pbzip2 common-licenses
+	rm -rf ${IMAGE_ROOTFS}/usr/share/common-licenses
+	[ ! -e "${IMAGE_ROOTFS}/usr/share/common-licenses" ]
 }
 
-ROOTFS_POSTPROCESS_COMMAND += "do_copy_licenses_tar; "
-
-do_copy_licenses_tar() {
-	cp ${LICENSE_TAR} ${IMAGE_ROOTFS}
-}
+ROOTFS_POSTPROCESS_COMMAND += "tar_licenses; "
 
