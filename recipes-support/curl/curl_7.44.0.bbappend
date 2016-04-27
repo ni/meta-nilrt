@@ -21,4 +21,5 @@ SRC_URI += " \
         file://0018-Modified-include-curl-curlbuild.h.dist-for-NI-s-VxWo.patch \
         file://0019-Don-t-use-wincrypt.h-on-PharLap.patch \
         file://0021-Fixup-lib1529-test.patch \
+        file://0022-config-win32.h-Disable-Win32-crypto-API-on-Phar-Lap-.patch \
 "
