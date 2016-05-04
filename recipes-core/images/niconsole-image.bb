@@ -12,3 +12,4 @@ IMAGE_INSTALL = "\
 IMAGE_FSTYPES = "tar.bz2"
 
 require include/niconsole-image.inc
+require include/licenses.inc
