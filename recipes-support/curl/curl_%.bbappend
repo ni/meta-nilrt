@@ -25,4 +25,5 @@ SRC_URI += " \
 	file://0020-ipv6-enclose-AF_INET6-uses-with-proper-ifdefs-for-ip.patch \
 	file://0021-Fixup-lib1529-test.patch \
 	file://0022-config-win32.h-Disable-Win32-crypto-API-on-Phar-Lap-.patch \
+	file://0023-Decorate-API-functions-on-Windows-with-__cdecl.patch \
 "
