@@ -18,19 +18,3 @@ IMAGE_INSTALL_NODEPS += " \
     ni-sync \
     mt \
 "
-
-LICENSE_TAR = "${DEPLOY_DIR}/licenses.tar.gz"
-
-addtask tar_licenses after do_populate_lic before do_rootfs
-
-do_tar_licenses() {
-	rm -f ${LICENSE_TAR}
-	tar cfz ${LICENSE_TAR} -C ${DEPLOY_DIR} licenses
-}
-
-ROOTFS_POSTPROCESS_COMMAND += "do_copy_licenses_tar; "
-
-do_copy_licenses_tar() {
-	cp ${LICENSE_TAR} ${IMAGE_ROOTFS}
-}
-
