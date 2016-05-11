@@ -1,6 +1,36 @@
-diff -rupN libc/iconvdata/cp936.c libc-CHANGED/iconvdata/cp936.c
---- libc/iconvdata/cp936.c	1969-12-31 18:00:00.000000000 -0600
-+++ libc-CHANGED/iconvdata/cp936.c	2013-09-26 17:03:49.769799535 -0500
+diff --git a/iconv/skeleton.c b/iconv/skeleton.c
+index a15f8b1..10b1ca3 100644
+--- a/iconv/skeleton.c
++++ b/iconv/skeleton.c
+@@ -163,6 +163,10 @@
+ # endif
+ #endif
+ 
++#ifndef ONE_DIRECTION
++# define ONE_DIRECTION 0
++#endif
++
+ /* How many bytes are needed at most for the from-charset.  */
+ #ifndef MAX_NEEDED_FROM
+ # define MAX_NEEDED_FROM	MIN_NEEDED_FROM
+diff --git a/iconvdata/Makefile b/iconvdata/Makefile
+index 357530b..1e2df51 100644
+--- a/iconvdata/Makefile
++++ b/iconvdata/Makefile
+@@ -61,7 +61,7 @@ modules	:= ISO8859-1 ISO8859-2 ISO8859-3 ISO8859-4 ISO8859-5		 \
+ 	   IBM5347 IBM9030 IBM9066 IBM9448 IBM12712 IBM16804             \
+ 	   IBM1364 IBM1371 IBM1388 IBM1390 IBM1399 ISO_11548-1 MIK BRF	 \
+ 	   MAC-CENTRALEUROPE KOI8-RU ISO8859-9E				 \
+-	   CP770 CP771 CP772 CP773 CP774
++	   CP770 CP771 CP772 CP773 CP774 CP936
+ 
+ modules.so := $(addsuffix .so, $(modules))
+ 
+diff --git a/iconvdata/cp936.c b/iconvdata/cp936.c
+new file mode 100644
+index 0000000..7eb6c4a
+--- /dev/null
++++ b/iconvdata/cp936.c
 @@ -0,0 +1,13495 @@
 +/* Mapping tables for GBK handling.
 +   Copyright (C) 1999, 2000-2002 Free Software Foundation, Inc.
@@ -13497,15 +13527,3 @@ diff -rupN libc/iconvdata/cp936.c libc-CHANGED/iconvdata/cp936.c
 +
 +/* Now define the toplevel functions.  */
 +#include <iconv/skeleton.c>
-diff -rupN libc/iconvdata/Makefile libc-CHANGED/iconvdata/Makefile
---- libc/iconvdata/Makefile	2012-10-25 12:18:12.000000000 -0500
-+++ libc-CHANGED/iconvdata/Makefile	2013-09-26 17:04:12.425799495 -0500
-@@ -62,7 +62,7 @@ modules-$(OPTION_EGLIBC_CHARSETS)					 \
- 	   IBM5347 IBM9030 IBM9066 IBM9448 IBM12712 IBM16804             \
- 	   IBM1364 IBM1371 IBM1388 IBM1390 IBM1399 ISO_11548-1 MIK BRF	 \
- 	   MAC-CENTRALEUROPE KOI8-RU ISO8859-9E				 \
--	   CP770 CP771 CP772 CP773 CP774
-+	   CP770 CP771 CP772 CP773 CP774 CP936
- 
- modules.so := $(addsuffix .so, $(modules-y))
- 
