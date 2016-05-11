@@ -1,7 +1,4 @@
-From 0988fa340ebff3c1073009064bacf33db706ef9f Mon Sep 17 00:00:00 2001
-Message-Id: <0988fa340ebff3c1073009064bacf33db706ef9f.1454576819.git.adrian.ratiu@ni.com>
-In-Reply-To: <27e4d8d5345240036a018641a856e7999db97fcb.1454576819.git.adrian.ratiu@ni.com>
-References: <27e4d8d5345240036a018641a856e7999db97fcb.1454576819.git.adrian.ratiu@ni.com>
+From ffe8e249a14e62bbf021045adce2ee3b8d4de1f8 Mon Sep 17 00:00:00 2001
 From: Gratian Crisan <gratian.crisan@ni.com>
 Date: Mon, 30 Jun 2014 13:04:31 -0500
 Subject: [PATCH 5/5] x86_64: Remove assembly implementations for
@@ -64,19 +61,14 @@ broadcast/wait          100000/100     33400.2    11810  247194720  455105
 broadcast/timedwait     100000/100     35022.1    13610  161552720  30328
 
 Signed-off-by: Gratian Crisan <gratian.crisan@ni.com>
-<Ported to glibc 2.22 by Adrian Ratiu>
+<Ported to glibc 2.23 by Adrian Ratiu>
 Signed-off-by: Adrian Ratiu <adrian.ratiu@ni.com>
 ---
-Changes since v1:
-* Update version to 2.22
-* Re-run tests on "Intel(R) Xeon(R) CPU E5-1620 @ 3.60GHz" due to
-inadvertently using a debug version of the benchmark before.
----
- .../sysv/linux/x86_64/pthread_cond_broadcast.S     | 179 ------
- .../unix/sysv/linux/x86_64/pthread_cond_signal.S   | 164 ------
+ .../sysv/linux/x86_64/pthread_cond_broadcast.S     | 177 ------
+ .../unix/sysv/linux/x86_64/pthread_cond_signal.S   | 161 ------
  .../sysv/linux/x86_64/pthread_cond_timedwait.S     | 623 ---------------------
  sysdeps/unix/sysv/linux/x86_64/pthread_cond_wait.S | 555 ------------------
- 4 files changed, 1521 deletions(-)
+ 4 files changed, 1516 deletions(-)
  delete mode 100644 sysdeps/unix/sysv/linux/x86_64/pthread_cond_broadcast.S
  delete mode 100644 sysdeps/unix/sysv/linux/x86_64/pthread_cond_signal.S
  delete mode 100644 sysdeps/unix/sysv/linux/x86_64/pthread_cond_timedwait.S
@@ -84,11 +76,11 @@ inadvertently using a debug version of the benchmark before.
 
 diff --git a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_broadcast.S b/sysdeps/unix/sysv/linux/x86_64/pthread_cond_broadcast.S
 deleted file mode 100644
-index df635af..0000000
+index de455dd..0000000
 --- a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_broadcast.S
 +++ /dev/null
-@@ -1,179 +0,0 @@
--/* Copyright (C) 2002-2015 Free Software Foundation, Inc.
+@@ -1,177 +0,0 @@
+-/* Copyright (C) 2002-2016 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 -
@@ -118,10 +110,7 @@ index df635af..0000000
 -	.text
 -
 -	/* int pthread_cond_broadcast (pthread_cond_t *cond) */
--	.globl	__pthread_cond_broadcast
--	.type	__pthread_cond_broadcast, @function
--	.align	16
--__pthread_cond_broadcast:
+-ENTRY(__pthread_cond_broadcast)
 -
 -	LIBC_PROBE (cond_broadcast, 1, %rdi)
 -
@@ -264,16 +253,17 @@ index df635af..0000000
 -	movl	$SYS_futex, %eax
 -	syscall
 -	jmp	10b
--	.size	__pthread_cond_broadcast, .-__pthread_cond_broadcast
+-END(__pthread_cond_broadcast)
+-
 -versioned_symbol (libpthread, __pthread_cond_broadcast, pthread_cond_broadcast,
 -		  GLIBC_2_3_2)
 diff --git a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_signal.S b/sysdeps/unix/sysv/linux/x86_64/pthread_cond_signal.S
 deleted file mode 100644
-index 0e8fe0c..0000000
+index da14bc3..0000000
 --- a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_signal.S
 +++ /dev/null
-@@ -1,164 +0,0 @@
--/* Copyright (C) 2002-2015 Free Software Foundation, Inc.
+@@ -1,161 +0,0 @@
+-/* Copyright (C) 2002-2016 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 -
@@ -303,11 +293,7 @@ index 0e8fe0c..0000000
 -
 -	.text
 -
--	/* int pthread_cond_signal (pthread_cond_t *cond) */
--	.globl	__pthread_cond_signal
--	.type	__pthread_cond_signal, @function
--	.align	16
--__pthread_cond_signal:
+-ENTRY(__pthread_cond_signal)
 -
 -	LIBC_PROBE (cond_signal, 1, %rdi)
 -
@@ -434,16 +420,17 @@ index 0e8fe0c..0000000
 -	cmovne	%eax, %esi
 -	callq	__lll_unlock_wake
 -	jmp	6b
--	.size	__pthread_cond_signal, .-__pthread_cond_signal
+-END(__pthread_cond_signal)
+-
 -versioned_symbol (libpthread, __pthread_cond_signal, pthread_cond_signal,
 -		  GLIBC_2_3_2)
 diff --git a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_timedwait.S b/sysdeps/unix/sysv/linux/x86_64/pthread_cond_timedwait.S
 deleted file mode 100644
-index 15b872d..0000000
+index 9a63314..0000000
 --- a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_timedwait.S
 +++ /dev/null
 @@ -1,623 +0,0 @@
--/* Copyright (C) 2002-2015 Free Software Foundation, Inc.
+-/* Copyright (C) 2002-2016 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 -
@@ -1068,11 +1055,11 @@ index 15b872d..0000000
 -#endif
 diff --git a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_wait.S b/sysdeps/unix/sysv/linux/x86_64/pthread_cond_wait.S
 deleted file mode 100644
-index 2e564a7..0000000
+index ed93d5d..0000000
 --- a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_wait.S
 +++ /dev/null
 @@ -1,555 +0,0 @@
--/* Copyright (C) 2002-2015 Free Software Foundation, Inc.
+-/* Copyright (C) 2002-2016 Free Software Foundation, Inc.
 -   This file is part of the GNU C Library.
 -   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 -
@@ -1628,5 +1615,5 @@ index 2e564a7..0000000
 -	ASM_ADDR __gcc_personality_v0
 -#endif
 -- 
-2.7.0
+2.8.2
 

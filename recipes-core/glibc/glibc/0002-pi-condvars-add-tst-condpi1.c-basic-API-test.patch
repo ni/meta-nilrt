@@ -1,7 +1,4 @@
-From e13e5e60da2af0ec4781f742125f21ce7c8f94e2 Mon Sep 17 00:00:00 2001
-Message-Id: <e13e5e60da2af0ec4781f742125f21ce7c8f94e2.1454576819.git.adrian.ratiu@ni.com>
-In-Reply-To: <27e4d8d5345240036a018641a856e7999db97fcb.1454576819.git.adrian.ratiu@ni.com>
-References: <27e4d8d5345240036a018641a856e7999db97fcb.1454576819.git.adrian.ratiu@ni.com>
+From e5b9ddbd010446019bdeb63ad0b63e644af14ec6 Mon Sep 17 00:00:00 2001
 From: Gratian Crisan <gratian.crisan@ni.com>
 Date: Wed, 16 Oct 2013 15:21:34 -0500
 Subject: [PATCH 2/5] pi-condvars: add tst-condpi1.c, basic API test
@@ -19,10 +16,10 @@ Signed-off-by: Gratian Crisan <gratian.crisan@ni.com>
  create mode 100644 nptl/tst-condpi1.c
 
 diff --git a/nptl/Makefile b/nptl/Makefile
-index 375b890..7889569 100644
+index d4f6950..1aaccf6 100644
 --- a/nptl/Makefile
 +++ b/nptl/Makefile
-@@ -228,6 +228,7 @@ tests = tst-typesizes \
+@@ -230,6 +230,7 @@ tests = tst-typesizes \
  	tst-cond14 tst-cond15 tst-cond16 tst-cond17 tst-cond18 tst-cond19 \
  	tst-cond20 tst-cond21 tst-cond22 tst-cond23 tst-cond24 tst-cond25 \
  	tst-cond-except \
@@ -158,5 +155,5 @@ index 0000000..078c80f
 +#define TEST_FUNCTION do_test ()
 +#include "../test-skeleton.c"
 -- 
-2.7.0
+2.8.2
 
