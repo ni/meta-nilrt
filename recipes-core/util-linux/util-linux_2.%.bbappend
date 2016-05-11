@@ -4,8 +4,6 @@ DEPENDS_class-target += "niacctbase"
 
 RDEPENDS_util-linux-hwclock += "niacctbase"
 
-SRC_URI =+ " file://removeSetUIDCheck.patch"
-
 group = "${LVRT_GROUP}"
 
 pkg_postinst_${PN} () {
