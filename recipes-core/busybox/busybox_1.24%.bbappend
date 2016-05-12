@@ -6,8 +6,7 @@ SRC_URI =+ " \
             file://busybox-acpid \
             file://acpid.conf \
             file://acpid_poweroff.sh \
-            file://acpid-logrotate.conf \
-            file://0001-zcip-fix-wrong-comparison-of-source-IP-with-our-IP.patch"
+            file://acpid-logrotate.conf"
 
 PACKAGES =+ " ${PN}-ifplugd"
 PACKAGES =+ " ${PN}-acpid"
