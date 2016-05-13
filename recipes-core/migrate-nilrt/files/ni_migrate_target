@@ -1,5 +1,7 @@
 #!/bin/bash
 
+NEXT_FEED_URI=""
+
 # gross hack for ARM: currentgen is all soft-float but the ninextos.ipk
 # is created from next-gen + OE which is hard-float, therefore opkg on
 # the target will refuse to install (arch mismatch cortexa9hf-vfpv3 vs.
@@ -16,10 +18,20 @@ add_opkg_userfs_dest()
     echo "dest userfs /mnt/userfs" >> /etc/opkg/opkg.conf
 }
 
+# the ninextos ipk is present only in the newer nilrt OS feeds so make
+# opkg download from there before triggering a migration.
+replace_x64_opkg_ninextos_feed()
+{
+    # the overwrite is intentional
+    echo "src/gz extra-core2-64 $NEXT_FEED_URI/images/core2-64" > /etc/opkg/base-feeds.conf
+    echo "src/gz main-all $NEXT_FEED_URI/main/all" >> /etc/opkg/base-feeds.conf
+}
+
 migrate_target()
 {
     if [[ $target_flavor == "legacy" ]]; then
         if [[ $ARCH == "x86_64" ]]; then
+	    replace_x64_opkg_ninextos_feed
             opkg update
             opkg install ninextos
             mv /boot/.safe/bootimage.cfg /boot/.safe/bootimage_old.cfg

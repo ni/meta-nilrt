@@ -8,14 +8,12 @@ inherit allarch
 
 RDEPENDS_${PN} += " bash "
 
-PR = "r1"
-
 S = "${WORKDIR}"
 
 do_install() {
         install -d ${D}${base_sbindir}/
-        install -m 0755 ${S}/ni_migrate_target ${D}${base_sbindir}
+	sed "s#NEXT_FEED_URI=\"\"#NEXT_FEED_URI=\"${NILRT_FEED_URI}\"#" ${S}/ni_migrate_target >${D}${base_sbindir}/ni_migrate_target
+	chmod +x ${D}${base_sbindir}/ni_migrate_target
 }
 
 FILES_${PN} += "${base_sbindir}/ni_migrate_target "
-
