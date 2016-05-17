@@ -1,7 +1,8 @@
-diff -urN a/wpa_supplicant/dbus/dbus_new_handlers.c b/wpa_supplicant/dbus/dbus_new_handlers.c
---- a/wpa_supplicant/dbus/dbus_new_handlers.c	2013-01-12 09:42:53.000000000 -0600
-+++ b/wpa_supplicant/dbus/dbus_new_handlers.c	2013-08-20 14:26:52.831563269 -0500
-@@ -126,7 +126,9 @@
+diff --git a/wpa_supplicant/dbus/dbus_new_handlers.c b/wpa_supplicant/dbus/dbus_new_handlers.c
+index 67562a5..e919f15 100644
+--- a/wpa_supplicant/dbus/dbus_new_handlers.c
++++ b/wpa_supplicant/dbus/dbus_new_handlers.c
+@@ -133,7 +133,9 @@ static const char * const dont_quote[] = {
  	"bssid", "scan_freq", "freq_list", NULL
  };
  
@@ -11,8 +12,8 @@ diff -urN a/wpa_supplicant/dbus/dbus_new_handlers.c b/wpa_supplicant/dbus/dbus_n
 +				char *value)
  {
  	int i = 0;
- 	while (dont_quote[i] != NULL) {
-@@ -134,7 +136,21 @@
+ 
+@@ -142,7 +144,21 @@ static dbus_bool_t should_quote_opt(const char *key)
  			return FALSE;
  		i++;
  	}
@@ -35,7 +36,7 @@ diff -urN a/wpa_supplicant/dbus/dbus_new_handlers.c b/wpa_supplicant/dbus/dbus_n
  }
  
  /**
-@@ -203,8 +219,9 @@
+@@ -212,8 +228,8 @@ dbus_bool_t set_network_properties(struct wpa_supplicant *wpa_s,
  			if (ret <= 0)
  				goto error;
  		} else if (entry.type == DBUS_TYPE_STRING) {
@@ -43,7 +44,6 @@ diff -urN a/wpa_supplicant/dbus/dbus_new_handlers.c b/wpa_supplicant/dbus/dbus_n
 -				size = os_strlen(entry.str_value);
 +			size = os_strlen(entry.str_value);
 +			if (should_quote_opt(entry.key, size, entry.str_value)) {
-+	
- 				if (size <= 0)
+ 				if (size == 0)
  					goto error;
  
