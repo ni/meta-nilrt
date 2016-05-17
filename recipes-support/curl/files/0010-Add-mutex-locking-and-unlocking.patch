@@ -1,26 +1,25 @@
-From 215849695855605bd6f618478dec36220f9ca933 Mon Sep 17 00:00:00 2001
-From: Jonathan David <jonathan.david@ni.com>
-Date: Thu, 18 Feb 2016 11:30:26 -0600
-Subject: [PATCH 10/21] Add mutex locking and unlocking
+From b052afeae0e722337421c73d183cfafda0e87a70 Mon Sep 17 00:00:00 2001
+From: Haris Okanovic <haris.okanovic@ni.com>
+Date: Tue, 17 May 2016 12:57:33 -0500
+Subject: [PATCH] Add global init mutex
 
-Include global_mutex.cpp and global_mutex.h to allow for
-thread-safe operation. Provides functions for recursive mutex
-locking and unlocking.
+Add global_mutex.cpp/h to allow for thread-safe (un)initialization
+of libcurl.
 
-Upstream-Status: Inappropriate [creates Linux dependency]
+Upstream-Status: Inappropriate [NIBuild only]
 ---
- lib/global_mutex.cpp | 173 +++++++++++++++++++++++++++++++++++++++++++++++++++
- lib/global_mutex.h   |  18 ++++++
- 2 files changed, 191 insertions(+)
+ lib/global_mutex.cpp | 186 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ lib/global_mutex.h   |  18 +++++
+ 2 files changed, 204 insertions(+)
  create mode 100644 lib/global_mutex.cpp
  create mode 100644 lib/global_mutex.h
 
 diff --git a/lib/global_mutex.cpp b/lib/global_mutex.cpp
 new file mode 100644
-index 0000000..d842ece
+index 0000000000000000000000000000000000000000..72f202eec68f02e9b3eb192a2b20e0d9fb7d1cf9
 --- /dev/null
 +++ b/lib/global_mutex.cpp
-@@ -0,0 +1,173 @@
+@@ -0,0 +1,186 @@
 +/* Implementation of curl_global_mutex_lock() and curl_global_mutex_unlock().
 + * 
 + * @note This C++ source file MUST NOT throw exceptions, use RTTI, or
@@ -53,6 +52,9 @@ index 0000000..d842ece
 +#endif
 +
 +#if defined(_WIN32) || defined(VXWORKS_PPC) || defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
++
++	static volatile bool g_cs_initialized = false;
++
 +	struct _CriticalSection
 +	{
 +#ifdef _WIN32
@@ -60,6 +62,8 @@ index 0000000..d842ece
 +#elif defined VXWORKS_PPC
 +		SEM_ID sem_;
 +#elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
++		// ToDo: Switch Mac to PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP once
++		//  toolchain supports it
 +		pthread_mutex_t mutex_;
 +#endif
 +
@@ -84,26 +88,28 @@ index 0000000..d842ece
 +				exit(-1);
 +			}
 +			if (pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE))
-+                        {
-+                                perror("cURL fatal error: Error setting mutex recursive attribute");
-+                                exit(-1);
-+                        }
++			{
++				perror("cURL fatal error: Error setting mutex recursive attribute");
++				exit(-1);
++			}
 +			if (pthread_mutex_init(&mutex_, &attr))
-+                        {
-+                                perror("cURL fatal error: Error initializing mutex");
-+                                exit(-1);
-+                        }
++			{
++				perror("cURL fatal error: Error initializing mutex");
++				exit(-1);
++			}
 +			if (pthread_mutexattr_destroy(&attr))
-+                        {
-+                                perror("cURL fatal error: Error destroying mutex attribute");
-+                                exit(-1);
-+                        }
++			{
++				perror("cURL fatal error: Error destroying mutex attribute");
++				exit(-1);
++			}
 +#endif
++			g_cs_initialized = true;
 +		}
 +
 +
 +		inline ~_CriticalSection()
 +		{
++			g_cs_initialized = false;
 +#ifdef _WIN32
 +			DeleteCriticalSection(&cs_);
 +#elif defined VXWORKS_PPC
@@ -115,8 +121,8 @@ index 0000000..d842ece
 +#elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
 +			if (pthread_mutex_destroy(&mutex_))
 +			{
-+                                perror("cURL fatal error: Error deleting mutex");
-+                                exit(-1);
++				perror("cURL fatal error: Error deleting mutex");
++				exit(-1);
 +			}
 +#endif
 +		}
@@ -133,10 +139,10 @@ index 0000000..d842ece
 +			}
 +#elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
 +			if (pthread_mutex_lock(&mutex_))
-+	                {
-+	                        perror("cURL fatal error: Error locking mutex");
-+	                        exit(-1);
-+	                }
++			{
++				perror("cURL fatal error: Error locking mutex");
++				exit(-1);
++			}
 +#endif
 +		}
 +
@@ -152,10 +158,10 @@ index 0000000..d842ece
 +			}
 +#elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
 +			if (pthread_mutex_unlock(&mutex_))
-+	                {
-+	                        perror("cURL fatal error: Error unlocking mutex");
-+	                        exit(-1);
-+	                }
++			{
++				perror("cURL fatal error: Error unlocking mutex");
++				exit(-1);
++			}
 +#endif
 +		}
 +	};
@@ -170,13 +176,16 @@ index 0000000..d842ece
 +	{
 +		// Do NOT add try/catch blocks here. See comments above for details.
 +#if defined(_WIN32) || defined(VXWORKS_PPC) || defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
-+		g_cs.lock();
++		if (g_cs_initialized)
++		{
++			g_cs.lock();
++		}
 +#elif defined(linux) || defined(__linux__) || defined(__gnu_linux__) || defined(__linux)
-+                if (pthread_mutex_lock(&mutex_))
-+                {
-+                        perror("cURL fatal error: Error locking mutex");
-+                        exit(-1);
-+                }
++		if (pthread_mutex_lock(&mutex_))
++		{
++			perror("cURL fatal error: Error locking mutex");
++			exit(-1);
++		}
 +#endif
 +	}
 +
@@ -184,19 +193,22 @@ index 0000000..d842ece
 +	{
 +		// Do NOT add try/catch blocks here. See comments above for details.
 +#if defined(_WIN32) || defined(VXWORKS_PPC) || defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
-+		g_cs.unlock();
++		if (g_cs_initialized)
++		{
++			g_cs.unlock();
++		}
 +#elif defined(linux) || defined(__linux__) || defined(__gnu_linux__) || defined(__linux)
-+                if (pthread_mutex_unlock(&mutex_))
-+                {
-+                        perror("cURL fatal error: Error unlocking mutex");
-+                        exit(-1);
-+                }
++		if (pthread_mutex_unlock(&mutex_))
++		{
++			perror("cURL fatal error: Error unlocking mutex");
++			exit(-1);
++		}
 +#endif
 +	}
 +}
 diff --git a/lib/global_mutex.h b/lib/global_mutex.h
 new file mode 100644
-index 0000000..87aae31
+index 0000000000000000000000000000000000000000..87aae31e5865b6199aab4eb984c2a2ff9ffadefd
 --- /dev/null
 +++ b/lib/global_mutex.h
 @@ -0,0 +1,18 @@
@@ -219,5 +231,5 @@ index 0000000..87aae31
 +
 +#endif /* HEADER_CURL_GLOBAL_MUTEX_H */
 -- 
-1.9.1
+2.8.2
 
