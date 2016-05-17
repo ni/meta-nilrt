@@ -1,4 +1,4 @@
-From 9ec08719bab29929ae7dd5d5e76044f8ac3ba4e4 Mon Sep 17 00:00:00 2001
+From aceda0d595920c861ab568c55c4f1c6be3fade08 Mon Sep 17 00:00:00 2001
 From: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
 Date: Wed, 3 Feb 2016 16:20:30 +0200
 Subject: [PATCH] semodule: Stack size limit check for NILRT
@@ -16,18 +16,18 @@ Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
  1 file changed, 17 insertions(+)
 
 diff --git a/semodule/semodule.c b/semodule/semodule.c
-index baff057..3a6c089 100644
+index bcfaa2b..2e2540a 100644
 --- a/semodule/semodule.c
 +++ b/semodule/semodule.c
-@@ -20,6 +20,7 @@
- #include <sys/stat.h>
+@@ -21,6 +21,7 @@
  #include <sys/types.h>
  #include <libgen.h>
+ #include <limits.h>
 +#include <sys/resource.h>
  
  #include <semanage/modules.h>
  
-@@ -104,6 +105,21 @@ static void set_store_root(char *path)
+@@ -107,6 +108,21 @@ static void set_store_root(char *path)
  	exit(1);
  }
  
@@ -49,7 +49,7 @@ index baff057..3a6c089 100644
  /* Establish signal handlers for the process. */
  static void create_signal_handlers(void)
  {
-@@ -312,6 +328,7 @@ int main(int argc, char *argv[])
+@@ -342,6 +358,7 @@ int main(int argc, char *argv[])
  	int result;
  	int status = EXIT_FAILURE;
  	char *genhomedirconargv[] = { "genhomedircon", "-B", "-n" };
@@ -58,5 +58,5 @@ index baff057..3a6c089 100644
  	if (strcmp(basename(argv[0]), "genhomedircon") == 0) {
  		argc = 3;
 -- 
-2.7.0
+2.8.2
 
