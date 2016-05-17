@@ -1,7 +1,6 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI += "\
-	file://0001-cyclictest-Add-option-for-dumping-the-histogram-in-a.patch \
 	file://kthread_test_priority.sh \
 	file://irq_test_priority.sh \
 	file://irq_test_affinity.sh \
