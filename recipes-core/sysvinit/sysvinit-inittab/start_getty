@@ -1,0 +1,31 @@
+#!/bin/sh
+
+. /etc/natinst/networking/functions.common
+update_all_interface_info
+
+# $1 and $2 are are passed by inittab, its values are given by OE
+CONSOLE="$2"
+SPEED="$1"
+
+if [[ -z "$CONSOLE" || ! -e "/dev/$CONSOLE" || -z "$SPEED" ]]; then
+    echo Specified console "$CONSOLE" with baud rate "$SPEED" is invalid, autodetecting...
+
+    CONSOLE=""
+    while read cons flags; do
+	case "$flags" in
+	    *EC*) CONSOLE="$cons"
+		  SPEED=$(stty speed < /dev/$CONSOLE)
+		  echo Autodetected console "$CONSOLE" with baud rate "$SPEED"
+		  break
+		  ;;
+	esac
+    done < /proc/consoles
+
+    if [[ -z "$CONSOLE" ]]; then
+	echo WARNING: Could not autodetect any active console. Defaulting to tty2.
+	TTY2_SPEED=$(stty speed < /dev/tty2)
+	exec /sbin/getty "$TTY2_SPEED" "/dev/tty2"
+    fi
+fi
+
+exec /sbin/getty "$SPEED" "$CONSOLE"
