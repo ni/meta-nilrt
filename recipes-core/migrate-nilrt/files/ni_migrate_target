@@ -48,10 +48,10 @@ migrate_target()
 		opkg download ninextos
 		add_opkg_userfs_dest
 		opkg install ninextos* -d userfs
-		cp .newNILinuxRT/linux_migrate.itb /boot/linux_runmode.itb
+		cp .newNILinuxRT/linux_fw_migrate.itb /boot/linux_runmode.itb
 	    else
 		opkg install ninextos
-		cp /.newNILinuxRT/linux_migrate.itb /boot/linux_runmode.itb
+		cp /.newNILinuxRT/linux_fw_migrate.itb /boot/linux_runmode.itb
 	    fi
 	    reboot
         fi

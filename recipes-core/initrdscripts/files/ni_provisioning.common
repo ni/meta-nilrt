@@ -45,7 +45,7 @@ if [ "$ARCH" = "armv7l" ]; then
         ln -sf $NILRT_MOUNTPOINT/boot/uImage-* /boot/uImage
         MOUNT_ERROR=`mount -t ubifs ubi0:bootfs $NIRESTORE_MOUNTPOINT` || die "$MOUNT_ERROR"
         cp $NIRESTORE_MOUNTPOINT/.restore/ni-*.dtb $NILRT_MOUNTPOINT/boot/
-        cp /payload/linux_runmode.itb $NIRESTORE_MOUNTPOINT/linux_runmode.itb
+        cp /payload/linux_next_runmode.itb $NIRESTORE_MOUNTPOINT/linux_runmode.itb
         umount $NILRT_MOUNTPOINT
         umount $NIRESTORE_MOUNTPOINT
         echo "Minimal image deployed."
@@ -62,7 +62,7 @@ if [ "$ARCH" = "armv7l" ]; then
         MOUNT_ERROR=`mount -t ubifs ubi0:bootfs $NIRESTORE_MOUNTPOINT` || die "$MOUNT_ERROR"
         DEVICE_CODE=`fw_printenv -n DeviceCode`
         #replace the linux_safemode.itb with the fake one
-        cp $NILRT_MOUNTPOINT/.newNILinuxRT/.safe/linux_safemode.itb $NIRESTORE_MOUNTPOINT/.safe/linux_safemode.itb
+        cp $NILRT_MOUNTPOINT/.newNILinuxRT/.safe/linux_next_safemode.itb $NIRESTORE_MOUNTPOINT/.safe/linux_safemode.itb
         #copy all the necessary files for restore-mode
         mkdir $NIRESTORE_MOUNTPOINT/.restore
         cp $NILRT_MOUNTPOINT/.newNILinuxRT/.restore/dtbs/ni-$DEVICE_CODE.dtb $NIRESTORE_MOUNTPOINT/.restore/ || die "ni-$DEVICE_CODE.dtb file not found!"

@@ -1,7 +1,3 @@
-/*
- * Runmode image tree
- */
-
 /dts-v1/;
 
 / {
@@ -12,8 +8,8 @@
 	images {
 
 		bootscript@1 {
-			description = "Booting nilrt";
-			data = /incbin/("./bootscript-default.txt");
+			description = "Booting migrate image";
+			data = /incbin/("./bootscript-fw-migrate.txt");
 			type = "script";
 			arch = "arm";
 			compression = "none";

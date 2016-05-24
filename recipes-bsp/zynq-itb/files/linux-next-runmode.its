@@ -1,3 +1,7 @@
+/*
+ * Runmode image tree
+ */
+
 /dts-v1/;
 
 / {
@@ -8,8 +12,8 @@
 	images {
 
 		bootscript@1 {
-			description = "Booting safemode";
-			data = /incbin/("./bootscript-safemode.txt");
+			description = "Booting nilrt";
+			data = /incbin/("./bootscript-next-runmode.txt");
 			type = "script";
 			arch = "arm";
 			compression = "none";
