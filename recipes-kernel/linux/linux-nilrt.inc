@@ -21,7 +21,7 @@ INHIBIT_PACKAGE_DEBUG_SPLIT="1"
 do_kernel_configme[depends] += "libgcc:do_populate_sysroot"
 
 SRC_URI = "${NILRT_GIT}/linux.git;protocol=git;nocheckout=1;branch=${KBRANCH}"
-SRCREV="${AUTOREV}"
+SRCREV="18d47a388821213a1bd7ed5b04f012ed03934074"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/${KBUILD_FRAGMENTS_LOCATION}:"
