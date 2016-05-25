@@ -1,0 +1,4 @@
+#Load the migration image
+setenv bootargs console=ttyS0,115200 $mtdparts ubi.mtd=boot-config ubi.mtd=root ramdisk_size=135168 root=/dev/ram rw restore=backward-migrate
+
+if ubi part root && ubifsmount ubi:rootfs && ubifsload 0x8500000 boot/.oldNILinuxRT/uImage && ubifsload 0x9000000 boot/.oldNILinuxRT/dtbs/ni-$DeviceCode.dtb && ubifsload 0x9200000 boot/.oldNILinuxRT/ramdisk; then bootm 0x8500000 0x9200000 0x9000000; else echo Migration image corruppt!; fi;
