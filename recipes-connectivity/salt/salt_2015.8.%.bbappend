@@ -16,7 +16,7 @@ SRC_URI = "${NILRT_GIT}/salt.git;protocol=git;branch=nilrt/comms-2.0/2015.8 \
            file://roster \
 "
 
-SRCREV = "${AUTOREV}"
+SRCREV = "RELEASE_LVCOMMS_20"
 PV = "2015.8+git${SRCPV}"
 
 S="${WORKDIR}/git"
