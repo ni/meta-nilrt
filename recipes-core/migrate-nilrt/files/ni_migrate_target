@@ -1,5 +1,7 @@
 #!/bin/bash
 
+NILRT_ARM_MIGRATION_SUPPORTED_DEVICES=""
+
 NEXT_FEED_URI=""
 
 # gross hack: previous nilrt OS vesion on ARM was all soft-float but the
@@ -62,9 +64,20 @@ migrate_target()
             mv /boot/grub.cfg /boot/grub_old.cfg
             cp /boot/.oldNILinuxRT/grub.cfg /boot/
             reboot
-        elif [[ $ARCH == "arm" ]]; then
-            # TODO add arm migration
-            echo "Migrate ARM"
+        elif [[ $ARCH =~ "arm" ]]; then
+	    opkg update
+	    opkg install nioldos
+
+	    # validate this device code, otherwise we can download a bad safemode itb
+	    devcode=$(fw_printenv -n DeviceCode | awk '{print substr($0,3)}')
+	    if [[ ! -z $devcode && $NILRT_ARM_MIGRATION_SUPPORTED_DEVICES =~ $devcode ]]; then
+		opkg install zynq-safemode-cfgs-$devcode
+		cp /boot/.oldNILinuxRT/bw-migrate.scr /boot/default.scr
+		reboot
+	    else
+		echo "ERROR: Backwards migration is not supported for device '$devcode', it is only available for $NILRT_ARM_MIGRATION_SUPPORTED_DEVICES"
+		exit 1
+	    fi
         fi
     fi
 }
