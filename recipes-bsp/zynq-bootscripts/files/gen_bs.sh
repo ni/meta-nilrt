@@ -2,6 +2,7 @@
 COMMON_BOOTARGS='console=ttyS0,115200 $mtdparts ubi.mtd=boot-config ubi.mtd=root $othbootargs'
 RESTORE_BOOTARGS="setenv bootargs $COMMON_BOOTARGS ramdisk_size=135168 root=/dev/ram rw"
 DEFAULT_BOOTARGS="setenv bootargs $COMMON_BOOTARGS root=ubi1:rootfs rw rootfstype=ubifs threadsirqs=1 kthreadd_pri=25 ksoftirqd_pri=8 irqthread_pri=15 \${usb_gadget_args}"
+BW_MIGRATE_BOOTARGS="setenv bootargs $COMMON_BOOTARGS ramdisk_size=135168 root=/dev/ram rw"
 
 load_restore_boot()
 {
@@ -94,6 +95,20 @@ else
 fi;
 '
 
+BW_MIGRATION_BOOTCMD="
+if ubi part root &&
+    ubifsmount ubi:rootfs &&
+    ubifsload 0x8500000 boot/.oldNILinuxRT/uImage &&
+    ubifsload 0x9000000 boot/.oldNILinuxRT/dtbs/ni-\$DeviceCode.dtb &&
+    ubifsload 0x9200000 boot/.oldNILinuxRT/ramdisk;
+then
+    $BW_MIGRATE_BOOTARGS restore=backward-migrate;
+    bootm 0x8500000 0x9200000 0x9000000;
+else
+    echo Migration image corrupt!;
+fi;
+"
+
 # cRIO-9068 doesn't have USB gadget, so skip it on that device
 USB_GADGET_ARGS='
 if test ${DeviceCode} != 0x76D6;
@@ -107,3 +122,5 @@ echo $BOOTCMD >> top_level_bootscript
 echo $DEFAULT_BOOTCMD > default_bootscript
 echo $SAFEMODE_BOOTCMD > safemode_bootscript
 echo $RESTORE_BOOTCMD > restore_bootscript
+echo $BW_MIGRATION_BOOTCMD > bw_migrate_bootscript
+echo $BOOTCMD >> bw_migrate_bootscript
