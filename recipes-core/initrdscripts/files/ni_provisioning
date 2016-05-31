@@ -33,9 +33,9 @@ if [[ $restore == "provision" ]]; then
     if [[ ${PROVISION_TARGET,,} == "y" ]]; then
         provision_target usb
     fi
-elif [[ $restore == "migrate" ]]; then
+elif [[ $restore == "migrate" || $restore == "backward-migrate" ]]; then
     AUTO_REBOOT=1
-    provision_target onboard
+    provision_target onboard $restore
 elif [[ $restore == "auto-restore" ]]; then
     restore_minimal_image
 else

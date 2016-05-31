@@ -42,7 +42,7 @@ if [[ $ARCH == "x86_64" ]];then
         echo ""
         /sbin/getty -l sh -n 38400 tty0
     done
-elif [[ $ARCH == "armv7l" ]];then
+elif [[ $ARCH =~ "arm" ]];then
     early_setup
     #fw_printenv/setenv requires the existence of /run/lock to create the lock file
     provision
