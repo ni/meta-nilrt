@@ -29,6 +29,13 @@ replace_x64_opkg_ninextos_feed()
     echo "src/gz main-all $NEXT_FEED_URI/main/all" >> /etc/opkg/base-feeds.conf
 }
 
+replace_arm_opkg_ninextos_feed()
+{
+    echo "src/gz images-cortexa9hf-vfpv3 $NEXT_FEED_URI/images/cortexa9hf-vfpv3" > /etc/opkg/base-feeds.conf
+    echo "src/gz main-cortexa9hf-vfpv3 $NEXT_FEED_URI/main/cortexa9hf-vfpv3" >> /etc/opkg/base-feeds.conf
+    echo "src/gz main-all $NEXT_FEED_URI/main/all" >> /etc/opkg/base-feeds.conf
+}
+
 migrate_target()
 {
     if [[ $target_flavor == "legacy" ]]; then
@@ -43,6 +50,7 @@ migrate_target()
             reboot
         elif [[ $ARCH =~ "arm" ]]; then
 	    hack_arm_opkg_arch
+	    replace_arm_opkg_ninextos_feed
 	    opkg update
 	    if [ -f "/etc/natinst/safemode" ]; then
 		# safemode ramfs is too small so we install in the userfs
