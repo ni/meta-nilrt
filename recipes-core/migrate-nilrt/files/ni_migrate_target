@@ -2,17 +2,17 @@
 
 NEXT_FEED_URI=""
 
-# gross hack for ARM: currentgen is all soft-float but the ninextos.ipk
-# is created from next-gen + OE which is hard-float, therefore opkg on
-# the target will refuse to install (arch mismatch cortexa9hf-vfpv3 vs.
-# cortexa9-vfpv3). This hacks opkg.conf to allow installing ninextos.
+# gross hack: previous nilrt OS vesion on ARM was all soft-float but the
+# ninextos.ipk + the newer OS itself is hard-float, therefore opkg on
+# the targets won't install (arch cortexa9hf-vfpv3 vs. cortexa9-vfpv3).
+# This hacks opkg.conf to allow installing ninextos.ipk
 hack_arm_opkg_arch()
 {
     echo "arch cortexa9hf-vfpv3 60" >> /etc/opkg/arch.conf
 }
 
-# currentgen's safemode needs to install the ninextos payload to userfs
-# so add it as a destination otherwise opkg won't know how to install.
+# provious nilrt OS's safemode installs the ninextos payload to userfs
+# because of ramdisk space constraints, so add userfs as a destination.
 add_opkg_userfs_dest()
 {
     echo "dest userfs /mnt/userfs" >> /etc/opkg/opkg.conf
@@ -77,9 +77,9 @@ command -v nisafemodeversion > /dev/null 2>&1 || target_flavor="new"
 
 echo
 if [[  $target_flavor == "legacy" ]]; then
-    echo "Continuing will partition, format and install <<to be decided the awesome name of LV NG>> to the target."
+    echo "Continuing will partition, format and install the newer NILRT OS to the target."
 elif [[  $target_flavor == "new" ]]; then
-    echo "Continuing will partition, format and install LV2016 to the target."
+    echo "Continuing will partition, format and install the previous NILRT OS to the target."
 fi
 echo "All user data will be lost and the target will no longer be discoverable from your current LV version"
 echo
