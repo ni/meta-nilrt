@@ -62,14 +62,15 @@ else
     echo Restore mode error;
 fi;"
 
-CHECK_SAFEMODE='
+CHECK_RESTOREMODE='
 i2c read 0x40 1 1 $verifyaddr;
 setexpr.b cpld_safemode *$verifyaddr \& 0x01;
 if test $cpld_safemode -eq 1;
 then
-    '"$SAFEMODE_BOOTCMD"'
+    '`load_restore_boot restore`'
 fi;
 '
+
 BOOTCMD='
 i2c read 0x40 0x1F 1 $verifyaddr;
 setexpr.b next_bootmode *$verifyaddr \& 0x3;
@@ -117,7 +118,7 @@ then
 fi;'
 
 echo $USB_GADGET_ARGS > top_level_bootscript
-echo $CHECK_SAFEMODE >> top_level_bootscript
+echo $CHECK_RESTOREMODE >> top_level_bootscript
 echo $BOOTCMD >> top_level_bootscript
 echo $DEFAULT_BOOTCMD > default_bootscript
 echo $SAFEMODE_BOOTCMD > safemode_bootscript
