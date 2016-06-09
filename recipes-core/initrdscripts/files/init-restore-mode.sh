@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ARCH=`uname -m`
 
@@ -52,4 +52,10 @@ elif [[ $ARCH =~ "arm" ]];then
         echo ""
         /sbin/getty -l sh -n 115200 ttyS0
     done
+else
+    echo ""
+    echo "ERROR: Restoring system architecture '$ARCH' is not supported. Rebooting in 10 9 8..."
+    echo ""
+    sleep 10
+    reboot -f
 fi
