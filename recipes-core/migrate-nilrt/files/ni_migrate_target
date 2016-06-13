@@ -58,7 +58,7 @@ migrate_target()
     elif [[ $target_flavor == "new" ]]; then
         if [[ $ARCH == "x86_64" ]]; then
             opkg update
-            opkg install lvoldos
+            opkg install nioldos
             mv /boot/grub.cfg /boot/grub_old.cfg
             cp /boot/.oldNILinuxRT/grub.cfg /boot/
             reboot
