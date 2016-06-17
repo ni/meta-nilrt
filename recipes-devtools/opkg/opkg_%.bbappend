@@ -9,6 +9,8 @@ SRC_URI += " \
             file://run-ptest \
            "
 
+PACKAGECONFIG = "libsolv"
+
 RDEPENDS_${PN}-ptest += "bash"
 
 do_install_ptest() {
