@@ -20,27 +20,45 @@ add_opkg_userfs_dest()
     echo "dest userfs /mnt/userfs" >> /etc/opkg/opkg.conf
 }
 
-# the ninextos ipk is present only in the newer nilrt OS feeds so make
-# opkg download from there before triggering a migration.
-replace_x64_opkg_ninextos_feed()
+remove_opkg_config()
 {
-    # the overwrite is intentional
-    echo "src/gz extra-core2-64 $NEXT_FEED_URI/images/core2-64" > /etc/opkg/base-feeds.conf
-    echo "src/gz main-all $NEXT_FEED_URI/main/all" >> /etc/opkg/base-feeds.conf
+    opkg remove --force-depends distro-feed-configs >/dev/null
+    rm -f /etc/opkg/base-feeds.conf
+
+    # sanity check
+    unexpectedFiles="`find /etc/opkg/ | egrep -v '(^/etc/opkg/$)|(^/etc/opkg/arch\.conf$)|(^/etc/opkg/opkg\.conf$)'`"
+    if [ -n "$unexpectedFiles" ]; then
+        echo "WARNING: Unexpected files in /etc/opkg/:"
+        echo "$unexpectedFiles"
+    fi
 }
 
-replace_arm_opkg_ninextos_feed()
+# the ninextos ipk is present only in the newer nilrt OS feeds so make
+# opkg download from there before triggering a migration.
+replace_x64_opkg_migration_feed()
 {
-    echo "src/gz images-cortexa9hf-vfpv3 $NEXT_FEED_URI/images/cortexa9hf-vfpv3" > /etc/opkg/base-feeds.conf
-    echo "src/gz main-cortexa9hf-vfpv3 $NEXT_FEED_URI/main/cortexa9hf-vfpv3" >> /etc/opkg/base-feeds.conf
-    echo "src/gz main-all $NEXT_FEED_URI/main/all" >> /etc/opkg/base-feeds.conf
+    remove_opkg_config
+
+    # the overwrite is intentional
+    echo  >/etc/opkg/ni_migrate_target-feeds.conf "src/gz extra-core2-64 $NEXT_FEED_URI/images/core2-64"
+    echo >>/etc/opkg/ni_migrate_target-feeds.conf "src/gz main-all $NEXT_FEED_URI/main/all"
+}
+
+replace_arm_opkg_migration_feed()
+{
+    remove_opkg_config
+
+    # the overwrite is intentional
+    echo  >/etc/opkg/ni_migrate_target-feeds.conf "src/gz images-cortexa9hf-vfpv3 $NEXT_FEED_URI/images/cortexa9hf-vfpv3"
+    echo >>/etc/opkg/ni_migrate_target-feeds.conf "src/gz main-cortexa9hf-vfpv3 $NEXT_FEED_URI/main/cortexa9hf-vfpv3"
+    echo >>/etc/opkg/ni_migrate_target-feeds.conf "src/gz main-all $NEXT_FEED_URI/main/all"
 }
 
 migrate_target()
 {
     if [[ $target_flavor == "legacy" ]]; then
         if [[ $ARCH == "x86_64" ]]; then
-	    replace_x64_opkg_ninextos_feed
+	    replace_x64_opkg_migration_feed
             opkg update
             opkg install ninextos
             mv /boot/.safe/bootimage.cfg /boot/.safe/bootimage_old.cfg
@@ -50,7 +68,7 @@ migrate_target()
             reboot
         elif [[ $ARCH =~ "arm" ]]; then
 	    hack_arm_opkg_arch
-	    replace_arm_opkg_ninextos_feed
+	    replace_arm_opkg_migration_feed
 	    opkg update
 	    if [ -f "/etc/natinst/safemode" ]; then
 		# safemode ramfs is too small so we install in the userfs
@@ -67,12 +85,14 @@ migrate_target()
         fi
     elif [[ $target_flavor == "new" ]]; then
         if [[ $ARCH == "x86_64" ]]; then
+            replace_x64_opkg_migration_feed
             opkg update
             opkg install nioldos
             mv /boot/grub.cfg /boot/grub_old.cfg
             cp /boot/.oldNILinuxRT/grub.cfg /boot/
             reboot
         elif [[ $ARCH =~ "arm" ]]; then
+	    replace_arm_opkg_migration_feed
 	    opkg update
 	    opkg install nioldos
 
