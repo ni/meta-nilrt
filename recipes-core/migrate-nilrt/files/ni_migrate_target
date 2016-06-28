@@ -124,7 +124,9 @@ elif [[  $target_flavor == "new" ]]; then
 fi
 echo "All user data will be lost and the target will no longer be discoverable from your current LV version"
 echo
-read -p "Do you want to continue?[y/N]" USER_AGREMENT
-if [[ ${USER_AGREMENT,,} == "y" ]]; then
+read -p "To continue type YES: " USER_AGREEMENT
+if [[ $USER_AGREEMENT == "YES" ]]; then
     migrate_target
+else
+    echo "Aborted by user. To retry run $0 again."
 fi
