@@ -4,4 +4,6 @@
 
 part /boot --source isoimage-isohybrid --sourceparams="loader=grub-efi,image_name=NI_RECOVERY_IMG" --ondisk cd --label NIRECOVERY --fstype=ext3
 
-bootloader  --configfile="grub.cfg"
+# note that --append is ignored by grub when using a configfile
+# and only processed by syslinux as configured below
+bootloader --configfile="grub.cfg" --append="restore=provision"
