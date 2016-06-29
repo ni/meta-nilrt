@@ -60,7 +60,7 @@ migrate_target()
         if [[ $ARCH == "x86_64" ]]; then
 	    replace_x64_opkg_migration_feed
             opkg update
-            opkg install ninextos
+            opkg install ninextos || (echo "ERROR: Could not install ninextos" && return 1)
             mv /boot/.safe/bootimage.cfg /boot/.safe/bootimage_old.cfg
             cp /boot/.newNILinuxRT/bootimage.cfg /boot/.safe/
             fw_setenv consoleoutenable True
@@ -75,10 +75,10 @@ migrate_target()
 		cd /mnt/userfs
 		opkg download ninextos
 		add_opkg_userfs_dest
-		opkg install ninextos* -d userfs
+		opkg install ninextos* -d userfs || (echo "ERROR: Could not install ninextos" && return 1)
 		cp .newNILinuxRT/linux_fw_migrate.itb /boot/linux_runmode.itb
 	    else
-		opkg install ninextos
+		opkg install ninextos || (echo "ERROR: Could not install ninextos" && return 1)
 		cp /.newNILinuxRT/linux_fw_migrate.itb /boot/linux_runmode.itb
 	    fi
 	    reboot
@@ -87,24 +87,23 @@ migrate_target()
         if [[ $ARCH == "x86_64" ]]; then
             replace_x64_opkg_migration_feed
             opkg update
-            opkg install nioldos
+            opkg install nioldos || (echo "ERROR: Could not install nioldos" && return 1)
             mv /boot/grub.cfg /boot/grub_old.cfg
             cp /boot/.oldNILinuxRT/grub.cfg /boot/
             reboot
         elif [[ $ARCH =~ "arm" ]]; then
 	    replace_arm_opkg_migration_feed
 	    opkg update
-	    opkg install nioldos
+	    opkg install nioldos || (echo "ERROR: Could not install nioldos" && return 1)
 
 	    # validate this device code, otherwise we can download a bad safemode itb
-	    devcode=$(fw_printenv -n DeviceCode | awk '{print substr($0,3)}')
-	    if [[ ! -z $devcode && $NILRT_ARM_MIGRATION_SUPPORTED_DEVICES =~ $devcode ]]; then
-		opkg install zynq-safemode-cfgs-$devcode
+	    if [[ ! -z $DEVICE_CODE && $NILRT_ARM_MIGRATION_SUPPORTED_DEVICES =~ $DEVICE_CODE ]]; then
+		opkg install zynq-safemode-cfgs-$DEVICE_CODE || (echo "ERROR: Could not install zynq-safemode-cfg-$DEVICE_CODE" && return 1)
 		cp /boot/.oldNILinuxRT/bw-migrate.scr /boot/default.scr
 		reboot
 	    else
-		echo "ERROR: Backwards migration is not supported for device '$devcode', it is only available for $NILRT_ARM_MIGRATION_SUPPORTED_DEVICES"
-		exit 1
+		echo "ERROR: Backwards migration is not supported for device '$DEVICE_CODE', it is only available for $NILRT_ARM_MIGRATION_SUPPORTED_DEVICES"
+		return 1
 	    fi
         fi
     fi
@@ -116,6 +115,16 @@ ARCH=$(uname -m)
 target_flavor="legacy"
 command -v nisafemodeversion > /dev/null 2>&1 || target_flavor="new"
 
+DEVICE_CODE=$(fw_printenv -n DeviceCode | awk '{print substr($0,3)}')
+
+cleanup_on_error() {
+    echo "ERROR: Migration failed. Cleaning up installed packages to free space... "
+    opkg remove migrate-nilrt nioldos ninextos
+    if [[ $ARCH =~ "arm" ]]; then
+	opkg remove zynq-safemode-cfgs-$DEVICE_CODE
+    fi
+}
+
 echo
 if [[  $target_flavor == "legacy" ]]; then
     echo "Continuing will partition, format and install the newer NILRT OS to the target."
@@ -126,7 +135,9 @@ echo "All user data will be lost and the target will no longer be discoverable f
 echo
 read -p "To continue type YES: " USER_AGREEMENT
 if [[ $USER_AGREEMENT == "YES" ]]; then
-    migrate_target
+    if ! migrate_target; then
+	cleanup_on_error
+    fi
 else
     echo "Aborted by user. To retry run $0 again."
 fi
