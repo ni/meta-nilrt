@@ -18,6 +18,7 @@ IMAGE_INSTALL_NODEPS += " \
     ni-flexrio \
     ni-usrp-rio \
     ni-sync \
+    ni-p2p \
     mt \
 "
 
