@@ -40,8 +40,8 @@ replace_x64_opkg_migration_feed()
     remove_opkg_config
 
     # the overwrite is intentional
-    echo  >/etc/opkg/ni_migrate_target-feeds.conf "src/gz extra-core2-64 $NEXT_FEED_URI/images/core2-64"
-    echo >>/etc/opkg/ni_migrate_target-feeds.conf "src/gz main-all $NEXT_FEED_URI/main/all"
+    echo  >/etc/opkg/ni_migrate_target-feeds.conf "src/gz extra-core2-64 $FULL_FEED_URI/images/core2-64"
+    echo >>/etc/opkg/ni_migrate_target-feeds.conf "src/gz main-all $FULL_FEED_URI/main/all"
 }
 
 replace_arm_opkg_migration_feed()
@@ -49,9 +49,9 @@ replace_arm_opkg_migration_feed()
     remove_opkg_config
 
     # the overwrite is intentional
-    echo  >/etc/opkg/ni_migrate_target-feeds.conf "src/gz images-cortexa9hf-vfpv3 $NEXT_FEED_URI/images/cortexa9hf-vfpv3"
-    echo >>/etc/opkg/ni_migrate_target-feeds.conf "src/gz main-cortexa9hf-vfpv3 $NEXT_FEED_URI/main/cortexa9hf-vfpv3"
-    echo >>/etc/opkg/ni_migrate_target-feeds.conf "src/gz main-all $NEXT_FEED_URI/main/all"
+    echo  >/etc/opkg/ni_migrate_target-feeds.conf "src/gz images-cortexa9hf-vfpv3 $FULL_FEED_URI/images/cortexa9hf-vfpv3"
+    echo >>/etc/opkg/ni_migrate_target-feeds.conf "src/gz main-cortexa9hf-vfpv3 $FULL_FEED_URI/main/cortexa9hf-vfpv3"
+    echo >>/etc/opkg/ni_migrate_target-feeds.conf "src/gz main-all $FULL_FEED_URI/main/all"
 }
 
 migrate_target()
@@ -133,6 +133,16 @@ target_flavor="legacy"
 command -v nisafemodeversion > /dev/null 2>&1 || target_flavor="new"
 
 DEVICE_CODE=$(fw_printenv -n DeviceCode | awk '{print substr($0,3)}')
+
+# need to do this match because feed machine name does not match feed machine name
+if [[ $ARCH =~ "arm" ]]; then
+    FULL_FEED_URI="$NEXT_FEED_URI/xilinx-zynqhf"
+elif [[ $ARCH == "x86_64" ]]; then
+    FULL_FEED_URI="$NEXT_FEED_URI/x64"
+else
+    echo "ERROR: Could not determine cpu architecture for migration."
+    exit 1
+fi
 
 cleanup_on_error() {
     echo "ERROR: Migration failed. Cleaning up installed packages to free space... "
