@@ -10,7 +10,7 @@ S = "${WORKDIR}"
 
 do_install() {
         install -d ${D}${base_sbindir}/
-	sed -e "s#NEXT_FEED_URI=\"\"#NEXT_FEED_URI=\"${NILRT_FEED_URI}\"#" \
+	sed -e "s#NEXT_FEED_URI=\"\"#NEXT_FEED_URI=\"${NILRT_MACHINE_FEED_URI}\"#" \
             -e "s/NILRT_ARM_MIGRATION_SUPPORTED_DEVICES=\"\"/NILRT_ARM_MIGRATION_SUPPORTED_DEVICES=\'${NILRT_ARM_MIGRATION_SUPPORTED_DEVICES}\'/" \
 	     ${S}/ni_migrate_target > ${D}${base_sbindir}/ni_migrate_target
 	chmod +x ${D}${base_sbindir}/ni_migrate_target
