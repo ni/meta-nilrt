@@ -6,4 +6,4 @@ part /boot --source isoimage-isohybrid --sourceparams="loader=grub-efi,image_nam
 
 # note that --append is ignored by grub when using a configfile
 # and only processed by syslinux as configured below
-bootloader --configfile="grub.cfg" --append="restore=provision"
+bootloader --configfile="grub.cfg" --append="restore=provision console=ttyS0"
