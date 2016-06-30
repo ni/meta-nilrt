@@ -106,13 +106,14 @@ migrate_target()
         elif [[ $ARCH =~ "arm" ]]; then
 	    replace_arm_opkg_migration_feed
 	    opkg update
-	    if ! opkg install nioldos; then
-		echo "ERROR: Could not install nioldos"
-		return 1
-	    fi
 	    # validate this device code, otherwise we can download a bad safemode itb
-	    if [[ ! -z $DEVICE_CODE && $NILRT_ARM_MIGRATION_SUPPORTED_DEVICES =~ $DEVICE_CODE ]]; then
-		if ! opkg install zynq-safemode-cfgs-$DEVICE_CODE; then
+	    DEVICE_CODE_UPCASE=$(echo "$DEVICE_CODE" | awk '{print toupper($0)}')
+	    if [[ ! -z "$DEVICE_CODE_UPCASE" && "$NILRT_ARM_MIGRATION_SUPPORTED_DEVICES" =~ "$DEVICE_CODE_UPCASE" ]]; then
+		if ! opkg install nioldos; then
+		    echo "ERROR: Could not install nioldos"
+		    return 1
+		fi
+		if ! opkg install "zynq-safemode-cfgs-$DEVICE_CODE"; then
 		    echo "ERROR: Could not install zynq-safemode-cfg-$DEVICE_CODE"
 		    return 1
 		fi
@@ -132,7 +133,7 @@ ARCH=$(uname -m)
 target_flavor="legacy"
 command -v nisafemodeversion > /dev/null 2>&1 || target_flavor="new"
 
-DEVICE_CODE=$(fw_printenv -n DeviceCode | awk '{print substr($0,3)}')
+DEVICE_CODE=$(fw_printenv -n DeviceCode | awk '{print tolower(substr($0,3))}')
 
 # need to do this match because feed machine name does not match feed machine name
 if [[ $ARCH =~ "arm" ]]; then
@@ -148,7 +149,7 @@ cleanup_on_error() {
     echo "ERROR: Migration failed. Cleaning up installed packages to free space... "
     opkg remove migrate-nilrt nioldos ninextos
     if [[ $ARCH =~ "arm" ]]; then
-	opkg remove zynq-safemode-cfgs-$DEVICE_CODE
+	opkg remove "zynq-safemode-cfgs-$DEVICE_CODE"
     fi
 }
 
