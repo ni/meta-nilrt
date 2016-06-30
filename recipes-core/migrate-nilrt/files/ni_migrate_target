@@ -60,7 +60,10 @@ migrate_target()
         if [[ $ARCH == "x86_64" ]]; then
 	    replace_x64_opkg_migration_feed
             opkg update
-            opkg install ninextos || (echo "ERROR: Could not install ninextos" && return 1)
+	    if ! opkg install ninextos; then
+		echo "ERROR: Could not install ninextos"
+		return 1
+	    fi
             mv /boot/.safe/bootimage.cfg /boot/.safe/bootimage_old.cfg
             cp /boot/.newNILinuxRT/bootimage.cfg /boot/.safe/
             fw_setenv consoleoutenable True
@@ -75,10 +78,16 @@ migrate_target()
 		cd /mnt/userfs
 		opkg download ninextos
 		add_opkg_userfs_dest
-		opkg install ninextos* -d userfs || (echo "ERROR: Could not install ninextos" && return 1)
+		if ! opkg install ninextos* -d userfs; then
+		    echo "ERROR: Could not install ninextos"
+		    return 1
+		fi
 		cp .newNILinuxRT/linux_fw_migrate.itb /boot/linux_runmode.itb
 	    else
-		opkg install ninextos || (echo "ERROR: Could not install ninextos" && return 1)
+		if ! opkg install ninextos; then
+		    echo "ERROR: Could not install ninextos"
+		    return 1
+		fi
 		cp /.newNILinuxRT/linux_fw_migrate.itb /boot/linux_runmode.itb
 	    fi
 	    reboot
@@ -87,18 +96,26 @@ migrate_target()
         if [[ $ARCH == "x86_64" ]]; then
             replace_x64_opkg_migration_feed
             opkg update
-            opkg install nioldos || (echo "ERROR: Could not install nioldos" && return 1)
+	    if ! opkg install nioldos; then
+		echo "ERROR: Could not install nioldos"
+		return 1
+	    fi
             mv /boot/grub.cfg /boot/grub_old.cfg
             cp /boot/.oldNILinuxRT/grub.cfg /boot/
             reboot
         elif [[ $ARCH =~ "arm" ]]; then
 	    replace_arm_opkg_migration_feed
 	    opkg update
-	    opkg install nioldos || (echo "ERROR: Could not install nioldos" && return 1)
-
+	    if ! opkg install nioldos; then
+		echo "ERROR: Could not install nioldos"
+		return 1
+	    fi
 	    # validate this device code, otherwise we can download a bad safemode itb
 	    if [[ ! -z $DEVICE_CODE && $NILRT_ARM_MIGRATION_SUPPORTED_DEVICES =~ $DEVICE_CODE ]]; then
-		opkg install zynq-safemode-cfgs-$DEVICE_CODE || (echo "ERROR: Could not install zynq-safemode-cfg-$DEVICE_CODE" && return 1)
+		if ! opkg install zynq-safemode-cfgs-$DEVICE_CODE; then
+		    echo "ERROR: Could not install zynq-safemode-cfg-$DEVICE_CODE"
+		    return 1
+		fi
 		cp /boot/.oldNILinuxRT/bw-migrate.scr /boot/default.scr
 		reboot
 	    else
