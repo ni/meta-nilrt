@@ -117,10 +117,6 @@ if [ "$ARCH" = "armv7l" ]; then
 	    fi
 	    echo "done."
 
-	    printf "Restoring older nilrt default configuration..."
-	    tar -xf $NILRT_MOUNTPOINT/.oldNILinuxRT/safemode_default_config.tar.gz -C $NICONFIG_MOUNTPOINT
-	    echo "done."
-
 	    sync
 	    umount $NILRT_MOUNTPOINT
 	    umount $NIRESTORE_MOUNTPOINT
