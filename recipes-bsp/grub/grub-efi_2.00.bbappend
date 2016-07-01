@@ -1,7 +1,7 @@
 # This .bbappend file changes the origin of source files and
 # uses git instead of ftp.
 
-FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+FILESEXTRAPATHS_prepend := "${THISDIR}/grub-efi:"
 
 SRCREV = "9585647a25b65f98db6bd22c569b34795512f046"
 # Uses the same commit and the same patches which are used by grub in recoverytool

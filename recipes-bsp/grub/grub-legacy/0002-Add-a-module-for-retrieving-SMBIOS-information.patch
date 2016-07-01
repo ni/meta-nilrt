@@ -1,0 +1,855 @@
+From 7215f379535357866f4198b26b6c4fd4fd616a63 Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+Date: Tue, 29 Mar 2016 17:33:29 +0300
+Subject: [PATCH 2/2] Add a module for retrieving SMBIOS information
+
+The following are two use cases from Rajat Jain <rajatjain@juniper.net>:
+
+1) We have a board that boots Linux and this board itself can be plugged into one of \
+different chassis types. We need to pass different parameters to the kernel based on \
+the "CHASSIS_TYPE" information that is passed by the bios in the DMI / SMBIOS tables.
+
+2) We may have a USB stick that can go into multiple boards, and the exact kernel to \
+                be loaded depends on the machine information (PRODUCT_NAME etc) \
+                passed via the DMI.
+
+Backported from patch series: http://marc.info/?l=grub-devel&m=145749830329072
+Rebased on top of grub-legacy
+
+Upstream-Status: Submitted
+
+Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+---
+ docs/grub.texi                       | 169 ++++++++++++++++
+ grub-core/Makefile.core.def          |  15 ++
+ grub-core/commands/efi/smbios.c      |  59 ++++++
+ grub-core/commands/i386/pc/smbios.c  |  50 +++++
+ grub-core/commands/smbios.c          | 364 +++++++++++++++++++++++++++++++++++
+ grub-core/efiemu/i386/pc/cfgtables.c |  15 +-
+ include/grub/smbios.h                |  69 +++++++
+ 7 files changed, 730 insertions(+), 11 deletions(-)
+ create mode 100644 grub-core/commands/efi/smbios.c
+ create mode 100644 grub-core/commands/i386/pc/smbios.c
+ create mode 100644 grub-core/commands/smbios.c
+ create mode 100644 include/grub/smbios.h
+
+diff --git a/docs/grub.texi b/docs/grub.texi
+index b5954da..a1d7451 100644
+--- a/docs/grub.texi
++++ b/docs/grub.texi
+@@ -3242,6 +3242,10 @@ you forget a command, you can run the command @command{help}
+ * search::                      Search devices by file, label, or UUID
+ * sendkey::                     Emulate keystrokes
+ * set::                         Set an environment variable
++* sleep::                       Wait for a specified number of seconds
++* smbios::                      Retrieve SMBIOS information
++* source::                      Read a configuration file in same context
++* test::                        Check file types and compare values
+ * true::                        Do nothing, successfully
+ * unset::                       Unset an environment variable
+ * uppermem::                    Set the upper memory size
+@@ -4008,6 +4012,171 @@ arguments, print all environment variables with their values.
+ @end deffn
+ 
+ 
++@node sleep
++@subsection sleep
++
++@deffn Command sleep [@option{--verbose}] [@option{--interruptible}] count
++Sleep for @var{count} seconds. If option @option{--interruptible} is given,
++allow @key{ESC} to interrupt sleep. With @option{--verbose} show countdown
++of remaining seconds. Exit code is set to 0 if timeout expired and to 1
++if timeout was interrupted by @key{ESC}.
++@end deffn
++
++
++@node source
++@subsection source
++
++@deffn Command source file
++Read @var{file} as a configuration file, as if its contents had been
++incorporated directly into the sourcing file.  Unlike @command{configfile}
++(@pxref{configfile}), this executes the contents of @var{file} without
++changing context: any environment variable changes made by the commands in
++@var{file} will be preserved after @command{source} returns, and the menu
++will not be shown immediately.
++@end deffn
++
++
++@node test
++@subsection test
++
++@deffn Command test expression
++Evaluate @var{expression} and return zero exit status if result is true,
++non zero status otherwise.
++
++@var{expression} is one of:
++
++@table @asis
++@item @var{string1} @code{==} @var{string2}
++the strings are equal
++@item @var{string1} @code{!=} @var{string2}
++the strings are not equal
++@item @var{string1} @code{<} @var{string2}
++@var{string1} is lexicographically less than @var{string2}
++@item @var{string1} @code{<=} @var{string2}
++@var{string1} is lexicographically less or equal than @var{string2}
++@item @var{string1} @code{>} @var{string2}
++@var{string1} is lexicographically greater than @var{string2}
++@item @var{string1} @code{>=} @var{string2}
++@var{string1} is lexicographically greater or equal than @var{string2}
++@item @var{integer1} @code{-eq} @var{integer2}
++@var{integer1} is equal to @var{integer2}
++@item @var{integer1} @code{-ge} @var{integer2}
++@var{integer1} is greater than or equal to @var{integer2}
++@item @var{integer1} @code{-gt} @var{integer2}
++@var{integer1} is greater than @var{integer2}
++@item @var{integer1} @code{-le} @var{integer2}
++@var{integer1} is less than or equal to @var{integer2}
++@item @var{integer1} @code{-lt} @var{integer2}
++@var{integer1} is less than @var{integer2}
++@item @var{integer1} @code{-ne} @var{integer2}
++@var{integer1} is not equal to @var{integer2}
++@item @var{prefix}@var{integer1} @code{-pgt} @var{prefix}@var{integer2}
++@var{integer1} is greater than @var{integer2} after stripping off common non-numeric @var{prefix}.
++@item @var{prefix}@var{integer1} @code{-plt} @var{prefix}@var{integer2}
++@var{integer1} is less than @var{integer2} after stripping off common non-numeric @var{prefix}.
++@item @var{file1} @code{-nt} @var{file2}
++@var{file1} is newer than @var{file2} (modification time). Optionally numeric @var{bias} may be directly appended to @code{-nt} in which case it is added to the first file modification time.
++@item @var{file1} @code{-ot} @var{file2}
++@var{file1} is older than @var{file2} (modification time). Optionally numeric @var{bias} may be directly appended to @code{-ot} in which case it is added to the first file modification time.
++@item @code{-d} @var{file}
++@var{file} exists and is a directory
++@item @code{-e} @var{file}
++@var{file} exists
++@item @code{-f} @var{file}
++@var{file} exists and is not a directory
++@item @code{-s} @var{file}
++@var{file} exists and has a size greater than zero
++@item @code{-n} @var{string}
++the length of @var{string} is nonzero
++@item @var{string}
++@var{string} is equivalent to @code{-n @var{string}}
++@item @code{-z} @var{string}
++the length of @var{string} is zero
++@item @code{(} @var{expression} @code{)}
++@var{expression} is true
++@item @code{!} @var{expression}
++@var{expression} is false
++@item @var{expression1} @code{-a} @var{expression2}
++both @var{expression1} and @var{expression2} are true
++@item @var{expression1} @code{-o} @var{expression2}
++either @var{expression1} or @var{expression2} is true
++@end table
++@end deffn
++
++@node smbios
++@subsection smbios
++
++@deffn Command smbios @
++ [@option{--type} @var{type}] @
++ [@option{--handle} @var{handle}] @
++ [@option{--match} @var{match}] @
++ (@option{--get-byte} | @option{--get-word} | @option{--get-dword} | @
++  @option{--get-qword} | @option{--get-string} | @option{--get-uuid}) @
++ @var{offset} @
++ [@option{--set} @var{variable}]
++Retrieve SMBIOS information.
++
++The @command{smbios} command returns the value of a field in an SMBIOS
++structure.  The following options determine which structure to select.
++
++@itemize @bullet
++@item
++Specifying @option{--type} will select structures with a matching
++@var{type}.  The type can be any integer from 0 to 255.
++@item
++Specifying @option{--handle} will select structures with a matching
++@var{handle}.  The handle can be any integer from 0 to 65535.
++@item
++Specifying @option{--match} will select structure number @var{match} in the
++filtered list of structures; e.g. @code{smbios --type 4 --match 2} will select
++the second Process Information (Type 4) structure.  The list is always ordered
++the same as the hardware's SMBIOS table.  The match number must be a positive
++integer.  If unspecified, the first matching structure will be selected.
++@end itemize
++
++The remaining options determine which field in the selected SMBIOS structure to
++return.  Only one of these options may be specified at a time.
++
++@itemize @bullet
++@item
++When given @option{--get-byte}, return the value of the byte
++at @var{offset} bytes into the selected SMBIOS structure.
++It will be formatted as an unsigned decimal integer.
++@item
++When given @option{--get-word}, return the value of the word (two bytes)
++at @var{offset} bytes into the selected SMBIOS structure.
++It will be formatted as an unsigned decimal integer.
++@item
++When given @option{--get-dword}, return the value of the dword (four bytes)
++at @var{offset} bytes into the selected SMBIOS structure.
++It will be formatted as an unsigned decimal integer.
++@item
++When given @option{--get-qword}, return the value of the qword (eight bytes)
++at @var{offset} bytes into the selected SMBIOS structure.
++It will be formatted as an unsigned decimal integer.
++@item
++When given @option{--get-string}, return the string with its index found
++at @var{offset} bytes into the selected SMBIOS structure.
++@item
++When given @option{--get-uuid}, return the value of the UUID (sixteen bytes)
++at @var{offset} bytes into the selected SMBIOS structure.
++It will be formatted as lower-case hyphenated hexadecimal digits, with the
++first three fields as little-endian, and the rest printed byte-by-byte.
++@end itemize
++
++The default action is to print the value of the requested field to the console,
++but a variable name can be specified with @option{--set} to store the value
++instead of printing it.
++
++For example, this will store and then display the system manufacturer's name.
++
++@example
++smbios --type 1 --get-string 4 --set system_manufacturer
++echo $system_manufacturer
++@end example
++@end deffn
++
++
+ @node true
+ @subsection true
+ 
+diff --git a/grub-core/Makefile.core.def b/grub-core/Makefile.core.def
+index 39e77a4..259e7c1 100644
+--- a/grub-core/Makefile.core.def
++++ b/grub-core/Makefile.core.def
+@@ -806,6 +806,21 @@ module = {
+ };
+ 
+ module = {
++  name = smbios;
++
++  common = commands/smbios.c;
++  efi = commands/efi/smbios.c;
++  i386_pc = commands/i386/pc/smbios.c;
++  i386_coreboot = commands/i386/pc/smbios.c;
++  i386_multiboot = commands/i386/pc/smbios.c;
++
++  enable = efi;
++  enable = i386_pc;
++  enable = i386_coreboot;
++  enable = i386_multiboot;
++};
++
++module = {
+   name = suspend;
+   ieee1275 = commands/ieee1275/suspend.c;
+   enable = i386_ieee1275;
+diff --git a/grub-core/commands/efi/smbios.c b/grub-core/commands/efi/smbios.c
+new file mode 100644
+index 0000000..b2440a8
+--- /dev/null
++++ b/grub-core/commands/efi/smbios.c
+@@ -0,0 +1,59 @@
++/* smbios.c - get smbios tables. */
++/*
++ *  GRUB  --  GRand Unified Bootloader
++ *  Copyright (C) 2016  Free Software Foundation, Inc.
++ *
++ *  GRUB is free software: you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation, either version 3 of the License, or
++ *  (at your option) any later version.
++ *
++ *  GRUB is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <grub/smbios.h>
++#include <grub/misc.h>
++#include <grub/efi/efi.h>
++#include <grub/efi/api.h>
++
++struct grub_smbios_eps *
++grub_machine_smbios_get_eps (void)
++{
++  unsigned i;
++  static grub_efi_packed_guid_t smbios_guid = GRUB_EFI_SMBIOS_TABLE_GUID;
++
++  for (i = 0; i < grub_efi_system_table->num_table_entries; i++)
++    {
++      grub_efi_packed_guid_t *guid =
++	&grub_efi_system_table->configuration_table[i].vendor_guid;
++
++      if (! grub_memcmp (guid, &smbios_guid, sizeof (grub_efi_packed_guid_t)))
++	return (struct grub_smbios_eps *)
++	  grub_efi_system_table->configuration_table[i].vendor_table;
++    }
++  return 0;
++}
++
++struct grub_smbios_eps3 *
++grub_machine_smbios_get_eps3 (void)
++{
++  unsigned i;
++  static grub_efi_packed_guid_t smbios3_guid = GRUB_EFI_SMBIOS3_TABLE_GUID;
++
++  for (i = 0; i < grub_efi_system_table->num_table_entries; i++)
++    {
++      grub_efi_packed_guid_t *guid =
++	&grub_efi_system_table->configuration_table[i].vendor_guid;
++
++      if (! grub_memcmp (guid, &smbios3_guid, sizeof (grub_efi_packed_guid_t)))
++	return (struct grub_smbios_eps3 *)
++	  grub_efi_system_table->configuration_table[i].vendor_table;
++    }
++  return 0;
++}
+diff --git a/grub-core/commands/i386/pc/smbios.c b/grub-core/commands/i386/pc/smbios.c
+new file mode 100644
+index 0000000..4637e93
+--- /dev/null
++++ b/grub-core/commands/i386/pc/smbios.c
+@@ -0,0 +1,50 @@
++/* smbios.c - get smbios tables. */
++/*
++ *  GRUB  --  GRand Unified Bootloader
++ *  Copyright (C) 2016  Free Software Foundation, Inc.
++ *
++ *  GRUB is free software: you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation, either version 3 of the License, or
++ *  (at your option) any later version.
++ *
++ *  GRUB is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <grub/acpi.h>
++#include <grub/smbios.h>
++#include <grub/misc.h>
++
++struct grub_smbios_eps *
++grub_machine_smbios_get_eps (void)
++{
++  grub_uint8_t *ptr;
++
++  grub_dprintf ("smbios", "Looking for SMBIOS EPS. Scanning BIOS\n");
++  for (ptr = (grub_uint8_t *) 0xf0000; ptr < (grub_uint8_t *) 0x100000;
++       ptr += 16)
++    if (grub_memcmp (ptr, "_SM_", 4) == 0
++	&& grub_byte_checksum (ptr, sizeof (struct grub_smbios_eps)) == 0)
++      return (struct grub_smbios_eps *) ptr;
++  return 0;
++}
++
++struct grub_smbios_eps3 *
++grub_machine_smbios_get_eps3 (void)
++{
++  grub_uint8_t *ptr;
++
++  grub_dprintf ("smbios", "Looking for SMBIOS3 EPS. Scanning BIOS\n");
++  for (ptr = (grub_uint8_t *) 0xf0000; ptr < (grub_uint8_t *) 0x100000;
++       ptr += 16)
++    if (grub_memcmp (ptr, "_SM3_", 5) == 0
++	&& grub_byte_checksum (ptr, sizeof (struct grub_smbios_eps3)) == 0)
++      return (struct grub_smbios_eps3 *) ptr;
++  return 0;
++}
+diff --git a/grub-core/commands/smbios.c b/grub-core/commands/smbios.c
+new file mode 100644
+index 0000000..3330439
+--- /dev/null
++++ b/grub-core/commands/smbios.c
+@@ -0,0 +1,364 @@
++/* smbios.c - retrieve smbios information. */
++/*
++ *  GRUB  --  GRand Unified Bootloader
++ *  Copyright (C) 2016  Free Software Foundation, Inc.
++ *
++ *  GRUB is free software: you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation, either version 3 of the License, or
++ *  (at your option) any later version.
++ *
++ *  GRUB is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <grub/dl.h>
++#include <grub/env.h>
++#include <grub/extcmd.h>
++#include <grub/i18n.h>
++#include <grub/misc.h>
++#include <grub/mm.h>
++#include <grub/smbios.h>
++
++GRUB_MOD_LICENSE ("GPLv3+");
++
++
++/* Locate the SMBIOS entry point structure depending on the hardware. */
++struct grub_smbios_eps *
++grub_smbios_get_eps (void)
++{
++  static struct grub_smbios_eps *eps = NULL;
++  if (eps != NULL)
++    return eps;
++  eps = grub_machine_smbios_get_eps ();
++  return eps;
++}
++
++/* Locate the SMBIOS3 entry point structure depending on the hardware. */
++struct grub_smbios_eps3 *
++grub_smbios_get_eps3 (void)
++{
++  static struct grub_smbios_eps3 *eps = NULL;
++  if (eps != NULL)
++    return eps;
++  eps = grub_machine_smbios_get_eps3 ();
++  return eps;
++}
++
++/* Abstract useful values found in either the SMBIOS3 or SMBIOS EPS. */
++static struct {
++  grub_addr_t start;
++  grub_addr_t end;
++  grub_uint16_t structures;
++} table_desc;
++
++
++/*
++ * These functions convert values from the various SMBIOS structure field types
++ * into a string formatted to be returned to the user.  They expect that the
++ * structure and offset were already validated.  When the requested data is
++ * successfully retrieved and formatted, the pointer to the string is returned;
++ * otherwise, NULL is returned on failure.  Don't free the result.
++ */
++
++static const char *
++grub_smbios_format_byte (const grub_uint8_t *structure, grub_uint8_t offset)
++{
++  static char buffer[sizeof ("255")];
++  grub_snprintf (buffer, sizeof (buffer), "%u", structure[offset]);
++  return (const char *)buffer;
++}
++
++static const char *
++grub_smbios_format_word (const grub_uint8_t *structure, grub_uint8_t offset)
++{
++  static char buffer[sizeof ("65535")];
++  grub_uint16_t value = grub_get_unaligned16 (structure + offset);
++  grub_snprintf (buffer, sizeof (buffer), "%u", value);
++  return (const char *)buffer;
++}
++
++static const char *
++grub_smbios_format_dword (const grub_uint8_t *structure, grub_uint8_t offset)
++{
++  static char buffer[sizeof ("4294967295")];
++  grub_uint32_t value = grub_get_unaligned32 (structure + offset);
++  grub_snprintf (buffer, sizeof (buffer), "%" PRIuGRUB_UINT32_T, value);
++  return (const char *)buffer;
++}
++
++static const char *
++grub_smbios_format_qword (const grub_uint8_t *structure, grub_uint8_t offset)
++{
++  static char buffer[sizeof ("18446744073709551615")];
++  grub_uint64_t value = grub_get_unaligned64 (structure + offset);
++  grub_snprintf (buffer, sizeof (buffer), "%" PRIuGRUB_UINT64_T, value);
++  return (const char *)buffer;
++}
++
++static const char *
++grub_smbios_get_string (const grub_uint8_t *structure, grub_uint8_t offset)
++{
++  const grub_uint8_t *ptr = structure + structure[1];
++  const grub_uint8_t *table_end = (const grub_uint8_t *)table_desc.end;
++  const grub_uint8_t referenced_string_number = structure[offset];
++  grub_uint8_t i;
++
++  /* A string referenced with zero is interpreted as unset. */
++  if (referenced_string_number == 0)
++    return NULL;
++
++  /* Search the string set. */
++  for (i = 1; *ptr != 0 && ptr < table_end; i++)
++    if (i == referenced_string_number)
++      {
++        const char *str = (const char *)ptr;
++        while (*ptr++ != 0)
++          if (ptr >= table_end)
++            return NULL; /* The string isn't terminated. */
++        return str;
++      }
++    else
++      while (*ptr++ != 0 && ptr < table_end);
++
++  /* The string number is greater than the number of strings in the set. */
++  return NULL;
++}
++
++static const char *
++grub_smbios_format_uuid (const grub_uint8_t *structure, grub_uint8_t offset)
++{
++  static char buffer[sizeof ("ffffffff-ffff-ffff-ffff-ffffffffffff")];
++  const grub_uint8_t *f = structure + offset; /* little-endian fields */
++  const grub_uint8_t *g = f + 8; /* byte-by-byte fields */
++  grub_snprintf (buffer, sizeof (buffer),
++                 "%02x%02x%02x%02x-%02x%02x-%02x%02x-"
++                 "%02x%02x-%02x%02x%02x%02x%02x%02x",
++                 f[3], f[2], f[1], f[0], f[5], f[4], f[7], f[6],
++                 g[0], g[1], g[2], g[3], g[4], g[5], g[6], g[7]);
++  return (const char *)buffer;
++}
++
++
++/* List the field formatting functions and the number of bytes they need. */
++static const struct {
++  const char *(*format) (const grub_uint8_t *structure, grub_uint8_t offset);
++  grub_uint8_t field_length;
++} field_extractors[] = {
++  {grub_smbios_format_byte, 1},
++  {grub_smbios_format_word, 2},
++  {grub_smbios_format_dword, 4},
++  {grub_smbios_format_qword, 8},
++  {grub_smbios_get_string, 1},
++  {grub_smbios_format_uuid, 16}
++};
++
++/* List command options, with structure field getters ordered as above. */
++#define FIRST_GETTER_OPT (3)
++#define SETTER_OPT (FIRST_GETTER_OPT + ARRAY_SIZE(field_extractors))
++static const struct grub_arg_option options[] = {
++  {"type",       't', 0, N_("Match structures with the given type."),
++                         N_("type"), ARG_TYPE_INT},
++  {"handle",     'h', 0, N_("Match structures with the given handle."),
++                         N_("handle"), ARG_TYPE_INT},
++  {"match",      'm', 0, N_("Select a structure when several match."),
++                         N_("match"), ARG_TYPE_INT},
++  {"get-byte",   'b', 0, N_("Get the byte's value at the given offset."),
++                         N_("offset"), ARG_TYPE_INT},
++  {"get-word",   'w', 0, N_("Get two bytes' value at the given offset."),
++                         N_("offset"), ARG_TYPE_INT},
++  {"get-dword",  'd', 0, N_("Get four bytes' value at the given offset."),
++                         N_("offset"), ARG_TYPE_INT},
++  {"get-qword",  'q', 0, N_("Get eight bytes' value at the given offset."),
++                         N_("offset"), ARG_TYPE_INT},
++  {"get-string", 's', 0, N_("Get the string specified at the given offset."),
++                         N_("offset"), ARG_TYPE_INT},
++  {"get-uuid",   'u', 0, N_("Get the UUID's value at the given offset."),
++                         N_("offset"), ARG_TYPE_INT},
++  {"set",       '\0', 0, N_("Store the value in the given variable name."),
++                         N_("variable"), ARG_TYPE_STRING},
++  {0, 0, 0, 0, 0, 0}
++};
++
++
++/*
++ * Return a matching SMBIOS structure.
++ *
++ * This method can use up to three criteria for selecting a structure:
++ *   - The "type" field                  (use -1 to ignore)
++ *   - The "handle" field                (use -1 to ignore)
++ *   - Which to return if several match  (use  0 to ignore)
++ *
++ * The return value is a pointer to the first matching structure.  If no
++ * structures match the given parameters, NULL is returned.
++ */
++static const grub_uint8_t *
++grub_smbios_match_structure (const grub_int16_t type,
++                             const grub_int32_t handle,
++                             const grub_uint16_t match)
++{
++  const grub_uint8_t *ptr = (const grub_uint8_t *)table_desc.start;
++  const grub_uint8_t *table_end = (const grub_uint8_t *)table_desc.end;
++  grub_uint16_t structures = table_desc.structures;
++  grub_uint16_t structure_count = 0;
++  grub_uint16_t matches = 0;
++
++  while (ptr < table_end
++         && ptr[1] >= 4 /* Valid structures include the 4-byte header. */
++         && (structure_count++ < structures || structures == 0))
++    {
++      grub_uint16_t structure_handle = grub_get_unaligned16 (ptr + 2);
++      grub_uint8_t structure_type = ptr[0];
++
++      if ((handle < 0 || handle == structure_handle)
++          && (type < 0 || type == structure_type)
++          && (match == 0 || match == ++matches))
++        return ptr;
++
++      else
++        {
++          ptr += ptr[1];
++          while ((*ptr++ != 0 || *ptr++ != 0) && ptr < table_end);
++        }
++
++      if (structure_type == GRUB_SMBIOS_TYPE_END_OF_TABLE)
++        break;
++    }
++
++  return NULL;
++}
++
++
++static grub_err_t
++grub_cmd_smbios (grub_extcmd_context_t ctxt,
++                 int argc __attribute__ ((unused)),
++                 char **argv __attribute__ ((unused)))
++{
++  struct grub_arg_list *state = ctxt->state;
++
++  grub_int16_t type = -1;
++  grub_int32_t handle = -1;
++  grub_uint16_t match = 0;
++  grub_uint8_t offset = 0;
++
++  const grub_uint8_t *structure;
++  const char *value;
++  grub_int32_t option;
++  grub_int8_t field_type = -1;
++  grub_uint8_t i;
++
++  if (table_desc.start == 0)
++    return grub_error (GRUB_ERR_IO,
++                       N_("the SMBIOS entry point structure was not found"));
++
++  /* Read the given filtering options. */
++  if (state[0].set)
++    {
++      option = grub_strtol (state[0].arg, NULL, 0);
++      if (option < 0 || option > 255)
++        return grub_error (GRUB_ERR_BAD_ARGUMENT,
++                           N_("the type must be between 0 and 255"));
++      type = (grub_int16_t)option;
++    }
++  if (state[1].set)
++    {
++      option = grub_strtol (state[1].arg, NULL, 0);
++      if (option < 0 || option > 65535)
++        return grub_error (GRUB_ERR_BAD_ARGUMENT,
++                           N_("the handle must be between 0 and 65535"));
++      handle = (grub_int32_t)option;
++    }
++  if (state[2].set)
++    {
++      option = grub_strtol (state[2].arg, NULL, 0);
++      if (option <= 0 || option > 65535)
++        return grub_error (GRUB_ERR_BAD_ARGUMENT,
++                           N_("the match must be a positive integer"));
++      match = (grub_uint16_t)option;
++    }
++
++  /* Determine the data type of the structure field to retrieve. */
++  for (i = 0; i < ARRAY_SIZE(field_extractors); i++)
++    if (state[FIRST_GETTER_OPT + i].set)
++      {
++        if (field_type >= 0)
++          return grub_error (GRUB_ERR_BAD_ARGUMENT,
++                             N_("only one --get option is usable at a time"));
++        field_type = i;
++      }
++
++  /* Require a choice of a structure field to return. */
++  if (field_type < 0)
++    return grub_error (GRUB_ERR_BAD_ARGUMENT,
++                       N_("one of the --get options is required"));
++
++  /* Locate a matching SMBIOS structure. */
++  structure = grub_smbios_match_structure (type, handle, match);
++  if (structure == NULL)
++    return grub_error (GRUB_ERR_IO,
++                       N_("no structure matched the given options"));
++
++  /* Ensure the requested byte offset is inside the structure. */
++  option = grub_strtol (state[FIRST_GETTER_OPT + field_type].arg, NULL, 0);
++  if (option < 0 || option >= structure[1])
++    return grub_error (GRUB_ERR_OUT_OF_RANGE,
++                       N_("the given offset is outside the structure"));
++
++  /* Ensure the requested data type at the offset is inside the structure. */
++  offset = (grub_uint8_t)option;
++  if (offset + field_extractors[field_type].field_length > structure[1])
++    return grub_error (GRUB_ERR_OUT_OF_RANGE,
++                       N_("the field ends outside the structure"));
++
++  /* Format the requested structure field into a readable string. */
++  value = field_extractors[field_type].format (structure, offset);
++  if (value == NULL)
++    return grub_error (GRUB_ERR_IO,
++                       N_("failed to retrieve the structure field"));
++
++  /* Store or print the formatted value. */
++  if (state[SETTER_OPT].set)
++    grub_env_set (state[SETTER_OPT].arg, value);
++  else
++    grub_printf ("%s\n", value);
++
++  return GRUB_ERR_NONE;
++}
++
++
++static grub_extcmd_t cmd;
++
++GRUB_MOD_INIT(smbios)
++{
++  struct grub_smbios_eps3 *eps3;
++  struct grub_smbios_eps *eps;
++
++  if ((eps3 = grub_smbios_get_eps3 ()))
++    {
++      table_desc.start = (grub_addr_t)eps3->table_address;
++      table_desc.end = table_desc.start + eps3->maximum_table_length;
++      table_desc.structures = 0; /* SMBIOS3 drops the structure count. */
++    }
++  else if ((eps = grub_smbios_get_eps ()))
++    {
++      table_desc.start = (grub_addr_t)eps->intermediate.table_address;
++      table_desc.end = table_desc.start + eps->intermediate.table_length;
++      table_desc.structures = eps->intermediate.structures;
++    }
++
++  cmd = grub_register_extcmd ("smbios", grub_cmd_smbios, 0,
++                              N_("[-t type] [-h handle] [-m match] "
++                                 "(-b|-w|-d|-q|-s|-u) offset "
++                                 "[--set variable]"),
++                              N_("Retrieve SMBIOS information."), options);
++}
++
++GRUB_MOD_FINI(smbios)
++{
++  grub_unregister_extcmd (cmd);
++}
+diff --git a/grub-core/efiemu/i386/pc/cfgtables.c b/grub-core/efiemu/i386/pc/cfgtables.c
+index 492c07c..e5fffb7 100644
+--- a/grub-core/efiemu/i386/pc/cfgtables.c
++++ b/grub-core/efiemu/i386/pc/cfgtables.c
+@@ -22,11 +22,11 @@
+ #include <grub/misc.h>
+ #include <grub/mm.h>
+ #include <grub/acpi.h>
++#include <grub/smbios.h>
+ 
+ grub_err_t
+ grub_machine_efiemu_init_tables (void)
+ {
+-  grub_uint8_t *ptr;
+   void *table;
+   grub_err_t err;
+   grub_efi_guid_t smbios = GRUB_EFI_SMBIOS_TABLE_GUID;
+@@ -57,17 +57,10 @@ grub_machine_efiemu_init_tables (void)
+       if (err)
+ 	return err;
+     }
+-
+-  for (ptr = (grub_uint8_t *) 0xf0000; ptr < (grub_uint8_t *) 0x100000;
+-       ptr += 16)
+-    if (grub_memcmp (ptr, "_SM_", 4) == 0
+-	&& grub_byte_checksum (ptr, *(ptr + 5)) == 0)
+-      break;
+-
+-  if (ptr < (grub_uint8_t *) 0x100000)
++  table = grub_smbios_get_eps ();
++  if (table)
+     {
+-      grub_dprintf ("efiemu", "Registering SMBIOS\n");
+-      err = grub_efiemu_register_configuration_table (smbios, 0, 0, ptr);
++      err = grub_efiemu_register_configuration_table (smbios, 0, 0, table);
+       if (err)
+ 	return err;
+     }
+diff --git a/include/grub/smbios.h b/include/grub/smbios.h
+new file mode 100644
+index 0000000..a483bd1
+--- /dev/null
++++ b/include/grub/smbios.h
+@@ -0,0 +1,69 @@
++/*
++ *  GRUB  --  GRand Unified Bootloader
++ *  Copyright (C) 2016  Free Software Foundation, Inc.
++ *
++ *  GRUB is free software: you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation, either version 3 of the License, or
++ *  (at your option) any later version.
++ *
++ *  GRUB is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with GRUB.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef GRUB_SMBIOS_HEADER
++#define GRUB_SMBIOS_HEADER	1
++
++#include <grub/types.h>
++
++#define GRUB_SMBIOS_TYPE_END_OF_TABLE ((grub_uint8_t)127)
++#define GRUB_PACKED __attribute__ ((packed))
++
++struct grub_smbios_ieps
++{
++  grub_uint8_t anchor[5]; /* "_DMI_" */
++  grub_uint8_t checksum;
++  grub_uint16_t table_length;
++  grub_uint32_t table_address;
++  grub_uint16_t structures;
++  grub_uint8_t revision;
++} GRUB_PACKED;
++
++struct grub_smbios_eps
++{
++  grub_uint8_t anchor[4]; /* "_SM_" */
++  grub_uint8_t checksum;
++  grub_uint8_t length; /* 0x1f */
++  grub_uint8_t version_major;
++  grub_uint8_t version_minor;
++  grub_uint16_t maximum_structure_size;
++  grub_uint8_t revision;
++  grub_uint8_t formatted[5];
++  struct grub_smbios_ieps intermediate;
++} GRUB_PACKED;
++
++struct grub_smbios_eps3
++{
++  grub_uint8_t anchor[5]; /* "_SM3_" */
++  grub_uint8_t checksum;
++  grub_uint8_t length; /* 0x18 */
++  grub_uint8_t version_major;
++  grub_uint8_t version_minor;
++  grub_uint8_t docrev;
++  grub_uint8_t revision;
++  grub_uint8_t reserved;
++  grub_uint32_t maximum_table_length;
++  grub_uint64_t table_address;
++} GRUB_PACKED;
++
++struct grub_smbios_eps *grub_smbios_get_eps (void);
++struct grub_smbios_eps3 *grub_smbios_get_eps3 (void);
++struct grub_smbios_eps *grub_machine_smbios_get_eps (void);
++struct grub_smbios_eps3 *grub_machine_smbios_get_eps3 (void);
++
++#endif /* ! GRUB_SMBIOS_HEADER */
+-- 
+2.9.0
+
