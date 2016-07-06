@@ -7,7 +7,7 @@ SECTION = "base"
 
 SRC_URI = "file://README_File_Paths.txt \
 	   file://README_File_Transfer.txt \
-	   file://${MACHINE}/issue.template \
+	   file://issue.template \
 	   file://LICENSES \
 	   file://natinst_libs.conf \
 	   file://local_libs.conf \
@@ -38,7 +38,7 @@ do_install () {
 
 	# /etc/issue
 	install -d ${D}${sysconfdir}/
-	install -m 0644 ${WORKDIR}/${MACHINE}/issue.template ${D}${sysconfdir}/
+	install -m 0644 ${WORKDIR}/issue.template ${D}${sysconfdir}/
 
 	# license information
 	install -d ${D}/usr/share/doc/
