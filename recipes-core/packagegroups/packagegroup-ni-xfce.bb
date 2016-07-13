@@ -11,6 +11,8 @@ inherit packagegroup
 
 RDEPENDS_${PN} = "\
 	packagegroup-xfce-base \
+	xf86-video-intel \
+	xf86-input-evdev \
 	xf86-video-vesa \
 	xfce4-xkb-plugin \
 	xserver-xfce-init \
