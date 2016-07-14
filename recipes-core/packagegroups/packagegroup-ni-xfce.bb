@@ -11,6 +11,7 @@ inherit packagegroup
 
 RDEPENDS_${PN} = "\
 	packagegroup-xfce-base \
+	xf86-video-ati \
 	xf86-video-intel \
 	xf86-input-evdev \
 	xf86-video-vesa \
