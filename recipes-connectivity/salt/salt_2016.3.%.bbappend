@@ -14,6 +14,7 @@ SRC_URI = "${NILRT_GIT}/salt.git;protocol=git;branch=nilrt/cardassia/develop \
            file://salt-syndic \
            file://cloud \
            file://roster \
+           file://run-ptest \
 "
 
 SRCREV = "${AUTOREV}"
@@ -25,7 +26,14 @@ PACKAGECONFIG = "tcp"
 
 RDEPENDS_${PN}-minion += "python-pyinotify python-pyroute2"
 RDEPENDS_${PN}-common_remove = "python-dateutil python-requests"
+RDEPENDS_${PN}-tests += "python-pyzmq python-six python-image"
+RDEPENDS_${PN}-ptest += "salt-tests"
+# Note that the salt test suite (salt-tests) require python-pyzmq to run
+# properly even though we run them in tcp mode
 
-inherit update-rc.d
-
+inherit update-rc.d ptest
 INITSCRIPT_PARAMS_${PN}-minion = "defaults 25 25"
+
+do_install_ptest_append() {
+    install -m 0755 ${WORKDIR}/run-ptest ${D}${PTEST_PATH}
+}
