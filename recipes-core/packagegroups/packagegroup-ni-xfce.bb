@@ -11,10 +11,7 @@ inherit packagegroup
 
 RDEPENDS_${PN} = "\
 	packagegroup-xfce-base \
-	xf86-video-ati \
-	xf86-video-intel \
 	xf86-input-evdev \
-	xf86-video-vesa \
 	xfce4-xkb-plugin \
 	xserver-xfce-init \
 	xrdb \
@@ -26,4 +23,9 @@ RDEPENDS_${PN} = "\
 	fontconfig-overrides \
 	mousepad \
 	ttf-pt-sans \
+"
+RDEPENDS_${PN}_x64 = "\
+	xf86-video-ati \
+	xf86-video-intel \
+	xf86-video-vesa \
 "
