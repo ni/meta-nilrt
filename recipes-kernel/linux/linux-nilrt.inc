@@ -71,6 +71,7 @@ do_install_append() {
 
 	# Copy Makefile, Kconfig files
 	rsync -avm \
+	--chown=0:0 \
 	--include="/arch/${ARCH}/" \
 	--exclude="/arch/*/" \
 	--exclude="/Documentation/" \
@@ -83,6 +84,7 @@ do_install_append() {
 
 	# Copy headers
 	rsync -avm \
+	--chown=0:0 \
 	--include="*/" \
 	--include="/arch/${ARCH}/include/**" \
 	--include="/arch/${ARCH}/mach-zynq/include/**" \
@@ -95,6 +97,7 @@ do_install_append() {
 
 	# Copy generated headers and build objects
 	rsync -avm \
+	--chown=0:0 \
 	--include="*/" \
 	--exclude="*.o"  \
 	--exclude=".debug" \
