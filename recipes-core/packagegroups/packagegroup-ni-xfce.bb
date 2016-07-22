@@ -24,7 +24,7 @@ RDEPENDS_${PN} = "\
 	mousepad \
 	ttf-pt-sans \
 "
-RDEPENDS_${PN}_x64 = "\
+RDEPENDS_${PN}_append_x64 += "\
 	xf86-video-ati \
 	xf86-video-intel \
 	xf86-video-vesa \
