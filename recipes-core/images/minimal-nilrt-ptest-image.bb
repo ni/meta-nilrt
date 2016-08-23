@@ -9,8 +9,9 @@ IMAGE_FEATURES+=" ptest-pkgs"
 IMAGE_INSTALL += "\
 	ptest-runner \
 	rt-tests \
-	kernel-tests \
-	glibc-tests \
+	kernel-tests-ptest \
+	glibc-tests-ptest \
+	salt-ptest \
 "
 
 IMAGE_ROOTFS_EXTRA_SPACE = "1000000"
