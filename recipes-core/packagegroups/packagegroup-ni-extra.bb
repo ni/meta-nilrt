@@ -388,7 +388,6 @@ RDEPENDS_${PN} += "\
 	cryptsetup \
 	daemonize \
 	daemontools \
-	devmem2 \
 	dstat \
 	dfu-util \
 	eject \
