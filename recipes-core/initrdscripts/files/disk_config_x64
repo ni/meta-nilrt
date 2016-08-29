@@ -54,10 +54,10 @@ partition_format()
             mkfs.vfat -n nigrub "$disk"1
             ;;
         nirestore)
-            mkfs.ext4 -L nirestore "$disk"2
+            mkfs.ext4 -F -L nirestore "$disk"2
             ;;
         nilrt)
-            mkfs.ext4 -L nilrt "$disk"3
+            mkfs.ext4 -F -L nilrt "$disk"3
             ;;
         *)
             die "Invalid or unspecified label!"
