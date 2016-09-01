@@ -8,5 +8,6 @@ python /usr/lib/python2.7/site-packages/salt-tests/tests/runtests.py \
     -n integration.modules.timezone \
     -n integration.modules.shadow \
     -n integration.states.user \
+    -n integration.modules.groupadd \
 
 
