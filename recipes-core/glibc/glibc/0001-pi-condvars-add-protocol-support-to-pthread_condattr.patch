@@ -159,13 +159,12 @@ index 0ae5def..112c50a 100644
      pthread_setattr_default_np;
    }
  
--  GLIBC_2.20 {
-+  GLIBC_2.22 {
+   GLIBC_2.22 {
 +    pthread_condattr_getprotocol_np;
 +    pthread_condattr_setprotocol_np;
    }
  
-   GLIBC_2.22 {
+   GLIBC_PRIVATE {
 diff --git a/nptl/pthread_cond_broadcast.c b/nptl/pthread_cond_broadcast.c
 index 552fd42..0bf22fc 100644
 --- a/nptl/pthread_cond_broadcast.c
