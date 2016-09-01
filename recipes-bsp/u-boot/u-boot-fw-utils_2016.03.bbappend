@@ -5,6 +5,9 @@ SRC_URI = "\
         file://fw_env-nizynq.config \
         file://0001-Remove-hardcoded-softfp-from-arm-makefile.patch \
         file://fw-enw-fix-missing-stdint-h.patch \
+        file://0001-gcc5-backport-add-compiler-gcc5.h.patch \
+        file://0002-gcc5-use-gcc-inline-version-instead-c99.patch \
+        file://0003-gcc5-include-io.h-needs-inline-def-from-compiler-gcc.h.patch \
 "
 
 SRCREV = "${AUTOREV}"
