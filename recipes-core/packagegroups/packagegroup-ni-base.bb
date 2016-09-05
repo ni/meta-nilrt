@@ -66,7 +66,7 @@ RDEPENDS_${PN} = "\
 	sysvinit \
 	tar \
 	udev-extraconf \
-	usbutils-ids \
+	usbutils \
 	util-linux-agetty \
 	util-linux-findfs \
 	util-linux-hwclock \
