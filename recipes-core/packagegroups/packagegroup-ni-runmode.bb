@@ -36,7 +36,7 @@ RDEPENDS_${PN} = "\
 	parted \
 	${@base_contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
 	pigz \
-	usbutils-ids \
+	usbutils \
 	util-linux-findfs \
 	util-linux-sfdisk \
 	udev-cache \
