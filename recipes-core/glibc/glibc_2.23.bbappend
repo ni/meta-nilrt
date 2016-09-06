@@ -8,5 +8,4 @@ SRC_URI =+ "file://0001-pi-condvars-add-protocol-support-to-pthread_condattr.pat
             file://0003-pi-condvars-add-tst-condpi2.c-priority-inversion-avo.patch \
             file://0004-benchtests-Add-benchmarks-for-pthread_cond_-function.patch \
             file://0005-x86_64-Remove-assembly-implementations-for-pthread_c.patch \
-            file://0001-CVE-2015-7547-getaddrinfo-stack-based-buffer-overflo.patch \
            "
