@@ -1,16 +1,20 @@
-DESCRIPTION = "Linux kernel configured with full dynamic ticks, based on nilrt branch"
+DESCRIPTION = "Linux kernel, debug build, based on nilrt branch"
 
 require linux-nilrt.inc
 require linux-nilrt-squashfs.inc
 
-NI_RELEASE_VERSION = "15.5"
-LINUX_VERSION = "3.14"
-LINUX_VERSION_EXTENSION = "-nilrt-nohz"
+# This is an extra kernel package; zero out the PROVIDES set in kernel.bbclass
+# to avoid errors related to multiple recipes providing virtual/kernel
+PROVIDES = ""
 
-KBRANCH = "nilrt/${NI_RELEASE_VERSION}/${LINUX_VERSION}-nohz"
+LINUX_VERSION = "4.6"
+LINUX_VERSION_EXTENSION = "-nilrt-debug"
+KBRANCH = "nilrt/${NILRT_RELEASE_NAME}/${LINUX_VERSION}"
 
-KERNEL_MODULES_META_PACKAGE = "kernel-modules-nohz"
-KERNEL_MODULE_PACKAGE_NAME_PREPEND = "kernel-module-nohz"
+KERNEL_PACKAGE_NAME = "kernel${LINUX_VERSION_EXTENSION}"
+
+KERNEL_MODULES_META_PACKAGE = "kernel-modules-debug"
+KERNEL_MODULE_PACKAGE_NAME_PREPEND = "kernel-module-debug"
 KERNEL_MODULE_PACKAGE_PREPEND = "${KERNEL_MODULE_PACKAGE_NAME_PREPEND}-%s"
 
 KERNEL_IMAGEDEST := "boot/runmode"
@@ -20,17 +24,17 @@ KERNEL_IMAGE_SYMLINK_DEST = "."
 
 # Remove unecessary packages (kernel-vmlinux, kernel-dev) for optional kernel
 PACKAGES = "kernel kernel-base kernel-image ${KERNEL_MODULES_META_PACKAGE}"
-PKG_kernel = "kernel-nohz"
+PKG_kernel = "kernel-debug"
 
 # Remove kernel firmware package (refer to kernel.bbclass)
 PACKAGESPLITFUNCS_remove = "split_kernel_packages"
 
 # Subfolder of the same name will be added to FILESEXTRAPATHS and also
-# used for nilrt-specific defconfig manipulation during build. Provide
-# a unique name for each recipe saved in the same source folder.
-DEFCONFIG_LOCATION := "nilrt-nohz"
+# used for nilrt-specific config fragment manipulation during build.
+# Provide a unique name for each recipe saved in the same source folder.
+KBUILD_FRAGMENTS_LOCATION := "nilrt-debug"
 
-SRC_URI += "file://nohz.cfg \
+SRC_URI += "file://debug.cfg \
            "
 
 # Because we did not originally use the alternatives system to setup symlinks,
