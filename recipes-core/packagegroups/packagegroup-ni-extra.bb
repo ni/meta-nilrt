@@ -232,7 +232,6 @@ RDEPENDS_${PN}_append_x64 += "\
 
 # meta-openembedded/meta-oe/recipes-core
 RDEPENDS_${PN} += "\
-	fakeroot \
 	usleep \
 "
 
@@ -338,7 +337,6 @@ RDEPENDS_${PN}_append_x64 += "\
 	openbox \
 	packagegroup-fonts-truetype \
 	terminus-font \
-	tesseract \
 	ttf-dejavu \
 	ttf-droid \
 	ttf-gentium \
@@ -407,7 +405,6 @@ RDEPENDS_${PN} += "\
 	gsoap \
 	hddtemp \
 	htop \
-	iksemel \
 	imagemagick \
 	libinih \
 	iso-codes \
@@ -522,14 +519,11 @@ RDEPENDS_${PN} += "\
 	atftp \
 	autofs \
 	cyrus-sasl \
-	dnrd \
 	iscsi-initiator-utils \
-	lldpad \
 	ncftp \
 	opensaf \
 	postfix \
 	radvd \
-	squid \
 	tftp-hpa \
 	conntrack-tools \
 	ebtables \
