@@ -451,7 +451,7 @@ RDEPENDS_${PN} += "\
 	strongswan \
 	system-config-keyboard \
 	system-setup-keyboard \
-	talloc \
+	libtalloc \
 	tbb \
 	toscoterm \
 	tree \
