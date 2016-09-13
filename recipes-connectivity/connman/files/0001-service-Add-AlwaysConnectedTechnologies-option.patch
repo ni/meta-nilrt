@@ -1,0 +1,153 @@
+From c83964b60e3b359e17ec1651f1315b40597ca034 Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+Date: Thu, 18 Aug 2016 17:41:12 +0300
+Subject: [PATCH v2] service: Add AlwaysConnectedTechnologies option
+
+Add a new list option that enables auto-connecting all technologies
+which also contain AutoConnect=true regradless of the setting for
+PreferredTechnologies. The default AlwaysConnectedTechnologies value
+is empty which keeps the current behaviour intact, i.e. if a higher
+preffered technology is already connected, others will not autoconnect.
+
+This setting has no effect if SingleConnectedTechnologies is enabled.
+
+Based on work originally by Collin Richards <collin.richards@ni.com>.
+
+Upstream-Status: Submitted [https://lists.01.org/pipermail/connman/2016-September/020901.html]
+
+Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+---
+ src/main.c    | 18 ++++++++++++++++++
+ src/main.conf |  7 +++++++
+ src/service.c | 22 ++++++++++++++++++++--
+ 3 files changed, 45 insertions(+), 2 deletions(-)
+
+diff --git a/src/main.c b/src/main.c
+index fdb4f72..462ac15 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -67,6 +67,7 @@ static struct {
+ 	char **pref_timeservers;
+ 	unsigned int *auto_connect;
+ 	unsigned int *preferred_techs;
++	unsigned int *always_connected_techs;
+ 	char **fallback_nameservers;
+ 	unsigned int timeout_inputreq;
+ 	unsigned int timeout_browserlaunch;
+@@ -81,6 +82,7 @@ static struct {
+ 	.pref_timeservers = NULL,
+ 	.auto_connect = NULL,
+ 	.preferred_techs = NULL,
++	.always_connected_techs = NULL,
+ 	.fallback_nameservers = NULL,
+ 	.timeout_inputreq = DEFAULT_INPUT_REQUEST_TIMEOUT,
+ 	.timeout_browserlaunch = DEFAULT_BROWSER_LAUNCH_TIMEOUT,
+@@ -95,6 +97,7 @@ static struct {
+ #define CONF_BG_SCAN                    "BackgroundScanning"
+ #define CONF_PREF_TIMESERVERS           "FallbackTimeservers"
+ #define CONF_AUTO_CONNECT               "DefaultAutoConnectTechnologies"
++#define CONF_ALWAYS_CONNECTED_TECHS     "AlwaysConnectedTechnologies"
+ #define CONF_PREFERRED_TECHS            "PreferredTechnologies"
+ #define CONF_FALLBACK_NAMESERVERS       "FallbackNameservers"
+ #define CONF_TIMEOUT_INPUTREQ           "InputRequestTimeout"
+@@ -110,6 +113,7 @@ static const char *supported_options[] = {
+ 	CONF_BG_SCAN,
+ 	CONF_PREF_TIMESERVERS,
+ 	CONF_AUTO_CONNECT,
++	CONF_ALWAYS_CONNECTED_TECHS,
+ 	CONF_PREFERRED_TECHS,
+ 	CONF_FALLBACK_NAMESERVERS,
+ 	CONF_TIMEOUT_INPUTREQ,
+@@ -295,6 +299,17 @@ static void parse_config(GKeyFile *config)
+ 	g_clear_error(&error);
+ 
+ 	str_list = __connman_config_get_string_list(config, "General",
++			CONF_ALWAYS_CONNECTED_TECHS, &len, &error);
++
++	if (!error)
++		connman_settings.always_connected_techs =
++			parse_service_types(str_list, len);
++
++	g_strfreev(str_list);
++
++	g_clear_error(&error);
++
++	str_list = __connman_config_get_string_list(config, "General",
+ 			CONF_FALLBACK_NAMESERVERS, &len, &error);
+ 
+ 	if (!error)
+@@ -572,6 +587,9 @@ unsigned int *connman_setting_get_uint_list(const char *key)
+ 	if (g_str_equal(key, CONF_PREFERRED_TECHS))
+ 		return connman_settings.preferred_techs;
+ 
++	if (g_str_equal(key, CONF_ALWAYS_CONNECTED_TECHS))
++		return connman_settings.always_connected_techs;
++
+ 	return NULL;
+ }
+ 
+diff --git a/src/main.conf b/src/main.conf
+index acceda3..d619413 100644
+--- a/src/main.conf
++++ b/src/main.conf
+@@ -101,3 +101,10 @@
+ # quality. See RFC6343. Default value is false (as recommended by RFC6343
+ # section 4.1).
+ # Enable6to4 = false
++
++# List of technologies with AutoConnect = true which are always connected
++# regardless of PreferredTechnologies setting. Default value is empty and
++# will connect a technology only if it is at a higher preference than any
++# other which is already connected.
++# This setting has no effect if SingleConnectedTechnologies is enabled.
++# AlwaysConnectedTechnologies =
+diff --git a/src/service.c b/src/service.c
+index 37af5fc..98acd14 100644
+--- a/src/service.c
++++ b/src/service.c
+@@ -3750,6 +3750,19 @@ static GList *preferred_tech_list_get(void)
+ 	return tech_data.preferred_list;
+ }
+ 
++bool __connman_service_always_connect(enum connman_service_type type)
++{
++	unsigned int *always_connected_techs =
++		connman_setting_get_uint_list("AlwaysConnectedTechnologies");
++	int i;
++
++	for (i = 0; always_connected_techs && always_connected_techs[i]; i++)
++		if (always_connected_techs[i] == type)
++			return true;
++
++	return false;
++}
++
+ static bool auto_connect_service(GList *services,
+ 				enum connman_service_connect_reason reason,
+ 				bool preferred)
+@@ -3757,6 +3770,7 @@ static bool auto_connect_service(GList *services,
+ 	struct connman_service *service = NULL;
+ 	bool ignore[MAX_CONNMAN_SERVICE_TYPES] = { };
+ 	bool autoconnecting = false;
++
+ 	GList *list;
+ 
+ 	DBG("preferred %d sessions %d reason %s", preferred, active_count,
+@@ -3776,8 +3790,12 @@ static bool auto_connect_service(GList *services,
+ 		if (service->pending ||
+ 				is_connecting(service) ||
+ 				is_connected(service)) {
+-			if (!active_count)
+-				return true;
++			if (!active_count) {
++				if (__connman_service_always_connect(service->type))
++					continue;
++                                else
++					return true;
++                        }
+ 
+ 			ignore[service->type] = true;
+ 			autoconnecting = true;
+-- 
+2.9.3
+
