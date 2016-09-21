@@ -66,7 +66,6 @@ RDEPENDS_${PN} += "\
 	flex \
 	gnu-config \
 	i2c-tools \
-	insserv \
 	mkelfimage \
 	mmc-utils \
 	mtd-utils \
@@ -76,14 +75,14 @@ RDEPENDS_${PN} += "\
 	pax-utils \
 	prelink \
 	python-dbus \
-	python-distribute \
+	python-setuptools \
 	python-docutils \
 	python-mako \
 	python-nose \
 	python-numpy \
 	python-zip \
 	python3 \
-	python3-distribute \
+	python3-setuptools \
 	rpm \
 	sgml-common \
 	unfs3 \
@@ -103,7 +102,6 @@ RDEPENDS_${PN} += "\
 	byacc \
 	cups \
 	foomatic-filters \
-	gamin \
 	ghostscript \
 	iputils \
 	libarchive \
@@ -181,7 +179,7 @@ RDEPENDS_${PN}_append_x64 += "\
 RDEPENDS_${PN} += "\
 	alsa-tools \
 	alsa-utils \
-	alsa-utils-alsaconf \
+	alsa-utils-scripts \
 	flac \
 	pulseaudio \
 	speex \
@@ -545,11 +543,10 @@ RDEPENDS_${PN} += "\
 	zeroconf \
 	arptables \
 	bridge-utils \
-	cifs \
 	dnsmasq \
 	dnssec-conf \
 	dovecot \
-	drbd \
+	drbd-utils \
 	esmtp \
 	fetchmail \
 	fping \
