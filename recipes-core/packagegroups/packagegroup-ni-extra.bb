@@ -238,6 +238,7 @@ RDEPENDS_${PN} += "\
 	bootchart \
 	breakpad \
 	cgdb \
+	gdb \
 	cppunit \
 	ctags \
 	cunit \
