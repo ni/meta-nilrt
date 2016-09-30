@@ -30,8 +30,21 @@ remove_bootmode() {
     fi
 }
 
+# HACK: BIOS enables cstates when they should be disabled and this makes the
+# processor frequency go bonkers on crio's 903x dual-core (not 9034) affecting
+# performance of the restore-mode's rootfs unpacking. We disable all cstates
+# except C0 in all cpu cores until we get a BIOS update with cstates disabled
+disable_x64_cstates() {
+    shopt -s nullglob
+    for CSTATE_DISABLE in /sys/devices/system/cpu/cpu*/cpuidle/state[^0]/disable; do
+        echo 1 > $CSTATE_DISABLE
+    done
+}
+
+
 if [[ $ARCH == "x86_64" ]];then
     early_setup
+    disable_x64_cstates
     # support VMWare image keyboard
     modprobe atkbd 2> /dev/null
     remove_bootmode 2> /dev/null
