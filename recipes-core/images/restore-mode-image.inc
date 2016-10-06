@@ -7,9 +7,9 @@ PACKAGE_INSTALL = "${ROOTFS_BOOTSTRAP_INSTALL} \
                    packagegroup-ni-restoremode \
 "
 
-DEPENDS += "init-restore-mode"
+DEPENDS += "init-restore-mode minimal-nilrt-image"
 DEPENDS_xilinx-zynqhf += "zynq-bootscripts zynq-itb"
-do_rootfs[depends] = "${FACTORY_IMAGE}:do_rootfs"
+do_rootfs[depends] += "${FACTORY_IMAGE}:do_rootfs"
 
 # Remove any kernel-image that the kernel-module-* packages may have pulled in.
 PACKAGE_REMOVE = "kernel-image-*"
