@@ -19,8 +19,8 @@ index 744e02271c6c1648935b3342b7bb4858f6668f25..ae9275b77f649918589568b0ca167603
  #endif
  
  /* Define to use the Windows crypto library. */
--#if !defined(USE_SSLEAY) && !defined(USE_NSS)
-+#if !defined(USE_SSLEAY) && !defined(USE_NSS) && !defined(PHARLAP)
+-#if !defined(USE_OPENSSL) && !defined(USE_NSS)
++#if !defined(USE_OPENSSL) && !defined(USE_NSS) && !defined(PHARLAP)
  #define USE_WIN32_CRYPTO
  #endif
  
