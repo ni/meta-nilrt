@@ -1,6 +1,7 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/files:"
 
 SRC_URI += " \
+        file://CVE-2016-5419.patch \
         file://0001-Updated-Curl_wait_ms-for-VxWorks.patch \
         file://0002-Including-wrn-coreip-hostLib.h-in-lib-hostip4.c-for-.patch \
         file://0003-Including-selectLib.h-in-lib-select.c-for-VxWorks-bu.patch \
