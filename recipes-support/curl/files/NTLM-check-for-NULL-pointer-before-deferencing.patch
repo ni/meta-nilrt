@@ -1,0 +1,33 @@
+From fa5fa65a309f352284e58f52183d586886eb17ea Mon Sep 17 00:00:00 2001
+From: Isaac Boukris <iboukris@gmail.com>
+Date: Sat, 16 Apr 2016 11:49:09 +0300
+Subject: [PATCH] NTLM: check for NULL pointer before deferencing
+
+At ConnectionExists, both check->proxyuser and check->proxypasswd
+could be NULL, so make sure to check first.
+
+Fixes #765
+
+Upstream-Status: Backport
+---
+ lib/url.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/lib/url.c b/lib/url.c
+index 184e270497b5fe6107e4d6325d46a526ed38bd86..b50ca8677105cd9238adc3e242130f2e2eb01e22 100644
+--- a/lib/url.c
++++ b/lib/url.c
+@@ -3444,6 +3444,10 @@ ConnectionExists(struct SessionHandle *data,
+ 
+         /* Same for Proxy NTLM authentication */
+         if(wantProxyNTLMhttp) {
++          /* Both check->proxyuser and check->proxypasswd could be NULL */
++          if(check->proxyuser == NULL || check->proxypasswd == NULL)
++            continue;
++
+           if(!strequal(needle->proxyuser, check->proxyuser) ||
+              !strequal(needle->proxypasswd, check->proxypasswd))
+             continue;
+-- 
+2.8.2
+
