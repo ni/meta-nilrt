@@ -47,3 +47,6 @@ syslog:x:365:
 clamav:x:364:
 tss:x:363:
 dhcp:x:362:
+ni:x:500:
+openvpn:x:499:
+niwscerts:x:498:
