@@ -237,6 +237,7 @@ RDEPENDS_${PN} += "\
 	icon-slicer \
 	jq \
 	lemon \
+	libedit \
 	log4cplus \
 	ltrace \
 	lua \
