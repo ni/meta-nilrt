@@ -47,8 +47,9 @@ if [ "$ARCH" = "armv7l" ]; then
         MOUNT_ERROR=`mount -t ubifs ubi0:bootfs $NIRESTORE_MOUNTPOINT` || die "$MOUNT_ERROR"
         cp $NIRESTORE_MOUNTPOINT/.restore/ni-*.dtb $NILRT_MOUNTPOINT/boot/
         cp /payload/linux_next_runmode.itb $NIRESTORE_MOUNTPOINT/linux_runmode.itb
-        umount $NILRT_MOUNTPOINT
-        umount $NIRESTORE_MOUNTPOINT
+        sync
+        umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
+        umount $NIRESTORE_MOUNTPOINT || die "Failed to umount $NIRESTORE_MOUNTPOINT"
         echo "Minimal image deployed."
         REBOOT_REQUIRED=1
         echo "PROVISIONING SUCCESSFUL!"
@@ -80,9 +81,9 @@ if [ "$ARCH" = "armv7l" ]; then
             rm -rf $NICONFIG_MOUNTPOINT/*
 
             sync
-            umount $NILRT_MOUNTPOINT
-            umount $NIRESTORE_MOUNTPOINT
-            umount $NICONFIG_MOUNTPOINT
+            umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
+            umount $NIRESTORE_MOUNTPOINT || die "Failed to umount $NIRESTORE_MOUNTPOINT"
+            umount $NICONFIG_MOUNTPOINT || die "Failed to umount $NICONFIG_MOUNTPOINT"
 
             restore_minimal_image
 
@@ -118,9 +119,9 @@ if [ "$ARCH" = "armv7l" ]; then
             echo "done."
 
             sync
-            umount $NILRT_MOUNTPOINT
-            umount $NIRESTORE_MOUNTPOINT
-            umount $NICONFIG_MOUNTPOINT
+            umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
+            umount $NIRESTORE_MOUNTPOINT || die "Failed to umount $NIRESTORE_MOUNTPOINT"
+            umount $NICONFIG_MOUNTPOINT || die "Failed to umount $NICONFIG_MOUNTPOINT"
 
             printf "Formatting ubi1:rootfs... "
             format_ubi_volume root 0 rootfs
@@ -165,7 +166,8 @@ EOF
         echo "Deploying minimal image..."
         TAR_ERROR=`tar -xjf /payload/factory-image.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1` || die "$TAR_ERROR"
 
-        umount $NILRT_MOUNTPOINT
+        sync
+        umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
 
         echo "Minimal image deployed."
         REBOOT_REQUIRED=1
@@ -182,7 +184,7 @@ EOF
             mkdir -p $BOOTFS_MOUNTPOINT
             mount -L nibootfs $TEMP_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
             cp -r $TEMP_MOUNTPOINT/.newNILinuxRT/* $BOOTFS_MOUNTPOINT/
-            umount $TEMP_MOUNTPOINT
+            umount $TEMP_MOUNTPOINT || die "Failed to umount $TEMP_MOUNTPOINT"
             SOURCE_DIR=$BOOTFS_MOUNTPOINT
         fi
 
@@ -230,6 +232,13 @@ EOF
         cp $SOURCE_DIR/initrd $RESTORE_MOUNTPOINT/ramdisk
 
         restore_minimal_image
+
+        sync
+        umount $RESTORE_MOUNTPOINT || die "Failed to umount $RESTORE_MOUNTPOINT"
+        umount $GRUB_MOUNTPOINT || die "Failed to umount $GRUB_MOUNTPOINT"
+        if [ "$1" = "usb" ]; then
+            umount $USB_MOUNTPOINT || die "Failed to umount $USB_MOUNTPOINT"
+        fi
 
         echo "PROVISIONING SUCCESSFUL!"
         REBOOT_REQUIRED=1
