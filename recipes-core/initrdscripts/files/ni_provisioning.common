@@ -274,7 +274,7 @@ cleanup_and_exit()
         #set the bootmode to default
         echo -n 00 >  /sys/bus/i2c/devices/0-0040/scratch_hardreset
     elif [ "$ARCH" = "x86_64" ]; then
-        umount -a -t vfat,ext4
+        umount -a -t vfat,ext4,iso9660
     fi
     if (( $1 == 0  && $REBOOT_REQUIRED == 1 )); then
         echo u > /proc/sysrq-trigger
