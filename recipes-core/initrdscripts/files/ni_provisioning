@@ -1,11 +1,11 @@
 #!/bin/bash
 
 if [ -e /ni_provisioning.common ]; then
-	source /ni_provisioning.common
+    source /ni_provisioning.common
 else
-	printf "\n***Error: File ni_provisioning.common not found!\n"
-	printf "PROVISIONING FAILED!"
-	exit 1
+    printf "\n***Error: File ni_provisioning.common not found!\n"
+    printf "PROVISIONING FAILED!"
+    exit 1
 fi
 
 early_setup

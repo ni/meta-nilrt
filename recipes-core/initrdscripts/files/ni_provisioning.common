@@ -58,15 +58,15 @@ if [ "$ARCH" = "armv7l" ]; then
     {
         mkdir -p $NILRT_MOUNTPOINT
         mkdir -p $NIRESTORE_MOUNTPOINT
-	mkdir -p $NICONFIG_MOUNTPOINT
+        mkdir -p $NICONFIG_MOUNTPOINT
         mkdir -p $TEMP_MOUNTPOINT
 
-	MOUNT_ERROR=`mount -t ubifs ubi1:rootfs $NILRT_MOUNTPOINT` || die "$MOUNT_ERROR"
+        MOUNT_ERROR=`mount -t ubifs ubi1:rootfs $NILRT_MOUNTPOINT` || die "$MOUNT_ERROR"
         MOUNT_ERROR=`mount -t ubifs ubi0:bootfs $NIRESTORE_MOUNTPOINT` || die "$MOUNT_ERROR"
-	MOUNT_ERROR=`mount -t ubifs ubi0:config $NICONFIG_MOUNTPOINT` || die "$MOUNT_ERROR"
+        MOUNT_ERROR=`mount -t ubifs ubi0:config $NICONFIG_MOUNTPOINT` || die "$MOUNT_ERROR"
         DEVICE_CODE=`fw_printenv -n DeviceCode`
 
-	if [[ $restore == "migrate" ]]; then
+        if [[ $restore == "migrate" ]]; then
             #replace the linux_safemode.itb with the fake one
             cp $NILRT_MOUNTPOINT/.newNILinuxRT/.safe/linux_next_safemode.itb $NIRESTORE_MOUNTPOINT/.safe/linux_safemode.itb
             #copy all the necessary files for restore-mode
@@ -76,59 +76,59 @@ if [ "$ARCH" = "armv7l" ]; then
             cp $NILRT_MOUNTPOINT/.newNILinuxRT/.restore/ramdisk $NIRESTORE_MOUNTPOINT/.restore/ || die "Ramdisk not found!"
             cp $NILRT_MOUNTPOINT/.newNILinuxRT/.restore/restore.scr $NIRESTORE_MOUNTPOINT/.restore/ || die "Restore script not found!"
 
-	    #clear config contents which are unused in newer versions of NILRT
-	    rm -rf $NICONFIG_MOUNTPOINT/*
+            #clear config contents which are unused in newer versions of NILRT
+            rm -rf $NICONFIG_MOUNTPOINT/*
 
-	    sync
+            sync
             umount $NILRT_MOUNTPOINT
             umount $NIRESTORE_MOUNTPOINT
-	    umount $NICONFIG_MOUNTPOINT
+            umount $NICONFIG_MOUNTPOINT
 
             restore_minimal_image
 
-	elif [[ $restore == "backward-migrate" ]]; then
+        elif [[ $restore == "backward-migrate" ]]; then
 
-	    printf "Removing the already installed nilrt... "
-	    rm -rf $NIRESTORE_MOUNTPOINT/.safe
-	    rm -rf $NIRESTORE_MOUNTPOINT/.restore
-	    rm -rf $NIRESTORE_MOUNTPOINT/.defbit
-	    rm -f $NIRESTORE_MOUNTPOINT/linux_runmode.itb
-	    echo "done."
+            printf "Removing the already installed nilrt... "
+            rm -rf $NIRESTORE_MOUNTPOINT/.safe
+            rm -rf $NIRESTORE_MOUNTPOINT/.restore
+            rm -rf $NIRESTORE_MOUNTPOINT/.defbit
+            rm -f $NIRESTORE_MOUNTPOINT/linux_runmode.itb
+            echo "done."
 
-	    printf "Deploying older NILRT version safemode on target... "
-	    mkdir -p $NIRESTORE_MOUNTPOINT/.safe
-	    mkdir -p $NIRESTORE_MOUNTPOINT/.defbit
+            printf "Deploying older NILRT version safemode on target... "
+            mkdir -p $NIRESTORE_MOUNTPOINT/.safe
+            mkdir -p $NIRESTORE_MOUNTPOINT/.defbit
 
-	    NON_HEX_DEV_CODE=$(echo $DEVICE_CODE | awk '{print substr($0,3)}')
-	    DEVCFG_PATH=$NILRT_MOUNTPOINT/$NON_HEX_DEV_CODE
+            NON_HEX_DEV_CODE=$(echo $DEVICE_CODE | awk '{print substr($0,3)}')
+            DEVCFG_PATH=$NILRT_MOUNTPOINT/$NON_HEX_DEV_CODE
 
-	    mkdir -p $DEVCFG_PATH/cfg-contents
-	    mkdir -p $DEVCFG_PATH/cfg-contents/bitfiles-contents
+            mkdir -p $DEVCFG_PATH/cfg-contents
+            mkdir -p $DEVCFG_PATH/cfg-contents/bitfiles-contents
 
-	    tar -xf $DEVCFG_PATH/*.cfg -C $DEVCFG_PATH/cfg-contents || die "Could not extract cfg from $NILRT_MOUNTPOINT/$NON_HEX_DEV_CODE"
-	    tar -xf $DEVCFG_PATH/cfg-contents/bitfiles.tgz -C $DEVCFG_PATH/cfg-contents/bitfiles-contents || die "Could not extract bitfiles.tgz"
+            tar -xf $DEVCFG_PATH/*.cfg -C $DEVCFG_PATH/cfg-contents || die "Could not extract cfg from $NILRT_MOUNTPOINT/$NON_HEX_DEV_CODE"
+            tar -xf $DEVCFG_PATH/cfg-contents/bitfiles.tgz -C $DEVCFG_PATH/cfg-contents/bitfiles-contents || die "Could not extract bitfiles.tgz"
 
-	    cp $DEVCFG_PATH/cfg-contents/linux_safemode.itb $NIRESTORE_MOUNTPOINT/.safe/linux_safemode.itb || die "linux_safemode.itb not found"
+            cp $DEVCFG_PATH/cfg-contents/linux_safemode.itb $NIRESTORE_MOUNTPOINT/.safe/linux_safemode.itb || die "linux_safemode.itb not found"
 
-	    if [ -d "$DEVCFG_PATH/cfg-contents/bitfiles-contents/$DEVICE_CODE" ]; then
-		cp $DEVCFG_PATH/cfg-contents/bitfiles-contents/$DEVICE_CODE/default.bit.* $NIRESTORE_MOUNTPOINT/.defbit/
-	    else
-		cp $DEVCFG_PATH/cfg-contents/bitfiles-contents/default.bit.* $NIRESTORE_MOUNTPOINT/.defbit/
-	    fi
-	    echo "done."
+            if [ -d "$DEVCFG_PATH/cfg-contents/bitfiles-contents/$DEVICE_CODE" ]; then
+                cp $DEVCFG_PATH/cfg-contents/bitfiles-contents/$DEVICE_CODE/default.bit.* $NIRESTORE_MOUNTPOINT/.defbit/
+            else
+                cp $DEVCFG_PATH/cfg-contents/bitfiles-contents/default.bit.* $NIRESTORE_MOUNTPOINT/.defbit/
+            fi
+            echo "done."
 
-	    sync
-	    umount $NILRT_MOUNTPOINT
-	    umount $NIRESTORE_MOUNTPOINT
-	    umount $NICONFIG_MOUNTPOINT
+            sync
+            umount $NILRT_MOUNTPOINT
+            umount $NIRESTORE_MOUNTPOINT
+            umount $NICONFIG_MOUNTPOINT
 
-	    printf "Formatting ubi1:rootfs... "
-	    format_ubi_volume root 0 rootfs
-	    echo "done."
+            printf "Formatting ubi1:rootfs... "
+            format_ubi_volume root 0 rootfs
+            echo "done."
 
-	    REBOOT_REQUIRED=1
+            REBOOT_REQUIRED=1
             echo "PROVISIONING SUCCESSFUL!"
-	fi
+        fi
     }
 
 elif [ "$ARCH" = "x86_64" ]; then
