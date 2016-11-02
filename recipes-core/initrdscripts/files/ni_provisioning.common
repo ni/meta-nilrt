@@ -240,10 +240,11 @@ EOF
             umount $USB_MOUNTPOINT || die "Failed to umount $USB_MOUNTPOINT"
         fi
 
+        echo ""
         echo "PROVISIONING SUCCESSFUL!"
         REBOOT_REQUIRED=1
         if [[ $AUTO_REBOOT -ne 1 ]]; then
-            read -s -n 1 -p "Press any key to continue..." KEY
+            read -s -n 1 -p "Please eject the installation media and press any key to continue... " KEY
         fi
     }
 
