@@ -7,7 +7,7 @@ PACKAGE_INSTALL = "${ROOTFS_BOOTSTRAP_INSTALL} \
                    packagegroup-ni-restoremode \
 "
 
-DEPENDS += "init-restore-mode minimal-nilrt-image"
+DEPENDS += "init-restore-mode ${FACTORY_IMAGE}"
 DEPENDS_xilinx-zynqhf += "zynq-bootscripts zynq-itb"
 do_rootfs[depends] += "${FACTORY_IMAGE}:do_image_tar"
 
