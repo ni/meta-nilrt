@@ -79,6 +79,7 @@ RDEPENDS_${PN} = "\
 	${MACHINE_ESSENTIAL_EXTRA_RDEPENDS}"
 
 RDEPENDS_${PN}_append_x64= "\
+	linux-firmware-i915 \
 	phc2sys"
 
 RRECOMMENDS_${PN} = "\
