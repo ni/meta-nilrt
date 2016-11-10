@@ -164,6 +164,7 @@ RDEPENDS_${PN} += "\
 	kexec-tools \
 	kmod \
 	latencytop \
+	linux-firmware \
 	oprofile \
 	oprofileui-server \
 	systemtap \
