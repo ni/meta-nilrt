@@ -72,6 +72,7 @@ RDEPENDS_${PN} = "\
 "
 
 RDEPENDS_${PN}_append_x64 += "\
+	linux-firmware-i915 \
 	efivar \
 	grub-efi-nilrt \
 "
