@@ -1,0 +1,65 @@
+From a44c633c248d68834af1cb5e3e90dbd6f9ad368a Mon Sep 17 00:00:00 2001
+From: Jacob Champion <jchampion@apache.org>
+Date: Fri, 11 Nov 2016 19:38:28 +0000
+Subject: [PATCH] ssl: clear the error queue before SSL_read/write/accept()
+
+If other modules or libraries do not clear the OpenSSL error queue after
+a failed operation, other code that relies on SSL_get_error() -- in
+particular, code that deals with SSL_ERROR_WANT_READ/WRITE logic -- will
+malfunction later on. To prevent this, explicitly clear the error queue
+before calls like SSL_read/write/accept().
+
+PR: 60223
+Submitted by: Paul Spangler <paul.spangler ni.com>
+
+git-svn-id: https://svn.apache.org/repos/asf/httpd/httpd/trunk@1769332 13f79535-47bb-0310-9956-ffa450edef68
+
+Upstream-Status: Backport [from r1769332 in trunk, submitted to 2.4.x]
+
+---
+ modules/ssl/ssl_engine_io.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/modules/ssl/ssl_engine_io.c b/modules/ssl/ssl_engine_io.c
+index ea23193..7708abe 100644
+--- a/modules/ssl/ssl_engine_io.c
++++ b/modules/ssl/ssl_engine_io.c
+@@ -602,6 +602,11 @@ static apr_status_t ssl_io_input_read(bio_filter_in_ctx_t *inctx,
+             break;
+         }
+ 
++        /* We rely on SSL_get_error() after the read, which requires an empty
++         * error queue before the read in order to work properly.
++         */
++        ERR_clear_error();
++
+         /* SSL_read may not read because we haven't taken enough data
+          * from the stack.  This is where we want to consider all of
+          * the blocking and SPECULATIVE semantics
+@@ -779,6 +784,11 @@ static apr_status_t ssl_filter_write(ap_filter_t *f,
+         return APR_EGENERAL;
+     }
+ 
++    /* We rely on SSL_get_error() after the write, which requires an empty error
++     * queue before the write in order to work properly.
++     */
++    ERR_clear_error();
++
+     outctx = (bio_filter_out_ctx_t *)filter_ctx->pbioWrite->ptr;
+     res = SSL_write(filter_ctx->pssl, (unsigned char *)data, len);
+ 
+@@ -1250,6 +1260,11 @@ static apr_status_t ssl_io_filter_handshake(ssl_filter_ctx_t *filter_ctx)
+         return APR_SUCCESS;
+     }
+ 
++    /* We rely on SSL_get_error() after the accept, which requires an empty
++     * error queue before the accept in order to work properly.
++     */
++    ERR_clear_error();
++
+     if ((n = SSL_accept(filter_ctx->pssl)) <= 0) {
+         bio_filter_in_ctx_t *inctx = (bio_filter_in_ctx_t *)
+                                      (filter_ctx->pbioRead->ptr);
+-- 
+2.10.2
+
