@@ -1,0 +1,136 @@
+From 0739ccba49e8c911d55ee5d04b138c10d4a8c138 Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+Date: Tue, 15 Nov 2016 16:36:33 +0200
+Subject: [PATCH] mod_session_crypto: allocate key from request pool
+
+These changes are taken from [1]. The discussion is still on-going, this
+particular patch might not be merged (an alternative fix to apr has been
+proposed recently [2] but nobody seems to have tested and responded to that).
+
+Until upstream integrates a fix for real, this changeset from the ML is all
+we got which is confirmed to work, so we don't really have a choice.
+
+[1] https://mail-archives.apache.org/mod_mbox/httpd-dev/201609.mbox/%3C49a49e1c-ee01-0550-c24a-d427af9b9542@mailbox.org%3E
+
+[2] https://mail-archives.apache.org/mod_mbox/httpd-dev/201610.mbox/%3CCAKQ1sVO1a2SdpzqiUNn3WjdV3FcxojkX58f1iK9Tkbpw8y6TAQ@mail.gmail.com%3E
+
+Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+
+Upstream-Status: Submitted
+
+---
+ modules/session/mod_session_crypto.c | 59 +++++++++++++++++++++++++++---------
+ 1 file changed, 45 insertions(+), 14 deletions(-)
+
+diff --git a/modules/session/mod_session_crypto.c b/modules/session/mod_session_crypto.c
+index 4d65bb8..0e6dbd8 100644
+--- a/modules/session/mod_session_crypto.c
++++ b/modules/session/mod_session_crypto.c
+@@ -34,7 +34,7 @@
+ 
+ #include "apr_crypto.h"                /* for apr_*_crypt et al */
+ 
+-#define CRYPTO_KEY "session_crypto_context"
++#define DRIVER_KEY "session_crypto_driver"
+ 
+ module AP_MODULE_DECLARE_DATA session_crypto_module;
+ 
+@@ -333,6 +333,35 @@ static apr_status_t decrypt_string(request_rec * r, const apr_crypto_t *f,
+ 
+ }
+ 
++static int session_crypto_init_per_request(request_rec *r, const apr_crypto_t **ff)
++{
++    apr_crypto_t *f = NULL;
++
++    session_crypto_conf *conf = ap_get_module_config(r->server->module_config,
++            &session_crypto_module);
++
++    if (conf->library) {
++        const apr_crypto_driver_t *driver = NULL;
++        apr_pool_t *p = r->pool;
++        apr_status_t rv;
++
++        apr_pool_userdata_get((void **)&driver, DRIVER_KEY,
++                              r->server->process->pconf);
++
++        rv = apr_crypto_make(&f, driver, conf->params, p);
++        if (APR_SUCCESS != rv) {
++            ap_log_rerror(APLOG_MARK, APLOG_ERR, rv, r, APLOGNO(01848)
++                          "The crypto context could not be initialised");
++            return rv;
++        }
++    }
++
++    *ff = f;
++
++    return OK;
++}
++
++
+ /**
+  * Crypto encoding for the session.
+  *
+@@ -349,7 +378,13 @@ static apr_status_t session_crypto_encode(request_rec * r, session_rec * z)
+             &session_crypto_module);
+ 
+     if (dconf->passphrases_set && z->encoded && *z->encoded) {
+-        apr_pool_userdata_get((void **)&f, CRYPTO_KEY, r->server->process->pconf);
++        res = session_crypto_init_per_request(r, &f);
++        if (res != OK) {
++            ap_log_rerror(APLOG_MARK, APLOG_DEBUG, res, r,
++                          "session_crypto_encode: session_crypto_init_per_request failed");
++            return res;
++        }
++
+         res = encrypt_string(r, f, dconf, z->encoded, &encoded);
+         if (res != OK) {
+             ap_log_rerror(APLOG_MARK, APLOG_DEBUG, res, r, APLOGNO(01841)
+@@ -380,8 +415,13 @@ static apr_status_t session_crypto_decode(request_rec * r,
+             &session_crypto_module);
+ 
+     if ((dconf->passphrases_set) && z->encoded && *z->encoded) {
+-        apr_pool_userdata_get((void **)&f, CRYPTO_KEY,
+-                r->server->process->pconf);
++        res = session_crypto_init_per_request(r, &f);
++        if (res != OK) {
++            ap_log_rerror(APLOG_MARK, APLOG_DEBUG, res, r,
++                          "session_crypto_decode: session_crypto_init_per_request failed");
++            return res;
++        }
++
+         res = decrypt_string(r, f, dconf, z->encoded, &encoded);
+         if (res != APR_SUCCESS) {
+             ap_log_rerror(APLOG_MARK, APLOG_ERR, res, r, APLOGNO(01842)
+@@ -402,7 +442,6 @@ static int session_crypto_init(apr_pool_t *p, apr_pool_t *plog,
+         apr_pool_t *ptemp, server_rec *s)
+ {
+     const apr_crypto_driver_t *driver = NULL;
+-    apr_crypto_t *f = NULL;
+ 
+     session_crypto_conf *conf = ap_get_module_config(s->module_config,
+             &session_crypto_module);
+@@ -451,19 +490,11 @@ static int session_crypto_init(apr_pool_t *p, apr_pool_t *plog,
+             return rv;
+         }
+ 
+-        rv = apr_crypto_make(&f, driver, conf->params, p);
+-        if (APR_SUCCESS != rv) {
+-            ap_log_error(APLOG_MARK, APLOG_ERR, rv, s, APLOGNO(01848)
+-                    "The crypto library '%s' could not be initialised",
+-                    conf->library);
+-            return rv;
+-        }
+-
+         ap_log_error(APLOG_MARK, APLOG_INFO, rv, s, APLOGNO(01849)
+                 "The crypto library '%s' was loaded successfully",
+                 conf->library);
+ 
+-        apr_pool_userdata_set((const void *)f, CRYPTO_KEY,
++        apr_pool_userdata_set((const void *)driver, DRIVER_KEY,
+                 apr_pool_cleanup_null, s->process->pconf);
+ 
+     }
+-- 
+2.10.2
+
