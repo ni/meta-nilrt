@@ -1,4 +1,4 @@
-From 22130b9b9f8e0a83e9fd3282a61415b62febacd8 Mon Sep 17 00:00:00 2001
+From 6bcaad565e51f468d753d9417119be395e6b2221 Mon Sep 17 00:00:00 2001
 From: Jonathan David <jonathan.david@ni.com>
 Date: Mon, 21 Jul 2014 14:25:07 -0500
 Subject: [PATCH 08/22] Added curl_share_setopt_va() API function
@@ -12,24 +12,23 @@ Upstream-Status: Submitted [curl-library@cool.haxx.se]
  1 file changed, 13 insertions(+), 5 deletions(-)
 
 diff --git a/lib/share.c b/lib/share.c
-index b8b6bee..f78bc40 100644
+index 5b3957f..e81b23f 100644
 --- a/lib/share.c
 +++ b/lib/share.c
-@@ -41,12 +41,10 @@ curl_share_init(void)
+@@ -47,11 +47,9 @@ curl_share_init(void)
    return share;
  }
  
 -#undef curl_share_setopt
  CURLSHcode
--curl_share_setopt(CURLSH *sh, CURLSHoption option, ...)
-+curl_share_setopt_va(CURLSH *sh, CURLSHoption option, va_list param)
+-curl_share_setopt(struct Curl_share *share, CURLSHoption option, ...)
++curl_share_setopt_va(struct Curl_share *share, CURLSHoption option, va_list param)
  {
-   struct Curl_share *share = (struct Curl_share *)sh;
 -  va_list param;
    int type;
    curl_lock_function lockfunc;
    curl_unlock_function unlockfunc;
-@@ -58,8 +56,6 @@ curl_share_setopt(CURLSH *sh, CURLSHoption option, ...)
+@@ -63,8 +61,6 @@ curl_share_setopt(struct Curl_share *share, CURLSHoption option, ...)
         using this share */
      return CURLSHE_IN_USE;
  
@@ -38,7 +37,7 @@ index b8b6bee..f78bc40 100644
    switch(option) {
    case CURLSHOPT_SHARE:
      /* this is a type this share will share */
-@@ -169,6 +165,18 @@ curl_share_setopt(CURLSH *sh, CURLSHoption option, ...)
+@@ -165,6 +161,18 @@ curl_share_setopt(struct Curl_share *share, CURLSHoption option, ...)
      break;
    }
  
@@ -47,16 +46,16 @@ index b8b6bee..f78bc40 100644
 +
 +#undef curl_share_setopt
 +CURLSHcode
-+curl_share_setopt(CURLSH *sh, CURLSHoption option, ...)
++curl_share_setopt(struct Curl_share *share, CURLSHoption option, ...)
 +{
 +  CURLSHcode res;
 +  va_list param;
 +  va_start(param, option);
 +
-+  res = curl_share_setopt_va(sh, option, param);
++  res = curl_share_setopt_va(share, option, param);
    va_end(param);
  
    return res;
 -- 
-1.9.1
+2.10.2
 

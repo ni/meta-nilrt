@@ -1,4 +1,4 @@
-From cfa589d593c6a353a491c3ba106d758fa5177f59 Mon Sep 17 00:00:00 2001
+From 71711537d4e535162b6fb28219b8c91f49c0a5b7 Mon Sep 17 00:00:00 2001
 From: Jonathan David <jonathan.david@ni.com>
 Date: Mon, 21 Jul 2014 14:32:25 -0500
 Subject: [PATCH 07/22] Added curl_multi_setopt_va() API function
@@ -12,20 +12,19 @@ Upstream-Status: Submitted [curl-library@cool.haxx.se]
  1 file changed, 16 insertions(+), 6 deletions(-)
 
 diff --git a/lib/multi.c b/lib/multi.c
-index 97c9e65..fabef7a 100644
+index 2432b15..88755b9 100644
 --- a/lib/multi.c
 +++ b/lib/multi.c
-@@ -2335,19 +2335,15 @@ static CURLMcode multi_socket(struct Curl_multi *multi,
+@@ -2650,18 +2650,14 @@ static CURLMcode multi_socket(struct Curl_multi *multi,
    return result;
  }
  
 -#undef curl_multi_setopt
--CURLMcode curl_multi_setopt(CURLM *multi_handle,
+-CURLMcode curl_multi_setopt(struct Curl_multi *multi,
 -                            CURLMoption option, ...)
-+CURLMcode curl_multi_setopt_va(CURLM *multi_handle,
++CURLMcode curl_multi_setopt_va(struct Curl_multi *multi,
 +                               CURLMoption option, va_list param)
  {
-   struct Curl_multi *multi=(struct Curl_multi *)multi_handle;
    CURLMcode res = CURLM_OK;
 -  va_list param;
  
@@ -37,7 +36,7 @@ index 97c9e65..fabef7a 100644
    switch(option) {
    case CURLMOPT_SOCKETFUNCTION:
      multi->socket_cb = va_arg(param, curl_socket_callback);
-@@ -2394,7 +2390,21 @@ CURLMcode curl_multi_setopt(CURLM *multi_handle,
+@@ -2714,7 +2710,21 @@ CURLMcode curl_multi_setopt(struct Curl_multi *multi,
      res = CURLM_UNKNOWN_OPTION;
      break;
    }
@@ -46,19 +45,19 @@ index 97c9e65..fabef7a 100644
 +}
 +
 +#undef curl_multi_setopt
-+CURLMcode curl_multi_setopt(CURLM *multi_handle,
++CURLMcode curl_multi_setopt(struct Curl_multi *multi,
 +                            CURLMoption option, ...)
 +{
 +  CURLMcode res;
 +  va_list param;
 +  va_start(param, option);
 +
-+  res = curl_multi_setopt_va(multi_handle, option, param);
++  res = curl_multi_setopt_va(multi, option, param);
    va_end(param);
 +
    return res;
  }
  
 -- 
-1.9.1
+2.10.2
 
