@@ -1,15 +1,21 @@
-From 729ae6068a4f9b76c74438163863c03d5ad97b28 Mon Sep 17 00:00:00 2001
-From: Jonathan David <jonathan.david@ni.com>
-Date: Mon, 21 Jul 2014 15:25:28 -0500
+From abb9b0f1d944c2c817390c8a3ecb411010e567fb Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+Date: Wed, 16 Nov 2016 16:07:23 +0200
 Subject: [PATCH 11/22] Made curl_global_init() thread safe
 
+Originally done by J.David but I had to redo the commit because his patch
+had a bad sha1 sum, probably because it was based on a non-public commit.
+
 Upstream-Status: Inappropriate [creates Linux dependency]
+
+Signed-off-by: Jonathan David <jonathan.david@ni.com>
+Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
 ---
  lib/easy.c | 28 ++++++++++++++++++++++++++++
  1 file changed, 28 insertions(+)
 
 diff --git a/lib/easy.c b/lib/easy.c
-index 0091d08..17cf28d 100644
+index a562858..3eb34a4 100644
 --- a/lib/easy.c
 +++ b/lib/easy.c
 @@ -21,6 +21,7 @@
@@ -20,9 +26,9 @@ index 0091d08..17cf28d 100644
  
  /*
   * See comment in curl_memory.h for the explanation of this sanity check.
-@@ -224,8 +225,16 @@ curl_calloc_callback Curl_ccalloc;
+@@ -199,8 +200,16 @@ curl_calloc_callback Curl_ccalloc;
   */
- CURLcode curl_global_init(long flags)
+ static CURLcode global_init(long flags, bool memoryfuncs)
  {
 +#ifdef CURL_THREAD_SAFE_INIT
 +  curl_global_mutex_lock();
@@ -35,9 +41,9 @@ index 0091d08..17cf28d 100644
      return CURLE_OK;
 +  }
  
-   /* Setup the default memory functions here (again) */
-   Curl_cmalloc = (curl_malloc_callback)malloc;
-@@ -240,18 +249,27 @@ CURLcode curl_global_init(long flags)
+   if(memoryfuncs) {
+     /* Setup the default memory functions here (again) */
+@@ -217,18 +226,27 @@ static CURLcode global_init(long flags, bool memoryfuncs)
    if(flags & CURL_GLOBAL_SSL)
      if(!Curl_ssl_init()) {
        DEBUGF(fprintf(stderr, "Error: Curl_ssl_init failed\n"));
@@ -65,7 +71,7 @@ index 0091d08..17cf28d 100644
      return CURLE_FAILED_INIT;
    }
  #endif
-@@ -268,12 +286,18 @@ CURLcode curl_global_init(long flags)
+@@ -241,6 +259,9 @@ static CURLcode global_init(long flags, bool memoryfuncs)
  
    if(Curl_resolver_global_init()) {
      DEBUGF(fprintf(stderr, "Error: resolver_global_init failed\n"));
@@ -75,6 +81,7 @@ index 0091d08..17cf28d 100644
      return CURLE_FAILED_INIT;
    }
  
+@@ -249,6 +270,9 @@ static CURLcode global_init(long flags, bool memoryfuncs)
  #if defined(USE_LIBSSH2) && defined(HAVE_LIBSSH2_INIT)
    if(libssh2_init(0)) {
      DEBUGF(fprintf(stderr, "Error: libssh2_init failed\n"));
@@ -84,9 +91,9 @@ index 0091d08..17cf28d 100644
      return CURLE_FAILED_INIT;
    }
  #endif
-@@ -283,6 +307,10 @@ CURLcode curl_global_init(long flags)
+@@ -260,6 +284,10 @@ static CURLcode global_init(long flags, bool memoryfuncs)
  
-   init_flags  = flags;
+   Curl_version_init();
  
 +#ifdef CURL_THREAD_SAFE_INIT
 +  curl_global_mutex_unlock();
@@ -96,5 +103,5 @@ index 0091d08..17cf28d 100644
  }
  
 -- 
-1.9.1
+2.10.2
 
