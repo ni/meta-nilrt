@@ -161,6 +161,7 @@ RDEPENDS_${PN} += "\
 	oprofile \
 	oprofileui \
 	oprofileui-server \
+	perf \
 	sysprof \
 	systemtap \
 	trace-cmd \
