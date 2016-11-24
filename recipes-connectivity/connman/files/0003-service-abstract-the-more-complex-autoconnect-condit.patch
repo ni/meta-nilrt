@@ -1,0 +1,89 @@
+From 77a9b5cb43d42463a0b935f2e55812e3b49ee507 Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+Date: Wed, 23 Nov 2016 16:10:56 +0200
+Subject: [PATCH 3/4] service: abstract the more complex autoconnect
+ conditionals
+
+The previous commit complicated some of the conditionals in the
+auto_connect_service, so split them in their own function and add
+comments to make them easier to understand.
+
+Signed-off-by: Daniel Wagner <daniel.wagner@bmw-carit.de>
+
+Upstream-Status: Backport [master branch commit 77a9b5cb43d4246]
+
+---
+ src/service.c | 36 +++++++++++++++++++++++++++++++-----
+ 1 file changed, 31 insertions(+), 5 deletions(-)
+
+diff --git a/src/service.c b/src/service.c
+index 4ebee36..e5a106e 100644
+--- a/src/service.c
++++ b/src/service.c
+@@ -3809,6 +3809,34 @@ static void set_always_connecting_technologies()
+ 		always_connect[always_connected_techs[i]] = 1;
+ }
+ 
++static bool autoconnect_no_session_active(struct connman_service *service)
++{
++	/*
++	 * Test active_count to see if there are no sessions set up and
++	 * stop autoconnecting, but continue connecting if the service
++	 * belongs to a technology which should always autoconnect.
++	 */
++	if (!active_count && !always_connect[service->type])
++		return true;
++
++	return false;
++}
++
++static bool autoconnect_already_connecting(struct connman_service *service,
++					   bool autoconnecting)
++{
++	/*
++	 * If another service is already connecting and this service type has
++	 * not been marked as always connecting, stop the connecting procedure.
++	 */
++	if (autoconnecting &&
++			!active_sessions[service->type] &&
++			!always_connect[service->type])
++		return true;
++
++	return false;
++}
++
+ static bool auto_connect_service(GList *services,
+ 				enum connman_service_connect_reason reason,
+ 				bool preferred)
+@@ -3835,7 +3863,7 @@ static bool auto_connect_service(GList *services,
+ 		if (service->pending ||
+ 				is_connecting(service) ||
+ 				is_connected(service)) {
+-			if (!active_count && !always_connect[service->type])
++			if (autoconnect_no_session_active(service))
+ 					return true;
+ 
+ 			ignore[service->type] = true;
+@@ -3858,9 +3886,7 @@ static bool auto_connect_service(GList *services,
+ 				CONNMAN_SERVICE_STATE_IDLE)
+ 			continue;
+ 
+-		if (autoconnecting &&
+-				!active_sessions[service->type] &&
+-				!always_connect[service->type]) {
++		if (autoconnect_already_connecting(service, autoconnecting)) {
+ 			DBG("service %p type %s has no users", service,
+ 				__connman_service_type2string(service->type));
+ 			continue;
+@@ -3871,7 +3897,7 @@ static bool auto_connect_service(GList *services,
+ 
+ 		__connman_service_connect(service, reason);
+ 
+-		if (!active_count && !always_connect[service->type])
++		if (autoconnect_no_session_active(service))
+ 			return true;
+ 
+ 		ignore[service->type] = true;
+-- 
+2.10.2
+
