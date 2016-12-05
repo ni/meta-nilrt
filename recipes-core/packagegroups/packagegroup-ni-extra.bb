@@ -28,7 +28,9 @@ RDEPENDS_${PN} += "\
 	portmap \
 	ppp \
 	ppp-dialin \
+	python-salttesting \
 	resolvconf \
+	salt \
 "
 
 RDEPENDS_${PN} += "\
