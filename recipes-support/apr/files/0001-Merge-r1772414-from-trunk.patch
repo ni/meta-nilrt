@@ -1,0 +1,149 @@
+From 3f2018e4d722d75646e0f7c3dc6118b83ccdfb31 Mon Sep 17 00:00:00 2001
+From: Yann Ylavic <ylavic@apache.org>
+Date: Fri, 2 Dec 2016 22:26:07 +0000
+Subject: [PATCH] Merge r1772414 from trunk.
+
+apr_crypto: axe the un(thread)safe key cache, creating each key on the pool
+given to crypto_key()/crypto_passphrase().
+
+Committed/Reviewed by: ylavic
+
+Upstream-Status: Backport [SVN Revision 1772416]
+
+git-svn-id: https://svn.apache.org/repos/asf/apr/apr-util/branches/1.5.x@1772416 13f79535-47bb-0310-9956-ffa450edef68
+---
+ crypto/apr_crypto_nss.c     | 40 ++++++++++++++++------------------------
+ crypto/apr_crypto_openssl.c | 14 ++++----------
+ 2 files changed, 20 insertions(+), 34 deletions(-)
+
+diff --git a/crypto/apr_crypto_nss.c b/crypto/apr_crypto_nss.c
+index b5c8700..2273597 100644
+--- a/crypto/apr_crypto_nss.c
++++ b/crypto/apr_crypto_nss.c
+@@ -50,7 +50,6 @@ struct apr_crypto_t {
+     apr_pool_t *pool;
+     const apr_crypto_driver_t *provider;
+     apu_err_t *result;
+-    apr_array_header_t *keys;
+     apr_crypto_config_t *config;
+     apr_hash_t *types;
+     apr_hash_t *modes;
+@@ -263,6 +262,16 @@ static apr_status_t crypto_block_cleanup_helper(void *data)
+     return crypto_block_cleanup(block);
+ }
+ 
++static apr_status_t crypto_key_cleanup(void *data)
++{
++    apr_crypto_key_t *key = data;
++    if (key->symKey) {
++        PK11_FreeSymKey(key->symKey);
++        key->symKey = NULL;
++    }
++    return APR_SUCCESS;
++}
++
+ /**
+  * @brief Clean encryption / decryption context.
+  * @note After cleanup, a context is free to be reused if necessary.
+@@ -271,24 +280,9 @@ static apr_status_t crypto_block_cleanup_helper(void *data)
+  */
+ static apr_status_t crypto_cleanup(apr_crypto_t *f)
+ {
+-    apr_crypto_key_t *key;
+-    if (f->keys) {
+-        while ((key = apr_array_pop(f->keys))) {
+-            if (key->symKey) {
+-                PK11_FreeSymKey(key->symKey);
+-                key->symKey = NULL;
+-            }
+-        }
+-    }
+     return APR_SUCCESS;
+ }
+ 
+-static apr_status_t crypto_cleanup_helper(void *data)
+-{
+-    apr_crypto_t *f = (apr_crypto_t *) data;
+-    return crypto_cleanup(f);
+-}
+-
+ /**
+  * @brief Create a context for supporting encryption. Keys, certificates,
+  *        algorithms and other parameters will be set per context. More than
+@@ -323,7 +317,6 @@ static apr_status_t crypto_make(apr_crypto_t **ff,
+     if (!f->result) {
+         return APR_ENOMEM;
+     }
+-    f->keys = apr_array_make(pool, 10, sizeof(apr_crypto_key_t));
+ 
+     f->types = apr_hash_make(pool);
+     if (!f->types) {
+@@ -341,9 +334,6 @@ static apr_status_t crypto_make(apr_crypto_t **ff,
+     apr_hash_set(f->modes, "ecb", APR_HASH_KEY_STRING, &(mode_ecb));
+     apr_hash_set(f->modes, "cbc", APR_HASH_KEY_STRING, &(mode_cbc));
+ 
+-    apr_pool_cleanup_register(pool, f, crypto_cleanup_helper,
+-            apr_pool_cleanup_null);
+-
+     return APR_SUCCESS;
+ 
+ }
+@@ -421,10 +411,12 @@ static apr_status_t crypto_passphrase(apr_crypto_key_t **k, apr_size_t *ivSize,
+     apr_crypto_key_t *key = *k;
+ 
+     if (!key) {
+-        *k = key = apr_array_push(f->keys);
+-    }
+-    if (!key) {
+-        return APR_ENOMEM;
++        *k = key = apr_pcalloc(p, sizeof *key);
++        if (!key) {
++            return APR_ENOMEM;
++        }
++        apr_pool_cleanup_register(p, key, crypto_key_cleanup,
++                                  apr_pool_cleanup_null);
+     }
+ 
+     key->f = f;
+diff --git a/crypto/apr_crypto_openssl.c b/crypto/apr_crypto_openssl.c
+index 0fa9337..4dd167c 100644
+--- a/crypto/apr_crypto_openssl.c
++++ b/crypto/apr_crypto_openssl.c
+@@ -39,7 +39,6 @@ struct apr_crypto_t {
+     apr_pool_t *pool;
+     const apr_crypto_driver_t *provider;
+     apu_err_t *result;
+-    apr_array_header_t *keys;
+     apr_crypto_config_t *config;
+     apr_hash_t *types;
+     apr_hash_t *modes;
+@@ -284,11 +283,6 @@ static apr_status_t crypto_make(apr_crypto_t **ff,
+         return APR_ENOMEM;
+     }
+ 
+-    f->keys = apr_array_make(pool, 10, sizeof(apr_crypto_key_t));
+-    if (!f->keys) {
+-        return APR_ENOMEM;
+-    }
+-
+     f->types = apr_hash_make(pool);
+     if (!f->types) {
+         return APR_ENOMEM;
+@@ -391,10 +385,10 @@ static apr_status_t crypto_passphrase(apr_crypto_key_t **k, apr_size_t *ivSize,
+     apr_crypto_key_t *key = *k;
+ 
+     if (!key) {
+-        *k = key = apr_array_push(f->keys);
+-    }
+-    if (!key) {
+-        return APR_ENOMEM;
++        *k = key = apr_pcalloc(p, sizeof *key);
++        if (!key) {
++            return APR_ENOMEM;
++        }
+     }
+ 
+     key->f = f;
+-- 
+2.10.2
+
