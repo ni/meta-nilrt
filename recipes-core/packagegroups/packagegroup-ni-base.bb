@@ -29,6 +29,7 @@ RDEPENDS_${PN} = "\
 	distro-feed-configs \
 	dmidecode \
 	ethtool \
+	fuse-exfat \
 	init-ifupdown \
 	initscripts \
 	initscripts-nilrt \
