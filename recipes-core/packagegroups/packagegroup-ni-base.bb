@@ -30,6 +30,7 @@ RDEPENDS_${PN} = "\
 	e2fsprogs \
 	e2fsprogs-mke2fs \
 	ethtool \
+	fuse-exfat \
 	glibc-gconv-utf-16 \
 	gptfdisk-sgdisk \
 	init-ifupdown \
