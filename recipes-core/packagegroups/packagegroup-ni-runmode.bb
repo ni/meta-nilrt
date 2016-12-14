@@ -13,6 +13,7 @@ RDEPENDS_${PN} = "\
 	dosfstools \
 	e2fsprogs-e2fsck \
 	e2fsprogs-tune2fs \
+	fuse-exfat \
 	gdbserver \
 	glibc-gconv-cp932 \
 	glibc-gconv-cp936 \
