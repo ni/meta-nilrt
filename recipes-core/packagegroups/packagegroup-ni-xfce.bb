@@ -23,6 +23,7 @@ RDEPENDS_${PN} = "\
 	fontconfig-overrides \
 	mousepad \
 	ttf-pt-sans \
+	xserver-xorg-udev-rules \
 "
 RDEPENDS_${PN}_append_x64 += "\
 	xf86-video-ati \
