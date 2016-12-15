@@ -23,4 +23,5 @@ RDEPENDS_${PN} = "\
 	fontconfig-overrides \
 	mousepad \
 	ttf-pt-sans \
+	xserver-xorg-udev-rules \
 "
