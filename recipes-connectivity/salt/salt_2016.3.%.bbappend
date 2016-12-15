@@ -24,8 +24,13 @@ S="${WORKDIR}/git"
 
 PACKAGECONFIG = "tcp"
 
-RDEPENDS_${PN}-minion += "python-avahi python-pyinotify python-pyroute2 python-modules python-pika"
-RDEPENDS_${PN}-common_remove = "python-dateutil python-requests"
+RDEPENDS_${PN}-minion = "python ${PN}-common (= ${EXTENDPKGV}) python-msgpack python-avahi python-pyinotify python-pyroute2 python-pycrypto python-modules python-pika"
+RDEPENDS_${PN}-common = "python python-jinja2 python-pyyaml python-tornado (>= 4.2.1)"
+RDEPENDS_${PN}-ssh = "python ${PN}-common (= ${EXTENDPKGV}) python-msgpack"
+RDEPENDS_${PN}-api = "python ${PN}-master"
+RDEPENDS_${PN}-master = "python ${PN}-common (= ${EXTENDPKGV}) python-msgpack python-pycrypto"
+RDEPENDS_${PN}-syndic = "python ${PN}-master (= ${EXTENDPKGV})"
+RDEPENDS_${PN}-cloud = "python ${PN}-common (= ${EXTENDPKGV})"
 RDEPENDS_${PN}-tests += "python-pyzmq python-six python-image"
 RDEPENDS_${PN}-ptest += "salt-tests"
 # Note that the salt test suite (salt-tests) require python-pyzmq to run
