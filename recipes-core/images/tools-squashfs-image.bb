@@ -23,6 +23,10 @@ do_cleanup() {
 
 	TARGET_PATH_PREFIX=$(echo ${TARGET_PREFIX} | sed -e 's#-$##')
 	rm ${IMAGE_ROOTFS}/usr/libexec/gcc/${TARGET_PATH_PREFIX}/?.*.*/cc1plus
+	rm ${IMAGE_ROOTFS}/usr/bin/ld.gold
+	rm ${IMAGE_ROOTFS}/usr/bin/${TARGET_PREFIX}ld.gold
+	rm ${IMAGE_ROOTFS}/usr/bin/dwp
+	rm ${IMAGE_ROOTFS}/usr/bin/${TARGET_PREFIX}dwp
 }
 
 IMAGE_PREPROCESS_COMMAND += "do_cleanup; "
