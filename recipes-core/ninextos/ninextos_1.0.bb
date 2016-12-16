@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384
 SRC_URI_x64 = "file://bootimage.cfg"
 
 DEPENDS = " restore-mode-image "
-DEPENDS_append_x64 = " grub-efi "
+DEPENDS_append_x64 = " grub "
 do_install[depends] = " restore-mode-image:do_rootfs "
 
 PR = "r1"
