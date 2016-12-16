@@ -22,7 +22,7 @@ do_cleanup() {
 	rm -rf ${IMAGE_ROOTFS}/var
 
 	TARGET_PATH_PREFIX=$(echo ${TARGET_PREFIX} | sed -e 's#-$##')
-	rm -f ${IMAGE_ROOTFS}/usr/lib/gcc/gcc/${TARGET_PATH_PREFIX}/?.*.*/cc1plus
+	rm ${IMAGE_ROOTFS}/usr/libexec/gcc/${TARGET_PATH_PREFIX}/?.*.*/cc1plus
 }
 
 IMAGE_PREPROCESS_COMMAND += "do_cleanup; "
