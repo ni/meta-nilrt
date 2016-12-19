@@ -2,7 +2,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=fb92f464675f6b5df90f540d60237915"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
-SRC_URI = "${NILRT_GIT}/salt.git;protocol=git;branch=nilrt/cardassia/develop \
+SRC_URI = "${NILRT_GIT}/salt.git;protocol=git;branch=nilrt/cardassia/2016.11 \
            file://set_python_location_hashbang.patch \
            file://minion \
            file://salt-minion \
@@ -18,7 +18,7 @@ SRC_URI = "${NILRT_GIT}/salt.git;protocol=git;branch=nilrt/cardassia/develop \
 "
 
 SRCREV = "${AUTOREV}"
-PV = "2016.3+git${SRCPV}"
+PV = "2016.11+git${SRCPV}"
 
 S="${WORKDIR}/git"
 
