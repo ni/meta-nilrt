@@ -1,5 +1,8 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/udev:"
 
-SRC_URI =+ "file://0001-ni-skip-kmod-for-wl12xx.patch"
+SRC_URI =+ " \
+	file://0001-ni-skip-kmod-for-wl12xx.patch \
+	file://0001-configure.ac-add-option-to-disable-mtd_probe.patch \
+"
 
-EXTRA_OECONF =+ "enable_mtd_probe=no"
+EXTRA_OECONF =+ "--disable-mtd_probe"
