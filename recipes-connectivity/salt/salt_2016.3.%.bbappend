@@ -24,10 +24,6 @@ S="${WORKDIR}/git"
 
 PACKAGECONFIG = "tcp"
 
-# make sure python-avahi RPROVIDE-ed by avahi-ui is built before salt
-# because salt-minion RDEPENDS on it to avoid a build race
-DEPENDS += "avahi-ui"
-
 RDEPENDS_${PN}-minion += "python-avahi python-pyinotify python-pyroute2"
 RDEPENDS_${PN}-common_remove = "python-dateutil python-requests"
 RDEPENDS_${PN}-tests += "python-pyzmq python-six python-image"
