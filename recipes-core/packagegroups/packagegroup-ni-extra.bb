@@ -729,6 +729,7 @@ RDEPENDS_${PN} += "\
 	python-pastedeploy \
 	python-pbr \
 	python-pep8 \
+	python-pika \
 	python-ply \
 	python-posix-ipc \
 	python-prettytable \
