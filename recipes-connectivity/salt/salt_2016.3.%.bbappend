@@ -24,7 +24,7 @@ S="${WORKDIR}/git"
 
 PACKAGECONFIG = "tcp"
 
-RDEPENDS_${PN}-minion += "python-avahi python-pyinotify python-pyroute2"
+RDEPENDS_${PN}-minion += "python-avahi python-pyinotify python-pyroute2 python-pika"
 RDEPENDS_${PN}-common_remove = "python-dateutil python-requests"
 RDEPENDS_${PN}-tests += "python-pyzmq python-six python-image"
 RDEPENDS_${PN}-ptest += "salt-tests"
