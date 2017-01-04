@@ -57,6 +57,11 @@ do_install_append_class-target () {
     install -m 0644 ${WORKDIR}/grub.cfg ${D}/boot/
 }
 
+do_install_class-native() {
+    install -d ${D}${bindir}
+    install -m 755 grub-mkimage ${D}${bindir}
+}
+
 do_deploy() {
     grub-mkimage -c ../cfg -p /EFI/BOOT -d ./grub-core/ \
 	               -O ${GRUB_TARGET}-efi -o ./${GRUB_IMAGE} \
@@ -64,10 +69,17 @@ do_deploy() {
     install -m 644 ${B}/${GRUB_IMAGE} ${DEPLOYDIR}/${GRUB_IMAGE}
 }
 
+do_deploy_class-native() {
+        :
+}
+
 addtask deploy after do_install before do_build
 
 PACKAGES =+ "grub-editenv"
 
-RDEPENDS_${PN} =+ "grub-editenv"
+RDEPENDS_${PN}_class-target = "diffutils freetype grub-editenv"
+RDEPENDS_${PN}_class-native = ""
 
 FILES_grub-editenv = "${bindir}/grub-editenv"
+
+BBCLASSEXTEND = "native"
