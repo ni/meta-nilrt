@@ -668,6 +668,7 @@ RDEPENDS_${PN} += "\
 	python-amqp \
 	python-amqplib \
 	python-anyjson \
+	python-avahi \
 	python-beautifulsoup4 \
 	python-boto \
 	python-cephclient \
