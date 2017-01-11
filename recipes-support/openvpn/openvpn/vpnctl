@@ -10,12 +10,7 @@ OPENVPN_PIDFILE=/var/run/openvpn/openvpn.pid
 OPENVPN="$OPENVPN_DAEMON --cd $VPN_CONFIG_DIR --config $OPENVPN_CONFIG \
 	--dev tapvpn0 --dev-type tap --persist-tun --ns-cert-type server"
 
-# OpenVPN calls `ip` to configure the tapvpn0 interface. However, this requires
-# superuser privileges, which OpenVPN will not possess. $IPROUTE points to an
-# executable which runs `ip` with superuser privileges. This will either be a
-# copy of /bin/ip that is setuid root, or a shell script that executes `sudo
-# /bin/ip` (combined with appropriate sudoers settings).
-IPROUTE=/usr/lib/iproute2-openvpn/ip
+IPROUTE=/sbin/ip
 
 OPENVPN_WAIT_STOP_SECONDS=10
 VPN_DISABLED=no
