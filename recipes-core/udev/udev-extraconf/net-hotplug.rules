@@ -1,2 +1,8 @@
+# Preferred NIC for CVS-1458RT
+SUBSYSTEM=="net", ATTRS{vendor}=="0x8086", ATTRS{device}=="0x1533", ATTRS{subsystem_vendor}=="0x1093", ATTRS{subsystem_device}=="0x77c6", KERNELS=="0000:04:00.0" ENV{preferred_linklocal}="1"
+
+# Preferred NIC for IC-3173RT
+SUBSYSTEM=="net", ATTRS{vendor}=="0x8086", ATTRS{device}=="0x15a2", ATTRS{subsystem_vendor}=="0x1093", ATTRS{subsystem_device}=="0x77ad", KERNELS=="0000:00:19.0" ENV{preferred_linklocal}="1"
+
 SUBSYSTEM=="net", ENV{networking}!="done", ENV{skipped}="yes"
 SUBSYSTEM=="net", ENV{networking}=="done", ENV{skipped}="no", RUN+="/etc/udev/scripts/hotplug.script"
