@@ -1,14 +1,2 @@
-# Reorder network interfaces for CVS-1458RT
-SUBSYSTEM=="net", ATTRS{vendor}=="0x8086", ATTRS{device}=="0x1533", ATTRS{subsystem_vendor}=="0x1093", ATTRS{subsystem_device}=="0x77c6", KERNELS=="0000:04:00.0" NAME="eth0"
-SUBSYSTEM=="net", ATTRS{vendor}=="0x8086", ATTRS{device}=="0x1533", ATTRS{subsystem_vendor}=="0x1093", ATTRS{subsystem_device}=="0x77aa", KERNELS=="0000:02:00.0" NAME="eth1"
-SUBSYSTEM=="net", ATTRS{vendor}=="0x8086", ATTRS{device}=="0x1533", ATTRS{subsystem_vendor}=="0x1093", ATTRS{subsystem_device}=="0x77aa", KERNELS=="0000:03:00.0" NAME="eth2"
-
-# Reorder network interfaces for IC-3173RT
-SUBSYSTEM=="net", ATTRS{vendor}=="0x8086", ATTRS{device}=="0x15a2", ATTRS{subsystem_vendor}=="0x1093", ATTRS{subsystem_device}=="0x77ad", KERNELS=="0000:00:19.0" NAME="eth0"
-SUBSYSTEM=="net", ATTRS{vendor}=="0x8086", ATTRS{device}=="0x1533", ATTRS{subsystem_vendor}=="0x1093", ATTRS{subsystem_device}=="0x77ad", KERNELS=="0000:07:00.0" NAME="eth1"
-SUBSYSTEM=="net", ATTRS{vendor}=="0x8086", ATTRS{device}=="0x1533", ATTRS{subsystem_vendor}=="0x1093", ATTRS{subsystem_device}=="0x77ad", KERNELS=="0000:08:00.0" NAME="eth2"
-SUBSYSTEM=="net", ATTRS{vendor}=="0x8086", ATTRS{device}=="0x1533", ATTRS{subsystem_vendor}=="0x1093", ATTRS{subsystem_device}=="0x77ad", KERNELS=="0000:09:00.0" NAME="eth3"
-SUBSYSTEM=="net", ATTRS{vendor}=="0x8086", ATTRS{device}=="0x1533", ATTRS{subsystem_vendor}=="0x1093", ATTRS{subsystem_device}=="0x77ad", KERNELS=="0000:0a:00.0" NAME="eth4"
-
 SUBSYSTEM=="net", ENV{networking}!="done", ENV{skipped}="yes"
 SUBSYSTEM=="net", ENV{networking}=="done", ENV{skipped}="no", RUN+="/etc/udev/scripts/hotplug.script"
