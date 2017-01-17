@@ -52,7 +52,6 @@ RDEPENDS_${PN} = "\
 	openssh-sftp-server \
 	openssh-ssh \
 	opkg \
-	opkg-utils \
 	python-futures \
 	rtctl \
 	salt-minion \
