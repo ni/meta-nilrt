@@ -10,6 +10,4 @@ IMAGE_INSTALL = "\
 
 IMAGE_FSTYPES = "tar.bz2"
 
-BAD_RECOMMENDATIONS += "usbutils"
-
 require include/niconsole-image.inc
