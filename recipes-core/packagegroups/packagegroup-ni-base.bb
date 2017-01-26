@@ -27,7 +27,6 @@ RDEPENDS_${PN} = "\
 	coreutils-hostname \
 	dhcp-client \
 	distro-feed-configs \
-	dmidecode \
 	ethtool \
 	fuse-exfat \
 	init-ifupdown \
@@ -74,6 +73,7 @@ RDEPENDS_${PN}_append_x64 += "\
 	linux-firmware-i915 \
 	efivar \
 	grub-efi-nilrt \
+	dmidecode \
 "
 
 RDEPENDS_${PN}_append_xilinx-zynqhf += "\
