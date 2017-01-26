@@ -26,7 +26,6 @@ RDEPENDS_${PN} = "\
 	coreutils-hostname \
 	cronie \
 	dhcp-client \
-	dmidecode \
 	e2fsprogs \
 	e2fsprogs-mke2fs \
 	ethtool \
@@ -80,6 +79,7 @@ RDEPENDS_${PN} = "\
 
 RDEPENDS_${PN}_append_x64= "\
 	linux-firmware-i915 \
+	dmidecode \
 	phc2sys"
 
 RRECOMMENDS_${PN} = "\
