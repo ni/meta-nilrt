@@ -1,7 +1,9 @@
 
 FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/${PN}:"
 
-SRC_URI =+ "file://cp936_support.patch "
+SRC_URI =+ "file://cp936_support.patch \
+            file://cp936-gconv-modules.patch \
+           "
 
 SRC_URI =+ "file://0001-pi-condvars-add-protocol-support-to-pthread_condattr.patch \
             file://0002-pi-condvars-add-tst-condpi1.c-basic-API-test.patch \
