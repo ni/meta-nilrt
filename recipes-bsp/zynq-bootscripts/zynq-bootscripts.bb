@@ -9,6 +9,8 @@ inherit deploy
 
 S = "${WORKDIR}"
 
+DEPENDS = "u-boot-mkimage-native"
+
 do_compile() {
     ${S}/gen_bs.sh
 	mkimage -T script -C none -n 'Top Level Bootscript' -d top_level_bootscript boot.scr
