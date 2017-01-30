@@ -1,4 +1,18 @@
 #!/bin/bash
+
+# salt reads the uboot env via fw_printenv to populate its hw info grains,
+# so we need to set any env vars not set directly by factory uboot here.
+# NI doesn't currently support NILRT on non-NI ARM hardware, so setting
+# this globally is safe. If/when NI decides to support non-NI ARM hardware,
+# we need to check if the hardware is NI-produced (maybe a cpld register?)
+# and conditionally set these variables.
+SET_HW_ENV_INFO='
+test -n "$manufacturer" ||
+    setenv manufacturer National Instruments &&
+    setenv .flags manufacturer:so &&
+    saveenv;
+'
+
 COMMON_BOOTARGS='console=ttyS0,115200 $mtdparts ubi.mtd=boot-config ubi.mtd=root $othbootargs'
 RESTORE_BOOTARGS="setenv bootargs $COMMON_BOOTARGS ramdisk_size=135168 root=/dev/ram rw"
 DEFAULT_BOOTARGS="setenv bootargs $COMMON_BOOTARGS root=ubi1:rootfs rw rootfstype=ubifs threadsirqs=1 kthreadd_pri=25 ksoftirqd_pri=8 irqthread_pri=15 \${usb_gadget_args}"
@@ -22,6 +36,7 @@ fi;
 }
 
 DEFAULT_BOOTCMD="
+$SET_HW_ENV_INFO
 if ubi part root &&
     ubifsmount ubi:rootfs &&
     ubifsload \$loadaddr /boot/uImage &&
