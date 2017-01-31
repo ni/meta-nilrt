@@ -19,6 +19,7 @@ RDEPENDS_${PN} = "\
 	glibc-gconv-cp936 \
 	glibc-gconv-iso8859-1 \
 	parted \
+	rtctl \
 	util-linux-sfdisk \
 	udev-cache \
 	zip \
