@@ -1,0 +1,45 @@
+From 0d480b1f3d1a37ed45f685358f03be01360e0c6b Mon Sep 17 00:00:00 2001
+From: Richard Tollerton <rich.tollerton@ni.com>
+Date: Wed, 1 Feb 2017 17:28:57 -0600
+Subject: [PATCH] zcip: allow action script to reject chosen IP
+
+There may be valid reasons to reject a chosen IP for reasons beyond what
+can be determined by watching ARP updates on the specified interface. In
+particular, this LLA could have been chosen on another interface.
+
+Traditional solutions to this problem involve listening to
+ETH_P_ALL (slow) or libpcap (big). Instead, as a first-order workaround,
+delegate the complexity of this problem to the action script, by letting
+it reject the chosen IP by returning error 67 (ASCII 'C'). It is assumed
+that the action script has left the interface deconfigured.
+
+Signed-off-by: Richard Tollerton <rich.tollerton@ni.com>
+---
+ networking/zcip.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/networking/zcip.c b/networking/zcip.c
+index dba269bd8..7bf3c02bd 100644
+--- a/networking/zcip.c
++++ b/networking/zcip.c
+@@ -405,7 +405,16 @@ int zcip_main(int argc UNUSED_PARAM, char **argv)
+ 				}
+ 				// Switch to monitor state
+ 				// FIXME update filters
+-				run(argv, "config", chosen_nip);
++				if (run(argv, "config", chosen_nip) == 67) {
++					// 'C' - script reported chosen_nip is no good.
++					// Script is assumed to have deconfigured itself.
++					// Choose a different address immediately.
++					bb_error_msg("%s: %s is burned", argv_intf,
++						nip_to_a(chosen_nip));
++					conflicts++;
++					timeout_ms = 0;
++					goto new_nip_and_PROBE;
++				}
+ 				// NOTE: all other exit paths should deconfig...
+ 				if (QUIT)
+ 					return EXIT_SUCCESS;
+-- 
+2.11.0
+

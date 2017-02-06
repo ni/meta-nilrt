@@ -8,7 +8,8 @@ SRC_URI =+ " \
             file://busybox-acpid \
             file://acpid.conf \
             file://acpid_poweroff.sh \
-            file://acpid-logrotate.conf"
+            file://acpid-logrotate.conf \
+	    file://zcip-allow-action-script-to-reject-chosen-IP.patch"
 
 PACKAGES =+ " ${PN}-ifplugd"
 PACKAGES =+ " ${PN}-acpid"
