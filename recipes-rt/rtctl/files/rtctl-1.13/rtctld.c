@@ -22,6 +22,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <poll.h>
+#include <syslog.h>
+
+#define BUFSIZE 256
 
 #define PROGRAM_NAME "rtctld"
 
@@ -29,8 +32,11 @@
     syslog(LOG_DAEMON | LOG_ERR,  ("ERROR: " formatStr), ## __VA_ARGS__)
 
 static const char* const interruptsFilePath = "/proc/interrupts";
-static const char* const configCommand = ("/usr/sbin/rtctl reset 2>&1"
-    " >/dev/null | logger -s -p DAEMON.ERR -t '" PROGRAM_NAME "'");
+/* Hide standard stdout messages and show stderr as stdout
+ * By design don't redirect both stderr and stdout to null
+ */
+static const char* const configCommand =
+    "/usr/sbin/rtctl reset 2>&1 >/dev/null";
 
 static int doDaemonize = 1;
 static int pollingFd = -1;
@@ -110,7 +116,7 @@ static int pollChange(void)
         SYSLOG_ERROR("Poll failed; %s", strerror(errno));
         exit(errno);
     }
-    else if (res == 0) {
+    else if (!res) {
         SYSLOG_ERROR("Poll timed out, but an infinite timeout was configured");
         exit(ETIMEDOUT);
     }
@@ -125,16 +131,31 @@ static int pollChange(void)
  */
 static int runConfig(void)
 {
-    int res = system(configCommand);
+    char line[BUFSIZE];
+    int res;
+    FILE *fp = popen(configCommand, "r");
+
+    if (!fp) {
+        SYSLOG_ERROR("Failed to open pipe: %s", strerror(errno));
+    }
+
+    while (fgets(line, sizeof(line), fp)) {
+        SYSLOG_ERROR("%s", line);
+    }
+
+    res = pclose(fp);
     if (res) {
-        if (WIFSIGNALED(res) &&
+        if (-1 == res) {
+            SYSLOG_ERROR("Call to pclose() failed: %s", strerror(errno));
+        }
+        else if (WIFEXITED(res)) {
+            SYSLOG_ERROR("Config script failed with return value: %d", WEXITSTATUS(res));
+        }
+        else if (WIFSIGNALED(res) &&
             (WTERMSIG(res) == SIGINT || WTERMSIG(res) == SIGQUIT)) {
             /* child was interrupted, pass that along */
             errno = res = EINTR;
-        }
-        else {
-            SYSLOG_ERROR("Config script failed; %m");
-        }
+       }
     }
 
     return res;
