@@ -23,6 +23,7 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <syslog.h>
+#include <errno.h>
 
 #define BUFSIZE 256
 
@@ -137,6 +138,7 @@ static int runConfig(void)
 
     if (!fp) {
         SYSLOG_ERROR("Failed to open pipe: %s", strerror(errno));
+        return EIO;
     }
 
     while (fgets(line, sizeof(line), fp)) {
