@@ -508,6 +508,7 @@ RDEPENDS_${PN} += "\
 	autofs \
 	cyrus-sasl \
 	iscsi-initiator-utils \
+	lldpd \
 	ncftp \
 	opensaf \
 	postfix \
