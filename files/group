@@ -53,6 +53,7 @@ vmail:x:359:
 dovecot:x:358:
 dovenull:x:357:
 www-data:x:356:
+lldpd:x:355:
 ni:x:500:
 openvpn:x:499:
 niwscerts:x:498:
