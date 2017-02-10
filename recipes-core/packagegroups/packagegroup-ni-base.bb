@@ -22,7 +22,6 @@ RDEPENDS_${PN} = "\
 	base-passwd \
 	${@base_contains("MACHINE_FEATURES", "keyboard", "keymaps", "", d)} \
 	busybox \
-	busybox-ifplugd \
 	${@base_contains("MACHINE_FEATURES", "acpi", "busybox-acpid", "", d)} \
 	coreutils-hostname \
 	dhcp-client \
