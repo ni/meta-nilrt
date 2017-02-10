@@ -9,6 +9,3 @@ SUBSYSTEM=="net", ATTRS{vendor}=="0x8086", ATTRS{device}=="0x1533", ATTRS{subsys
 SUBSYSTEM=="net", ATTRS{vendor}=="0x8086", ATTRS{device}=="0x1533", ATTRS{subsystem_vendor}=="0x1093", ATTRS{subsystem_device}=="0x77ad", KERNELS=="0000:08:00.0" NAME="eth2"
 SUBSYSTEM=="net", ATTRS{vendor}=="0x8086", ATTRS{device}=="0x1533", ATTRS{subsystem_vendor}=="0x1093", ATTRS{subsystem_device}=="0x77ad", KERNELS=="0000:09:00.0" NAME="eth3"
 SUBSYSTEM=="net", ATTRS{vendor}=="0x8086", ATTRS{device}=="0x1533", ATTRS{subsystem_vendor}=="0x1093", ATTRS{subsystem_device}=="0x77ad", KERNELS=="0000:0a:00.0" NAME="eth4"
-
-SUBSYSTEM=="net", ENV{networking}!="done", ENV{skipped}="yes"
-SUBSYSTEM=="net", ENV{networking}=="done", ENV{skipped}="no", RUN+="/etc/udev/scripts/hotplug.script"
