@@ -1,8 +1,5 @@
 #!/bin/sh
 
-. /etc/natinst/networking/functions.common
-update_all_interface_info
-
 # $1 and $2 are are passed by inittab, its values are given by OE
 CONSOLE="$2"
 SPEED="$1"
