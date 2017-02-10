@@ -2,10 +2,8 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
 hostname = ""
 
-SRC_URI += "file://natinst-path.sh \
-	    file://functions.common \
-	    file://udhcpc.script \
-	    file://zcip.script \
+SRC_URI += "\
+	file://natinst-path.sh \
 "
 
 do_install_append () {
@@ -22,12 +20,6 @@ do_install_append () {
 
 	install -d ${D}${sysconfdir}/profile.d/
 	install -m 0644 ${WORKDIR}/natinst-path.sh ${D}${sysconfdir}/profile.d/
-
-	# scripts for network configuration
-	install -d ${D}${sysconfdir}/natinst/networking/
-	install -m 0755 ${WORKDIR}/functions.common ${D}${sysconfdir}/natinst/networking/
-	install -m 0755 ${WORKDIR}/udhcpc.script ${D}${sysconfdir}/natinst/networking/
-	install -m 0755 ${WORKDIR}/zcip.script ${D}${sysconfdir}/natinst/networking/
 
 	install -d ${D}${sysconfdir}/default/volatiles/
 	echo "d root root 0755 /var/volatile/cache none" \
