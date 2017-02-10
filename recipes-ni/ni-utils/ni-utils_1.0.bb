@@ -8,16 +8,10 @@ SECTION = "base"
 SRC_URI = "file://status_led \
 	   file://nisetbootmode.functions \
 	   file://nisetbootmode \
-	   file://ninetcfgutil \
-"
-
-SRC_URI_append_arm = " file://ninetcfgutil_platdep.sh"
-SRC_URI_append_x64 = " file://ninetcfgutil_platdep.sh \
 "
 
 FILES_${PN} += "\
 	/usr/lib/nisetbootmode.functions \
-	/usr/lib/ninetcfgutil_platdep.sh \
 "
 
 DEPENDS += "niacctbase"
@@ -40,8 +34,6 @@ do_install () {
 	install -m 0755   ${WORKDIR}/status_led         ${D}${bindir}
 	install -m 0440   ${WORKDIR}/nisetbootmode.functions         ${D}${libdir}
 	install -m 0550   ${WORKDIR}/nisetbootmode         ${D}${bindir}
-	install -m 0755   ${WORKDIR}/ninetcfgutil       ${D}${bindir}
-	install -m 0444   ${WORKDIR}/ninetcfgutil_platdep.sh ${D}${libdir}
 
 	chown 0:${group} ${D}${bindir}/status_led
 

@@ -12,8 +12,7 @@ DEPENDS += "niacctbase"
 RDEPENDS_${PN} += "bash niacctbase"
 RDEPENDS_${PN}-ptest += "bash"
 
-SRC_URI = "file://populateconfig \
-	   file://nisetbootmode \
+SRC_URI = "file://nisetbootmode \
 	   file://nisetprimarymac \
 	   file://firewall \
 	   file://mountdebugfs \
@@ -42,7 +41,6 @@ group = "${LVRT_GROUP}"
 
 do_install () {
      install -d ${D}${sysconfdir}/init.d/
-     install -m 0755    ${S}/populateconfig     ${D}${sysconfdir}/init.d
      install -m 0550   ${S}/nisetbootmode       ${D}${sysconfdir}/init.d
      chown 0:${group} ${D}${sysconfdir}/init.d/nisetbootmode
      install -m 0755    ${WORKDIR}/nisetprimarymac    ${D}${sysconfdir}/init.d
@@ -60,7 +58,6 @@ do_install () {
      install -d ${D}${sysconfdir}/natinst
      install -m 0644   ${WORKDIR}/iso3166-translation.txt         ${D}${sysconfdir}/natinst
 
-     update-rc.d -r ${D} populateconfig start 36 S .
      update-rc.d -r ${D} nisetbootmode start 80 S . stop 0 0 6 .
      update-rc.d -r ${D} nisetprimarymac start 4 5 .
      update-rc.d -r ${D} firewall start 39 S .
