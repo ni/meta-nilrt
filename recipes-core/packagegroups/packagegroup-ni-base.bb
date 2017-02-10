@@ -28,7 +28,6 @@ RDEPENDS_${PN} = "\
 	distro-feed-configs \
 	ethtool \
 	fuse-exfat \
-	init-ifupdown \
 	initscripts \
 	initscripts-nilrt \
 	iproute2 \
