@@ -1,7 +1,0 @@
-#!/bin/sh
-
-# Ensure that the default primary Ethernet MAC address is properly initialized
-
-. /etc/natinst/networking/functions.common
-
-reset_primary_mac
