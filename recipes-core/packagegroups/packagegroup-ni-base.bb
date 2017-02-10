@@ -23,6 +23,7 @@ RDEPENDS_${PN} = "\
 	${@base_contains("MACHINE_FEATURES", "keyboard", "keymaps", "", d)} \
 	busybox \
 	${@base_contains("MACHINE_FEATURES", "acpi", "busybox-acpid", "", d)} \
+	connman \
 	coreutils-hostname \
 	dhcp-client \
 	distro-feed-configs \
