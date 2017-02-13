@@ -40,6 +40,7 @@ static const char* const configCommand =
     "/usr/sbin/rtctl reset 2>&1 >/dev/null";
 
 static int doDaemonize = 1;
+static int verboseRtctl = 0;
 static int pollingFd = -1;
 
 static int isRunning = 1;
@@ -69,12 +70,15 @@ static void processArgs(const int argc, const char** argv)
     for (i = 1; i < argc; ++i) {
         argi = argv[i];
 
-        if (strcmp("-x", argi)) {
-            SYSLOG_ERROR("Invalid arg #%d \"%s\"", i, argi);
-            exit(EINVAL);
+        if (!strcmp("-x", argi)) {
+            doDaemonize = 0;
+        }
+        else if (!strcmp("-v", argi)) {
+            verboseRtctl = 1;
         }
         else {
-            doDaemonize = 0;
+            SYSLOG_ERROR("Invalid arg #%d \"%s\"", i, argi);
+            exit(EINVAL);
         }
     }
 }
@@ -142,7 +146,9 @@ static int runConfig(void)
     }
 
     while (fgets(line, sizeof(line), fp)) {
-        SYSLOG_ERROR("%s", line);
+        if (verboseRtctl) {
+            SYSLOG_ERROR("%s", line);
+        }
     }
 
     res = pclose(fp);
