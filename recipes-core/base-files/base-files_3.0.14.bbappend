@@ -1,5 +1,9 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
+# override the hostname var to avoid upstream base-files recipe creating
+# /etc/hostname with its default value (set to ${MACHINE}) because we want
+# the /etc/init.d/hostname.sh initscript to create it at runtime based on
+# the firmware provided values, different for each device
 hostname = ""
 
 SRC_URI += "\
