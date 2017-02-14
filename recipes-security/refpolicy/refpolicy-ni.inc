@@ -1,4 +1,4 @@
-SRC_URI = "git://github.com/ni/ni-refpolicy.git;branch=nilrt/16.0/dizzy \
+SRC_URI = "${NILRT_GIT}/ni-refpolicy.git;branch=nilrt/17.0/krogoth \
            file://customizable_types \
            file://setrans-mls.conf \
            file://setrans-mcs.conf \
