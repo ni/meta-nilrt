@@ -1,1 +1,1 @@
-*/5 * * * * root /usr/bin/logrotate /etc/logrotate.conf
+*/5 * * * * root /usr/sbin/logrotate /etc/logrotate.conf
