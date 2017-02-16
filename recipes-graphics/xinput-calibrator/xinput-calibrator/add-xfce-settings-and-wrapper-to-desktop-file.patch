@@ -1,0 +1,31 @@
+commit 11fa3ee8b684fa41cfc50d36ed598a16faa15943
+Author: Alex Stewart <alex.stewart@ni.com>
+Date:   Wed Feb 15 14:07:55 2017 -0600
+
+    add xfce-settings and wrapper to .desktop file
+    
+    XFCE-Settings categories are necessary for the "calibrate touchscreen" entry to
+    appear in XFCE's settings dialog. They are necessary here for NI's Linux RT gui.
+    
+    The Exec line is changed to point to the wrapper script NI uses. This has to be
+    done in a patch because it needs to be applied before xinput-calibrator
+    installs the .desktop file to disk.
+    
+    Signed-off-by: Alex Stewart <alex.stewart@ni.com>
+
+diff --git a/scripts/xinput_calibrator.desktop b/scripts/xinput_calibrator.desktop
+index d888899..17d2cd4 100644
+--- a/scripts/xinput_calibrator.desktop
++++ b/scripts/xinput_calibrator.desktop
+@@ -3,9 +3,9 @@ Name=Calibrate Touchscreen
+ Name[de]=Touchscreen Kalibrieren
+ Name[nl]=Touchscreen Kalibreren
+ Comment=Run the calibration tool for touchscreens
+-Exec=/bin/sh -c "xinput_calibrator; cat"
++Exec=/usr/bin/xinput_calibrator_wrapper
+ Terminal=true
+ Type=Application
+ Icon=xinput_calibrator
+ StartupNotify=true
+-Categories=System;Settings;
++Categories=System;Settings;X-XFCE-SettingsDialog;X-XFCE-HardwareSettings;
