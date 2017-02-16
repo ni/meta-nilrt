@@ -6,7 +6,7 @@ SRC_URI_x64 = "file://bootimage.cfg"
 
 DEPENDS = " restore-mode-image "
 DEPENDS_append_x64 = " grub "
-do_install[depends] = " restore-mode-image:do_rootfs "
+do_install[depends] = " restore-mode-image:do_image_complete "
 
 PR = "r1"
 
