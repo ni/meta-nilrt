@@ -124,5 +124,28 @@ RDEPENDS_${PN} = "\
 		'${NILRT_PACKAGES}', d)} \
 "
 
-RRECOMMENDS_${PN} = "\
-	${MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS}"
+# for older NILRT these will automatically be removed because of the
+# PACKAGE_REMOVE = kernel-* rule in niconsole-image.inc
+# TODO: We need to clean up this list and remove non-essentials, move
+# them to individual recipes or to linux-nilrt as runtime dependencies
+RRECOMMENDS_${PN}_x64 += "\
+	kernel-module-atkbd \
+	kernel-module-coretemp \
+	kernel-module-e100 \
+	kernel-module-e1000 \
+	kernel-module-e1000e \
+	kernel-module-hid-microsoft \
+	kernel-module-i915 \
+	kernel-module-igb \
+	kernel-module-intel_agp \
+	kernel-module-ipv6 \
+	kernel-module-psmouse \
+	kernel-module-squashfs \
+	kernel-module-tg3 \
+	kernel-module-usbtouchscreen \
+	kernel-module-wacom \
+	kernel-module-virtio-balloon \
+	kernel-module-virtio-blk \
+	kernel-module-virtio-console \
+	kernel-module-virtio-net \
+"
