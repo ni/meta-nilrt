@@ -37,7 +37,7 @@ MACHINE ??= "x64"
 
 # Distribution selection
 # Default to NI Linux RT for the distro
-DISTRO ?= "nilrt"
+DISTRO ?= "nilrt-nxg"
 
 # Clean *most* package work directories
 INHERIT += " rm_work "
