@@ -774,12 +774,15 @@ RDEPENDS_${PN} += "\
 
 # meta-cloud-services/meta-openstack/recipes-support
 RDEPENDS_${PN} += "\
-	chef \
 	hiera \
 	mod-wsgi \
 	nss-pam-ldapd \
 	puppet \
 	tgt \
+"
+
+RDEPENDS_${PN}_append_x64 += "\
+	chef \
 "
 
 # meta-cloud-services/meta-openstack/recipes-extended
