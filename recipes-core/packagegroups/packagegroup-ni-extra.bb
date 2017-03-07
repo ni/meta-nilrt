@@ -800,12 +800,12 @@ RDEPENDS_${PN} += "\
 	hiera \
 	mod-wsgi \
 	nss-pam-ldapd \
-	puppet \
 	tgt \
 "
 
 RDEPENDS_${PN}_append_x64 += "\
 	chef \
+	puppet \
 "
 
 # meta-cloud-services/meta-openstack/recipes-extended
