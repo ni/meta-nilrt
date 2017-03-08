@@ -26,13 +26,9 @@ start_cron()
 {
     if [ `$NIRTCFG --get section=RTLog,token=disableCron,value=false | tr "[:upper:]" "[:lower:]"` = "false" -o "$1" = "force" ]
     then
-        MIN_CRON_STACK=1024
-        OLD_STACK_SIZE=`ulimit -s`
-        [ $OLD_STACK_SIZE -lt $MIN_CRON_STACK ] && ulimit -s $MIN_CRON_STACK
         echo -n "Starting crond: "
         start-stop-daemon --start --quiet --exec $CROND -- $CRONDARGS
         RETVAL=$?
-        ulimit -s $OLD_STACK_SIZE
         if [ $RETVAL -eq 0 ] ; then
             echo "OK"
         else
