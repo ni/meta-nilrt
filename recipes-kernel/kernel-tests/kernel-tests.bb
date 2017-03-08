@@ -28,8 +28,6 @@ SRC_URI += "\
     file://test_kernel_ll_route.sh \
     file://test_kernel_hrtimers.sh \
     file://test_kernel_hrtimers.c \
-    file://test_user_stack_size.sh \
-    file://test_pthread_stack_size.c \
     file://test_kernel_swap_disabled.sh \
 "
 
@@ -43,7 +41,6 @@ do_compile_ptest_append() {
     ${CC} -o cap_support_exe_to_test cap_support_exe_to_test.c ${LDFLAGS}
     ${CC} -o test_proc_cap_support test_proc_cap_support.c ${LDFLAGS}
     ${CC} -o test_kernel_hrtimers test_kernel_hrtimers.c
-    ${CC} -o test_pthread_stack_size test_pthread_stack_size.c ${LDFLAGS}
 }
 
 do_install_ptest_append() {
@@ -59,7 +56,5 @@ do_install_ptest_append() {
     cp ${WORKDIR}/test_kernel_ll_route.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_hrtimers.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_hrtimers ${D}${PTEST_PATH}
-    cp ${WORKDIR}/test_user_stack_size.sh ${D}${PTEST_PATH}
-    cp ${WORKDIR}/test_pthread_stack_size ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_swap_disabled.sh ${D}${PTEST_PATH}
 }
