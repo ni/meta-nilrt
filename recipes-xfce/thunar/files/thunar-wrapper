@@ -1,4 +1,0 @@
-#!/bin/sh
-
-ulimit -S -s 512
-exec /usr/bin/thunar.bin $@
