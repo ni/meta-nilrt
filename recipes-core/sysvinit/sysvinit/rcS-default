@@ -27,6 +27,3 @@ VOLATILE_ENABLE_CACHE=yes
 # Setting ROOTFS_READ_ONLY to yes and rebooting will give you a read-only rootfs.
 # Normally you should not change this value.
 ROOTFS_READ_ONLY=no
-# Use less stack for scripts due to our swap/overcommit settings.
-STACK_SIZE=256
-
