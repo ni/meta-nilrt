@@ -1,7 +1,7 @@
 
 COPY_LIC_MANIFEST = "1"
 COPY_LIC_DIRS = "1"
-LICENSE_TAR = "${IMAGE_ROOTFS}/usr/share/common-licenses.bz2"
+LICENSE_TAR = "${IMAGE_ROOTFS}/usr/share/common-licenses.tar.bz2"
 
 tar_licenses() {
 	rm -f ${LICENSE_TAR}
