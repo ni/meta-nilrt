@@ -9,7 +9,7 @@ EXTRA_OEMAKE += 'CFLAGS="${TOOLCHAIN_OPTIONS}"'
 # link against the gcc provided runtime
 do_kernel_configme[depends] += "libgcc:do_populate_sysroot"
 
-SRC_URI = "git://git.amer.corp.natinst.com/linux.git;protocol=git;nocheckout=1;branch=${KBRANCH}"
+SRC_URI = "git://github.com/ni/linux.git;protocol=git;nocheckout=1;branch=${KBRANCH}"
 SRCREV="${AUTOREV}"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 
