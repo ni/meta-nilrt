@@ -5,6 +5,7 @@ inherit packagegroup
 
 RDEPENDS_${PN} = "\
 	packagegroup-ni-base \
+	packagegroup-ni-ptest \
 	packagegroup-ni-tzdata \
 	packagegroup-ni-wifi \
 	packagegroup-ni-runmode \

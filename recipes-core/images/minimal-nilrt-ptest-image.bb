@@ -10,3 +10,9 @@ IMAGE_INSTALL += "\
 "
 
 IMAGE_ROOTFS_EXTRA_SPACE = "1000000"
+
+rm_feed_configs () {
+    ${ROOTFS_PKGMANAGE} -o ${IMAGE_ROOTFS} remove --force-depends distro-feed-configs
+}
+
+IMAGE_PREPROCESS_COMMAND =+ "rm_feed_configs; "
