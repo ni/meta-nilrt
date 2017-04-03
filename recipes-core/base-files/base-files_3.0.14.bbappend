@@ -8,6 +8,7 @@ hostname = ""
 
 SRC_URI += "\
 	file://natinst-path.sh \
+	file://safemode-ps1.sh \
 "
 
 do_install_append () {
@@ -19,11 +20,20 @@ do_install_append () {
 	# Symlink /lib64 to /lib on x86_64
 	if [ "${TARGET_ARCH}" = "x86_64" ]; then
 		ln -sf lib ${D}/lib64
+		install -d ${D}/usr/local/natinst
 		ln -sf lib ${D}/usr/local/natinst/lib64
 	fi
 
 	install -d ${D}${sysconfdir}/profile.d/
 	install -m 0644 ${WORKDIR}/natinst-path.sh ${D}${sysconfdir}/profile.d/
+
+	if ${@base_conditional('DISTRO', 'nilrt-nxg', 'true', 'false', d)}; then
+		# only for newer NILRT
+		install -m 644 ${WORKDIR}/issue.net  ${D}${sysconfdir}
+	else
+		# only for older NILRT
+		install ${WORKDIR}/safemode-ps1.sh ${D}${sysconfdir}/profile.d/
+	fi
 
 	install -d ${D}${sysconfdir}/default/volatiles/
 	echo "d root root 0755 /var/volatile/cache none" \
@@ -33,7 +43,4 @@ do_install_append () {
 
 	echo "d ${LVRT_USER} ${LVRT_GROUP} 0775 /run/natinst none" \
 		>> ${D}${sysconfdir}/default/volatiles/20_run_natinst
-
-        # Overwrite changes to issue.net on do_install_basefilesissue
-        install -m 644 ${WORKDIR}/issue.net  ${D}${sysconfdir}
 }

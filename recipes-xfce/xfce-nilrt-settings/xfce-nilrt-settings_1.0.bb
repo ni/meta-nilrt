@@ -15,7 +15,9 @@ confdir = "${homedir}/.config"
 backgrounddir = "/usr/share/backgrounds/xfce"
 
 SRC_URI = "file://autostart/dpms.desktop \
+	file://autostart/dualmonitor.desktop \
 	file://autostart/screensaver.desktop \
+	file://dual-monitor-setup.sh \
 	file://menus/xfce-applications.menu \
 	file://xfce4/desktop/icons.screen0-624x384.rc \
 	file://xfce4/desktop/icons.screen0-624x464.rc \
@@ -40,6 +42,7 @@ SRC_URI = "file://autostart/dpms.desktop \
 	"
 
 FILES_${PN} = "${confdir}/autostart/dpms.desktop \
+	    ${confdir}/autostart/dualmonitor.desktop \
 	    ${confdir}/autostart/screensaver.desktop \
 	    ${confdir}/menus/xfce-applications.menu \
 	    ${confdir}/xfce4/desktop/icons.screen0-624x384.rc \
@@ -64,6 +67,7 @@ FILES_${PN} = "${confdir}/autostart/dpms.desktop \
 	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/xfce4-settings-manager.xml \
 	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml \
 	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml \
+	    /usr/local/natinst/bin/dual-monitor-setup.sh \
 	    "
 
 do_install () {
@@ -80,6 +84,7 @@ do_install () {
 	   install -d ${D}/usr/local/natinst/bin
 
 	   install -m 0644 ${S}/autostart/dpms.desktop ${D}${confdir}/autostart/
+	   install -m 0644 ${S}/autostart/dualmonitor.desktop ${D}${confdir}/autostart/
 	   install -m 0644 ${S}/autostart/screensaver.desktop ${D}${confdir}/autostart/
 	   install -m 0644 ${S}/menus/xfce-applications.menu ${D}${confdir}/menus/
 	   install -m 0644 ${S}/xfce4/desktop/icons.screen0-624x384.rc ${D}${confdir}/xfce4/desktop/
@@ -102,6 +107,7 @@ do_install () {
 	   install -m 0644 ${S}/xfce4/xfconf/xfce-perchannel-xml/xfce4-settings-manager.xml ${D}${confdir}/xfce4/xfconf/xfce-perchannel-xml/
 	   install -m 0644 ${S}/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml ${D}${confdir}/xfce4/xfconf/xfce-perchannel-xml/
 	   install -m 0644 ${S}/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml ${D}${confdir}/xfce4/xfconf/xfce-perchannel-xml/
+	   install -m 0755 ${S}/dual-monitor-setup.sh ${D}/usr/local/natinst/bin
 
 	   ln -sf /usr/local/natinst/bin/showpanel ${D}/usr/local/bin/showpanel
 	   ln -sf /usr/local/natinst/bin/hidepanel ${D}/usr/local/bin/hidepanel

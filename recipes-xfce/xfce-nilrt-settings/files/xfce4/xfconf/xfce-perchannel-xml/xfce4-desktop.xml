@@ -22,6 +22,25 @@
           <value type="uint" value="65535"/>
         </property>
       </property>
+      <property name="monitor1" type="empty">
+        <property name="image-path" type="string" value="/usr/share/backgrounds/xfce/nilrt-desktop-background.jpg"/>
+        <property name="last-image" type="string" value="/usr/share/backgrounds/xfce/nilrt-desktop-background.jpg"/>
+        <property name="last-single-image" type="string" value="/usr/share/backgrounds/xfce/nilrt-desktop-background.jpg"/>
+        <property name="image-show" type="bool" value="true"/>
+        <property name="color-style" type="int" value="2"/>
+        <property name="color2" type="array">
+          <value type="uint" value="24672"/>
+          <value type="uint" value="24672"/>
+          <value type="uint" value="24672"/>
+          <value type="uint" value="65535"/>
+        </property>
+        <property name="color1" type="array">
+          <value type="uint" value="53456"/>
+          <value type="uint" value="53456"/>
+          <value type="uint" value="53456"/>
+          <value type="uint" value="65535"/>
+        </property>
+      </property>
     </property>
   </property>
   <property name="desktop-icons" type="empty">

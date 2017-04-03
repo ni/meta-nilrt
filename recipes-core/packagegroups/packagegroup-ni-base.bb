@@ -15,18 +15,74 @@ inherit packagegroup
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS ?= ""
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS ?= ""
 
+ALL_DISTRO_ARM_PACKAGES = "\
+	mtd-utils \
+"
+
+ALL_DISTRO_x64_PACKAGES = "\
+	linux-firmware-i915 \
+	dmidecode \
+"
+
+NILRT_NXG_ARM_PACKAGES = "\
+	u-boot-fw-utils \
+"
+
+NILRT_NXG_x64_PACKAGES = "\
+	efivar \
+	grub-efi-nilrt \
+"
+
+NILRT_ARM_PACKAGES = "\
+	mtd-utils-ubifs \
+"
+
+NILRT_x64_PACKAGES = "\
+	e2fsprogs \
+	e2fsprogs-mke2fs \
+	phc2sys \
+"
+
+NILRT_NXG_PACKAGES = "\
+	distro-feed-configs \
+	lsb \
+	modutils-initscripts \
+	ni-utils \
+	python-futures \
+	rtctl \
+	salt-minion \
+	connman \
+	${@base_contains('TARGET_ARCH', 'arm', \
+		'${NILRT_NXG_ARM_PACKAGES}', \
+		'${NILRT_NXG_x64_PACKAGES}', d)} \
+"
+
+NILRT_PACKAGES = "\
+	cronie \
+	glibc-gconv-utf-16 \
+	gptfdisk-sgdisk \
+	init-ifupdown \
+	libstdc++ \
+	logrotate \
+	niwatchdogpet \
+	pigz \
+	usbutils \
+	${@base_contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
+	${@base_contains('TARGET_ARCH', 'arm', \
+		'${NILRT_ARM_PACKAGES}', \
+		'${NILRT_x64_PACKAGES}', d)} \
+"
+
 RDEPENDS_${PN} = "\
 	avahi-daemon \
 	base-files \
 	base-files-nilrt \
 	base-passwd \
-	${@base_contains("MACHINE_FEATURES", "keyboard", "keymaps", "", d)} \
+	${@base_contains('MACHINE_FEATURES', 'keyboard', 'keymaps', '', d)} \
 	busybox \
-	${@base_contains("MACHINE_FEATURES", "acpi", "busybox-acpid", "", d)} \
-	connman \
+	${@base_contains('MACHINE_FEATURES', 'acpi', 'busybox-acpid', '', d)} \
 	coreutils-hostname \
 	dhcp-client \
-	distro-feed-configs \
 	ethtool \
 	fuse-exfat \
 	initscripts \
@@ -39,10 +95,7 @@ RDEPENDS_${PN} = "\
 	libavahi-core \
 	libnss-mdns \
 	libpam \
-	lsb \
 	lsbinitscripts \
-	modutils-initscripts \
-	ni-utils \
 	netbase \
 	niacctbase \
 	openssh-sshd \
@@ -50,9 +103,6 @@ RDEPENDS_${PN} = "\
 	openssh-sftp-server \
 	openssh-ssh \
 	opkg \
-	python-futures \
-	rtctl \
-	salt-minion \
 	start-stop-daemon \
 	syslog-ng \
 	sysvinit \
@@ -66,18 +116,12 @@ RDEPENDS_${PN} = "\
 	${VIRTUAL-RUNTIME_mountpoint} \
 	${VIRTUAL-RUNTIME_dev_manager} \
 	${MACHINE_ESSENTIAL_EXTRA_RDEPENDS} \
-"
-
-RDEPENDS_${PN}_append_x64 += "\
-	linux-firmware-i915 \
-	efivar \
-	grub-efi-nilrt \
-	dmidecode \
-"
-
-RDEPENDS_${PN}_append_xilinx-zynqhf += "\
-	mtd-utils \
-	u-boot-fw-utils	\
+	${@base_contains('TARGET_ARCH', 'arm', \
+		'${ALL_DISTRO_ARM_PACKAGES}', \
+		'${ALL_DISTRO_x64_PACKAGES}', d)} \
+	${@base_conditional('DISTRO', 'nilrt-nxg', \
+		'${NILRT_NXG_PACKAGES}', \
+		'${NILRT_PACKAGES}', d)} \
 "
 
 RRECOMMENDS_${PN} = "\

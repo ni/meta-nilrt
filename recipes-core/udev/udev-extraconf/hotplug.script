@@ -1,0 +1,42 @@
+#!/bin/sh
+
+. /etc/natinst/networking/functions.common
+
+if [ -e /etc/natinst/networking/wireless.common ]; then
+        . /etc/natinst/networking/wireless.common
+fi
+
+# start / stop ifplugd for network interfaces as they come and go
+if [ "$SUBSYSTEM" == "net" ]; then
+  interface=`basename $DEVPATH`
+
+  # wireless in AP mode creates a second interface called mon.*
+  # we do not need to run ifplugd on it
+  # Also we should not run ifplugd on VPN interfaces or loopback
+  case $interface in
+    mon.*) exit 0 ;;
+    tapvpn[0-9]*) exit 0 ;;
+    lo) exit 0 ;;
+  esac
+
+  if [ "$ACTION" == add ]; then
+    if ! is_interface_up $interface; then
+      /etc/init.d/busybox-ifplugd start $interface
+      if [ "x${DEVTYPE}" == "xwlan" ]; then
+        setup_wireless ${interface}
+        /usr/sbin/wpa_supplicant -Dnl80211 -i ${interface} -c /etc/natinst/share/wpa_supplicant.conf -u -B
+      fi
+      netif_set_device up ${interface}
+    fi
+  elif [ "$ACTION" == remove ]; then
+    if [ -e /var/volatile/run/ifplugd.${interface}.pid ]; then
+      /etc/init.d/busybox-ifplugd stop $interface
+      if [ "x${DEVTYPE}" == "xwlan" ]; then
+        /usr/sbin/wpa_cli -i${interface} terminate
+      fi
+      netif_set_device down ${interface}
+    fi
+  fi
+  touch /tmp/NetworkInterfacesChanged
+fi
+

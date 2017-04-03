@@ -1,6 +1,11 @@
-DESCRIPTION = "Linux kernel, debug build, based on nilrt branch"
+DESCRIPTION = "NILRT linux kernel debug build"
 
 require linux-nilrt.inc
+require linux-nilrt-squashfs.inc
+
+SRC_URI += "\
+	file://debug.cfg \
+"
 
 # This is an extra kernel package; zero out the PROVIDES set in kernel.bbclass
 # to avoid errors related to multiple recipes providing virtual/kernel
@@ -18,5 +23,16 @@ KERNEL_PACKAGE_NAME = "kernel${LINUX_VERSION_EXTENSION}"
 # Provide a unique name for each recipe saved in the same source folder.
 KBUILD_FRAGMENTS_LOCATION := "nilrt-debug"
 
-SRC_URI += "file://debug.cfg \
-           "
+KERNEL_MODULES_META_PACKAGE = "kernel-modules-debug"
+KERNEL_MODULE_PACKAGE_NAME_PREPEND = "kernel-module-debug"
+KERNEL_MODULE_PACKAGE_PREPEND = "${KERNEL_MODULE_PACKAGE_NAME_PREPEND}-%s"
+
+# Force creation of symlink to target file at a relative path
+KERNEL_IMAGE_SYMLINK_DEST = "."
+
+# Remove unecessary packages (kernel-vmlinux, kernel-dev) for optional kernel
+PACKAGES = "kernel kernel-base kernel-image ${KERNEL_MODULES_META_PACKAGE}"
+PKG_kernel = "kernel-debug"
+
+# Remove kernel firmware package (refer to kernel.bbclass)
+PACKAGESPLITFUNCS_remove = "split_kernel_packages"

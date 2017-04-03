@@ -10,9 +10,6 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS_${PN} = "\
-	ca-certificates \
-	cronie \
-	curl \
 	dosfstools \
 	e2fsprogs \
 	e2fsprogs-e2fsck \
@@ -23,22 +20,11 @@ RDEPENDS_${PN} = "\
 	glibc-gconv-cp932 \
 	glibc-gconv-cp936 \
 	glibc-gconv-iso8859-1 \
-	glibc-gconv-utf-16 \
-	gptfdisk-sgdisk \
-	libcap-bin \
-	libstdc++ \
-	logrotate \
+	iproute2-tc \
 	niwatchdogpet \
 	ni-module-versioning-tools \
-	openssh-sftp-server \
-	openssh-sftp \
-	openssl \
-	openvpn \
 	parted \
-	${@base_contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
-	pigz \
-	usbutils \
-	util-linux-findfs \
+	rtctl \
 	util-linux-sfdisk \
 	udev-cache \
 	vlan \

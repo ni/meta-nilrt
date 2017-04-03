@@ -13,7 +13,19 @@ RDEPENDS_${PN} = "\
 	packagegroup-self-hosted \
 	packagegroup-core-lsb \
 	packagegroup-core-qt \
+	packagegroup-core-security \
+"
+
+# meta-nilrt
+RDEPENDS_${PN} += "\
 	packagegroup-ni-debug-kernel \
+	packagegroup-ni-mono-extra \
+	packagegroup-ni-selinux \
+"
+
+# meta-oe/meta-xfce
+RDEPENDS_${PN}_append_x64 += "\
+	packagegroup-xfce-extended \
 "
 
 RDEPENDS_${PN} += "\
@@ -26,7 +38,9 @@ RDEPENDS_${PN} += "\
 	portmap \
 	ppp \
 	ppp-dialin \
+	python-salttesting \
 	resolvconf \
+	salt \
 "
 
 RDEPENDS_${PN} += "\
@@ -74,6 +88,8 @@ RDEPENDS_${PN} += "\
 	prelink \
 	python-dbus \
 	python-distribute \
+	python-imaging \
+	python-setuptools \
 	python-docutils \
 	python-mako \
 	python-nose \
@@ -82,14 +98,13 @@ RDEPENDS_${PN} += "\
 	python3 \
 	python3-setuptools \
 	rpm \
+	rsync \
 	sgml-common \
 	unfs3 \
 	vala \
 	valgrind \
 	xmlto \
 "
-# perf
-# python-imaging: hangs on install
 
 # openembedded-core/meta/recipes-extended
 RDEPENDS_${PN} += "\
@@ -109,6 +124,7 @@ RDEPENDS_${PN} += "\
 	msmtp \
 	net-tools \
 	pax \
+	pigz \
 	libconvert-asn1-perl \
 	libtimedate-perl \
 	libxml-namespacesupport-perl \
@@ -162,12 +178,11 @@ RDEPENDS_${PN} += "\
 	oprofileui \
 	oprofileui-server \
 	perf \
+	powertop \
 	sysprof \
 	systemtap \
 	trace-cmd \
 "
-
-# powertop: "error: C compiler cannot build executables"
 
 # openembedded-gore/meta/recipes-multimedia
 RDEPENDS_${PN} += "\
@@ -264,11 +279,12 @@ RDEPENDS_${PN} += "\
 	yajl \
 	yasm \
 "
+
+# meta-openembedded/meta-oe/recipes-devtools
 RDEPENDS_${PN}_append_x64 += "\
 	concurrencykit \
 	msr-tools \
 "
-
 
 # meta-openembedded/meta-oe/recipes-extended
 RDEPENDS_${PN} += "\
@@ -299,6 +315,7 @@ RDEPENDS_${PN} += "\
 	logwatch \
 	md5deep \
 	nana \
+	net-snmp \
 	nicstat \
 	p7zip \
 	polkit \
@@ -317,7 +334,7 @@ RDEPENDS_${PN} += "\
 
 # meta-openembedded/meta-oe/recipes-graphics
 # meta-oe/recipes-graphics
-RDEPENDS_${PN} += "\
+RDEPENDS_${PN}_append_x64 += "\
 	gimp \
 	jasper \
 	lxdm \
@@ -385,7 +402,6 @@ RDEPENDS_${PN} += "\
 	fbset \
 	fbset-modes \
 	fftwf \
-	fltk \
 	gd \
 	glog \
 	gperftools \
@@ -398,7 +414,6 @@ RDEPENDS_${PN} += "\
 	libinih \
 	iso-codes \
 	joe \
-	lcms \
 	lcov \
 	libcap-ng \
 	libftdi \
@@ -430,9 +445,7 @@ RDEPENDS_${PN} += "\
 	pam-passwdqc \
 	pcsc-lite \
 	picocom \
-	pidgin \
 	pkcs11-helper \
-	poppler \
 	portaudio-v19 \
 	postgresql \
 	pps-tools \
@@ -461,16 +474,21 @@ RDEPENDS_${PN} += "\
 	usb-modeswitch \
 	usbpath \
 	vim \
-	xchat \
-	xdelta3 \
-	xmlstarlet \
-	zile \
 "
 
 RDEPENDS_${PN}_append_x64 += "\
 	edac-utils \
+	fltk \
+	lcms \
 	mcelog \
 	numactl \
+	pidgin \
+	poppler \
+	toscoterm \
+	xchat \
+	xdelta3 \
+	xmlstarlet \
+	zile \
 "
 
 # meta-openembedded/meta-oe/recipes-kernel
@@ -493,7 +511,7 @@ RDEPENDS_${PN} += "\
 "
 
 # meta-openembedded/meta-gnome
-RDEPENDS_${PN} += "\
+RDEPENDS_${PN}_append_x64 += "\
 	florence \
 "
 
@@ -580,6 +598,7 @@ RDEPENDS_${PN} += "\
 	python-cheetah \
 	python-lxml \
 	python-numeric \
+	python-matplotlib \
 	python-pyudev \
 	python-autobahn \
 	python-pyalsaaudio \
@@ -612,6 +631,7 @@ RDEPENDS_${PN} += "\
 	python-pytz \
 	python-zopeinterface \
 	python-pyparted \
+	python-pyconnman \
 "
 # python-matplotlib: hang on do_install
 
@@ -635,11 +655,6 @@ RDEPENDS_${PN} += "\
 # meta-nilrt/recipes-devtools
 RDEPENDS_${PN} += " \
 	debootstrap \
-"
-
-# meta-oe/meta-xfce
-RDEPENDS_${PN} += "\
-	packagegroup-xfce-extended \
 "
 
 # meta-cloud-services/meta-openstack/recipes-devtools
@@ -774,6 +789,7 @@ RDEPENDS_${PN} += "\
 
 # meta-cloud-services/meta-openstack/recipes-support
 RDEPENDS_${PN} += "\
+	chef \
 	hiera \
 	mod-wsgi \
 	nss-pam-ldapd \
@@ -789,12 +805,6 @@ RDEPENDS_${PN}_append_x64 += "\
 RDEPENDS_${PN} += "\
 	qpid \
 "
-
-# meta-selinux
-RDEPENDS_${PN} += "packagegroup-ni-selinux"
-
-# meta-mono
-RDEPENDS_${PN} += "packagegroup-ni-mono-extra"
 
 # meta-java
 RDEPENDS_${PN} += "\
@@ -815,8 +825,8 @@ RDEPENDS_${PN} += "\
 	lxc \
 	multipath-tools \
 	openvswitch \
-	docker \
 "
+
 RDEPENDS_${PN}_append_x64 += "\
 	ipxe \
 "
@@ -829,7 +839,6 @@ RDEPENDS_${PN} += "\
 
 # meta-security
 RDEPENDS_${PN} += "\
-	packagegroup-core-security \
 	clamav \
 	libhtp \
 	python-pycrypto \
@@ -842,7 +851,7 @@ RDEPENDS_${PN} += "\
 "
 
 # meta-nilrt/recipes-graphics
-RDEPENDS_${PN} += "\
+RDEPENDS_${PN}_append_x64 += "\
 	libvncserver \
 "
 
