@@ -1,0 +1,22 @@
+#!/bin/bash
+# This script parses the kernel command line for a 'ptest' keyword and, if it
+# finds it, starts the ptest-runner test suite.
+#
+# Runlevels: 5
+
+ARG_PTEST="ptest"
+CMD_PTEST="ptest-runner"
+MATCH_PTEST="\(\s\+\|^\)${ARG_PTEST}\($\|\s\+\)"
+
+if $(grep -q -e "${MATCH_PTEST}" /proc/cmdline); then
+	$CMD_PTEST 2>&1
+	# sleep 2 seconds here as a workaround for salt-ptests
+	# For some reason, the "Overall Tests Report" at the end of the salt-ptests
+	# will squash some amount of console output (including our tokens), if we
+	# don't sleep here.
+	sleep 2
+fi
+
+echo "<tchamber>PTEST RUN COMPLETE</tchamber>" > /dev/console
+
+exit 0
