@@ -5,6 +5,8 @@ require minimal-nilrt-image.bb
 
 IMAGE_FEATURES+=" ptest-pkgs"
 
+IMAGE_FSTYPES += " cpio.gz"
+
 IMAGE_INSTALL += "\
 	packagegroup-ni-ptest \
 "
