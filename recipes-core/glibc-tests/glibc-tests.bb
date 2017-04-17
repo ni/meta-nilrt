@@ -17,6 +17,7 @@ SRC_URI = "file://test_shmem.cpp \
            file://test_overcomit_ratio.sh \
           "
 DEPENDS = "glibc"
+RDEPENDS_${PN}-ptest = "bash"
 
 ALLOW_EMPTY_${PN} = "1"
 
