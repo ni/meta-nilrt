@@ -1,6 +1,8 @@
+#!/bin/bash
 #this file contains the functions needed by the provisioning tool
 
 REBOOT_REQUIRED=0
+ANSWER_FILE_DISK_MOUNTPOINT=/var/volatile/answerFileDisk
 USB_MOUNTPOINT=/var/volatile/usbrtdeploy
 NILRT_MOUNTPOINT=/var/volatile/nilrt
 NIRESTORE_MOUNTPOINT=/var/volatile/nirestore
@@ -204,7 +206,7 @@ EOF
         mkdir -p $EFI_GRUB_TARGET_DIR
         cp -r $SOURCE_DIR/EFI/BOOT/* $EFI_GRUB_TARGET_DIR/
 
-        if [[ "$BOOT_STYLE" == "efi" ]]; then
+        if [[ $BOOT_STYLE == "efi" ]]; then
             echo "Configuring EFI grub2..."
             for ENTRY in `efibootmgr | grep "LabVIEW RT"| egrep -o '[0-9A-F]{4}' || true`
             do
@@ -243,9 +245,6 @@ EOF
         echo ""
         echo "PROVISIONING SUCCESSFUL!"
         REBOOT_REQUIRED=1
-        if [[ $AUTO_REBOOT -ne 1 ]]; then
-            read -s -n 1 -p "Please eject the installation media and press any key to continue... " KEY
-        fi
     }
 
 fi
@@ -280,17 +279,39 @@ cleanup_and_exit()
     echo $LOG_LEVEL > /proc/sys/kernel/printk
     trap - ERR
 
+    sync
+
+    umount "$ANSWER_FILE_DISK_MOUNTPOINT" 2>/dev/null
+    umount -a -t vfat,ext4,ubifs,iso9660
+
     if [ "$ARCH" = "armv7l" ]; then
         #set the bootmode to default
         echo -n 00 >  /sys/bus/i2c/devices/0-0040/scratch_hardreset
-    elif [ "$ARCH" = "x86_64" ]; then
-        umount -a -t vfat,ext4,iso9660
     fi
+
     if (( $1 == 0  && $REBOOT_REQUIRED == 1 )); then
+        echo "Unmounting all file systems:"
+        umount -v -a -r  # procfs is not unmounted
         echo u > /proc/sysrq-trigger
         sync
-        echo b > /proc/sysrq-trigger
+
+        if [[ "${PROVISION_REBOOT_METHOD,,}" == "reboot" ]]; then
+            echo "Rebooting"
+            reboot -f
+            sleep 1
+            echo b > /proc/sysrq-trigger
+            sleep 1
+        elif [[ "${PROVISION_REBOOT_METHOD,,}" == "poweroff" ]]; then
+            echo "Powering off"
+            poweroff -f
+            sleep 1
+            echo o > /proc/sysrq-trigger
+            sleep 1
+        else
+            echo "Dropping to shell"
+        fi
     fi
+
     exit $1
 }
 
@@ -339,4 +360,70 @@ early_setup()
             BOOT_STYLE="legacy"
         fi
         fi
+}
+
+check_answer_file() {
+    local filePath="$1"
+    if [ -r "$filePath" ]; then
+        # Answer file may only contain lines beginning with '#' or 'PROVISION_*=' variables
+        if [ "`head -1 "$filePath"`" == "#NI_PROVISIONING_ANSWERS_V1" ]; then
+            if ! egrep -q -v '(^$|^#|^PROVISION_[A-Z0-9_]+=)' "$filePath"; then
+                return 0
+            fi
+        fi
+    fi
+    return 1
+}
+
+source_default_answer_file() {
+    if ! check_answer_file "/ni_provisioning.answers.default"; then
+        die "Missing or corrupt file /ni_provisioning.answers.default"
+    fi
+    source "/ni_provisioning.answers.default"
+}
+
+source_answer_file() {
+    echo "Searching for answer files:"
+
+    # first check for embedded answer file on the boot disk
+    if check_answer_file "/ni_provisioning.answers"; then
+        echo "Using embedded answer file at /ni_provisioning.answers"
+        source "/ni_provisioning.answers"
+        return
+    fi
+
+    mkdir -p "$ANSWER_FILE_DISK_MOUNTPOINT"
+    for devNode in `lsblk -lpn -o NAME,RM | grep '1$' | cut -d' ' -f1 || true`; do
+        devNodeInfo="`lsblk -n -o 'FSTYPE,SERIAL,UUID,LABEL' "$devNode" | tr -s ' '`"
+        mount -o ro "$devNode"  "$ANSWER_FILE_DISK_MOUNTPOINT"
+        if check_answer_file    "$ANSWER_FILE_DISK_MOUNTPOINT/ni_provisioning.answers"; then
+            echo "Using ni_provisioning.answers on $devNode ($devNodeInfo)"
+            source              "$ANSWER_FILE_DISK_MOUNTPOINT/ni_provisioning.answers"
+            return
+        else
+            umount              "$ANSWER_FILE_DISK_MOUNTPOINT"
+            echo "Skipped $devNode ($devNodeInfo)"
+            # and keep going
+        fi
+    done
+
+    echo "No answer file found; using default configuration"
+}
+
+prompt_user() {
+    local question="$1"
+    local answerPattern="$2"
+    local defaultAnswer="$3"
+    local -n var="$4"
+    if [[ $var == "?" ]]; then
+        while [[ ! $var =~ $answerPattern ]]; do
+            read -p "$question: " var
+            var="${var,,}"  #lowercase var
+            if [[ -z "$var" ]]; then
+                var="$defaultAnswer"
+            fi
+        done
+    else
+        echo "$question: $var (auto)"
+    fi
 }

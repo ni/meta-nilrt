@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# verify required tools are installed
+for toolName in poweroff reboot mount umount sync ls rm ln mkdir cp echo printf dirname basename find grep egrep tar bzip2 bunzip2 lsblk; do
+    if ! type "$toolName" >/dev/null; then
+        printf "\n***Error: Missing $toolName\n"
+        printf "PROVISIONING FAILED!"
+        exit 1
+    fi
+done
+
 if [ -e /ni_provisioning.common ]; then
     source /ni_provisioning.common
 else
@@ -10,44 +19,60 @@ fi
 
 early_setup
 
-PROVISION_TARGET="n"
-RESET_MINIMAL_IMAGE="n"
-CONTINUE="n"
+# Source default answer file to prompt user for all questions
+source_default_answer_file
+
 if [[ $restore == "provision" ]]; then
     echo
-    echo "NI Real-Time Recovery."
+    echo "NI Linux Real-Time Recovery."
+    echo
+
+    # source user's answer file, if present
+    source_answer_file
+    echo
+
     if [ "$(dmidecode | grep -c "DMI type 160")" -eq 0 ]; then
         print_warning "This target is not supported!"
         echo
-        read -p "Do you want to continue?[y/N]" CONTINUE
-        if [[ ${CONTINUE,,} != "y" ]]; then
+
+        prompt_user "Do you want to continue? y/N" "^(y|n)$" "n" PROVISION_UNSUPPORTED_TARGET
+        if [[ $PROVISION_UNSUPPORTED_TARGET != "y" ]]; then
             cleanup_and_exit 0
         fi
     fi
     echo
+
     echo "The boot style is $BOOT_STYLE"
     echo
-    echo "Continuing will partition, format and install minimal image to the target."
+    echo "Continuing will partition the disk, format, and install minimal image to the target."
     echo
-    read -p "Do you want to continue?[y/N]" PROVISION_TARGET
-    if [[ ${PROVISION_TARGET,,} == "y" ]]; then
+
+    prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" PROVISION_REPARTITION_TARGET
+    if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
         provision_target usb
     fi
+
 elif [[ $restore == "migrate" || $restore == "backward-migrate" ]]; then
-    AUTO_REBOOT=1
-    provision_target onboard $restore
+    PROVISION_REBOOT_METHOD="reboot"
+    provision_target onboard "$restore"
 elif [[ $restore == "auto-restore" ]]; then
+    PROVISION_REBOOT_METHOD="reboot"
     restore_minimal_image
 else
     echo
-    echo "NI Real-Time Restore."
+    echo "NI Linux Real-Time Restore."
     echo
     echo "Continuing will format the nilrt partition and will install minimal image."
     echo
-    read -p "Do you want to continue?[y/N]" RESTORE_MINIMAL_IMAGE
-    if [[ ${RESTORE_MINIMAL_IMAGE,,} == "y" ]]; then
+
+    prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" PROVISION_RESTORE_MINIMAL_IMAGE
+    if [[ $PROVISION_RESTORE_MINIMAL_IMAGE == "y" ]]; then
         restore_minimal_image
     fi
+fi
+
+if [[ "$REBOOT_REQUIRED" -ne 0 ]]; then
+    prompt_user "Please eject the installation media and restart the system (Reboot, poweroff, shell)" "^(reboot|poweroff|shell)$" "reboot" PROVISION_REBOOT_METHOD
 fi
 
 cleanup_and_exit 0
