@@ -13,13 +13,6 @@ early_setup() {
     mount -t devtmpfs none /dev
 }
 
-provision() {
-    #TODO: Find another solution to make sure all bring up messages are printed
-    # before starting the provisioning script
-    sleep 2
-    ./ni_provisioning
-}
-
 # Removes the /boot/bootmode file that may force
 # grub to boot into restore over and over again.
 remove_bootmode() {
@@ -41,34 +34,50 @@ disable_x64_cstates() {
     done
 }
 
+show_console() {
+    while true; do
+        echo ""
+        echo " ------------------------------------------------------"
+        echo " -  NI Linux Real-Time Recovery shell                 -"
+        echo " -  To reboot the system execute command 'reboot -f'  -"
+        echo " ------------------------------------------------------"
+        echo ""
 
-if [[ $ARCH == "x86_64" ]];then
-    early_setup
+        bash -i
+
+        sleep 1
+    done
+}
+
+
+early_setup
+
+# Arch-specific set-up
+if [[ $ARCH == "x86_64" ]]; then
     disable_x64_cstates
     # support VMWare image keyboard
     modprobe atkbd 2> /dev/null
     remove_bootmode 2> /dev/null
-    provision
-    while true;do
-        echo ""
-        echo "To reboot the system execute the command \"reboot -f\""
-        echo ""
-        /sbin/getty -l sh -n 38400 tty0
-    done
-elif [[ $ARCH =~ "arm" ]];then
-    early_setup
-    #fw_printenv/setenv requires the existence of /run/lock to create the lock file
-    provision
-    while true;do
-        echo ""
-        echo "To reboot the system execute the command \"reboot -f\""
-        echo ""
-        /sbin/getty -l sh -n 115200 ttyS0
-    done
+fi
+
+if [[ $ARCH =~ ^(x86_64|armv7l)$ ]]; then
+    #TODO: Find another solution to make sure all bring up messages
+    # are printed before starting the provisioning script
+    sleep 2
+    /ni_provisioning
 else
     echo ""
-    echo "ERROR: Restoring system architecture '$ARCH' is not supported. Rebooting in 10 9 8..."
+    echo "ERROR: ARCH=$ARCH is not supported by provisioning tool."
+    echo " You can try running /ni_provisioning manually from the shell."
     echo ""
-    sleep 10
-    reboot -f
 fi
+
+sync
+show_console
+
+
+# Uh oh. Something went wrong. We should never reach this point.
+# Sync file systems and exit init (this process).
+
+sync
+exit 1
