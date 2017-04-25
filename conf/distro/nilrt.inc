@@ -20,6 +20,7 @@ DISTRO_FEATURES += "\
         pci \
         sysvinit \
         pam \
+        ptest \
         selinux \
 "
 
