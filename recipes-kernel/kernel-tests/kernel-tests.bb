@@ -2,7 +2,7 @@ SUMMARY = "Linux kernel-specific tests"
 HOMEPAGE = "https://kernel.org"
 SECTION = "tests"
 LICENSE = "GPLv2 & GPLv2+"
-LIC_FILES_CHKSUM = "file://run-ptest;md5=35c33505956a0d78042c787033691c59"
+LIC_FILES_CHKSUM = "file://run-ptest;md5=78442ca03c72a6da818eb01e0bf7bafe"
 
 inherit ptest
 
