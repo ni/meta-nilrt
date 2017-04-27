@@ -2,7 +2,7 @@ SUMMARY = "Linux kernel-specific tests"
 HOMEPAGE = "https://kernel.org"
 SECTION = "tests"
 LICENSE = "GPLv2 & GPLv2+"
-LIC_FILES_CHKSUM = "file://run-ptest;md5=35c33505956a0d78042c787033691c59"
+LIC_FILES_CHKSUM = "file://run-ptest;md5=308dc12a1e9cfd701d213f727ed40486"
 
 inherit ptest
 
@@ -31,6 +31,7 @@ SRC_URI += "\
     file://test_user_stack_size.sh \
     file://test_pthread_stack_size.c \
     file://test_kernel_swap_disabled.sh \
+    file://test_i915_firmware.sh \
 "
 
 LDFLAGS += "-lcap -lpthread"
@@ -62,4 +63,5 @@ do_install_ptest_append() {
     cp ${WORKDIR}/test_user_stack_size.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_pthread_stack_size ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_swap_disabled.sh ${D}${PTEST_PATH}
+    cp ${WORKDIR}/test_i915_firmware.sh ${D}${PTEST_PATH}
 }

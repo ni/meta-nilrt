@@ -7,3 +7,4 @@
 ./test_kernel_hrtimers.sh
 ./test_user_stack_size.sh
 ./test_kernel_swap_disabled.sh
+./test_i915_firmware.sh
