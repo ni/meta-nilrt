@@ -6,3 +6,4 @@
 ./test_kernel_ll_route.sh
 ./test_kernel_hrtimers.sh
 ./test_kernel_swap_disabled.sh
+./test_i915_firmware.sh

@@ -2,7 +2,7 @@ SUMMARY = "Linux kernel-specific tests"
 HOMEPAGE = "https://kernel.org"
 SECTION = "tests"
 LICENSE = "GPLv2 & GPLv2+"
-LIC_FILES_CHKSUM = "file://run-ptest;md5=78442ca03c72a6da818eb01e0bf7bafe"
+LIC_FILES_CHKSUM = "file://run-ptest;md5=c6d3ea29b66387f3778f41dd21109b03"
 
 inherit ptest
 
@@ -29,6 +29,7 @@ SRC_URI += "\
     file://test_kernel_hrtimers.sh \
     file://test_kernel_hrtimers.c \
     file://test_kernel_swap_disabled.sh \
+    file://test_i915_firmware.sh \
 "
 
 LDFLAGS += "-lcap -lpthread"
@@ -57,4 +58,5 @@ do_install_ptest_append() {
     cp ${WORKDIR}/test_kernel_hrtimers.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_hrtimers ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_swap_disabled.sh ${D}${PTEST_PATH}
+    cp ${WORKDIR}/test_i915_firmware.sh ${D}${PTEST_PATH}
 }
