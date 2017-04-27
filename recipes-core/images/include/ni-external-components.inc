@@ -1,4 +1,4 @@
-IMAGE_INSTALL_NODEPS_x64 = " \
+IMAGE_INSTALL_NODEPS_append_x64 = " \
         niminionagent \
 	nisdmon \
 "
