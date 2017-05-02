@@ -821,7 +821,6 @@ RDEPENDS_${PN} += "\
 RDEPENDS_${PN} += "\
 	cgroup-lite \
 	docker \
-	iasl \
 	lxc \
 	multipath-tools \
 	openvswitch \
