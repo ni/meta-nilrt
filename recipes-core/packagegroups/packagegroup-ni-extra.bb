@@ -3,6 +3,62 @@ LICENSE = "MIT"
 
 inherit packagegroup
 
+# These packages are only built for the nilrt-xfce fork of the older NILRT distro
+# as opposed to nilrt-nxg which always enables x11 support. Also only for x64
+# because NILRT ARM does not have a GUI.
+RDEPENDS_${PN}_append_x64 = "\
+	${@base_contains('DISTRO_FEATURES', 'x11', '\
+		packagegroup-self-hosted \
+		packagegroup-core-lsb \
+		packagegroup-core-qt \
+		packagegroup-xfce-extended \
+		packagegroup-ni-mono-extra \
+		consolekit \
+		geany \
+		gimp \
+		gnuplot \
+		gnuradio \
+		gtk+3 \
+		iceauth \
+		florence \
+		fltk \
+		libvncserver \
+		libwmf \
+		lxdm \
+		modemmanager \
+		networkmanager \
+		numlockx \
+		openjdk-7-jre \
+		oprofileui \
+		openbox \
+		polkit \
+		python-pyqt \
+		sessreg \
+		setxkbmap \
+		sip \
+		sysconfig-settings-ui \
+		t1lib \
+		toscoterm \
+		tk \
+		twm \
+		udisks \
+		upower \
+		vte \
+		x11vnc \
+		xbitmaps \
+		xchat \
+		xclock \
+		xcursorgen \
+		xdotool \
+		xfontsel \
+		xlsfonts \
+		xmag \
+		xrdb \
+		xterm \
+		xwd \
+	', '', d)} \
+"
+
 RDEPENDS_${PN} = "\
 	packagegroup-core-sdk \
 	packagegroup-core-standalone-sdk-target \
@@ -10,22 +66,13 @@ RDEPENDS_${PN} = "\
 	packagegroup-core-device-devel \
 	packagegroup-core-buildessential \
 	packagegroup-core-tools-debug \
-	packagegroup-self-hosted \
-	packagegroup-core-lsb \
-	packagegroup-core-qt \
 	packagegroup-core-security \
 "
 
 # meta-nilrt
 RDEPENDS_${PN} += "\
 	packagegroup-ni-debug-kernel \
-	packagegroup-ni-mono-extra \
 	packagegroup-ni-selinux \
-"
-
-# meta-oe/meta-xfce
-RDEPENDS_${PN}_append_x64 += "\
-	packagegroup-xfce-extended \
 "
 
 RDEPENDS_${PN} += "\
@@ -147,7 +194,6 @@ RDEPENDS_${PN} += "\
 	acl \
 	boost \
 	ca-certificates \
-	consolekit \
 	createrepo \
 	curl \
 	debianutils \
@@ -163,7 +209,6 @@ RDEPENDS_${PN} += "\
 	pinentry \
 	ptest-runner \
 	sqlite \
-	vte \
 "
 
 # openembedded-core/meta/recipes-kernel
@@ -175,7 +220,6 @@ RDEPENDS_${PN} += "\
 	latencytop \
 	linux-firmware \
 	oprofile \
-	oprofileui \
 	oprofileui-server \
 	perf \
 	powertop \
@@ -219,9 +263,7 @@ RDEPENDS_${PN} += "\
 	krb5 \
 	linuxptp \
 	lirc \
-	modemmanager \
 	mosh \
-	networkmanager \
 	rarpd \
 	rfkill \
 	samba \
@@ -249,7 +291,6 @@ RDEPENDS_${PN} += "\
 	ctags \
 	cunit \
 	dejagnu \
-	geany \
 	i2c-tools \
 	icon-slicer \
 	jq \
@@ -268,12 +309,10 @@ RDEPENDS_${PN} += "\
 	protobuf \
 	python-futures \
 	python-pyopenssl \
-	python-pyqt \
 	python-simplejson \
 	python-tornado \
 	swig \
 	tclap \
-	tk \
 	uw-imap \
 	vala-dbus-binding-tool \
 	yajl \
@@ -296,7 +335,6 @@ RDEPENDS_${PN} += "\
 	dialog \
 	efivar \
 	flashrom \
-	gnuplot \
 	haveged \
 	hexedit \
 	hplip \
@@ -309,7 +347,6 @@ RDEPENDS_${PN} += "\
 	liblockfile \
 	liblognorm \
 	libmodbus \
-	libwmf \
 	lockfile-progs \
 	logcheck \
 	logwatch \
@@ -318,14 +355,11 @@ RDEPENDS_${PN} += "\
 	net-snmp \
 	nicstat \
 	p7zip \
-	polkit \
 	redis \
 	rrdtool \
 	rsyslog \
-	sip \
 	smartmontools \
 	canutils \
-	t1lib \
 	tcsh \
 	tipcutils \
 	tmux \
@@ -335,11 +369,7 @@ RDEPENDS_${PN} += "\
 # meta-openembedded/meta-oe/recipes-graphics
 # meta-oe/recipes-graphics
 RDEPENDS_${PN}_append_x64 += "\
-	gimp \
 	jasper \
-	lxdm \
-	numlockx \
-	openbox \
 	packagegroup-fonts-truetype \
 	terminus-font \
 	ttf-dejavu \
@@ -350,21 +380,6 @@ RDEPENDS_${PN}_append_x64 += "\
 	ttf-mplus \
 	ttf-pt-sans \
 	ttf-ubuntu-font-family \
-	xcursorgen \
-	xdotool \
-	iceauth \
-	sessreg \
-	setxkbmap \
-	twm \
-	x11vnc \
-	xclock \
-	xfontsel \
-	xlsfonts \
-	xmag \
-	xrdb \
-	xterm \
-	xwd \
-	xbitmaps \
 	xorg-sgml-doctools \
 "
 
@@ -467,10 +482,7 @@ RDEPENDS_${PN} += "\
 	system-setup-keyboard \
 	libtalloc \
 	tbb \
-	toscoterm \
 	tree \
-	udisks \
-	upower \
 	usb-modeswitch \
 	usbpath \
 	vim \
@@ -478,14 +490,11 @@ RDEPENDS_${PN} += "\
 
 RDEPENDS_${PN}_append_x64 += "\
 	edac-utils \
-	fltk \
 	lcms \
 	mcelog \
 	numactl \
 	pidgin \
 	poppler \
-	toscoterm \
-	xchat \
 	xdelta3 \
 	xmlstarlet \
 	zile \
@@ -508,11 +517,6 @@ RDEPENDS_${PN} += "\
 	aufs-util \
 	exfat-utils \
 	xfsprogs \
-"
-
-# meta-openembedded/meta-gnome
-RDEPENDS_${PN}_append_x64 += "\
-	florence \
 "
 
 # meta-openembedded/meta-networking
@@ -806,11 +810,6 @@ RDEPENDS_${PN} += "\
 	qpid \
 "
 
-# meta-java
-RDEPENDS_${PN} += "\
-	openjdk-7-jre \
-"
-
 # meta-measured
 RDEPENDS_${PN} += "\
 	trousers \
@@ -833,7 +832,6 @@ RDEPENDS_${PN}_append_x64 += "\
 # Shared libraries needed to run FireFox
 RDEPENDS_${PN} += "\
     alsa-lib \
-    gtk+3 \
 "
 
 # meta-security
@@ -844,18 +842,7 @@ RDEPENDS_${PN} += "\
 	samhain-server \
 "
 
-# meta-sdr
-RDEPENDS_${PN} += "\
-	gnuradio \
-"
-
-# meta-nilrt/recipes-graphics
-RDEPENDS_${PN}_append_x64 += "\
-	libvncserver \
-"
-
 # meta-nilrt/recipes-ni
 RDEPENDS_${PN} += "\
 	sysconfig-settings \
-	${@base_contains("DISTRO_FEATURES", "x11", "sysconfig-settings-ui", "", d)} \
 "
