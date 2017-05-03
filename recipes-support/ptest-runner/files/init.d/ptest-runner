@@ -9,7 +9,7 @@ CMD_PTEST="ptest-runner"
 MATCH_PTEST="\(\s\+\|^\)${ARG_PTEST}\($\|\s\+\)"
 
 if $(grep -q -e "${MATCH_PTEST}" /proc/cmdline); then
-	$CMD_PTEST 2>&1
+	$CMD_PTEST 2>&1 | tee /tmp/${CMD_PTEST}.log
 	# sleep 2 seconds here as a workaround for salt-ptests
 	# For some reason, the "Overall Tests Report" at the end of the salt-ptests
 	# will squash some amount of console output (including our tokens), if we
