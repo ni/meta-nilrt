@@ -12,7 +12,6 @@ DESCRIPTION = " \
 IMAGE_INSTALL_NODEPS += " \
     lvrt \
     niminionagent \
-    ni-pxiplatformservices \
     ni-flexrio \
     ni-usrp-rio \
     ni-sync \
