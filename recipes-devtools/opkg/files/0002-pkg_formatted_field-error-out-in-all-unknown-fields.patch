@@ -1,0 +1,86 @@
+From 7c38385e3cbca019ebd69ec2185ae496699e6c07 Mon Sep 17 00:00:00 2001
+From: Alejandro del Castillo <alejandro.delcastillo@ni.com>
+Date: Wed, 22 Feb 2017 17:32:09 -0600
+Subject: [PATCH 2/4] pkg_formatted_field: error out in all unknown fields
+
+Signed-off-by: Alejandro del Castillo <alejandro.delcastillo@ni.com>
+---
+ libopkg/pkg.c | 38 +++++++++++++++++++++++++++-----------
+ 1 file changed, 27 insertions(+), 11 deletions(-)
+
+diff --git a/libopkg/pkg.c b/libopkg/pkg.c
+index c7230a3..52194d1 100644
+--- a/libopkg/pkg.c
++++ b/libopkg/pkg.c
+@@ -619,24 +619,36 @@ static void pkg_formatted_field(FILE * fp, pkg_t * pkg, const char *field)
+         break;
+     case 'e':
+     case 'E':
+-        if (pkg->essential) {
+-            fprintf(fp, "Essential: yes\n");
++        if (strcasecmp(field, "Essential") == 0) {
++            if (pkg->essential) {
++                fprintf(fp, "Essential: yes\n");
++            }
++        } else {
++            goto UNKNOWN_FMT_FIELD;
+         }
+         break;
+     case 'f':
+     case 'F':
+-        if (pkg->filename) {
+-            fprintf(fp, "Filename: %s\n", pkg->filename);
++        if (strcasecmp(field, "Filename") == 0) {
++            if (pkg->filename) {
++                fprintf(fp, "Filename: %s\n", pkg->filename);
++            }
++        } else {
++            goto UNKNOWN_FMT_FIELD;
+         }
+         break;
+     case 'i':
+     case 'I':
+-        if (strcasecmp(field, "Installed-Size") == 0
+-		   && pkg->installed_size) {
+-            fprintf(fp, "Installed-Size: %ld\n", pkg->installed_size);
+-        } else if (strcasecmp(field, "Installed-Time") == 0
+-                   && pkg->installed_time) {
+-            fprintf(fp, "Installed-Time: %lu\n", pkg->installed_time);
++        if (strcasecmp(field, "Installed-Size") == 0) {
++            if (pkg->installed_size) {
++                fprintf(fp, "Installed-Size: %ld\n", pkg->installed_size);
++            }
++        } else if (strcasecmp(field, "Installed-Time") == 0) {
++            if (pkg->installed_time) {
++                fprintf(fp, "Installed-Time: %lu\n", pkg->installed_time);
++            }
++        } else {
++            goto UNKNOWN_FMT_FIELD;
+         }
+         break;
+     case 'm':
+@@ -756,16 +768,20 @@ static void pkg_formatted_field(FILE * fp, pkg_t * pkg, const char *field)
+             if (pkg->tags) {
+                 fprintf(fp, "Tags: %s\n", pkg->tags);
+             }
++        } else {
++            goto UNKNOWN_FMT_FIELD;
+         }
+         break;
+     case 'v':
+     case 'V':
+-        {
++        if (strcasecmp(field, "Version") == 0) {
+             char *version = pkg_version_str_alloc(pkg);
+             if (version == NULL)
+                 return;
+             fprintf(fp, "Version: %s\n", version);
+             free(version);
++        } else {
++            goto UNKNOWN_FMT_FIELD;
+         }
+         break;
+     default:
+-- 
+2.7.4
+
