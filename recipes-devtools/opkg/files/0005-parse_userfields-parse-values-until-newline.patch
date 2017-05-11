@@ -1,0 +1,30 @@
+From cb7e1b074bdeab683244dfd799f0176801e11363 Mon Sep 17 00:00:00 2001
+From: Alejandro del Castillo <alejandro.delcastillo@ni.com>
+Date: Fri, 14 Apr 2017 16:37:20 -0500
+Subject: [PATCH] parse_userfields: parse values until newline
+
+Enable multi-word user-defined fields. Parsing will end at newline.
+
+Fixes bugzilla #11194
+
+Signed-off-by: Alejandro del Castillo <alejandro.delcastillo@ni.com>
+---
+ libopkg/pkg_parse.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libopkg/pkg_parse.c b/libopkg/pkg_parse.c
+index 3d65dcd..d2badd6 100644
+--- a/libopkg/pkg_parse.c
++++ b/libopkg/pkg_parse.c
+@@ -68,7 +68,7 @@ static void parse_userfields(pkg_t *pkg, const char *cstr)
+     char name[1024], value[1024];
+     int r;
+ 
+-    r = sscanf(cstr, "%1023s %1023s", name, value);
++    r = sscanf(cstr, "%1023s %[^\n]", name, value);
+     if (r != 2) {
+         opkg_msg(ERROR, "Failed to parse User Field line for %s\n", pkg->name);
+         return;
+-- 
+2.7.4
+
