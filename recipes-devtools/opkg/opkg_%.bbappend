@@ -11,6 +11,7 @@ SRC_URI += " \
             file://0002-pkg_formatted_field-error-out-in-all-unknown-fields.patch \
             file://0003-libopkg-add-option-verbose_status_file.patch \
             file://0004-libopkg-add-support-for-user-defined-fields.patch \
+            file://0005-parse_userfields-parse-values-until-newline.patch \
            "
 
 PACKAGECONFIG = "libsolv"
