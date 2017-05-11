@@ -21,7 +21,7 @@ if [[ -z "$CONSOLE" || ! -e "/dev/$CONSOLE" || -z "$SPEED" ]]; then
     if [[ -z "$CONSOLE" ]]; then
 	echo WARNING: Could not autodetect any active console. Defaulting to tty2.
 	TTY2_SPEED=$(stty speed < /dev/tty2)
-	exec /sbin/getty "$TTY2_SPEED" "/dev/tty2"
+	exec /sbin/getty "$TTY2_SPEED" "tty2"
     fi
 fi
 
