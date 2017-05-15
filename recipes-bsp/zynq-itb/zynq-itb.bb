@@ -14,7 +14,6 @@ SRC_URI = "\
 	file://linux-fw-migrate.its		\
 	file://linux-bw-migrate.its		\
 	"
-PR = "r1"
 
 S = "${WORKDIR}"
 

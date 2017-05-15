@@ -8,8 +8,6 @@ DEPENDS = " restore-mode-image "
 DEPENDS_append_x64 = " grub "
 do_install[depends] = " restore-mode-image:do_image_complete "
 
-PR = "r1"
-
 S = "${WORKDIR}"
 
 do_install_append_x64() {
