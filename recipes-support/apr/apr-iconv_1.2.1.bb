@@ -9,6 +9,4 @@ SRC_URI = "${APACHE_MIRROR}/apr/${BPN}-${PV}.tar.gz"
 SRC_URI[md5sum] = "4a27a1480e6862543396e59c4ffcdeb4"
 SRC_URI[sha256sum] = "19381959d50c4a5f3b9c84d594a5f9ffb3809786919b3058281f4c87e1f4b245"
 
-# This is just a stub package to provide iconv source needed by Windows
-# clients building Apache from NILRT source. Remove all other packages.
-PACKAGES = "${PN}-src"
+ALLOW_EMPTY_${PN} = "1"
