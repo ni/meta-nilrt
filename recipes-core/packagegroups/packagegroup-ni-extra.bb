@@ -25,6 +25,7 @@ RDEPENDS_${PN}_append_x64 = "\
 		libvncserver \
 		libwmf \
 		lxdm \
+		mesa-demos \
 		modemmanager \
 		networkmanager \
 		numlockx \
