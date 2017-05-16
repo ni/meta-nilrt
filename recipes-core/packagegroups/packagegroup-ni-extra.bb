@@ -321,6 +321,7 @@ RDEPENDS_${PN} += "\
 	gimp \
 	jasper \
 	lxdm \
+	mesa-demos \
 	numlockx \
 	openbox \
 	packagegroup-fonts-truetype \
