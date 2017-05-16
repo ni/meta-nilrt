@@ -12,6 +12,7 @@ SRC_URI += " \
             file://0003-libopkg-add-option-verbose_status_file.patch \
             file://0004-libopkg-add-support-for-user-defined-fields.patch \
             file://0005-parse_userfields-parse-values-until-newline.patch \
+            file://0006-buffer-overrun-fix.patch \
            "
 
 PACKAGECONFIG = "libsolv"
