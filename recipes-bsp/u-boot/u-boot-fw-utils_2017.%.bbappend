@@ -1,7 +1,13 @@
+require nilrt-u-boot.inc
+
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 LIC_FILES_CHKSUM = "file://COPYING;md5=1707d6db1d42237583f50183a5651ecb"
+
 SRC_URI = "\
-        git://git.amer.corp.natinst.com/u-boot.git;protocol=git;branch=nizynq/15.0/v2012.10 \
+        ${NILRT_GIT}/u-boot.git;protocol=git;branch=${UBOOT_BRANCH} \
+"
+
+SRC_URI_append_xilinx-zynqhf = " \
         file://fw_env-nizynq.config \
         file://0001-Remove-hardcoded-softfp-from-arm-makefile.patch \
         file://fw-enw-fix-missing-stdint-h.patch \
