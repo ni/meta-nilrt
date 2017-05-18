@@ -1,7 +1,7 @@
 require nilrt-u-boot.inc
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
-LIC_FILES_CHKSUM = "file://COPYING;md5=1707d6db1d42237583f50183a5651ecb"
+LIC_FILES_CHKSUM_xilinx-zynqhf = "file://COPYING;md5=1707d6db1d42237583f50183a5651ecb"
 
 SRC_URI = "\
         ${NILRT_GIT}/u-boot.git;protocol=git;branch=${UBOOT_BRANCH} \
@@ -18,7 +18,7 @@ SRC_URI_append_xilinx-zynqhf = " \
 
 SRCREV = "${AUTOREV}"
 
-do_compile(){
+do_compile_xilinx-zynqhf(){
     unset LDFLAGS
     unset CFLAGS
     unset CPPFLAGS
@@ -26,7 +26,7 @@ do_compile(){
     oe_runmake HOSTCC="${CC}" HOSTSTRIP="${TARGET_PREFIX}strip" env
 }
 
-do_install(){
+do_install_xilinx-zynqhf(){
     install -d ${D}${base_sbindir}
     install -d ${D}${sysconfdir}
     install -m 755 ${S}/tools/env/fw_printenv ${D}${base_sbindir}/fw_printenv
