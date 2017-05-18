@@ -1,4 +1,4 @@
-From 5099c4cfdc4999ea9a67bd1f9592c7d60d10b92c Mon Sep 17 00:00:00 2001
+From 531bdbf18cc5aa001b72281dc964f1aea3d78cb7 Mon Sep 17 00:00:00 2001
 From: Haris Okanovic <haris.okanovic@ni.com>
 Date: Tue, 29 Sep 2015 10:42:16 -0500
 Subject: [PATCH 1/2] rtctl: Read task IDs from procfs instead of `ps`
@@ -10,11 +10,11 @@ Upstream-Status: Pending
 
 Signed-off-by: Haris Okanovic <haris.okanovic@ni.com>
 ---
- rtctl | 29 ++++++++++++++++++++++++-----
- 1 file changed, 24 insertions(+), 5 deletions(-)
+ rtctl | 28 +++++++++++++++++++++++-----
+ 1 file changed, 23 insertions(+), 5 deletions(-)
 
 diff --git a/rtctl b/rtctl
-index 9ccd5042175651761445bea81c52ccb0d8cbbe78..e3550d709040308276a2260a23d8d410ffd2f1be 100755
+index 9ccd504..be09b00 100755
 --- a/rtctl
 +++ b/rtctl
 @@ -4,7 +4,7 @@ usage ()
@@ -26,7 +26,7 @@ index 9ccd5042175651761445bea81c52ccb0d8cbbe78..e3550d709040308276a2260a23d8d410
      exit 1
  }
  
-@@ -43,6 +43,25 @@ fi
+@@ -43,6 +43,24 @@ fi
  CMD=$1
  shift
  
@@ -38,12 +38,11 @@ index 9ccd5042175651761445bea81c52ccb0d8cbbe78..e3550d709040308276a2260a23d8d410
 +#
 +get_kernel_tasks ()
 +{
-+    for procId in `ls "$PROCFS_PATH" | egrep '^[0-9]+$'`; do
++    ls "$PROCFS_PATH" | egrep '^[0-9]+$' |
++    while read procId; do
 +        procPth="$PROCFS_PATH/$procId"
-+        exe="`readlink "$procPth/exe" 2>/dev/null`" || true
-+        cmdLine="`cat "$procPth/cmdline" 2>/dev/null`" || true
-+        comm="`cat "$procPth/comm" 2>/dev/null`" || true
-+        if [ -z "$exe" -a -z "$cmdLine" -a -n "$comm" ]; then
++        if [ ! -s "$procPth/exe" -a ! -s "$procPth/cmdline" -a -s "$procPth/comm" ]; then
++            read comm <"$procPth/comm" || comm=""
 +            echo "$procId [$comm]"
 +        fi
 +    done;
@@ -52,7 +51,7 @@ index 9ccd5042175651761445bea81c52ccb0d8cbbe78..e3550d709040308276a2260a23d8d410
  GROUPNAME=""
  
  #
-@@ -51,7 +70,7 @@ GROUPNAME=""
+@@ -51,7 +69,7 @@ GROUPNAME=""
  #
  group_pids ()
  {
@@ -61,7 +60,7 @@ index 9ccd5042175651761445bea81c52ccb0d8cbbe78..e3550d709040308276a2260a23d8d410
      /^[a-zA-Z_0-9-]+:[*orbf]:[0-9]+:.+$/ {
        split($0, parts, ":") 
        if (parts[1] == groupname) {
-@@ -76,7 +95,7 @@ group_pids ()
+@@ -76,7 +94,7 @@ group_pids ()
  
  set_group_defaults ()
  {
@@ -70,7 +69,7 @@ index 9ccd5042175651761445bea81c52ccb0d8cbbe78..e3550d709040308276a2260a23d8d410
      /^[a-zA-Z_0-9-]+:[*orbf]:[0-9]+:.+$/ {
        split($0, conf, ":")
        if (groupname == "" || conf[1] == groupname) {
-@@ -110,12 +129,12 @@ set_group_defaults ()
+@@ -110,12 +128,12 @@ set_group_defaults ()
  
  
  #
@@ -86,5 +85,5 @@ index 9ccd5042175651761445bea81c52ccb0d8cbbe78..e3550d709040308276a2260a23d8d410
        pids[$1] = 1
      }
 -- 
-2.4.5
+2.12.2
 
