@@ -19,3 +19,14 @@ IMAGE_INSTALL_NODEPS += " \
     ni-p2p \
     mt \
 "
+
+IMAGE_INSTALL_NODEPS_remove_armv7a += " \
+    lvrt \
+    niminionagent \
+    ni-pxiplatformservices \
+    ni-flexrio \
+    ni-usrp-rio \
+    ni-sync \
+    ni-p2p \
+    mt \
+"
