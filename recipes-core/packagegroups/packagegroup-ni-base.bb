@@ -75,9 +75,17 @@ RDEPENDS_${PN}_append_x64 += "\
 	dmidecode \
 "
 
-RDEPENDS_${PN}_append_xilinx-zynqhf += "\
+PG_NI_BASE_ARM_ADDS = "\
 	mtd-utils \
-	u-boot-fw-utils	\
+	u-boot-fw-utils \
+"
+
+RDEPENDS_${PN}_append_xilinx-zynqhf += "\
+	${PG_NI_BASE_ARM_ADDS} \
+"
+
+RDEPENDS_${PN}_append_n310 = "\
+	${PG_NI_BASE_ARM_ADDS} \
 "
 
 RRECOMMENDS_${PN} = "\
