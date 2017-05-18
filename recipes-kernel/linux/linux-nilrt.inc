@@ -6,12 +6,11 @@ machine_srcrev="${SRCREV}"
 # Setting EXTRA_OEMAKE to include CFLAGS settings is required as
 # the Kbuild system will clobber CC (which is used by OE for setting
 # the compiler and flags to the compiler/linker/etc.)
-EXTRA_OEMAKE += 'CFLAGS="${TOOLCHAIN_OPTIONS}"'
+EXTRA_OEMAKE_append = 'CFLAGS="${TOOLCHAIN_OPTIONS}"'
 
 # The default -hf arm tools don't default to -mfloat-abi=hard, and this
 # causes build failures when building the scripts utilities
-TOOLCHAIN_OPTIONS_append_xilinx-zynqhf = " -mfloat-abi=hard "
-EXTRA_OEMAKE_xilinx-zynqhf += 'CFLAGS="${CFLAGS} ${TOOLCHAIN_OPTIONS}"'
+TOOLCHAIN_OPTIONS_append = " ${@bb.utils.contains('TUNE_FEATURES','callconvention-hard',' -mfloat-abi=hard ','',d)} ${CFLAGS} "
 
 # No need to do debug symbol handling for kernel builds; also the default behavior
 # incorrectly splits out some 'kernel-dev' files under /lib/modules/<ver>/build
@@ -30,10 +29,12 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${KBUILD_FRAGMENTS_LOCATION}:"
 KBUILD_DEFCONFIG_x64 = "nati_x86_64_defconfig"
 KBUILD_DEFCONFIG_xilinx-zynq = "nati_zynq_defconfig"
 KBUILD_DEFCONFIG_xilinx-zynqhf = "nati_zynq_defconfig"
+KBUILD_DEFCONFIG_n310 = "nati_zynq_defconfig"
 KCONFIG_MODE="--alldefconfig"
 
 #create dtb-s fromt dts files for xilinx-zynqhf targets
 DEPENDS_xilinx-zynqhf += "dtc-native"
+DEPENDS_n310 += "dtc-native"
 KERNEL_DEVICETREE_xilinx-zynqhf = "\
         ni-762F.dtb \
         ni-76D3.dtb \
@@ -53,7 +54,12 @@ KERNEL_DEVICETREE_xilinx-zynqhf = "\
         ni-77D4.dtb \
         ni-77D5.dtb \
         ni-77D6.dtb \
-        ni-7885.dtb "
+        ni-7885.dtb \
+"
+
+KERNEL_DEVICETREE_n310 = " \
+        zynq-ni-sulfur-rev3.dtb \
+"
 
 #create uImage for xilinx-zynqhf targets
 KERNEL_IMAGETYPE_xilinx-zynqhf = "uImage"
