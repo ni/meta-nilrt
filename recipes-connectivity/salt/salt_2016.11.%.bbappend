@@ -37,7 +37,7 @@ RDEPENDS_${PN}-ptest += "salt-tests"
 # properly even though we run them in tcp mode
 
 inherit update-rc.d ptest
-INITSCRIPT_PARAMS_${PN}-minion = "defaults 25 25"
+INITSCRIPT_PARAMS_${PN}-minion = "defaults 93 7"
 
 do_install_ptest_append() {
     install -m 0755 ${WORKDIR}/run-ptest ${D}${PTEST_PATH}
