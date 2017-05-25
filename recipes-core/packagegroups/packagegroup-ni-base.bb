@@ -37,6 +37,7 @@ RDEPENDS_${PN} = "\
 	libavahi-client \
 	libavahi-common \
 	libavahi-core \
+	libcap-bin\
 	libnss-mdns \
 	libpam \
 	lsb \
