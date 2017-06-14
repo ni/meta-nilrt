@@ -27,14 +27,12 @@ PV = "${LINUX_VERSION}+git${SRCPV}"
 FILESEXTRAPATHS_prepend := "${THISDIR}/${KBUILD_FRAGMENTS_LOCATION}:"
 
 KBUILD_DEFCONFIG_x64 = "nati_x86_64_defconfig"
-KBUILD_DEFCONFIG_xilinx-zynq = "nati_zynq_defconfig"
-KBUILD_DEFCONFIG_xilinx-zynqhf = "nati_zynq_defconfig"
-KBUILD_DEFCONFIG_n310 = "nati_zynq_defconfig"
+KBUILD_DEFCONFIG_armv7a = "nati_zynq_defconfig"
 KCONFIG_MODE="--alldefconfig"
 
-#create dtb-s fromt dts files for xilinx-zynqhf targets
-DEPENDS_xilinx-zynqhf += "dtc-native"
-DEPENDS_n310 += "dtc-native"
+#create dtb-s fromt dts files for armv7a targets
+DEPENDS_armv7a += "dtc-native"
+
 KERNEL_DEVICETREE_xilinx-zynqhf = "\
         ni-762F.dtb \
         ni-76D3.dtb \
@@ -61,11 +59,11 @@ KERNEL_DEVICETREE_n310 = " \
         zynq-ni-sulfur-rev3.dtb \
 "
 
-#create uImage for xilinx-zynqhf targets
-KERNEL_IMAGETYPE_xilinx-zynqhf = "uImage"
-UBOOT_LOADADDRESS_xilinx-zynqhf ?= "0x8000"
-UBOOT_ENTRYPOINT_xilinx-zynqhf ?= "${UBOOT_LOADADDRESS}"
-KERNEL_EXTRA_ARGS_xilinx-zynqhf += "LOADADDR=0x8000"
+#create uImage for armv7a targets
+KERNEL_IMAGETYPE_armv7a = "uImage"
+UBOOT_LOADADDRESS ?= "0x8000"
+UBOOT_ENTRYPOINT ?= "${UBOOT_LOADADDRESS}"
+KERNEL_EXTRA_ARGS_armv7a += "LOADADDR=0x8000"
 
 # Install headers and build objects for kernel versioning into
 # /lib/modules/${KERNEL_VERSION}/build for inclusion in kernel-dev.
