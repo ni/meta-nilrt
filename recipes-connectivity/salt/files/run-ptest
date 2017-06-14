@@ -9,5 +9,4 @@ python /usr/lib/python2.7/site-packages/salt-tests/tests/runtests.py \
     -n integration.modules.shadow \
     -n integration.states.user \
     -n integration.modules.groupadd \
-
-
+    -n integration.modules.nilrt_ip \
