@@ -52,4 +52,4 @@ OLDEST_KERNEL = "${@['3.14.3','2.6.32'][d.getVar('SDKMACHINE', True) != None]}"
 
 QTDEMOS = "quicky fotowall"
 
-GCCVERSION = "5.3%"
+GCCVERSION = "6.3%"
