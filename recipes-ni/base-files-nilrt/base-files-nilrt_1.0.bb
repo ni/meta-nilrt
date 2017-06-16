@@ -29,7 +29,7 @@ FILES_${PN} += "README_File_Paths.txt \
 
 S = "${WORKDIR}"
 
-ARCH_ABI_EXT="${ABIEXTENSION}${@base_contains('TUNE_FEATURES','callconvention-hard','hf','',d)}"
+ARCH_ABI_EXT="${ABIEXTENSION}${@bb.utils.contains('TUNE_FEATURES','callconvention-hard','hf','',d)}"
 
 do_install () {
 	install -d -m 0755 ${D}${sysconfdir}/natinst/share/

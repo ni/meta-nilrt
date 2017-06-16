@@ -53,7 +53,7 @@ NILRT_NXG_PACKAGES = "\
 	rtctl \
 	salt-minion \
 	connman \
-	${@base_contains('TARGET_ARCH', 'arm', \
+	${@bb.utils.contains('TARGET_ARCH', 'arm', \
 		'${NILRT_NXG_ARM_PACKAGES}', \
 		'${NILRT_NXG_x64_PACKAGES}', d)} \
 "
@@ -70,8 +70,8 @@ NILRT_PACKAGES = "\
 	openvpn \
 	pigz \
 	usbutils \
-	${@base_contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
-	${@base_contains('TARGET_ARCH', 'arm', \
+	${@bb.utils.contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
+	${@bb.utils.contains('TARGET_ARCH', 'arm', \
 		'${NILRT_ARM_PACKAGES}', \
 		'${NILRT_x64_PACKAGES}', d)} \
 "
@@ -81,9 +81,9 @@ RDEPENDS_${PN} = "\
 	base-files \
 	base-files-nilrt \
 	base-passwd \
-	${@base_contains('MACHINE_FEATURES', 'keyboard', 'keymaps', '', d)} \
+	${@bb.utils.contains('MACHINE_FEATURES', 'keyboard', 'keymaps', '', d)} \
 	busybox \
-	${@base_contains('MACHINE_FEATURES', 'acpi', 'busybox-acpid', '', d)} \
+	${@bb.utils.contains('MACHINE_FEATURES', 'acpi', 'busybox-acpid', '', d)} \
 	coreutils-hostname \
 	dhcp-client \
 	ethtool \
@@ -120,7 +120,7 @@ RDEPENDS_${PN} = "\
 	${VIRTUAL-RUNTIME_mountpoint} \
 	${VIRTUAL-RUNTIME_dev_manager} \
 	${MACHINE_ESSENTIAL_EXTRA_RDEPENDS} \
-	${@base_contains('TARGET_ARCH', 'arm', \
+	${@bb.utils.contains('TARGET_ARCH', 'arm', \
 		'${ALL_DISTRO_ARM_PACKAGES}', \
 		'${ALL_DISTRO_x64_PACKAGES}', d)} \
 	${@base_conditional('DISTRO', 'nilrt-nxg', \

@@ -7,7 +7,7 @@ inherit packagegroup
 # as opposed to nilrt-nxg which always enables x11 support. Also only for x64
 # because NILRT ARM does not have a GUI.
 RDEPENDS_${PN}_append_x64 = "\
-	${@base_contains('DISTRO_FEATURES', 'x11', '\
+	${@bb.utils.contains('DISTRO_FEATURES', 'x11', '\
 		packagegroup-self-hosted \
 		packagegroup-core-lsb \
 		packagegroup-core-qt \

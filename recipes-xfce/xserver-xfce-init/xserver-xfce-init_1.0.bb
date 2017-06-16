@@ -19,13 +19,13 @@ INITSCRIPT_PARAMS = "start 01 5 2 . stop 01 0 1 6 ."
 INITSCRIPT_PARAMS_shr = "start 90 5 2 . stop 90 0 1 6 ."
 
 do_install() {
-    if ${@base_contains('DISTRO_FEATURES','sysvinit','true','false',d)}; then
+    if ${@bb.utils.contains('DISTRO_FEATURES','sysvinit','true','false',d)}; then
         install -d ${D}${sysconfdir}/init.d
         install -d ${D}${sysconfdir}/default/
         install xserver-xfce ${D}${sysconfdir}/init.d
         install -m 0644 xserver-xfce.conf ${D}${sysconfdir}/default/xserver-xfce
     fi
-    if ${@base_contains('DISTRO_FEATURES','systemd','true','false',d)}; then
+    if ${@bb.utils.contains('DISTRO_FEATURES','systemd','true','false',d)}; then
         install -d ${D}${systemd_unitdir}/system
         install -m 0644 xserver-xfce.conf ${D}${sysconfdir}/default/xserver-xfce
         install -m 0644 ${WORKDIR}/xserver-xfce.service ${D}${systemd_unitdir}/system
