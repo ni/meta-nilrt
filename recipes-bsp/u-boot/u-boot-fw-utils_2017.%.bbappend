@@ -5,10 +5,10 @@ LIC_FILES_CHKSUM_xilinx-zynqhf = "file://COPYING;md5=1707d6db1d42237583f50183a56
 
 SRC_URI = "\
         ${NILRT_GIT}/u-boot.git;protocol=git;branch=${UBOOT_BRANCH} \
+        file://fw_env-${MACHINE}.config \
 "
 
 SRC_URI_append_xilinx-zynqhf = " \
-        file://fw_env-nizynq.config \
         file://0001-Remove-hardcoded-softfp-from-arm-makefile.patch \
         file://fw-enw-fix-missing-stdint-h.patch \
         file://0001-gcc5-backport-add-compiler-gcc5.h.patch \
@@ -26,10 +26,6 @@ do_compile_xilinx-zynqhf(){
     oe_runmake HOSTCC="${CC}" HOSTSTRIP="${TARGET_PREFIX}strip" env
 }
 
-do_install_xilinx-zynqhf(){
-    install -d ${D}${base_sbindir}
-    install -d ${D}${sysconfdir}
-    install -m 755 ${S}/tools/env/fw_printenv ${D}${base_sbindir}/fw_printenv
-    install -m 755 ${S}/tools/env/fw_printenv ${D}${base_sbindir}/fw_setenv
-    install -m 0644 ${S}/../fw_env-nizynq.config ${D}${sysconfdir}/fw_env.config
+do_install_append(){
+    install -m 0644 ${WORKDIR}/fw_env-${MACHINE}.config ${D}${sysconfdir}/fw_env.config
 }
