@@ -1,9 +1,5 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
-SRC_URI += " \
-	file://0001-hwclock-don-t-check-for-permissions.patch \
-"
-
 DEPENDS_class-target += "niacctbase"
 
 RDEPENDS_util-linux-hwclock += "niacctbase"
