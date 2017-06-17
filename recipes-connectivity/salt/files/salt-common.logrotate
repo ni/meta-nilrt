@@ -1,8 +1,0 @@
-/var/log/salt/master
-/var/log/salt/minion
-/var/log/salt/*.log
-{
-	daily
-	size 50k
-	notifempty
-}
