@@ -1,7 +1,7 @@
-From 777f1b8324860a60af4a071748b407574b21e3cc Mon Sep 17 00:00:00 2001
+From bd05332bf5ec4ce24f5e5a831fad783e39d8a581 Mon Sep 17 00:00:00 2001
 From: Haris Okanovic <haris.okanovic@ni.com>
 Date: Sun, 1 Sep 2013 13:54:41 -0500
-Subject: [PATCH 12/14] crypto/bio: Disable xopenlog()/xcloselog() on Phar Lap
+Subject: [PATCH 11/13] crypto/bio: Disable xopenlog()/xcloselog() on Phar Lap
  ETS
 
 Disable xopenlog()/xcloselog() on Phar Lap ETS because NI's distribution
@@ -13,7 +13,7 @@ Upstream-Status: Inappropriate [Phar Lap ETS support]
  1 file changed, 4 insertions(+)
 
 diff --git a/crypto/bio/bss_log.c b/crypto/bio/bss_log.c
-index 1283a52..3d9168f 100644
+index 1283a525b4..3d9168f30c 100644
 --- a/crypto/bio/bss_log.c
 +++ b/crypto/bio/bss_log.c
 @@ -283,9 +283,11 @@ static int MS_CALLBACK slg_puts(BIO *bp, const char *str)
@@ -40,5 +40,5 @@ index 1283a52..3d9168f 100644
  }
  
 -- 
-2.6.2
+2.13.1
 

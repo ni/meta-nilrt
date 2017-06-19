@@ -1,7 +1,7 @@
-From 1e3fd506ca23c33ba32bd1fae304d7086ac3ab64 Mon Sep 17 00:00:00 2001
+From 407eafc782ddcfff31f30ba3f3ba861f5ee515a4 Mon Sep 17 00:00:00 2001
 From: Haris Okanovic <haris.okanovic@ni.com>
 Date: Sun, 1 Sep 2013 14:16:04 -0500
-Subject: [PATCH 02/14] crypto/ts: Implement def_time_cb() on VxWorks
+Subject: [PATCH 01/13] crypto/ts: Implement def_time_cb() on VxWorks
 
 Upstream-Status: Inappropriate [VxWorks support]
 ---
@@ -9,7 +9,7 @@ Upstream-Status: Inappropriate [VxWorks support]
  1 file changed, 14 insertions(+)
 
 diff --git a/crypto/ts/ts_rsp_sign.c b/crypto/ts/ts_rsp_sign.c
-index db6ce32..a9dfcaa 100644
+index db6ce3241f..a9dfcaab6f 100644
 --- a/crypto/ts/ts_rsp_sign.c
 +++ b/crypto/ts/ts_rsp_sign.c
 @@ -60,7 +60,11 @@
@@ -52,5 +52,5 @@ index db6ce32..a9dfcaa 100644
      return 1;
  }
 -- 
-2.6.2
+2.13.1
 

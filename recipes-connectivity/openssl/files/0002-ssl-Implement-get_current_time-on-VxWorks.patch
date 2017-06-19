@@ -1,7 +1,7 @@
-From 1a6bfeb8407a6ebe6ee1071e35f2b0c5374554c5 Mon Sep 17 00:00:00 2001
+From 211d60ec7e6f34876a644e7acc48598556a46c16 Mon Sep 17 00:00:00 2001
 From: Haris Okanovic <haris.okanovic@ni.com>
 Date: Thu, 2 Apr 2015 17:10:42 -0500
-Subject: [PATCH 03/14] ssl: Implement get_current_time() on VxWorks
+Subject: [PATCH 02/13] ssl: Implement get_current_time() on VxWorks
 
 Upstream-Status: Inappropriate [VxWorks support]
 ---
@@ -9,10 +9,10 @@ Upstream-Status: Inappropriate [VxWorks support]
  1 file changed, 5 insertions(+)
 
 diff --git a/ssl/d1_lib.c b/ssl/d1_lib.c
-index ee78921..cb1ee8b 100644
+index debd4fd5dc..b636bcb3e3 100644
 --- a/ssl/d1_lib.c
 +++ b/ssl/d1_lib.c
-@@ -534,6 +534,11 @@ static void get_current_time(struct timeval *t)
+@@ -549,6 +549,11 @@ static void get_current_time(struct timeval *t)
      ftime(&tb);
      t->tv_sec = (long)tb.time;
      t->tv_usec = (long)tb.millitm * 1000;
@@ -25,5 +25,5 @@ index ee78921..cb1ee8b 100644
      gettimeofday(t, NULL);
  #endif
 -- 
-2.6.2
+2.13.1
 

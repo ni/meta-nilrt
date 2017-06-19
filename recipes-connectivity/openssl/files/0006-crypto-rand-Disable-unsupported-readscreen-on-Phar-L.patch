@@ -1,7 +1,7 @@
-From 79c416e54f27ff21f59d2606d1e4f0b8325d2e3e Mon Sep 17 00:00:00 2001
+From ea90d900cad7e470df1fdcd1ee30317390171965 Mon Sep 17 00:00:00 2001
 From: Haris Okanovic <haris.okanovic@ni.com>
 Date: Thu, 2 Apr 2015 14:15:34 -0500
-Subject: [PATCH 07/14] crypto/rand: Disable unsupported readscreen() on Phar
+Subject: [PATCH 06/13] crypto/rand: Disable unsupported readscreen() on Phar
  Lap ETS
 
 Disable RNG seeding from the screen on Phar Lap ETS (the readscreen()
@@ -14,7 +14,7 @@ Upstream-Status: Inappropriate [Phar Lap ETS support]
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/crypto/rand/rand_win.c b/crypto/rand/rand_win.c
-index 06670ae..8d65ff5 100644
+index 06670ae017..8d65ff59a9 100644
 --- a/crypto/rand/rand_win.c
 +++ b/crypto/rand/rand_win.c
 @@ -682,7 +682,7 @@ static void readtimer(void)
@@ -27,5 +27,5 @@ index 06670ae..8d65ff5 100644
      HBITMAP hBitmap;            /* handle for our bitmap */
      BITMAP bm;                  /* bitmap properties */
 -- 
-2.6.2
+2.13.1
 

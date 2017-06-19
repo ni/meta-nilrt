@@ -1,7 +1,7 @@
-From b0102effccda03397e0446e09ad0bb232510d7aa Mon Sep 17 00:00:00 2001
+From fdf3acceda324bc496b1a16d2b7a65fb7c689835 Mon Sep 17 00:00:00 2001
 From: Haris Okanovic <haris.okanovic@ni.com>
 Date: Thu, 2 Apr 2015 13:15:15 -0500
-Subject: [PATCH 06/14] crypto: Remove unsupported headers in cryptlib.c on
+Subject: [PATCH 05/13] crypto: Remove unsupported headers in cryptlib.c on
  Phar Lap ETS
 
 Remove unsupported headers tchar.h and signal.h in cryptlib.c
@@ -13,7 +13,7 @@ Upstream-Status: Inappropriate [Phar Lap ETS support]
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/crypto/cryptlib.c b/crypto/cryptlib.c
-index a5f17f5..1fc2fba 100644
+index 8a3442ca2e..e984a4c3d5 100644
 --- a/crypto/cryptlib.c
 +++ b/crypto/cryptlib.c
 @@ -787,7 +787,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
@@ -26,5 +26,5 @@ index a5f17f5..1fc2fba 100644
  # include <signal.h>
  # ifdef __WATCOMC__
 -- 
-2.6.2
+2.13.1
 

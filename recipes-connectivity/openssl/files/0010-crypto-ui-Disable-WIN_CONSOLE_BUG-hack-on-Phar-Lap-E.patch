@@ -1,7 +1,7 @@
-From 2c47b553794b8d760b2f1b24c3b2cc8ac1b5fd9a Mon Sep 17 00:00:00 2001
+From 89d8ef58baea326df73583d14e47054c79140a68 Mon Sep 17 00:00:00 2001
 From: Haris Okanovic <haris.okanovic@ni.com>
 Date: Thu, 2 Apr 2015 14:41:24 -0500
-Subject: [PATCH 11/14] crypto/ui: Disable WIN_CONSOLE_BUG hack on Phar Lap ETS
+Subject: [PATCH 10/13] crypto/ui: Disable WIN_CONSOLE_BUG hack on Phar Lap ETS
 
 Upstream-Status: Inappropriate [Phar Lap ETS support]
 ---
@@ -9,10 +9,10 @@ Upstream-Status: Inappropriate [Phar Lap ETS support]
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/crypto/ui/ui_openssl.c b/crypto/ui/ui_openssl.c
-index 5d66276..135a6b2 100644
+index 17d14f5842..4d1855e144 100644
 --- a/crypto/ui/ui_openssl.c
 +++ b/crypto/ui/ui_openssl.c
-@@ -699,7 +699,7 @@ static int noecho_fgets(char *buf, int size, FILE *tty)
+@@ -716,7 +716,7 @@ static int noecho_fgets(char *buf, int size, FILE *tty)
              break;
          }
      }
@@ -22,5 +22,5 @@ index 5d66276..135a6b2 100644
       * Win95 has several evil console bugs: one of these is that the last
       * character read using getch() is passed to the next read: this is
 -- 
-2.6.2
+2.13.1
 
