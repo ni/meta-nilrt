@@ -1,4 +1,4 @@
-From ffe8e249a14e62bbf021045adce2ee3b8d4de1f8 Mon Sep 17 00:00:00 2001
+From 9d990b1228345ddae662d870d390d9d40339f601 Mon Sep 17 00:00:00 2001
 From: Gratian Crisan <gratian.crisan@ni.com>
 Date: Mon, 30 Jun 2014 13:04:31 -0500
 Subject: [PATCH 5/5] x86_64: Remove assembly implementations for
@@ -76,7 +76,7 @@ Signed-off-by: Adrian Ratiu <adrian.ratiu@ni.com>
 
 diff --git a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_broadcast.S b/sysdeps/unix/sysv/linux/x86_64/pthread_cond_broadcast.S
 deleted file mode 100644
-index de455dd..0000000
+index de455dda4f..0000000000
 --- a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_broadcast.S
 +++ /dev/null
 @@ -1,177 +0,0 @@
@@ -259,7 +259,7 @@ index de455dd..0000000
 -		  GLIBC_2_3_2)
 diff --git a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_signal.S b/sysdeps/unix/sysv/linux/x86_64/pthread_cond_signal.S
 deleted file mode 100644
-index da14bc3..0000000
+index da14bc30bc..0000000000
 --- a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_signal.S
 +++ /dev/null
 @@ -1,161 +0,0 @@
@@ -426,7 +426,7 @@ index da14bc3..0000000
 -		  GLIBC_2_3_2)
 diff --git a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_timedwait.S b/sysdeps/unix/sysv/linux/x86_64/pthread_cond_timedwait.S
 deleted file mode 100644
-index 9a63314..0000000
+index 82ffa1a37e..0000000000
 --- a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_timedwait.S
 +++ /dev/null
 @@ -1,623 +0,0 @@
@@ -1018,7 +1018,7 @@ index 9a63314..0000000
 -	movq	FRAME_SIZE+16(%rsp), %r13
 -	movq	FRAME_SIZE+24(%rsp), %r12
 -.LcallUR:
--	call	_Unwind_Resume@PLT
+-	call	_Unwind_Resume
 -	hlt
 -.LENDCODE:
 -	cfi_endproc
@@ -1055,7 +1055,7 @@ index 9a63314..0000000
 -#endif
 diff --git a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_wait.S b/sysdeps/unix/sysv/linux/x86_64/pthread_cond_wait.S
 deleted file mode 100644
-index ed93d5d..0000000
+index c82f37baab..0000000000
 --- a/sysdeps/unix/sysv/linux/x86_64/pthread_cond_wait.S
 +++ /dev/null
 @@ -1,555 +0,0 @@
@@ -1579,7 +1579,7 @@ index ed93d5d..0000000
 -
 -8:	movq	24(%rsp), %rdi
 -.LcallUR:
--	call	_Unwind_Resume@PLT
+-	call	_Unwind_Resume
 -	hlt
 -.LENDCODE:
 -	cfi_endproc
@@ -1615,5 +1615,5 @@ index ed93d5d..0000000
 -	ASM_ADDR __gcc_personality_v0
 -#endif
 -- 
-2.8.2
+2.13.1
 

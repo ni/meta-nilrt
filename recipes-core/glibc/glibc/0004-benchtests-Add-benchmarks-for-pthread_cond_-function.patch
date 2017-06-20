@@ -1,4 +1,4 @@
-From 8b62e2764821d1ab48e4e706017a315cc3280beb Mon Sep 17 00:00:00 2001
+From c157e8d92c405631ca0b4979ab8d97e311340a71 Mon Sep 17 00:00:00 2001
 From: Gratian Crisan <gratian.crisan@ni.com>
 Date: Mon, 30 Jun 2014 11:07:30 -0500
 Subject: [PATCH 4/5] benchtests: Add benchmarks for pthread_cond_* functions
@@ -28,7 +28,7 @@ Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
  create mode 100644 benchtests/bench-pthread_cond.c
 
 diff --git a/benchtests/Makefile b/benchtests/Makefile
-index 2b553f8..6c84930 100644
+index 144b32ea38..a5284362cc 100644
 --- a/benchtests/Makefile
 +++ b/benchtests/Makefile
 @@ -27,6 +27,7 @@ bench-math := acos acosh asin asinh atan atanh cos cosh exp exp2 log log2 \
@@ -39,7 +39,7 @@ index 2b553f8..6c84930 100644
  
  bench-string := ffs ffsll
  
-@@ -59,7 +60,7 @@ stdio-common-benchset := sprintf
+@@ -68,7 +69,7 @@ stdio-common-benchset := sprintf
  math-benchset := math-inlines
  
  benchset := $(string-benchset-all) $(stdlib-benchset) $(stdio-common-benchset) \
@@ -48,7 +48,7 @@ index 2b553f8..6c84930 100644
  
  CFLAGS-bench-ffs.c += -fno-builtin
  CFLAGS-bench-ffsll.c += -fno-builtin
-@@ -69,6 +70,7 @@ bench-malloc := malloc-thread
+@@ -78,6 +79,7 @@ bench-malloc := malloc-thread
  $(addprefix $(objpfx)bench-,$(bench-math)): $(libm)
  $(addprefix $(objpfx)bench-,$(math-benchset)): $(libm)
  $(addprefix $(objpfx)bench-,$(bench-pthread)): $(shared-thread-library)
@@ -58,7 +58,7 @@ index 2b553f8..6c84930 100644
  
 diff --git a/benchtests/bench-pthread_cond.c b/benchtests/bench-pthread_cond.c
 new file mode 100644
-index 0000000..8accdb7
+index 0000000000..8accdb7118
 --- /dev/null
 +++ b/benchtests/bench-pthread_cond.c
 @@ -0,0 +1,387 @@
@@ -450,5 +450,5 @@ index 0000000..8accdb7
 +#define TEST_FUNCTION test_main ()
 +#include "../test-skeleton.c"
 -- 
-2.8.2
+2.13.1
 

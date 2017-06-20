@@ -1,4 +1,4 @@
-From a4b087c3b92c8880b9c689418b27e89d7f63c8c3 Mon Sep 17 00:00:00 2001
+From a21dcbec1dd15041ab7c7fb035c6e3fc11e60e2a Mon Sep 17 00:00:00 2001
 From: Gratian Crisan <gratian.crisan@ni.com>
 Date: Mon, 16 Sep 2013 14:18:59 -0500
 Subject: [PATCH 1/5] pi-condvars: add protocol support to pthread_condattr_t
@@ -28,7 +28,7 @@ Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
 ---
  manual/threads.texi                                | 40 ++++++++++++++
  nptl/Makefile                                      |  2 +
- nptl/Versions                                      |  4 +-
+ nptl/Versions                                      |  5 ++
  nptl/pthread_cond_broadcast.c                      |  7 +--
  nptl/pthread_cond_destroy.c                        |  9 ++--
  nptl/pthread_cond_init.c                           | 22 +++++++-
@@ -67,14 +67,14 @@ Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
  .../sysv/linux/tile/tilepro/libpthread.abilist     |  3 ++
  .../unix/sysv/linux/x86_64/64/libpthread.abilist   |  3 ++
  .../unix/sysv/linux/x86_64/x32/libpthread.abilist  |  3 ++
- 41 files changed, 392 insertions(+), 40 deletions(-)
+ 41 files changed, 394 insertions(+), 39 deletions(-)
  create mode 100644 nptl/pthread_condattr_getprotocol_np.c
  create mode 100644 nptl/pthread_condattr_setprotocol_np.c
  create mode 100644 nptl/sysdeps/pthread/cond-lock.h
  create mode 100644 nptl/sysdeps/unix/sysv/linux/lowlevelpilock.c
 
 diff --git a/manual/threads.texi b/manual/threads.texi
-index 00cc725..3868f82 100644
+index 00cc725f61..3868f82e6e 100644
 --- a/manual/threads.texi
 +++ b/manual/threads.texi
 @@ -84,6 +84,8 @@ the standard.
@@ -132,7 +132,7 @@ index 00cc725..3868f82 100644
  @c pthread_atfork
  @c pthread_attr_destroy
 diff --git a/nptl/Makefile b/nptl/Makefile
-index dc3ccab..d4f6950 100644
+index fa925819ca..ef85c23f21 100644
 --- a/nptl/Makefile
 +++ b/nptl/Makefile
 @@ -78,6 +78,7 @@ libpthread-routines = nptl-init vars events version pt-interp \
@@ -150,23 +150,25 @@ index dc3ccab..d4f6950 100644
 +		      lowlevellock lowlevelrobustlock lowlevelpilock \
  		      pt-fork pt-vfork \
  		      ptw-write ptw-read ptw-close ptw-fcntl ptw-accept \
- 		      ptw-connect ptw-recv ptw-recvfrom ptw-recvmsg ptw-send \
+ 		      ptw-connect ptw-recv ptw-recvfrom ptw-send \
 diff --git a/nptl/Versions b/nptl/Versions
-index 0ae5def..112c50a 100644
+index 0ae5def464..94a78a8fd4 100644
 --- a/nptl/Versions
 +++ b/nptl/Versions
-@@ -259,7 +259,9 @@ libpthread {
-     pthread_setattr_default_np;
+@@ -265,6 +265,11 @@ libpthread {
+   GLIBC_2.22 {
    }
  
-   GLIBC_2.22 {
++  GLIBC_2.24 {
 +    pthread_condattr_getprotocol_np;
 +    pthread_condattr_setprotocol_np;
-   }
- 
++  }
++
    GLIBC_PRIVATE {
+     __pthread_initialize_minimal;
+     __pthread_clock_gettime; __pthread_clock_settime;
 diff --git a/nptl/pthread_cond_broadcast.c b/nptl/pthread_cond_broadcast.c
-index 552fd42..0bf22fc 100644
+index 552fd42f60..0bf22fc205 100644
 --- a/nptl/pthread_cond_broadcast.c
 +++ b/nptl/pthread_cond_broadcast.c
 @@ -27,6 +27,7 @@
@@ -205,7 +207,7 @@ index 552fd42..0bf22fc 100644
    return 0;
  }
 diff --git a/nptl/pthread_cond_destroy.c b/nptl/pthread_cond_destroy.c
-index 1acd804..02bd9e5 100644
+index 1acd8042d8..02bd9e5553 100644
 --- a/nptl/pthread_cond_destroy.c
 +++ b/nptl/pthread_cond_destroy.c
 @@ -21,6 +21,7 @@
@@ -247,7 +249,7 @@ index 1acd804..02bd9e5 100644
  	  nwaiters = cond->__data.__nwaiters;
  	}
 diff --git a/nptl/pthread_cond_init.c b/nptl/pthread_cond_init.c
-index 9023370..57171c2 100644
+index 9023370278..57171c2c80 100644
 --- a/nptl/pthread_cond_init.c
 +++ b/nptl/pthread_cond_init.c
 @@ -29,9 +29,27 @@ __pthread_cond_init (pthread_cond_t *cond, const pthread_condattr_t *cond_attr)
@@ -281,7 +283,7 @@ index 9023370..57171c2 100644
    cond->__data.__wakeup_seq = 0;
    cond->__data.__woken_seq = 0;
 diff --git a/nptl/pthread_cond_signal.c b/nptl/pthread_cond_signal.c
-index b3a6d3d..0ab2a7c 100644
+index b3a6d3d2a4..0ab2a7ce9a 100644
 --- a/nptl/pthread_cond_signal.c
 +++ b/nptl/pthread_cond_signal.c
 @@ -27,6 +27,7 @@
@@ -320,7 +322,7 @@ index b3a6d3d..0ab2a7c 100644
    return 0;
  }
 diff --git a/nptl/pthread_cond_timedwait.c b/nptl/pthread_cond_timedwait.c
-index 711a51d..483ee82 100644
+index 711a51de20..483ee82507 100644
 --- a/nptl/pthread_cond_timedwait.c
 +++ b/nptl/pthread_cond_timedwait.c
 @@ -27,6 +27,8 @@
@@ -386,7 +388,7 @@ index 711a51d..483ee82 100644
    /* The cancellation handling is back to normal, remove the handler.  */
    __pthread_cleanup_pop (&buffer, 0);
 diff --git a/nptl/pthread_cond_wait.c b/nptl/pthread_cond_wait.c
-index 3f62acc..18ce890 100644
+index 3f62acc6bd..18ce890814 100644
 --- a/nptl/pthread_cond_wait.c
 +++ b/nptl/pthread_cond_wait.c
 @@ -27,6 +27,8 @@
@@ -460,7 +462,7 @@ index 3f62acc..18ce890 100644
    /* The cancellation handling is back to normal, remove the handler.  */
    __pthread_cleanup_pop (&buffer, 0);
 diff --git a/nptl/pthread_condattr_getclock.c b/nptl/pthread_condattr_getclock.c
-index d156302..a142e8c 100644
+index d156302ffb..a142e8c700 100644
 --- a/nptl/pthread_condattr_getclock.c
 +++ b/nptl/pthread_condattr_getclock.c
 @@ -22,7 +22,8 @@
@@ -476,7 +478,7 @@ index d156302..a142e8c 100644
  }
 diff --git a/nptl/pthread_condattr_getprotocol_np.c b/nptl/pthread_condattr_getprotocol_np.c
 new file mode 100644
-index 0000000..f3ed36a
+index 0000000000..f3ed36a11b
 --- /dev/null
 +++ b/nptl/pthread_condattr_getprotocol_np.c
 @@ -0,0 +1,28 @@
@@ -509,7 +511,7 @@ index 0000000..f3ed36a
 +  return 0;
 +}
 diff --git a/nptl/pthread_condattr_getpshared.c b/nptl/pthread_condattr_getpshared.c
-index 5a10f3e..4ef6787 100644
+index 5a10f3eeb0..4ef6787391 100644
 --- a/nptl/pthread_condattr_getpshared.c
 +++ b/nptl/pthread_condattr_getpshared.c
 @@ -22,7 +22,8 @@
@@ -523,7 +525,7 @@ index 5a10f3e..4ef6787 100644
    return 0;
  }
 diff --git a/nptl/pthread_condattr_setclock.c b/nptl/pthread_condattr_setclock.c
-index 25e2a17..ece3417 100644
+index 25e2a176a0..ece3417f23 100644
 --- a/nptl/pthread_condattr_setclock.c
 +++ b/nptl/pthread_condattr_setclock.c
 @@ -34,12 +34,12 @@ pthread_condattr_setclock (pthread_condattr_t *attr, clockid_t clock_id)
@@ -544,7 +546,7 @@ index 25e2a17..ece3417 100644
  }
 diff --git a/nptl/pthread_condattr_setprotocol_np.c b/nptl/pthread_condattr_setprotocol_np.c
 new file mode 100644
-index 0000000..d79788a
+index 0000000000..d79788a369
 --- /dev/null
 +++ b/nptl/pthread_condattr_setprotocol_np.c
 @@ -0,0 +1,36 @@
@@ -585,7 +587,7 @@ index 0000000..d79788a
 +  return 0;
 +}
 diff --git a/nptl/pthread_condattr_setpshared.c b/nptl/pthread_condattr_setpshared.c
-index 408f823..4795d04 100644
+index 408f8237ed..4795d04ce8 100644
 --- a/nptl/pthread_condattr_setpshared.c
 +++ b/nptl/pthread_condattr_setpshared.c
 @@ -29,7 +29,8 @@ pthread_condattr_setpshared (pthread_condattr_t *attr, int pshared)
@@ -600,7 +602,7 @@ index 408f823..4795d04 100644
  }
 diff --git a/nptl/sysdeps/pthread/cond-lock.h b/nptl/sysdeps/pthread/cond-lock.h
 new file mode 100644
-index 0000000..3a273dc
+index 0000000000..3a273dc0d9
 --- /dev/null
 +++ b/nptl/sysdeps/pthread/cond-lock.h
 @@ -0,0 +1,58 @@
@@ -664,7 +666,7 @@ index 0000000..3a273dc
 +#endif
 diff --git a/nptl/sysdeps/unix/sysv/linux/lowlevelpilock.c b/nptl/sysdeps/unix/sysv/linux/lowlevelpilock.c
 new file mode 100644
-index 0000000..0845fcf
+index 0000000000..0845fcf44b
 --- /dev/null
 +++ b/nptl/sysdeps/unix/sysv/linux/lowlevelpilock.c
 @@ -0,0 +1,61 @@
@@ -730,7 +732,7 @@ index 0000000..0845fcf
 +    }
 +}
 diff --git a/sysdeps/nptl/internaltypes.h b/sysdeps/nptl/internaltypes.h
-index 203c548..8e7f509 100644
+index 203c548550..8e7f5093ca 100644
 --- a/sysdeps/nptl/internaltypes.h
 +++ b/sysdeps/nptl/internaltypes.h
 @@ -71,18 +71,36 @@ struct pthread_condattr
@@ -777,7 +779,7 @@ index 203c548..8e7f509 100644
  /* Read-write lock variable attribute data structure.  */
  struct pthread_rwlockattr
 diff --git a/sysdeps/nptl/pthread.h b/sysdeps/nptl/pthread.h
-index fd0894e..785817c 100644
+index fd0894efd2..785817cea7 100644
 --- a/sysdeps/nptl/pthread.h
 +++ b/sysdeps/nptl/pthread.h
 @@ -821,6 +821,20 @@ extern int pthread_mutexattr_setpshared (pthread_mutexattr_t *__attr,
@@ -802,295 +804,295 @@ index fd0894e..785817c 100644
  /* Return in *KIND the mutex kind attribute in *ATTR.  */
  extern int pthread_mutexattr_gettype (const pthread_mutexattr_t *__restrict
 diff --git a/sysdeps/unix/sysv/linux/aarch64/libpthread.abilist b/sysdeps/unix/sysv/linux/aarch64/libpthread.abilist
-index 0cf30ee..f40977f 100644
+index 0cf30ee02f..a4fe3340c6 100644
 --- a/sysdeps/unix/sysv/linux/aarch64/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/aarch64/libpthread.abilist
 @@ -224,3 +224,6 @@ GLIBC_2.17 write F
  GLIBC_2.18 GLIBC_2.18 A
  GLIBC_2.18 pthread_getattr_default_np F
  GLIBC_2.18 pthread_setattr_default_np F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
 diff --git a/sysdeps/unix/sysv/linux/alpha/libpthread.abilist b/sysdeps/unix/sysv/linux/alpha/libpthread.abilist
-index 7e121d4..03e571f 100644
+index 7e121d45f8..88f2ff43ec 100644
 --- a/sysdeps/unix/sysv/linux/alpha/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/alpha/libpthread.abilist
 @@ -216,6 +216,9 @@ GLIBC_2.2.3 GLIBC_2.2.3 A
  GLIBC_2.2.3 pthread_getattr_np F
  GLIBC_2.2.6 GLIBC_2.2.6 A
  GLIBC_2.2.6 __nanosleep F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
  GLIBC_2.3.2 GLIBC_2.3.2 A
  GLIBC_2.3.2 pthread_cond_broadcast F
  GLIBC_2.3.2 pthread_cond_destroy F
 diff --git a/sysdeps/unix/sysv/linux/arm/libpthread.abilist b/sysdeps/unix/sysv/linux/arm/libpthread.abilist
-index 91545c1..f1594e0 100644
+index 91545c1542..9692b38a1d 100644
 --- a/sysdeps/unix/sysv/linux/arm/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/arm/libpthread.abilist
 @@ -9,6 +9,9 @@ GLIBC_2.12 pthread_setname_np F
  GLIBC_2.18 GLIBC_2.18 A
  GLIBC_2.18 pthread_getattr_default_np F
  GLIBC_2.18 pthread_setattr_default_np F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
  GLIBC_2.4 GLIBC_2.4 A
  GLIBC_2.4 _IO_flockfile F
  GLIBC_2.4 _IO_ftrylockfile F
 diff --git a/sysdeps/unix/sysv/linux/i386/libpthread.abilist b/sysdeps/unix/sysv/linux/i386/libpthread.abilist
-index 8f9c325..f4787a0 100644
+index 8f9c3254be..56a0daf25b 100644
 --- a/sysdeps/unix/sysv/linux/i386/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/i386/libpthread.abilist
 @@ -216,6 +216,9 @@ GLIBC_2.2.3 GLIBC_2.2.3 A
  GLIBC_2.2.3 pthread_getattr_np F
  GLIBC_2.2.6 GLIBC_2.2.6 A
  GLIBC_2.2.6 __nanosleep F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
  GLIBC_2.3.2 GLIBC_2.3.2 A
  GLIBC_2.3.2 pthread_cond_broadcast F
  GLIBC_2.3.2 pthread_cond_destroy F
 diff --git a/sysdeps/unix/sysv/linux/ia64/libpthread.abilist b/sysdeps/unix/sysv/linux/ia64/libpthread.abilist
-index d4c8ded..823c358 100644
+index d4c8dedd6c..6d169ef73c 100644
 --- a/sysdeps/unix/sysv/linux/ia64/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/ia64/libpthread.abilist
 @@ -204,6 +204,9 @@ GLIBC_2.2.3 GLIBC_2.2.3 A
  GLIBC_2.2.3 pthread_getattr_np F
  GLIBC_2.2.6 GLIBC_2.2.6 A
  GLIBC_2.2.6 __nanosleep F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
  GLIBC_2.3.2 GLIBC_2.3.2 A
  GLIBC_2.3.2 pthread_cond_broadcast F
  GLIBC_2.3.2 pthread_cond_destroy F
 diff --git a/sysdeps/unix/sysv/linux/m68k/coldfire/libpthread.abilist b/sysdeps/unix/sysv/linux/m68k/coldfire/libpthread.abilist
-index 91545c1..f1594e0 100644
+index 91545c1542..9692b38a1d 100644
 --- a/sysdeps/unix/sysv/linux/m68k/coldfire/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/m68k/coldfire/libpthread.abilist
 @@ -9,6 +9,9 @@ GLIBC_2.12 pthread_setname_np F
  GLIBC_2.18 GLIBC_2.18 A
  GLIBC_2.18 pthread_getattr_default_np F
  GLIBC_2.18 pthread_setattr_default_np F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
  GLIBC_2.4 GLIBC_2.4 A
  GLIBC_2.4 _IO_flockfile F
  GLIBC_2.4 _IO_ftrylockfile F
 diff --git a/sysdeps/unix/sysv/linux/m68k/m680x0/libpthread.abilist b/sysdeps/unix/sysv/linux/m68k/m680x0/libpthread.abilist
-index 8f9c325..f4787a0 100644
+index 8f9c3254be..56a0daf25b 100644
 --- a/sysdeps/unix/sysv/linux/m68k/m680x0/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/m68k/m680x0/libpthread.abilist
 @@ -216,6 +216,9 @@ GLIBC_2.2.3 GLIBC_2.2.3 A
  GLIBC_2.2.3 pthread_getattr_np F
  GLIBC_2.2.6 GLIBC_2.2.6 A
  GLIBC_2.2.6 __nanosleep F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
  GLIBC_2.3.2 GLIBC_2.3.2 A
  GLIBC_2.3.2 pthread_cond_broadcast F
  GLIBC_2.3.2 pthread_cond_destroy F
 diff --git a/sysdeps/unix/sysv/linux/microblaze/libpthread.abilist b/sysdeps/unix/sysv/linux/microblaze/libpthread.abilist
-index 00d948b..6f4011b 100644
+index 00d948b60a..e3a1d128df 100644
 --- a/sysdeps/unix/sysv/linux/microblaze/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/microblaze/libpthread.abilist
 @@ -223,3 +223,6 @@ GLIBC_2.18 vfork F
  GLIBC_2.18 wait F
  GLIBC_2.18 waitpid F
  GLIBC_2.18 write F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
 diff --git a/sysdeps/unix/sysv/linux/mips/mips32/libpthread.abilist b/sysdeps/unix/sysv/linux/mips/mips32/libpthread.abilist
-index 280d99d..78db8ac 100644
+index 280d99d974..c892964da8 100644
 --- a/sysdeps/unix/sysv/linux/mips/mips32/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/mips/mips32/libpthread.abilist
 @@ -213,6 +213,9 @@ GLIBC_2.2.3 GLIBC_2.2.3 A
  GLIBC_2.2.3 pthread_getattr_np F
  GLIBC_2.2.6 GLIBC_2.2.6 A
  GLIBC_2.2.6 __nanosleep F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
  GLIBC_2.3.2 GLIBC_2.3.2 A
  GLIBC_2.3.2 pthread_cond_broadcast F
  GLIBC_2.3.2 pthread_cond_destroy F
 diff --git a/sysdeps/unix/sysv/linux/mips/mips64/libpthread.abilist b/sysdeps/unix/sysv/linux/mips/mips64/libpthread.abilist
-index ad55bdd..f7133a5 100644
+index ad55bdd0e2..2cb4e04cbf 100644
 --- a/sysdeps/unix/sysv/linux/mips/mips64/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/mips/mips64/libpthread.abilist
 @@ -213,6 +213,9 @@ GLIBC_2.2.3 GLIBC_2.2.3 A
  GLIBC_2.2.3 pthread_getattr_np F
  GLIBC_2.2.6 GLIBC_2.2.6 A
  GLIBC_2.2.6 __nanosleep F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
  GLIBC_2.3.2 GLIBC_2.3.2 A
  GLIBC_2.3.2 pthread_cond_broadcast F
  GLIBC_2.3.2 pthread_cond_destroy F
 diff --git a/sysdeps/unix/sysv/linux/powerpc/powerpc32/libpthread.abilist b/sysdeps/unix/sysv/linux/powerpc/powerpc32/libpthread.abilist
-index 14c3a86..ce8b7c2 100644
+index 14c3a86b75..cec9de067f 100644
 --- a/sysdeps/unix/sysv/linux/powerpc/powerpc32/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/powerpc/powerpc32/libpthread.abilist
 @@ -216,6 +216,9 @@ GLIBC_2.2.3 GLIBC_2.2.3 A
  GLIBC_2.2.3 pthread_getattr_np F
  GLIBC_2.2.6 GLIBC_2.2.6 A
  GLIBC_2.2.6 __nanosleep F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
  GLIBC_2.3.2 GLIBC_2.3.2 A
  GLIBC_2.3.2 pthread_cond_broadcast F
  GLIBC_2.3.2 pthread_cond_destroy F
 diff --git a/sysdeps/unix/sysv/linux/powerpc/powerpc64/libpthread.abilist b/sysdeps/unix/sysv/linux/powerpc/powerpc64/libpthread.abilist
-index 464b91a..dfb9d75 100644
+index 464b91a61d..b391a19fb5 100644
 --- a/sysdeps/unix/sysv/linux/powerpc/powerpc64/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/powerpc/powerpc64/libpthread.abilist
 @@ -9,6 +9,9 @@ GLIBC_2.12 pthread_setname_np F
  GLIBC_2.18 GLIBC_2.18 A
  GLIBC_2.18 pthread_getattr_default_np F
  GLIBC_2.18 pthread_setattr_default_np F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
  GLIBC_2.3 GLIBC_2.3 A
  GLIBC_2.3 _IO_flockfile F
  GLIBC_2.3 _IO_ftrylockfile F
 diff --git a/sysdeps/unix/sysv/linux/s390/s390-32/libpthread.abilist b/sysdeps/unix/sysv/linux/s390/s390-32/libpthread.abilist
-index 3c5e11a..299ce84 100644
+index 3c5e11aafe..e169c867f2 100644
 --- a/sysdeps/unix/sysv/linux/s390/s390-32/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/s390/s390-32/libpthread.abilist
 @@ -219,6 +219,9 @@ GLIBC_2.2.3 GLIBC_2.2.3 A
  GLIBC_2.2.3 pthread_getattr_np F
  GLIBC_2.2.6 GLIBC_2.2.6 A
  GLIBC_2.2.6 __nanosleep F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
  GLIBC_2.3.2 GLIBC_2.3.2 A
  GLIBC_2.3.2 pthread_cond_broadcast F
  GLIBC_2.3.2 pthread_cond_destroy F
 diff --git a/sysdeps/unix/sysv/linux/s390/s390-64/libpthread.abilist b/sysdeps/unix/sysv/linux/s390/s390-64/libpthread.abilist
-index 83a1fcd..fe96442 100644
+index 83a1fcd239..2dce045bb7 100644
 --- a/sysdeps/unix/sysv/linux/s390/s390-64/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/s390/s390-64/libpthread.abilist
 @@ -207,6 +207,9 @@ GLIBC_2.2.3 GLIBC_2.2.3 A
  GLIBC_2.2.3 pthread_getattr_np F
  GLIBC_2.2.6 GLIBC_2.2.6 A
  GLIBC_2.2.6 __nanosleep F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
  GLIBC_2.3.2 GLIBC_2.3.2 A
  GLIBC_2.3.2 pthread_cond_broadcast F
  GLIBC_2.3.2 pthread_cond_destroy F
 diff --git a/sysdeps/unix/sysv/linux/sh/libpthread.abilist b/sysdeps/unix/sysv/linux/sh/libpthread.abilist
-index a73aa43..26940ce 100644
+index a73aa43c55..b380807b08 100644
 --- a/sysdeps/unix/sysv/linux/sh/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/sh/libpthread.abilist
 @@ -204,6 +204,9 @@ GLIBC_2.2.3 GLIBC_2.2.3 A
  GLIBC_2.2.3 pthread_getattr_np F
  GLIBC_2.2.6 GLIBC_2.2.6 A
  GLIBC_2.2.6 __nanosleep F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
  GLIBC_2.3.2 GLIBC_2.3.2 A
  GLIBC_2.3.2 pthread_cond_broadcast F
  GLIBC_2.3.2 pthread_cond_destroy F
 diff --git a/sysdeps/unix/sysv/linux/sparc/sparc32/libpthread.abilist b/sysdeps/unix/sysv/linux/sparc/sparc32/libpthread.abilist
-index 7e121d4..03e571f 100644
+index 7e121d45f8..88f2ff43ec 100644
 --- a/sysdeps/unix/sysv/linux/sparc/sparc32/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/sparc/sparc32/libpthread.abilist
 @@ -216,6 +216,9 @@ GLIBC_2.2.3 GLIBC_2.2.3 A
  GLIBC_2.2.3 pthread_getattr_np F
  GLIBC_2.2.6 GLIBC_2.2.6 A
  GLIBC_2.2.6 __nanosleep F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
  GLIBC_2.3.2 GLIBC_2.3.2 A
  GLIBC_2.3.2 pthread_cond_broadcast F
  GLIBC_2.3.2 pthread_cond_destroy F
 diff --git a/sysdeps/unix/sysv/linux/sparc/sparc64/libpthread.abilist b/sysdeps/unix/sysv/linux/sparc/sparc64/libpthread.abilist
-index d4c8ded..823c358 100644
+index d4c8dedd6c..6d169ef73c 100644
 --- a/sysdeps/unix/sysv/linux/sparc/sparc64/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/sparc/sparc64/libpthread.abilist
 @@ -204,6 +204,9 @@ GLIBC_2.2.3 GLIBC_2.2.3 A
  GLIBC_2.2.3 pthread_getattr_np F
  GLIBC_2.2.6 GLIBC_2.2.6 A
  GLIBC_2.2.6 __nanosleep F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
  GLIBC_2.3.2 GLIBC_2.3.2 A
  GLIBC_2.3.2 pthread_cond_broadcast F
  GLIBC_2.3.2 pthread_cond_destroy F
 diff --git a/sysdeps/unix/sysv/linux/tile/tilegx/tilegx32/libpthread.abilist b/sysdeps/unix/sysv/linux/tile/tilegx/tilegx32/libpthread.abilist
-index d16158f..1bd354e 100644
+index d16158f938..0b06a078c2 100644
 --- a/sysdeps/unix/sysv/linux/tile/tilegx/tilegx32/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/tile/tilegx/tilegx32/libpthread.abilist
 @@ -224,3 +224,6 @@ GLIBC_2.12 write F
  GLIBC_2.18 GLIBC_2.18 A
  GLIBC_2.18 pthread_getattr_default_np F
  GLIBC_2.18 pthread_setattr_default_np F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
 diff --git a/sysdeps/unix/sysv/linux/tile/tilegx/tilegx64/libpthread.abilist b/sysdeps/unix/sysv/linux/tile/tilegx/tilegx64/libpthread.abilist
-index d16158f..1bd354e 100644
+index d16158f938..0b06a078c2 100644
 --- a/sysdeps/unix/sysv/linux/tile/tilegx/tilegx64/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/tile/tilegx/tilegx64/libpthread.abilist
 @@ -224,3 +224,6 @@ GLIBC_2.12 write F
  GLIBC_2.18 GLIBC_2.18 A
  GLIBC_2.18 pthread_getattr_default_np F
  GLIBC_2.18 pthread_setattr_default_np F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
 diff --git a/sysdeps/unix/sysv/linux/tile/tilepro/libpthread.abilist b/sysdeps/unix/sysv/linux/tile/tilepro/libpthread.abilist
-index d16158f..1bd354e 100644
+index d16158f938..0b06a078c2 100644
 --- a/sysdeps/unix/sysv/linux/tile/tilepro/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/tile/tilepro/libpthread.abilist
 @@ -224,3 +224,6 @@ GLIBC_2.12 write F
  GLIBC_2.18 GLIBC_2.18 A
  GLIBC_2.18 pthread_getattr_default_np F
  GLIBC_2.18 pthread_setattr_default_np F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
 diff --git a/sysdeps/unix/sysv/linux/x86_64/64/libpthread.abilist b/sysdeps/unix/sysv/linux/x86_64/64/libpthread.abilist
-index 85365c0..11a18fe 100644
+index 85365c057c..f76226effa 100644
 --- a/sysdeps/unix/sysv/linux/x86_64/64/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/x86_64/64/libpthread.abilist
 @@ -203,6 +203,9 @@ GLIBC_2.2.5 waitpid F
  GLIBC_2.2.5 write F
  GLIBC_2.2.6 GLIBC_2.2.6 A
  GLIBC_2.2.6 __nanosleep F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
  GLIBC_2.3.2 GLIBC_2.3.2 A
  GLIBC_2.3.2 pthread_cond_broadcast F
  GLIBC_2.3.2 pthread_cond_destroy F
 diff --git a/sysdeps/unix/sysv/linux/x86_64/x32/libpthread.abilist b/sysdeps/unix/sysv/linux/x86_64/x32/libpthread.abilist
-index 6cd0fc3..92e6ff1 100644
+index 6cd0fc3487..5c6d6113bc 100644
 --- a/sysdeps/unix/sysv/linux/x86_64/x32/libpthread.abilist
 +++ b/sysdeps/unix/sysv/linux/x86_64/x32/libpthread.abilist
 @@ -224,3 +224,6 @@ GLIBC_2.16 write F
  GLIBC_2.18 GLIBC_2.18 A
  GLIBC_2.18 pthread_getattr_default_np F
  GLIBC_2.18 pthread_setattr_default_np F
-+GLIBC_2.23 GLIBC_2.23 A
-+GLIBC_2.23 pthread_condattr_getprotocol_np F
-+GLIBC_2.23 pthread_condattr_setprotocol_np F
++GLIBC_2.24 GLIBC_2.24 A
++GLIBC_2.24 pthread_condattr_getprotocol_np F
++GLIBC_2.24 pthread_condattr_setprotocol_np F
 -- 
-2.8.2
+2.13.1
 

@@ -1,4 +1,4 @@
-From e5b9ddbd010446019bdeb63ad0b63e644af14ec6 Mon Sep 17 00:00:00 2001
+From e48094d9be6d4609af86a2f1e67db35b65179bdc Mon Sep 17 00:00:00 2001
 From: Gratian Crisan <gratian.crisan@ni.com>
 Date: Wed, 16 Oct 2013 15:21:34 -0500
 Subject: [PATCH 2/5] pi-condvars: add tst-condpi1.c, basic API test
@@ -16,10 +16,10 @@ Signed-off-by: Gratian Crisan <gratian.crisan@ni.com>
  create mode 100644 nptl/tst-condpi1.c
 
 diff --git a/nptl/Makefile b/nptl/Makefile
-index d4f6950..1aaccf6 100644
+index ef85c23f21..132ce20978 100644
 --- a/nptl/Makefile
 +++ b/nptl/Makefile
-@@ -230,6 +230,7 @@ tests = tst-typesizes \
+@@ -231,6 +231,7 @@ tests = tst-typesizes \
  	tst-cond14 tst-cond15 tst-cond16 tst-cond17 tst-cond18 tst-cond19 \
  	tst-cond20 tst-cond21 tst-cond22 tst-cond23 tst-cond24 tst-cond25 \
  	tst-cond-except \
@@ -29,7 +29,7 @@ index d4f6950..1aaccf6 100644
  	tst-robustpi1 tst-robustpi2 tst-robustpi3 tst-robustpi4 tst-robustpi5 \
 diff --git a/nptl/tst-condpi1.c b/nptl/tst-condpi1.c
 new file mode 100644
-index 0000000..078c80f
+index 0000000000..078c80f3dc
 --- /dev/null
 +++ b/nptl/tst-condpi1.c
 @@ -0,0 +1,121 @@
@@ -155,5 +155,5 @@ index 0000000..078c80f
 +#define TEST_FUNCTION do_test ()
 +#include "../test-skeleton.c"
 -- 
-2.8.2
+2.13.1
 
