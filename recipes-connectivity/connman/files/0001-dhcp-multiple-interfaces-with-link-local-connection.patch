@@ -1,0 +1,79 @@
+From 8903fa0abed87bc3068d4b374f241a5a7d6c5077 Mon Sep 17 00:00:00 2001
+From: Heghedus Razvan <razvan.heghedus@ni.com>
+Date: Fri, 23 Jun 2017 14:27:35 +0300
+Subject: [PATCH] dhcp: multiple interfaces with link-local connection
+
+By default connman limits the link-local connection to a single
+interface, meaning that we can't have multiple interfaces connected to
+link-local networks.
+This allows connman to have multiple link-local connections.
+
+Upstream-Status: Backport [4e6c54737d7449 on master]
+
+---
+ src/dhcp.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/src/dhcp.c b/src/dhcp.c
+index e4497fcc..63d60fbe 100644
+--- a/src/dhcp.c
++++ b/src/dhcp.c
+@@ -54,10 +54,11 @@ struct connman_dhcp {
+ 	GDHCPClient *dhcp_client;
+ 	char *ipv4ll_debug_prefix;
+ 	char *dhcp_debug_prefix;
++
++	bool ipv4ll_running;
+ };
+ 
+ static GHashTable *ipconfig_table;
+-static bool ipv4ll_running;
+ 
+ static void dhcp_free(struct connman_dhcp *dhcp)
+ {
+@@ -80,7 +81,7 @@ static void ipv4ll_stop_client(struct connman_dhcp *dhcp)
+ 	g_dhcp_client_stop(dhcp->ipv4ll_client);
+ 	g_dhcp_client_unref(dhcp->ipv4ll_client);
+ 	dhcp->ipv4ll_client = NULL;
+-	ipv4ll_running = false;
++	dhcp->ipv4ll_running = false;
+ 
+ 	g_free(dhcp->ipv4ll_debug_prefix);
+ 	dhcp->ipv4ll_debug_prefix = NULL;
+@@ -223,7 +224,7 @@ static int ipv4ll_start_client(struct connman_dhcp *dhcp)
+ 		return err;
+ 	}
+ 
+-	ipv4ll_running = true;
++	dhcp->ipv4ll_running = true;
+ 	return 0;
+ }
+ 
+@@ -244,13 +245,13 @@ static void no_lease_cb(GDHCPClient *dhcp_client, gpointer user_data)
+ 	struct connman_dhcp *dhcp = user_data;
+ 	int err;
+ 
+-	DBG("No lease available ipv4ll %d client %p", ipv4ll_running,
++	DBG("No lease available ipv4ll %d client %p", dhcp->ipv4ll_running,
+ 		dhcp->ipv4ll_client);
+ 
+ 	dhcp->timeout = g_timeout_add_seconds(RATE_LIMIT_INTERVAL,
+ 						dhcp_retry_cb,
+ 						dhcp);
+-	if (ipv4ll_running)
++	if (dhcp->ipv4ll_running)
+ 		return;
+ 
+ 	err = ipv4ll_start_client(dhcp);
+@@ -258,7 +259,7 @@ static void no_lease_cb(GDHCPClient *dhcp_client, gpointer user_data)
+ 		DBG("Cannot start ipv4ll client (%d/%s)", err, strerror(-err));
+ 
+ 	/* Only notify upper layer if we have a problem */
+-	dhcp_invalidate(dhcp, !ipv4ll_running);
++	dhcp_invalidate(dhcp, !dhcp->ipv4ll_running);
+ }
+ 
+ static void lease_lost_cb(GDHCPClient *dhcp_client, gpointer user_data)
+-- 
+2.13.1
+

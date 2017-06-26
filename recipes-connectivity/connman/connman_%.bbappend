@@ -5,6 +5,7 @@ SRC_URI += " \
 	file://0002-service-implement-AlwaysConnectedTechnologies-option.patch \
 	file://0003-service-abstract-the-more-complex-autoconnect-condit.patch \
 	file://0004-main.conf-document-AlwaysConnectedTechnologies-optio.patch \
+	file://0001-dhcp-multiple-interfaces-with-link-local-connection.patch \
 	file://main.conf \
 "
 
