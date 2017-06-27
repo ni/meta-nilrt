@@ -79,6 +79,7 @@ RDEPENDS_${PN}_append_x64 += "\
 PG_NI_BASE_ARM_ADDS = "\
 	mtd-utils \
 	u-boot-fw-utils \
+	kernel-devicetree \
 "
 
 RDEPENDS_${PN}_append_xilinx-zynqhf += "\
