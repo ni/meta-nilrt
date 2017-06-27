@@ -26,6 +26,7 @@ ALL_DISTRO_x64_PACKAGES = "\
 
 NILRT_NXG_ARM_PACKAGES = "\
 	u-boot-fw-utils \
+	kernel-devicetree \
 "
 
 NILRT_NXG_x64_PACKAGES = "\
