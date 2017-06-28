@@ -89,6 +89,7 @@ RDEPENDS_${PN}_append_xilinx-zynqhf += "\
 RDEPENDS_${PN}_append_n310 = "\
 	${PG_NI_BASE_ARM_ADDS} \
 	e2fsprogs-resize2fs \
+	parted \
 "
 
 RRECOMMENDS_${PN} = "\
