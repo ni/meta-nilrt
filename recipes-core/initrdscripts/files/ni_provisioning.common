@@ -43,7 +43,8 @@ if [ "$ARCH" = "armv7l" ]; then
         mkdir -p $NIRESTORE_MOUNTPOINT
         MOUNT_ERROR=`mount -t ubifs ubi1:rootfs $NILRT_MOUNTPOINT` || die "$MOUNT_ERROR"
         echo "Deploying minimal image..."
-        TAR_ERROR=`tar -xjf /payload/factory-image.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1` || die "$TAR_ERROR"
+        # NOTE: `--numeric-owner` option: always use numbers for user/group names (ignore symbolic names)
+        TAR_ERROR="`tar -x -j --numeric-owner -f /payload/factory-image.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1`" || die "$TAR_ERROR"
         cp /payload/*.scr $NILRT_MOUNTPOINT/boot/
         ln -sf $NILRT_MOUNTPOINT/boot/uImage-* /boot/uImage
         MOUNT_ERROR=`mount -t ubifs ubi0:bootfs $NIRESTORE_MOUNTPOINT` || die "$MOUNT_ERROR"
@@ -108,8 +109,9 @@ if [ "$ARCH" = "armv7l" ]; then
             mkdir -p $DEVCFG_PATH/cfg-contents
             mkdir -p $DEVCFG_PATH/cfg-contents/bitfiles-contents
 
-            tar -xf $DEVCFG_PATH/*.cfg -C $DEVCFG_PATH/cfg-contents || die "Could not extract cfg from $NILRT_MOUNTPOINT/$NON_HEX_DEV_CODE"
-            tar -xf $DEVCFG_PATH/cfg-contents/bitfiles.tgz -C $DEVCFG_PATH/cfg-contents/bitfiles-contents || die "Could not extract bitfiles.tgz"
+            # NOTE: `--no-same-owner` option: extract files as current user (default for ordinary users)
+            tar -x --no-same-owner -f $DEVCFG_PATH/*.cfg -C $DEVCFG_PATH/cfg-contents/ || die "Could not extract cfg from $NILRT_MOUNTPOINT/$NON_HEX_DEV_CODE"
+            tar -x --no-same-owner -f $DEVCFG_PATH/cfg-contents/bitfiles.tgz -C $DEVCFG_PATH/cfg-contents/bitfiles-contents/ || die "Could not extract bitfiles.tgz"
 
             cp $DEVCFG_PATH/cfg-contents/linux_safemode.itb $NIRESTORE_MOUNTPOINT/.safe/linux_safemode.itb || die "linux_safemode.itb not found"
 
@@ -166,7 +168,9 @@ EOF
         mkdir $NILRT_MOUNTPOINT -p
         NILRT_ERROR=`mount -L $NILRT_LABEL $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
         echo "Deploying minimal image..."
-        TAR_ERROR=`tar -xjf /payload/factory-image.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1` || die "$TAR_ERROR"
+
+        # NOTE: `--numeric-owner` option: always use numbers for user/group names (ignore symbolic names)
+        TAR_ERROR="`tar -x -j --numeric-owner -f /payload/factory-image.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1`" || die "$TAR_ERROR"
 
         sync
         umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
