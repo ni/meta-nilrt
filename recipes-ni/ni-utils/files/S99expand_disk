@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# This is a one-shot script that will expand the rootfs on
+# SD card-based installs of NI Linux RT (on ext[234] filesystems)
+#
+# No need for traditional sysvinit type handling here...
+
+set -e
+
+ROOT_PART=$(sed 's/^.*root=\([^ \t]*\).*/\1/' /proc/cmdline)
+ROOT_DEVICE=${ROOT_PART%p*}
+ROOT_PARTNO=${ROOT_PART##*${ROOT_DEVICE}p}
+
+PART_START=$(fdisk -l ${ROOT_DEVICE} | grep ^${ROOT_PART} | awk '{print $2}')
+
+echo -n "Expanding rootfs..."
+
+fdisk ${ROOT_DEVICE} <<EOF 1>/dev/null 2>&1 || :
+p
+d
+${ROOT_PARTNO}
+n
+p
+${ROOT_PARTNO}
+${PART_START}
+
+p
+w
+EOF
+
+partprobe > /dev/null
+
+resize2fs ${ROOT_PART} > /dev/null
+
+rm -f $0
+
+echo " done"
