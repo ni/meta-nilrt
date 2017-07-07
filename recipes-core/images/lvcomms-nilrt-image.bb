@@ -35,4 +35,5 @@ IMAGE_INSTALL_NODEPS_remove_armv7a += " \
 
 IMAGE_INSTALL_append_n310 += " \
     u-boot \
+    expand-disk \
 "
