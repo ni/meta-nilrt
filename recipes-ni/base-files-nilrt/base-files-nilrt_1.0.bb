@@ -22,15 +22,17 @@ PACKAGES = "${PN}-dbg ${PN}-staticdev ${PN}-dev ${PN} ${PN}-doc ${PN}-locale"
 FILES_${PN} += "README_File_Paths.txt \
 		README_File_Transfer.txt \
 		/usr/share/doc/LICENSES \
-		/usr/lib/${TARGET_ARCH}-linux-gnu${ABIEXTENSION} \
+		/usr/lib/${TARGET_ARCH}-linux-gnu${ARCH_ABI_EXT} \
 		/etc/ld.so.conf.d/multiarch_libs.conf \
 "
 
 S = "${WORKDIR}"
 
+ARCH_ABI_EXT="${ABIEXTENSION}${@base_contains('TUNE_FEATURES','callconvention-hard','hf','',d)}"
+
 do_install () {
 	install -d -m 0755 ${D}${sysconfdir}/natinst/share/
-	
+
 	# README's
 	install -m 0644 ${WORKDIR}/README_File_Paths.txt ${D}
 	install -m 0644 ${WORKDIR}/README_File_Transfer.txt ${D}
@@ -45,14 +47,14 @@ do_install () {
 
 	# Create multiarch installation directory and write proper path to
 	# multiarch.conf
-	install -d ${D}/usr/lib/${TARGET_ARCH}-linux-gnu${ABIEXTENSION}
+	install -d ${D}/usr/lib/${TARGET_ARCH}-linux-gnu${ARCH_ABI_EXT}
 
 	# ld.so.conf includes the directory /etc/ld.so.conf.d, a standard
 	# practice in linux distros, adding extra files to map our directories
 	install -d ${D}${sysconfdir}/ld.so.conf.d/
 	install -m 0644 ${WORKDIR}/natinst_libs.conf ${D}${sysconfdir}/ld.so.conf.d/
 	install -m 0644 ${WORKDIR}/local_libs.conf ${D}${sysconfdir}/ld.so.conf.d/
-	echo /usr/lib/${TARGET_ARCH}-linux-gnu${ABIEXTENSION} > ${D}${sysconfdir}/ld.so.conf.d/multiarch_libs.conf
+	echo /usr/lib/${TARGET_ARCH}-linux-gnu${ARCH_ABI_EXT} > ${D}${sysconfdir}/ld.so.conf.d/multiarch_libs.conf
 
 	install -d ${D}${sysconfdir}/profile.d/
 
