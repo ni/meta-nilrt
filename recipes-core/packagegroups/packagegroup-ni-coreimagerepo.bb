@@ -22,3 +22,8 @@ RDEPENDS_${PN} = "\
 RDEPENDS_${PN}_append_x64 = "\
 	packagegroup-ni-xfce \
 "
+
+RDEPENDS_${PN}_append_n310 = "\
+	u-boot \
+	expand-disk \
+"
