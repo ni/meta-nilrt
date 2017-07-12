@@ -1,4 +1,4 @@
-From 4b9105ea9325e3e447a3350c271afa04a08f25cc Mon Sep 17 00:00:00 2001
+From 2d12fa6b097167fdc158f30edfbcadb53c85eb15 Mon Sep 17 00:00:00 2001
 From: Haris Okanovic <haris.okanovic@ni.com>
 Date: Mon, 21 Jul 2014 09:23:45 -0500
 Subject: [PATCH] Decorate API functions on Windows with __cdecl
@@ -14,10 +14,10 @@ Upstream-Status: Pending [Needs clean-up]
  3 files changed, 81 insertions(+), 77 deletions(-)
 
 diff --git a/include/curl/curl.h b/include/curl/curl.h
-index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054b04c7799 100644
+index 467bb0240..5f68a505c 100644
 --- a/include/curl/curl.h
 +++ b/include/curl/curl.h
-@@ -96,6 +96,12 @@ typedef void CURL;
+@@ -107,6 +107,12 @@ typedef void CURLSH;
   * libcurl external API function linkage decorations.
   */
  
@@ -30,7 +30,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
  #ifdef CURL_STATICLIB
  #  define CURL_EXTERN
  #elif defined(WIN32) || defined(_WIN32) || defined(__SYMBIAN32__)
-@@ -158,7 +164,7 @@ struct curl_httppost {
+@@ -179,7 +185,7 @@ struct curl_httppost {
  
  /* This is the CURLOPT_PROGRESSFUNCTION callback proto. It is now considered
     deprecated but was the only choice up until 7.31.0 */
@@ -39,7 +39,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
                                        double dltotal,
                                        double dlnow,
                                        double ultotal,
-@@ -166,7 +172,7 @@ typedef int (*curl_progress_callback)(void *clientp,
+@@ -187,7 +193,7 @@ typedef int (*curl_progress_callback)(void *clientp,
  
  /* This is the CURLOPT_XFERINFOFUNCTION callback proto. It was introduced in
     7.32.0, it avoids floating point and provides more detailed information. */
@@ -48,7 +48,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
                                        curl_off_t dltotal,
                                        curl_off_t dlnow,
                                        curl_off_t ultotal,
-@@ -192,8 +198,7 @@ typedef int (*curl_xferinfo_callback)(void *clientp,
+@@ -218,8 +224,7 @@ typedef int (*curl_xferinfo_callback)(void *clientp,
  /* This is a magic return code for the write callback that, when returned,
     will signal libcurl to pause receiving on the current transfer. */
  #define CURL_WRITEFUNC_PAUSE 0x10000001
@@ -58,7 +58,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
                                        size_t size,
                                        size_t nitems,
                                        void *outstream);
-@@ -262,7 +267,7 @@ struct curl_fileinfo {
+@@ -288,7 +293,7 @@ struct curl_fileinfo {
  /* if splitting of data transfer is enabled, this callback is called before
     download of an individual chunk started. Note that parameter "remains" works
     only for FTP wildcard downloading (for now), otherwise is not used */
@@ -67,7 +67,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
                                          void *ptr,
                                          int remains);
  
-@@ -276,7 +281,7 @@ typedef long (*curl_chunk_bgn_callback)(const void *transfer_info,
+@@ -302,7 +307,7 @@ typedef long (*curl_chunk_bgn_callback)(const void *transfer_info,
     Even if downloading of this chunk was skipped in CHUNK_BGN_FUNC.
     This is the reason why we don't need "transfer_info" parameter in this
     callback and we are not interested in "remains" parameter too. */
@@ -76,7 +76,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
  
  /* return codes for FNMATCHFUNCTION */
  #define CURL_FNMATCHFUNC_MATCH    0 /* string corresponds to the pattern */
-@@ -285,7 +290,7 @@ typedef long (*curl_chunk_end_callback)(void *ptr);
+@@ -311,7 +316,7 @@ typedef long (*curl_chunk_end_callback)(void *ptr);
  
  /* callback type for wildcard downloading pattern matching. If the
     string matches the pattern, return CURL_FNMATCHFUNC_MATCH value, etc. */
@@ -85,7 +85,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
                                       const char *pattern,
                                       const char *string);
  
-@@ -294,7 +299,7 @@ typedef int (*curl_fnmatch_callback)(void *ptr,
+@@ -320,7 +325,7 @@ typedef int (*curl_fnmatch_callback)(void *ptr,
  #define CURL_SEEKFUNC_FAIL     1 /* fail the entire transfer */
  #define CURL_SEEKFUNC_CANTSEEK 2 /* tell libcurl seeking can't be done, so
                                      libcurl might try other means instead */
@@ -94,7 +94,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
                                    curl_off_t offset,
                                    int origin); /* 'whence' */
  
-@@ -305,7 +310,7 @@ typedef int (*curl_seek_callback)(void *instream,
+@@ -331,7 +336,7 @@ typedef int (*curl_seek_callback)(void *instream,
     signal libcurl to pause sending data on the current transfer. */
  #define CURL_READFUNC_PAUSE 0x10000001
  
@@ -103,7 +103,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
                                        size_t size,
                                        size_t nitems,
                                        void *instream);
-@@ -323,7 +328,7 @@ typedef enum  {
+@@ -349,7 +354,7 @@ typedef enum  {
                                  CURLE_ABORTED_BY_CALLBACK */
  #define CURL_SOCKOPT_ALREADY_CONNECTED 2
  
@@ -112,7 +112,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
                                       curl_socket_t curlfd,
                                       curlsocktype purpose);
  
-@@ -338,12 +343,12 @@ struct curl_sockaddr {
+@@ -364,12 +369,12 @@ struct curl_sockaddr {
  };
  
  typedef curl_socket_t
@@ -127,7 +127,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
  
  typedef enum {
    CURLIOE_OK,            /* I/O operation successful */
-@@ -358,7 +363,7 @@ typedef enum  {
+@@ -384,7 +389,7 @@ typedef enum  {
    CURLIOCMD_LAST         /* never use */
  } curliocmd;
  
@@ -136,7 +136,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
                                           int cmd,
                                           void *clientp);
  
-@@ -368,11 +373,11 @@ typedef curlioerr (*curl_ioctl_callback)(CURL *handle,
+@@ -395,11 +400,11 @@ typedef curlioerr (*curl_ioctl_callback)(CURL *handle,
   * curl_global_init_mem() function to set user defined memory management
   * callback routines.
   */
@@ -151,9 +151,9 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
 +typedef char *(CURL_FUNCC * curl_strdup_callback)(const char *str);
 +typedef void *(CURL_FUNCC * curl_calloc_callback)(size_t nmemb, size_t size);
  
- /* the kind of data that is passed to information_callback*/
- typedef enum {
-@@ -386,7 +391,7 @@ typedef enum {
+ #define CURL_DID_MEMORY_FUNC_TYPEDEFS
+ #endif
+@@ -416,7 +421,7 @@ typedef enum {
    CURLINFO_END
  } curl_infotype;
  
@@ -162,7 +162,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
         (CURL *handle,      /* the handle/transfer this concerns */
          curl_infotype type, /* what kind of data */
          char *data,        /* points to the data */
-@@ -599,9 +604,9 @@ typedef enum {
+@@ -633,9 +638,9 @@ typedef enum {
  #endif /*!CURL_NO_OLDIES*/
  
  /* This prototype applies to all conversion callbacks */
@@ -174,7 +174,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
                                            void *ssl_ctx, /* actually an
                                                              OpenSSL SSL_CTX */
                                            void *userptr);
-@@ -700,7 +705,7 @@ enum curl_khmatch {
+@@ -735,7 +740,7 @@ enum curl_khmatch {
  };
  
  typedef int
@@ -183,10 +183,10 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
                            const struct curl_khkey *knownkey, /* known */
                            const struct curl_khkey *foundkey, /* found */
                            enum curl_khmatch, /* libcurl's view on the keys */
-@@ -1750,8 +1755,8 @@ typedef enum {
+@@ -1918,8 +1923,8 @@ typedef enum {
  
- /* curl_strequal() and curl_strnequal() are subject for removal in a future
-    libcurl, see lib/README.curlx for details */
+    !checksrc! disable SPACEBEFOREPAREN 2
+ */
 -CURL_EXTERN int (curl_strequal)(const char *s1, const char *s2);
 -CURL_EXTERN int (curl_strnequal)(const char *s1, const char *s2, size_t n);
 +CURL_EXTERN int (CURL_FUNCC curl_strequal)(const char *s1, const char *s2);
@@ -194,7 +194,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
  
  /* name is uppercase CURLFORM_<name> */
  #ifdef CFINIT
-@@ -1842,7 +1847,7 @@ typedef enum {
+@@ -2011,7 +2016,7 @@ typedef enum {
   * adds one part that together construct a full post. Then use
   * CURLOPT_HTTPPOST to send it off to libcurl.
   */
@@ -203,7 +203,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
                                        struct curl_httppost **last_post,
                                        ...);
  
-@@ -1854,8 +1859,7 @@ CURL_EXTERN CURLFORMcode curl_formadd(struct curl_httppost **httppost,
+@@ -2023,8 +2028,7 @@ CURL_EXTERN CURLFORMcode curl_formadd(struct curl_httppost **httppost,
   * Should return the buffer length passed to it as the argument "len" on
   *   success.
   */
@@ -213,7 +213,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
  
  /*
   * NAME curl_formget()
-@@ -1867,7 +1871,7 @@ typedef size_t (*curl_formget_callback)(void *arg, const char *buf,
+@@ -2036,7 +2040,7 @@ typedef size_t (*curl_formget_callback)(void *arg, const char *buf,
   * the curl_formget_callback function.
   * Returns 0 on success.
   */
@@ -222,7 +222,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
                               curl_formget_callback append);
  /*
   * NAME curl_formfree()
-@@ -1876,7 +1880,7 @@ CURL_EXTERN int curl_formget(struct curl_httppost *form, void *arg,
+@@ -2045,7 +2049,7 @@ CURL_EXTERN int curl_formget(struct curl_httppost *form, void *arg,
   *
   * Free a multipart formpost previously built with curl_formadd().
   */
@@ -231,7 +231,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
  
  /*
   * NAME curl_getenv()
-@@ -1886,7 +1890,7 @@ CURL_EXTERN void curl_formfree(struct curl_httppost *form);
+@@ -2055,7 +2059,7 @@ CURL_EXTERN void curl_formfree(struct curl_httppost *form);
   * Returns a malloc()'ed string that MUST be curl_free()ed after usage is
   * complete. DEPRECATED - see lib/README.curlx
   */
@@ -240,7 +240,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
  
  /*
   * NAME curl_version()
-@@ -1895,7 +1899,7 @@ CURL_EXTERN char *curl_getenv(const char *variable);
+@@ -2064,7 +2068,7 @@ CURL_EXTERN char *curl_getenv(const char *variable);
   *
   * Returns a static ascii string of the libcurl version.
   */
@@ -249,7 +249,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
  
  /*
   * NAME curl_easy_escape()
-@@ -1906,12 +1910,12 @@ CURL_EXTERN char *curl_version(void);
+@@ -2075,12 +2079,12 @@ CURL_EXTERN char *curl_version(void);
   * %XX versions). This function returns a new allocated string or NULL if an
   * error occurred.
   */
@@ -264,7 +264,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
                                int length);
  
  
-@@ -1926,13 +1930,13 @@ CURL_EXTERN char *curl_escape(const char *string,
+@@ -2095,13 +2099,13 @@ CURL_EXTERN char *curl_escape(const char *string,
   * Conversion Note: On non-ASCII platforms the ASCII %XX codes are
   * converted into the host encoding.
   */
@@ -280,7 +280,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
                                  int length);
  
  /*
-@@ -1943,7 +1947,7 @@ CURL_EXTERN char *curl_unescape(const char *string,
+@@ -2112,7 +2116,7 @@ CURL_EXTERN char *curl_unescape(const char *string,
   * Provided for de-allocation in the same translation unit that did the
   * allocation. Added in libcurl 7.10
   */
@@ -289,7 +289,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
  
  /*
   * NAME curl_global_init()
-@@ -1955,7 +1959,7 @@ CURL_EXTERN void curl_free(void *p);
+@@ -2124,7 +2128,7 @@ CURL_EXTERN void curl_free(void *p);
   *
   * This function is not thread-safe!
   */
@@ -298,7 +298,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
  
  /*
   * NAME curl_global_init_mem()
-@@ -1970,7 +1974,7 @@ CURL_EXTERN CURLcode curl_global_init(long flags);
+@@ -2139,7 +2143,7 @@ CURL_EXTERN CURLcode curl_global_init(long flags);
   * callback routines with be invoked by this library instead of the system
   * memory management routines like malloc, free etc.
   */
@@ -307,7 +307,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
                                            curl_malloc_callback m,
                                            curl_free_callback f,
                                            curl_realloc_callback r,
-@@ -1985,7 +1989,7 @@ CURL_EXTERN CURLcode curl_global_init_mem(long flags,
+@@ -2154,7 +2158,7 @@ CURL_EXTERN CURLcode curl_global_init_mem(long flags,
   * curl_global_cleanup() should be invoked exactly once for each application
   * that uses libcurl
   */
@@ -316,7 +316,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
  
  /* linked-list structure for the CURLOPT_QUOTE option (and other) */
  struct curl_slist {
-@@ -2001,7 +2005,7 @@ struct curl_slist {
+@@ -2170,7 +2174,7 @@ struct curl_slist {
   * Appends a string to a linked list. If no list exists, it will be created
   * first. Returns the new list, after appending.
   */
@@ -325,7 +325,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
                                                   const char *);
  
  /*
-@@ -2011,7 +2015,7 @@ CURL_EXTERN struct curl_slist *curl_slist_append(struct curl_slist *,
+@@ -2180,7 +2184,7 @@ CURL_EXTERN struct curl_slist *curl_slist_append(struct curl_slist *,
   *
   * free a previously built curl_slist.
   */
@@ -334,7 +334,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
  
  /*
   * NAME curl_getdate()
-@@ -2022,7 +2026,7 @@ CURL_EXTERN void curl_slist_free_all(struct curl_slist *);
+@@ -2191,7 +2195,7 @@ CURL_EXTERN void curl_slist_free_all(struct curl_slist *);
   * the first argument. The time argument in the second parameter is unused
   * and should be set to NULL.
   */
@@ -343,7 +343,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
  
  /* info about the certificate chain, only for OpenSSL builds. Asked
     for with CURLOPT_CERTINFO / CURLINFO_CERTINFO */
-@@ -2164,11 +2168,11 @@ typedef enum {
+@@ -2346,11 +2350,11 @@ typedef enum {
    CURL_LOCK_ACCESS_LAST        /* never use */
  } curl_lock_access;
  
@@ -357,7 +357,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
                                       curl_lock_data data,
                                       void *userptr);
  
-@@ -2195,9 +2199,9 @@ typedef enum {
+@@ -2376,9 +2380,9 @@ typedef enum {
    CURLSHOPT_LAST  /* never use */
  } CURLSHoption;
  
@@ -370,7 +370,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
  
  /****************************************************************************
   * Structures for querying information about the curl library at runtime.
-@@ -2279,7 +2283,7 @@ typedef struct {
+@@ -2463,7 +2467,7 @@ typedef struct {
   * This function returns a pointer to a static copy of the version info
   * struct. See above.
   */
@@ -379,7 +379,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
  
  /*
   * NAME curl_easy_strerror()
-@@ -2290,7 +2294,7 @@ CURL_EXTERN curl_version_info_data *curl_version_info(CURLversion);
+@@ -2474,7 +2478,7 @@ CURL_EXTERN curl_version_info_data *curl_version_info(CURLversion);
   * into the equivalent human readable error string.  This is useful
   * for printing meaningful error messages.
   */
@@ -388,7 +388,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
  
  /*
   * NAME curl_share_strerror()
-@@ -2301,7 +2305,7 @@ CURL_EXTERN const char *curl_easy_strerror(CURLcode);
+@@ -2485,7 +2489,7 @@ CURL_EXTERN const char *curl_easy_strerror(CURLcode);
   * into the equivalent human readable error string.  This is useful
   * for printing meaningful error messages.
   */
@@ -397,7 +397,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
  
  /*
   * NAME curl_easy_pause()
-@@ -2312,7 +2316,7 @@ CURL_EXTERN const char *curl_share_strerror(CURLSHcode);
+@@ -2496,7 +2500,7 @@ CURL_EXTERN const char *curl_share_strerror(CURLSHcode);
   * state by setting the bitmask, use the convenience defines below.
   *
   */
@@ -407,7 +407,7 @@ index 44b1b7e39115f59d9e67decf9ccb3956058c1327..8aaa6f578f960876a57e62d42d28c054
  #define CURLPAUSE_RECV      (1<<0)
  #define CURLPAUSE_RECV_CONT (0)
 diff --git a/include/curl/easy.h b/include/curl/easy.h
-index c1e3e76096e3925821da279a2f2eae67ae61e0e8..75f0834236e290015e14aa4423afbeffec735b7f 100644
+index 752c5049f..eaa672263 100644
 --- a/include/curl/easy.h
 +++ b/include/curl/easy.h
 @@ -25,10 +25,10 @@
@@ -438,12 +438,12 @@ index c1e3e76096e3925821da279a2f2eae67ae61e0e8..75f0834236e290015e14aa4423afbeff
   * curl_easy_duphandle() for each new thread to avoid a series of identical
   * curl_easy_setopt() invokes in every thread.
   */
--CURL_EXTERN CURL* curl_easy_duphandle(CURL *curl);
-+CURL_EXTERN CURL* CURL_FUNCC curl_easy_duphandle(CURL *curl);
+-CURL_EXTERN CURL *curl_easy_duphandle(CURL *curl);
++CURL_EXTERN CURL *CURL_FUNCC curl_easy_duphandle(CURL *curl);
  
  /*
   * NAME curl_easy_reset()
-@@ -71,7 +71,7 @@ CURL_EXTERN CURL* curl_easy_duphandle(CURL *curl);
+@@ -71,7 +71,7 @@ CURL_EXTERN CURL *curl_easy_duphandle(CURL *curl);
   * It does keep: live connections, the Session ID cache, the DNS cache and the
   * cookies.
   */
@@ -471,10 +471,10 @@ index c1e3e76096e3925821da279a2f2eae67ae61e0e8..75f0834236e290015e14aa4423afbeff
  
  #ifdef  __cplusplus
 diff --git a/include/curl/multi.h b/include/curl/multi.h
-index 3c4acb0f6eafdedaa81bcd24af8f0b5353b5f304..45b9ab921266402d0c5d67d2c6641e5de544b4a1 100644
+index d1e00cc5d..cbd0f58f1 100644
 --- a/include/curl/multi.h
 +++ b/include/curl/multi.h
-@@ -111,7 +111,7 @@ struct curl_waitfd {
+@@ -120,7 +120,7 @@ struct curl_waitfd {
   *
   * Returns: a new CURLM handle to use in all 'curl_multi' functions.
   */
@@ -483,7 +483,7 @@ index 3c4acb0f6eafdedaa81bcd24af8f0b5353b5f304..45b9ab921266402d0c5d67d2c6641e5d
  
  /*
   * Name:    curl_multi_add_handle()
-@@ -120,7 +120,7 @@ CURL_EXTERN CURLM *curl_multi_init(void);
+@@ -129,7 +129,7 @@ CURL_EXTERN CURLM *curl_multi_init(void);
   *
   * Returns: CURLMcode type, general multi error code.
   */
@@ -492,7 +492,7 @@ index 3c4acb0f6eafdedaa81bcd24af8f0b5353b5f304..45b9ab921266402d0c5d67d2c6641e5d
                                              CURL *curl_handle);
  
   /*
-@@ -130,7 +130,7 @@ CURL_EXTERN CURLMcode curl_multi_add_handle(CURLM *multi_handle,
+@@ -139,7 +139,7 @@ CURL_EXTERN CURLMcode curl_multi_add_handle(CURLM *multi_handle,
    *
    * Returns: CURLMcode type, general multi error code.
    */
@@ -501,7 +501,7 @@ index 3c4acb0f6eafdedaa81bcd24af8f0b5353b5f304..45b9ab921266402d0c5d67d2c6641e5d
                                                 CURL *curl_handle);
  
   /*
-@@ -142,7 +142,7 @@ CURL_EXTERN CURLMcode curl_multi_remove_handle(CURLM *multi_handle,
+@@ -151,7 +151,7 @@ CURL_EXTERN CURLMcode curl_multi_remove_handle(CURLM *multi_handle,
    *
    * Returns: CURLMcode type, general multi error code.
    */
@@ -510,7 +510,7 @@ index 3c4acb0f6eafdedaa81bcd24af8f0b5353b5f304..45b9ab921266402d0c5d67d2c6641e5d
                                         fd_set *read_fd_set,
                                         fd_set *write_fd_set,
                                         fd_set *exc_fd_set,
-@@ -156,7 +156,7 @@ CURL_EXTERN CURLMcode curl_multi_fdset(CURLM *multi_handle,
+@@ -165,7 +165,7 @@ CURL_EXTERN CURLMcode curl_multi_fdset(CURLM *multi_handle,
   *
   * Returns:  CURLMcode type, general multi error code.
   */
@@ -519,7 +519,7 @@ index 3c4acb0f6eafdedaa81bcd24af8f0b5353b5f304..45b9ab921266402d0c5d67d2c6641e5d
                                        struct curl_waitfd extra_fds[],
                                        unsigned int extra_nfds,
                                        int timeout_ms,
-@@ -178,7 +178,7 @@ CURL_EXTERN CURLMcode curl_multi_wait(CURLM *multi_handle,
+@@ -187,7 +187,7 @@ CURL_EXTERN CURLMcode curl_multi_wait(CURLM *multi_handle,
    *          still have occurred problems on invidual transfers even when this
    *          returns OK.
    */
@@ -528,7 +528,7 @@ index 3c4acb0f6eafdedaa81bcd24af8f0b5353b5f304..45b9ab921266402d0c5d67d2c6641e5d
                                           int *running_handles);
  
   /*
-@@ -191,7 +191,7 @@ CURL_EXTERN CURLMcode curl_multi_perform(CURLM *multi_handle,
+@@ -200,7 +200,7 @@ CURL_EXTERN CURLMcode curl_multi_perform(CURLM *multi_handle,
    *
    * Returns: CURLMcode type, general multi error code.
    */
@@ -537,7 +537,7 @@ index 3c4acb0f6eafdedaa81bcd24af8f0b5353b5f304..45b9ab921266402d0c5d67d2c6641e5d
  
  /*
   * Name:    curl_multi_info_read()
-@@ -221,7 +221,7 @@ CURL_EXTERN CURLMcode curl_multi_cleanup(CURLM *multi_handle);
+@@ -230,7 +230,7 @@ CURL_EXTERN CURLMcode curl_multi_cleanup(CURLM *multi_handle);
   *          queue (after this read) in the integer the second argument points
   *          to.
   */
@@ -546,7 +546,7 @@ index 3c4acb0f6eafdedaa81bcd24af8f0b5353b5f304..45b9ab921266402d0c5d67d2c6641e5d
                                            int *msgs_in_queue);
  
  /*
-@@ -233,7 +233,7 @@ CURL_EXTERN CURLMsg *curl_multi_info_read(CURLM *multi_handle,
+@@ -242,7 +242,7 @@ CURL_EXTERN CURLMsg *curl_multi_info_read(CURLM *multi_handle,
   *
   * Returns: A pointer to a zero-terminated error message.
   */
@@ -555,7 +555,7 @@ index 3c4acb0f6eafdedaa81bcd24af8f0b5353b5f304..45b9ab921266402d0c5d67d2c6641e5d
  
  /*
   * Name:    curl_multi_socket() and
-@@ -256,7 +256,7 @@ CURL_EXTERN const char *curl_multi_strerror(CURLMcode);
+@@ -265,7 +265,7 @@ CURL_EXTERN const char *curl_multi_strerror(CURLMcode);
  #define CURL_CSELECT_OUT  0x02
  #define CURL_CSELECT_ERR  0x04
  
@@ -564,7 +564,7 @@ index 3c4acb0f6eafdedaa81bcd24af8f0b5353b5f304..45b9ab921266402d0c5d67d2c6641e5d
                                      curl_socket_t s, /* socket */
                                      int what,        /* see above */
                                      void *userp,     /* private callback
-@@ -273,20 +273,20 @@ typedef int (*curl_socket_callback)(CURL *easy,      /* easy handle */
+@@ -282,20 +282,20 @@ typedef int (*curl_socket_callback)(CURL *easy,      /* easy handle */
   *
   * Returns: The callback should return zero.
   */
@@ -589,7 +589,7 @@ index 3c4acb0f6eafdedaa81bcd24af8f0b5353b5f304..45b9ab921266402d0c5d67d2c6641e5d
                                              int *running_handles);
  
  #ifndef CURL_ALLOW_OLD_MULTI_SOCKET
-@@ -305,7 +305,7 @@ CURL_EXTERN CURLMcode curl_multi_socket_all(CURLM *multi_handle,
+@@ -314,7 +314,7 @@ CURL_EXTERN CURLMcode curl_multi_socket_all(CURLM *multi_handle,
   *
   * Returns: CURLM error code.
   */
@@ -598,7 +598,7 @@ index 3c4acb0f6eafdedaa81bcd24af8f0b5353b5f304..45b9ab921266402d0c5d67d2c6641e5d
                                           long *milliseconds);
  
  #undef CINIT /* re-using the same name as in curl.h */
-@@ -376,7 +376,7 @@ typedef enum {
+@@ -391,7 +391,7 @@ typedef enum {
   *
   * Returns: CURLM error code.
   */
@@ -607,7 +607,7 @@ index 3c4acb0f6eafdedaa81bcd24af8f0b5353b5f304..45b9ab921266402d0c5d67d2c6641e5d
                                          CURLMoption option, ...);
  
  
-@@ -389,7 +389,7 @@ CURL_EXTERN CURLMcode curl_multi_setopt(CURLM *multi_handle,
+@@ -404,7 +404,7 @@ CURL_EXTERN CURLMcode curl_multi_setopt(CURLM *multi_handle,
   *
   * Returns: CURLM error code.
   */
@@ -615,7 +615,7 @@ index 3c4acb0f6eafdedaa81bcd24af8f0b5353b5f304..45b9ab921266402d0c5d67d2c6641e5d
 +CURL_EXTERN CURLMcode CURL_FUNCC curl_multi_assign(CURLM *multi_handle,
                                          curl_socket_t sockfd, void *sockp);
  
- #ifdef __cplusplus
+ 
 -- 
-2.8.2
+2.14.1
 
