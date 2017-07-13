@@ -59,6 +59,7 @@ NILRT_NXG_PACKAGES = "\
 "
 
 NILRT_PACKAGES = "\
+	busybox-ifplugd \
 	cronie \
 	glibc-gconv-utf-16 \
 	gptfdisk-sgdisk \
