@@ -43,6 +43,12 @@ do_install() {
     # only for nilrt and nilrt-xfce
     if ${@base_conditional('DISTRO', 'nilrt-nxg', 'false', 'true', d)}; then
 	install -m 0755 ${WORKDIR}/hotplug.script      ${D}${sysconfdir}/udev/scripts/hotplug.script
+
+        cat >> ${D}${sysconfdir}/udev/rules.d/net-hotplug.rules << EOF
+
+SUBSYSTEM=="net", ENV{networking}!="done", ENV{skipped}="yes"
+SUBSYSTEM=="net", ENV{networking}=="done", ENV{skipped}="no", RUN+="/etc/udev/scripts/hotplug.script"
+EOF
     fi
 }
 
