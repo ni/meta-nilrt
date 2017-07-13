@@ -67,6 +67,7 @@ NILRT_PACKAGES = "\
 	libstdc++ \
 	logrotate \
 	niwatchdogpet \
+	openvpn \
 	pigz \
 	usbutils \
 	${@base_contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
