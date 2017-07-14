@@ -4,7 +4,7 @@ SRC_URI =+ "file://init.d/ptest-runner"
 
 FILES_${PN} += "${sysconfdir}/init.d/ptest-runner"
 
-RDEPENDS_${PN} += "bash"
+RDEPENDS_${PN} += "bash util-linux"
 
 inherit update-rc.d
 INITSCRIPT_NAME = "ptest-runner"

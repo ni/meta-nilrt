@@ -1,22 +1,36 @@
 #!/bin/bash
-# This script parses the kernel command line for a 'ptest' keyword and, if it
-# finds it, starts the ptest-runner test suite.
-#
-# Runlevels: 5
+### BEGIN INIT INFO
+# Provides:          ptest-runner
+# Required-Start:    $all
+# Required-Stop:
+# Default-Start:     5
+# Default-Stop:
+# Short-Description: Run NILRT ptests
+# Description:       Parses the kernel command line for a 'ptest' keyword and,
+#                    if it is found, starts the ptest-runner test suite and logs
+#                    output to /tmp.
+### END INIT INFO
 
 ARG_PTEST="ptest"
 CMD_PTEST="ptest-runner"
 MATCH_PTEST="\(\s\+\|^\)${ARG_PTEST}\($\|\s\+\)"
 
-if $(grep -q -e "${MATCH_PTEST}" /proc/cmdline); then
-	$CMD_PTEST 2>&1 | tee /tmp/${CMD_PTEST}.log
-	# sleep 2 seconds here as a workaround for salt-ptests
-	# For some reason, the "Overall Tests Report" at the end of the salt-ptests
-	# will squash some amount of console output (including our tokens), if we
-	# don't sleep here.
-	sleep 2
-fi
+case "$1" in
+	"" | "start" | "restart" | "force-reload")
+		if [ "$2" != "--force" ]; then
+			$(grep -q -e "${MATCH_PTEST}" /proc/cmdline) || exit 1
+		fi
 
-echo "<tchamber>PTEST RUN COMPLETE</tchamber>" > /dev/console
+		echo "<tchamber>PTEST RUN START</tchamber>" > /dev/console
+		script -c "$CMD_PTEST" --flush /tmp/${CMD_PTEST}.log
+		echo "<tchamber>PTEST RUN COMPLETE</tchamber>" > /dev/console
+		;;
+	"stop" | "status")
+		exit 3
+		;;
+	*)
+		exit 2
+		;;
+esac
 
 exit 0
