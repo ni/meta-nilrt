@@ -131,7 +131,6 @@ RDEPENDS_${PN} = "\
 # these packages are needed only on the n310 machine (not even all ARMs)
 RDEPENDS_${PN}_append_n310 = "\
 	e2fsprogs-resize2fs \
-	parted \
 "
 
 # for older NILRT these will automatically be removed because of the
