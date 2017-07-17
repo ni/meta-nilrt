@@ -5,6 +5,9 @@ LIC_FILES_CHKSUM_xilinx-zynqhf = "file://COPYING;md5=1707d6db1d42237583f50183a56
 
 SRC_URI = "\
         ${NILRT_GIT}/u-boot.git;protocol=git;branch=${UBOOT_BRANCH} \
+"
+
+SRC_URI_append_arm = "\
         file://fw_env-${MACHINE}.config \
 "
 
