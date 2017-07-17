@@ -14,6 +14,8 @@ IMAGE_INSTALL_NODEPS += " \
     niminionagent \
     ni-pxiplatformservices \
     ni-datacomms-lvinterface \
+    nitaglv \
+    ni-nwstreams \
     ni-flexrio \
     ni-usrp-rio \
     ni-sync \
@@ -26,6 +28,8 @@ IMAGE_INSTALL_NODEPS_remove_armv7a += " \
     niminionagent \
     ni-pxiplatformservices \
     ni-datacomms-lvinterface \
+    nitaglv \
+    ni-nwstreams \
     ni-flexrio \
     ni-usrp-rio \
     ni-sync \
