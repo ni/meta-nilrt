@@ -3,6 +3,9 @@ require recipes-kernel/linux/linux-yocto.inc
 
 machine_srcrev="${SRCREV}"
 
+# Set the version for traceability purposes
+LINUX_VERSION_EXTENSION = "$([ -z "${BUILD_IDENTIFIER}" ] || echo '-')${BUILD_IDENTIFIER}"
+
 # Setting EXTRA_OEMAKE to include CFLAGS settings is required as
 # the Kbuild system will clobber CC (which is used by OE for setting
 # the compiler and flags to the compiler/linker/etc.)

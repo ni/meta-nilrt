@@ -4,7 +4,6 @@ require linux-nilrt.inc
 
 NI_RELEASE_VERSION = "cardassia"
 LINUX_VERSION = "4.6"
-LINUX_VERSION_EXTENSION = "-nilrt"
 KBRANCH = "nilrt/${NI_RELEASE_VERSION}/${LINUX_VERSION}"
 KBRANCH_n310 = "dev/bmouring/nilrt/cardassia/${LINUX_VERSION}"
 
