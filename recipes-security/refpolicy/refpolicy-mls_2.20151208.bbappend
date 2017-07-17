@@ -1,1 +1,0 @@
-include refpolicy-ni.inc

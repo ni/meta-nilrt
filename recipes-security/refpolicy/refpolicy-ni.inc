@@ -4,6 +4,9 @@ SRC_URI = "${NILRT_GIT}/ni-refpolicy.git;branch=nilrt/17.0/krogoth \
            file://setrans-mcs.conf \
 "
 
-SRCREV = "722173ba7c1224b1f718ac89b5dcbc3e0795b48a"
+PV = "2.20140311+git${SRCPV}"
+SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
+
+DEFAULT_PREFERENCE = "1"
