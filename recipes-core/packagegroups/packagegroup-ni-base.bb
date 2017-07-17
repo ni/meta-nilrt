@@ -128,11 +128,6 @@ RDEPENDS_${PN} = "\
 		'${NILRT_PACKAGES}', d)} \
 "
 
-# these packages are needed only on the n310 machine (not even all ARMs)
-RDEPENDS_${PN}_append_n310 = "\
-	e2fsprogs-resize2fs \
-"
-
 # for older NILRT these will automatically be removed because of the
 # PACKAGE_REMOVE = kernel-* rule in niconsole-image.inc
 # TODO: We need to clean up this list and remove non-essentials, move
