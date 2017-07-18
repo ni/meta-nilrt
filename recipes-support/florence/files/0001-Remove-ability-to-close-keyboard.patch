@@ -1,13 +1,16 @@
-From 0f798f6d349d2794fd1971b4ef7f53dcd300e8d7 Mon Sep 17 00:00:00 2001
+From ea68a34fdfd708782d1868a816f0bd166103c504 Mon Sep 17 00:00:00 2001
 From: Jonathan David <jonathan.david@ni.com>
 Date: Fri, 18 Jul 2014 15:28:22 -0500
-Subject: [PATCH 6/8] Remove ability to close keyboard
+Subject: [PATCH 1/4] Remove ability to close keyboard
 
 Do not allow the user to exit Florence. If the user closes Florence
 and has no access to a physical keyboard, it may be possible that
 they cannot create a new instance of Florence. It is expected that
 the user would either have no need for a virtual keyboard or would
 know how to access Florence if a physical keyboard is attached.
+
+Signed-off-by: Jonathan David <jonathan.david@ni.com>
+Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
 ---
  data/layouts/compact-alt.xml.in.in  | 10 +++++-----
  data/layouts/compact.xml.in.in      | 10 +++++-----
@@ -134,7 +137,7 @@ index 32b6eb9..e935a88 100644
  		<ypos>3</ypos>
  	</key>
 diff --git a/data/layouts/mini.xml.in.in b/data/layouts/mini.xml.in.in
-index 0eae53c..f77663d 100644
+index f10fcee..24b74cb 100644
 --- a/data/layouts/mini.xml.in.in
 +++ b/data/layouts/mini.xml.in.in
 @@ -34,10 +34,6 @@
@@ -149,5 +152,5 @@ index 0eae53c..f77663d 100644
  		<ypos>1</ypos>
  	</key>
 -- 
-2.0.2
+2.13.2
 

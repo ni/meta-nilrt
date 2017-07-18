@@ -1,40 +1,43 @@
-From b1f5806e78c479b8a6d7badeab5207fe652c221f Mon Sep 17 00:00:00 2001
+From eda698131f7713b9ec7c6208f2784957d8e532fd Mon Sep 17 00:00:00 2001
 From: Jonathan David <jonathan.david@ni.com>
 Date: Fri, 18 Jul 2014 15:30:00 -0500
-Subject: [PATCH 7/8] Change layout of Florence settings
+Subject: [PATCH 2/4] Change layout of Florence settings
 
 Removes behavior tab and cancel button from the settings window of
 Florence. The user does not need to access any settings in the
 behavior tab, and doing so may result in enabling functionalities
 that confuse the user. The cancel button is not necessary and does
 not behave as expected.
+
+Signed-off-by: Jonathan David <jonathan.david@ni.com>
+Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
 ---
  data/florence.glade | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/data/florence.glade b/data/florence.glade
-index 4cbb81a..b5f7cce 100644
+index 843b8e3..c32914e 100644
 --- a/data/florence.glade
 +++ b/data/florence.glade
-@@ -507,7 +507,7 @@
+@@ -663,7 +663,7 @@
              </child>
              <child>
                <object class="GtkVBox" id="behaviour_ta">
 -                <property name="visible">True</property>
 +                <property name="visible">False</property>
+                 <property name="can_focus">False</property>
                  <property name="border_width">4</property>
-                 <property name="orientation">vertical</property>
                  <child>
-@@ -827,7 +827,7 @@
+@@ -1030,7 +1030,7 @@
                  <property name="position">0</property>
                </packing>
              </child>
 -            <child>
 +	    <!-- <child>
                <object class="GtkButton" id="flo_config_rollback">
-                 <property context="yes" name="label">gtk-cancel</property>
+                 <property name="label">gtk-cancel</property>
                  <property name="visible">True</property>
-@@ -841,7 +841,7 @@
+@@ -1046,7 +1046,7 @@
                  <property name="fill">False</property>
                  <property name="position">1</property>
                </packing>
@@ -42,7 +45,7 @@ index 4cbb81a..b5f7cce 100644
 +	    </child> -->
              <child>
                <object class="GtkButton" id="flo_config_commit">
-                 <property context="yes" name="label">gtk-apply</property>
+                 <property name="label">gtk-apply</property>
 -- 
-2.0.2
+2.13.2
 
