@@ -9,7 +9,7 @@ LINUX_VERSION_EXTENSION = "$([ -z "${BUILD_IDENTIFIER}" ] || echo '-')${BUILD_ID
 # Setting EXTRA_OEMAKE to include CFLAGS settings is required as
 # the Kbuild system will clobber CC (which is used by OE for setting
 # the compiler and flags to the compiler/linker/etc.)
-EXTRA_OEMAKE_append = 'CFLAGS="${TOOLCHAIN_OPTIONS}"'
+EXTRA_OEMAKE_append += 'CFLAGS="${TOOLCHAIN_OPTIONS}"'
 
 # The default -hf arm tools don't default to -mfloat-abi=hard, and this
 # causes build failures when building the scripts utilities
