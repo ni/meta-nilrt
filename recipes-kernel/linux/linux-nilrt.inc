@@ -28,6 +28,9 @@ SRC_URI = "${NILRT_GIT}/${GIT_KERNEL_REPO};protocol=git;nocheckout=1;branch=${KB
 SRCREV="${AUTOREV}"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 
+# This checks ${PV} == version from kernel sources which our PV/AUTOREV breaks, so skip it.
+KERNEL_VERSION_SANITY_SKIP="1"
+
 FILESEXTRAPATHS_prepend := "${THISDIR}/${KBUILD_FRAGMENTS_LOCATION}:"
 
 KBUILD_DEFCONFIG_x64 = "nati_x86_64_defconfig"
