@@ -23,7 +23,8 @@ INHIBIT_PACKAGE_DEBUG_SPLIT="1"
 # link against the gcc provided runtime
 do_kernel_configme[depends] += "libgcc:do_populate_sysroot"
 
-SRC_URI = "${NILRT_GIT}/linux.git;protocol=git;nocheckout=1;branch=${KBRANCH}"
+GIT_KERNEL_REPO = "linux.git"
+SRC_URI = "${NILRT_GIT}/${GIT_KERNEL_REPO};protocol=git;nocheckout=1;branch=${KBRANCH}"
 SRCREV="${AUTOREV}"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 
@@ -129,3 +130,28 @@ do_install_append() {
 		rm $f;
 	done
 }
+
+do_tag_kernel_build() {
+	if [ -z "${BUILD_IDENTIFIER}" -o "${ENABLE_BUILD_TAG_PUSH}" != "Yes" ]; then
+		bbnote "Skipping git repo tagging (" $([ -z "${BUILD_IDENTIFIER}" ] && echo "no BUILD_IDENTIFIER defined" || echo "tagging not enabled by ENABLE_BUILD_TAG_PUSH") ")"
+		return 0
+	fi
+
+	machine_branch="${@ get_machine_branch(d, "${KBRANCH}" )}"
+	pushurl="${NILRT_RW_GIT_URI}:${GIT_KERNEL_REPO}"
+	sshurl="${pushurl%:*}"
+
+	if [ -z "${sshurl}" -o -z "${machine_branch}" ]; then
+		bbfatal "Issue with push URL \"${pushurl}\" or branch \"${machine_branch}\""
+	fi
+
+	cd ${S}
+
+	git tag -f ${BUILD_IDENTIFIER} ${machine_branch}
+
+# We'll let this fail if the same tag already exists on the server (something's
+# gone terribly wrong or, more likely, a minor oversight.)
+	git push ${pushurl} ${BUILD_IDENTIFIER}
+}
+
+addtask tag_kernel_build after do_build before do_rm_work
