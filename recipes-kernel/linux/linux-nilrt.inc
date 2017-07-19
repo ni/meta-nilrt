@@ -38,7 +38,9 @@ KBUILD_DEFCONFIG_armv7a = "nati_zynq_defconfig"
 KCONFIG_MODE="--alldefconfig"
 
 #create dtb-s fromt dts files for armv7a targets
-DEPENDS_armv7a += "dtc-native"
+DEPENDS_append += "rsync-native"
+
+DEPENDS_append_armv7a += "dtc-native"
 
 KERNEL_DEVICETREE_xilinx-zynqhf = "\
         ni-762F.dtb \
