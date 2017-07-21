@@ -11,32 +11,28 @@ DESCRIPTION = " \
 # Append additional software
 IMAGE_INSTALL_NODEPS += " \
     lvrt \
-    niminionagent \
-    ni-pxiplatformservices \
     ni-datacomms-lvinterface \
     nitaglv \
     ni-nwstreams \
     ni-flexrio \
     ni-usrp-rio \
-    ni-sync \
-    ni-p2p \
     mt \
 "
 
-IMAGE_INSTALL_NODEPS_remove_armv7a += " \
-    niminionagent \
-    ni-pxiplatformservices \
+IMAGE_INSTALL_NODEPS_remove_armv7a = " \
     ni-datacomms-lvinterface \
-    nitaglv \
-    ni-nwstreams \
     ni-flexrio \
     ni-usrp-rio \
-    ni-sync \
-    ni-p2p \
     mt \
 "
 
-IMAGE_INSTALL_append_n310 += " \
+IMAGE_INSTALL_append_n310 = " \
     u-boot \
     expand-disk \
+"
+
+IMAGE_INSTALL_NODEPS_append_x64 = " \
+    ni-pxiplatformservices \
+    ni-sync \
+    ni-p2p \
 "
