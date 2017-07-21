@@ -107,6 +107,7 @@ RDEPENDS_${PN} = "\
 	openssh-sftp-server \
 	openssh-ssh \
 	opkg \
+	run-postinsts \
 	start-stop-daemon \
 	syslog-ng \
 	sysvinit \
