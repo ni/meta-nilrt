@@ -32,3 +32,5 @@ useradd_preinst_append () {
 	eval ${PSEUDO} ln -sf /home/admin ${SYSROOT}/home/root || true
     fi
 }
+
+BBCLASSEXTEND = "native nativesdk"
