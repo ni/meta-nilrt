@@ -17,6 +17,7 @@ SRC_URI_append_xilinx-zynqhf = " \
         file://0001-gcc5-backport-add-compiler-gcc5.h.patch \
         file://0002-gcc5-use-gcc-inline-version-instead-c99.patch \
         file://0003-gcc5-include-io.h-needs-inline-def-from-compiler-gcc.h.patch \
+	file://fix-build-error-under-gcc6.patch \
 "
 
 SRCREV = "${AUTOREV}"
