@@ -3,7 +3,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/grub:"
 PV = "2.02+git${SRCPV}"
 SRCREV = "${AUTOREV}"
 
-GRUB_BRANCH = "nilrt/17.0"
+GRUB_BRANCH = "nilrt/18.0"
 
 SRC_URI = "\
         git://git.natinst.com/grub.git;branch=${GRUB_BRANCH} \
@@ -18,6 +18,8 @@ S = "${WORKDIR}/git"
 # the empty variable to empty instead of no or yes, which will fail the build.
 # More details: http://git.savannah.gnu.org/cgit/grub.git/tree/configure.ac?id=ce95549cc54b5d6f494608a7c390dba3aab4fba7#n790
 CACHED_CONFIGUREVARS += "grub_cv_target_cc_soft_float="
+
+
 
 GRUB_BUILDIN = "boot linux ext2 fat serial part_msdos part_gpt normal efi_gop search \
                 chain configfile multiboot efi_uga font gfxterm gfxmenu terminal \
