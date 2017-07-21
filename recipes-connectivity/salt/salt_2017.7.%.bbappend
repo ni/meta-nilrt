@@ -18,7 +18,7 @@ SRC_URI = "${NILRT_GIT}/salt.git;protocol=git;branch=nilrt/cardassia/2016.11 \
 "
 
 SRCREV = "${AUTOREV}"
-PV = "2016.11+git${SRCPV}"
+PV = "2017.7+git${SRCPV}"
 
 S="${WORKDIR}/git"
 
