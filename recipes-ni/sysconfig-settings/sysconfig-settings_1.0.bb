@@ -13,7 +13,7 @@ SRC_URI = "file://niselectsystemsettings \
 FILES_${PN} += "/usr/local/natinst/share/uixml/sysconfig/* \
 "
 
-DEPENDS += "niacctbase"
+DEPENDS += "shadow-native pseudo-native niacctbase"
 RDEPENDS_${PN} += "niacctbase"
 
 do_install[depends] += "niacctbase:do_populate_sysroot"

@@ -12,7 +12,7 @@ SRC_URI = "file://uixml/* \
 FILES_${PN} += "/usr/local/natinst/share/uixml/sysconfig/* \
 "
 
-DEPENDS = "niacctbase"
+DEPENDS = "shadow-native pseudo-native niacctbase"
 RDEPENDS_${PN} = "sysconfig-settings niacctbase"
 
 S = "${WORKDIR}"

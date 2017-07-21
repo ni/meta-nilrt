@@ -4,7 +4,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 SRC_URI =+ "file://Add-align_kernel-macro.patch \
             file://0001-iproute2-fix-build-for-older-systems.patch"
 
-DEPENDS += "niacctbase"
+DEPENDS += "shadow-native pseudo-native niacctbase"
 
 RDEPENDS_{PN} += "niacctbase"
 

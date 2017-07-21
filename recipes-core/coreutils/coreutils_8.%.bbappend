@@ -6,7 +6,7 @@ FILES_${PN}-hostname = "${base_bindir}/hostname.${PN}"
 FILES_${PN}-ls = "${base_bindir}/ls.${PN}"
 FILES_${PN}-chcon = "${bindir}/chcon.${PN}"
 
-DEPENDS += "niacctbase"
+DEPENDS += "shadow-native pseudo-native niacctbase"
 
 RDEPENDS_${PN}-hostname += "niacctbase"
 

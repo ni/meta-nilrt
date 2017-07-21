@@ -8,6 +8,8 @@ SRC_URI += "file://nikern.conf \
 
 RRECOMMENDS_${PN}_append := "logrotate"
 
+DEPENDS += "shadow-native pseudo-native niacctbase"
+
 RDEPENDS_${PN} += "niacctbase"
 
 CONFFILES_${PN}_append := " ${sysconfdir}/logrotate.d/auth.conf \

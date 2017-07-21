@@ -14,14 +14,11 @@ FILES_${PN} += "\
 	/usr/lib/nisetbootmode.functions \
 "
 
-DEPENDS += "niacctbase"
+DEPENDS += "shadow-native pseudo-native niacctbase"
 
-RDEPENDS_${PN} += "niacctbase \
-	bash \
-"
+RDEPENDS_${PN} += "niacctbase bash"
 
-RDEPENDS_${PN}_append_x64 = "fw-printenv \
-"
+RDEPENDS_${PN}_append_x64 += "fw-printenv"
 
 group = "${LVRT_GROUP}"
 

@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://${COREBASE}/LICENSE;md5=4d92cd373abda3937c2bc47fbc49d
                     file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384361b4de20420"
 S = "${WORKDIR}"
 
-DEPENDS = "niacctbase"
+DEPENDS = "shadow-native pseudo-native niacctbase"
 RDEPENDS_${PN} = "niacctbase xfce4-settings xfce4-session xfce4-panel"
 
 user = "${LVRT_USER}"

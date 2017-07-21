@@ -7,9 +7,9 @@ SECTION = "base"
 
 inherit ptest
 
-DEPENDS += "niacctbase"
+DEPENDS += "shadow-native pseudo-native update-rc.d-native niacctbase"
 
-RDEPENDS_${PN} += "bash niacctbase"
+RDEPENDS_${PN} += "bash niacctbase update-rc.d"
 RDEPENDS_${PN}-ptest += "bash"
 
 SRC_URI = "file://nisetbootmode \

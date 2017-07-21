@@ -1,6 +1,6 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
-DEPENDS += "niacctbase"
+DEPENDS += "shadow-native pseudo-native niacctbase"
 
 RDEPENDS_${PN} += "niacctbase"
 

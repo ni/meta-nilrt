@@ -65,5 +65,5 @@ RPROVIDES_${PN} = "udev-extra-rules"
 RREPLACES_${PN} = "udev-extra-rules"
 RCONFLICTS_${PN} = "udev-extra-rules"
 
-DEPENDS += "niacctbase"
+DEPENDS += "shadow-native pseudo-native niacctbase"
 RDEPENDS_${PN} += "niacctbase"

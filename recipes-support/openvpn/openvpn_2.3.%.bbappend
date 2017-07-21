@@ -5,7 +5,7 @@ SRC_URI += "file://vpn \
 	    file://99_openvpn \
 "
 
-DEPENDS += "niacctbase"
+DEPENDS += "shadow-native pseudo-native niacctbase"
 
 RDEPENDS_{PN} += "niacctbase"
 

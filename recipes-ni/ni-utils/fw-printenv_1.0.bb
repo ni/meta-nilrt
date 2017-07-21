@@ -20,8 +20,8 @@ FILES_${PN} += ""
 FILES_${PN}_append_x64 = "${datadir}/fw_printenv/* \
 "
 
-DEPENDS += "niacctbase \
-"
+DEPENDS += "shadow-native pseudo-native niacctbase"
+
 RDEPENDS_${PN} += "${@bb.utils.contains('MACHINE_FEATURES', 'x86', 'grub-editenv', '', d)} \
     niacctbase \
     bash \
