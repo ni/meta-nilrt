@@ -53,3 +53,5 @@ OLDEST_KERNEL = "${@['3.14.3','2.6.32'][d.getVar('SDKMACHINE', True) != None]}"
 QTDEMOS = "quicky fotowall"
 
 GCCVERSION = "6.3%"
+
+DISTRO_FEATURES_BACKFILL_CONSIDERED = "gobject-introspection-data"
