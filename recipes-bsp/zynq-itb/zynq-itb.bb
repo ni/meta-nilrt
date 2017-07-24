@@ -17,6 +17,8 @@ SRC_URI = "\
 
 S = "${WORKDIR}"
 
+DEPENDS += "u-boot-mkimage-native dtc-native"
+
 do_install() {
 	install -d ${D}/dist/safemode/fit
 	install -d ${D}/dist/runmode/fit
