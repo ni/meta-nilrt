@@ -5,5 +5,6 @@
 ./test_kernel_cap_support.sh
 ./test_kernel_ll_route.sh
 ./test_kernel_hrtimers.sh
+./test_user_stack_size.sh
 ./test_kernel_swap_disabled.sh
 ./test_i915_firmware.sh
