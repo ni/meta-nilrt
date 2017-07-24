@@ -9,6 +9,10 @@ SRC_URI =+ " \
             file://acpid-logrotate.conf \
 	    file://zcip-allow-action-script-to-reject-chosen-IP.patch"
 
+# we're using syslog-ng, don't build busybox syslog (avoids build warnings)
+SRC_URI_remove += "file://syslog.cfg"
+INITSCRIPT_PACKAGES_remove += "${PN}-syslog"
+
 PACKAGES =+ " ${PN}-ifplugd"
 PACKAGES =+ " ${PN}-acpid"
 
