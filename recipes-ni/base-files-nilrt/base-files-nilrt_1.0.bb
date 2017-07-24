@@ -11,6 +11,7 @@ SRC_URI = "file://README_File_Paths.txt \
 	   file://LICENSES \
 	   file://natinst_libs.conf \
 	   file://local_libs.conf \
+	   file://ulimit.sh \
 	   file://nisetlocale.sh \
 	   file://sysctl.conf \
 "
@@ -57,6 +58,9 @@ do_install () {
 	echo /usr/lib/${TARGET_ARCH}-linux-gnu${ARCH_ABI_EXT} > ${D}${sysconfdir}/ld.so.conf.d/multiarch_libs.conf
 
 	install -d ${D}${sysconfdir}/profile.d/
+
+	# script for limiting stack sizes when a user logs in
+	install -m 0644 ${WORKDIR}/ulimit.sh ${D}${sysconfdir}/profile.d/
 
 	# script for setting locale when a user logs in
 	install -m 0644 ${WORKDIR}/nisetlocale.sh ${D}${sysconfdir}/profile.d/
