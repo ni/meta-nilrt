@@ -20,7 +20,9 @@ pkg_postinst_${PN} () {
 # section.
 pkg_postinst_util-linux-hwclock () {
 	if [ x"$D" = "x" ]; then
-		setcap CAP_SYS_TIME+ep ${base_sbindir}/hwclock.util-linux
+        if [ ! -f /etc/natinst/safemode ]; then
+            setcap CAP_SYS_TIME+ep ${base_sbindir}/hwclock.util-linux
+        fi
 	else
 		exit 1
 	fi
