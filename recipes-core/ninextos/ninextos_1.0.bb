@@ -13,7 +13,7 @@ S = "${WORKDIR}"
 do_install_append_x64() {
     install -d ${D}/boot/.newNILinuxRT/EFI/BOOT
     install -m 0755 ${S}/bootimage.cfg  ${D}/boot/.newNILinuxRT/
-    install -m 0755 ${DEPLOY_DIR_IMAGE}/bootx64.efi ${D}/boot/.newNILinuxRT/EFI/BOOT/
+    install -m 0755 ${DEPLOY_DIR_IMAGE}/grub-efi-bootx64.efi ${D}/boot/.newNILinuxRT/EFI/BOOT/bootx64.efi
     install -m 0755 ${DEPLOY_DIR_IMAGE}/bzImage ${D}/boot/.newNILinuxRT/
     install -m 0755 ${DEPLOY_DIR_IMAGE}/restore-mode-image-x64.cpio.gz ${D}/boot/.newNILinuxRT/initrd
 }
