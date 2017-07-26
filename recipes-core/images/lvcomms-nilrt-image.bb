@@ -24,7 +24,6 @@ IMAGE_INSTALL_NODEPS += " \
 "
 
 IMAGE_INSTALL_NODEPS_remove_armv7a += " \
-    lvrt \
     niminionagent \
     ni-pxiplatformservices \
     ni-datacomms-lvinterface \
