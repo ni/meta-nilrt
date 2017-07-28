@@ -142,7 +142,6 @@ RDEPENDS_${PN} += "\
 	python-mako \
 	python-nose \
 	python-numpy \
-	python-zip \
 	python3 \
 	python3-setuptools \
 	rpm \
