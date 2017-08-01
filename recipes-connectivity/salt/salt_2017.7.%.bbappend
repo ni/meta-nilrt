@@ -24,8 +24,22 @@ S="${WORKDIR}/git"
 
 PACKAGECONFIG = "tcp"
 
-RDEPENDS_${PN}-minion = "python ${PN}-common (= ${EXTENDPKGV}) python-msgpack python-avahi python-pyinotify python-pyroute2 python-pycrypto python-pika ${@base_conditional('DISTRO', 'nilrt-nxg', 'python-pyconnman', '', d)}"
-RDEPENDS_${PN}-common = "python python-jinja2 python-pyyaml python-tornado (>= 4.2.1)"
+RDEPENDS_${PN}-minion = "python ${PN}-common (= ${EXTENDPKGV}) python-msgpack python-avahi python-pyinotify python-pyroute2 python-pycrypto python-pika python-argparse python-psutil ${@base_conditional('DISTRO', 'nilrt-nxg', 'python-pyconnman', '', d)}"
+RDEPENDS_${PN}-common = " \
+    python \
+    python-difflib \
+    python-distutils \
+    python-jinja2 \
+    python-misc \
+    python-multiprocessing \
+    python-profile \
+    python-pyyaml \
+    python-resource \
+    python-terminal \
+    python-tornado (>= 4.2.1) \
+    python-unixadmin \
+    python-xmlrpc \
+    "
 RDEPENDS_${PN}-ssh = "python ${PN}-common (= ${EXTENDPKGV}) python-msgpack"
 RDEPENDS_${PN}-api = "python ${PN}-master"
 RDEPENDS_${PN}-master = "python ${PN}-common (= ${EXTENDPKGV}) python-msgpack python-pycrypto"
