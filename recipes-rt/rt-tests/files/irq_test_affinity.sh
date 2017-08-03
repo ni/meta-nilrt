@@ -4,11 +4,35 @@
 # Also test that a newly created IRQ thread has affinity set to CPU0
 #
 
+source $(dirname "$0")/ptest-format.sh
+
+ptest_test=$(basename "$0" ".sh")
+
 # restart active ethernet to create a new IRQ thread
 restart_ethernet()
 {
-	# get the active network interface
-	active_ethernet=$(ifconfig | grep -B 1 inet | head -n 1 | cut -d" " -f1)
+	# Get the active network interface.
+	# This section can fail if the ethernet link is in a DOWN state; which
+	# it frequently is (temporarily), if this test is run after
+	# irq_test_priority. So we try twice with a 5 second gap.
+	active_ethernet=$(ip link | grep "state UP" | head -1 | cut -d":" -f2)
+
+	if [ -z "${active_ethernet}" ]; then
+		echo "ERROR: First attempt at finding an UP ethernet link failed."
+		ip link
+		echo "Retrying in 5 seconds..."
+		sleep 5
+		active_ethernet=$(ip link | grep "state UP" | head -1 | cut -d":" -f2)
+		if [ -z "${active_ethernet}" ]; then
+			echo "ERROR: Second attempt failed."
+			ip link
+			echo "Failing restart_ethernet()"
+			ptest_fail
+			return 1
+		else
+			echo "Second attempt suceeded."
+		fi
+	fi
 
 	# shut down then activate the ethernet driver
 	ip link set $active_ethernet down
@@ -16,33 +40,43 @@ restart_ethernet()
 
 	# wait for the new IRQ thread to be created
 	sleep 3
+	return 0
 }
 
 check_irq_thread_affinity()
 {
-    # enumerate IRQ threads
-    pids=$(grep -l irq/ /proc/*/comm | cut -d/ -f3)
+	# enumerate IRQ threads
+	pids=$(grep -l irq/ /proc/*/comm | cut -d/ -f3)
 
-    # check affinity for each IRQ thread
-    affinity_fail=0
-    for pid in $pids; do
-	affinity=$(taskset -p $pid | cut -d: -f2)
-	if [[ "$affinity" != " 1" ]]; then
-	    affinity_fail=1
-	    irq_cmdline=$(cat /proc/$pid/comm)
-	    echo "FAIL: $irq_cmdline has affinity $affinity!"
-	fi
-    done
-
-    if [ $affinity_fail -eq 1 ]; then
-	exit 1
-    fi
+	# check affinity for each IRQ thread
+	ptest_pass
+	for pid in $pids; do
+		affinity=$(taskset -p $pid | cut -d: -f2)
+		if [[ "$affinity" != " 1" ]]; then
+			ptest_fail
+			irq_cmdline=$(cat /proc/$pid/comm)
+			echo "ERROR: $irq_cmdline has affinity $affinity! Expected: 1"
+		fi
+	done
 }
 
+ptest_change_subtest 1 "check affinity"
 check_irq_thread_affinity
-# restart active ethernet to create a new IRQ thread
-restart_ethernet
-# check affinity for running IRQ threads again
-check_irq_thread_affinity
+ptest_report
+first_rc=$ptest_rc
 
-echo "PASS: irq_test_affinity"
+ptest_change_subtest 2 "check affinity after restart"
+if [ $first_rc -gt 0 ]; then
+	echo "REASON: No need to check restart if subtest 1 fails."
+	ptest_skip
+else
+	# restart active ethernet to create a new IRQ thread
+	if ! restart_ethernet; then
+		ptest_fail
+	else
+		check_irq_thread_affinity
+	fi
+fi
+ptest_report
+
+exit $first_rc

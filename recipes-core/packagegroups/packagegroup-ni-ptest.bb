@@ -11,7 +11,7 @@ inherit packagegroup
 
 RDEPENDS_${PN} = "\
 	ptest-runner \
-	rt-tests \
+	rt-tests-ptest \
 	kernel-tests-ptest \
 	glibc-tests-ptest \
 	salt-ptest \
