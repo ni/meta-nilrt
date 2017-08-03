@@ -30,7 +30,7 @@
 #define file_log(F, M, ...)
 #endif
 
-#define fail(MSG, ...) printf("FAIL: %s: " MSG "\n", __FILE__, ##__VA_ARGS__);
+#define fail(MSG, ...) printf("ERROR: %s: " MSG "\n", __FILE__, ##__VA_ARGS__);
 #define test_and_fail(STMT, MSG, ...) if (STMT) { fail(MSG, ##__VA_ARGS__); exit(1); }
 
 #define HEADER_MSG "IF YOU RUN THIS PROGRAM, YOUR TARGET WILL BECOME UNRESPONSIVE(~2 MIN FOR GUMSTIX; A FEW\n\
@@ -50,11 +50,11 @@ void conf_sched()
 	int cpu = 0; //run current process on cpu 0
 	CPU_ZERO(&mask);
 	CPU_SET(cpu, &mask);
-	test_and_fail(sched_setaffinity(0, sizeof(mask), &mask) == -1,"FAIL: CPU affinity could not be set\n");
+	test_and_fail(sched_setaffinity(0, sizeof(mask), &mask) == -1,"ERROR: CPU affinity could not be set\n");
 
 	memset(&schedp, 0, sizeof(schedp));
 	schedp.sched_priority = priority_max;
-	test_and_fail(sched_setscheduler(0, SCHED_FIFO, &schedp) != 0, "FAIL: Could not set scheduler FIFO policy\n");
+	test_and_fail(sched_setscheduler(0, SCHED_FIFO, &schedp) != 0, "ERROR: Could not set scheduler FIFO policy\n");
 }
 
 double calculate_mean(double *population)

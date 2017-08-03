@@ -1,8 +1,7 @@
 #!/bin/sh
 
+./irq_test_affinity.sh
+./irq_test_priority.sh
 ./kernel_test_preempt_rt_presence.sh
 ./kernel_test_rt_throttling_disabled.sh
-python ./rt_bmark.py
 ./kthread_test_priority.sh
-./irq_test_priority.sh
-./irq_test_affinity.sh
