@@ -154,3 +154,15 @@ RRECOMMENDS_${PN}_x64 += "\
 	kernel-module-virtio-console \
 	kernel-module-virtio-net \
 "
+
+RRECOMMENDS_${PN}_xilinx_zynqhf += "\
+	kernel-module-g-ether \
+	kernel-module-u-ether \
+	kernel-module-ci-hdrc \
+	kernel-module-ci-hdrc-usb2 \
+	kernel-module-udc-core \
+	kernel-module-wl12xx \
+	kernel-module-wlcore \
+	kernel-module-mac80211 \
+	kernel-module-cfg80211 \
+"
