@@ -147,11 +147,11 @@ do_tag_kernel_build() {
 
 	cd ${S}
 
-	git tag -f ${BUILD_IDENTIFIER} ${machine_branch}
+	export SSH_AUTH_SOCK=/run/user/1000/gnupg/S.gpg-agent.ssh
 
 # We'll let this fail if the same tag already exists on the server (something's
 # gone terribly wrong or, more likely, a minor oversight.)
 	git push ${pushurl} ${BUILD_IDENTIFIER}
 }
 
-addtask tag_kernel_build after do_build before do_rm_work
+addtask tag_kernel_build after do_compile before do_install
