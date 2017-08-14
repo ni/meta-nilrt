@@ -2,7 +2,7 @@ SUMMARY = "Linux kernel-specific tests"
 HOMEPAGE = "https://kernel.org"
 SECTION = "tests"
 LICENSE = "GPLv2 & GPLv2+"
-LIC_FILES_CHKSUM = "file://run-ptest;md5=308dc12a1e9cfd701d213f727ed40486"
+LIC_FILES_CHKSUM = "file://run-ptest;md5=1a02bb3ae5f2d2e1b4f28fd2dd01694d"
 
 inherit ptest
 
@@ -11,17 +11,21 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-files:"
 S = "${WORKDIR}"
 
 DEPENDS = "virtual/kernel libcap"
-RDEPENDS_${PN}-ptest += "bash libcap"
+RDEPENDS_${PN}-ptest += "bash libcap kmod"
 
 ALLOW_EMPTY_${PN} = "1"
 
 SRC_URI += "\
     file://run-ptest \
+    file://required_kernel_modules.arm \
+    file://required_kernel_modules.x64 \
+    file://ptest-format.sh \
     file://test_kernel_mcopy.sh \
     file://test_kernel_mcopy_functionality.c \
     file://test_kernel_mcopy_freed_memory.c \
     file://test_kernel_cache_info.sh \
     file://test_kernel_cap_support.sh \
+    file://test_kernel_modules.sh \
     file://test_exe_cap_support.c \
     file://test_proc_cap_support.c \
     file://cap_support_exe_to_test.c \
@@ -49,11 +53,13 @@ do_compile_ptest_append() {
 
 do_install_ptest_append() {
     cp ${WORKDIR}/run-ptest ${D}${PTEST_PATH}
+    cp ${WORKDIR}/ptest-format.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_mcopy.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_mcopy_functionality ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_mcopy_freed_memory ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_cache_info.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_cap_support.sh ${D}${PTEST_PATH}
+    cp ${WORKDIR}/test_kernel_modules.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_exe_cap_support ${D}${PTEST_PATH}
     cp ${WORKDIR}/cap_support_exe_to_test ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_proc_cap_support ${D}${PTEST_PATH}
@@ -64,4 +70,12 @@ do_install_ptest_append() {
     cp ${WORKDIR}/test_pthread_stack_size ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_swap_disabled.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_i915_firmware.sh ${D}${PTEST_PATH}
+}
+
+do_install_ptest_append_x64() {
+    cp ${WORKDIR}/required_kernel_modules.x64 ${D}${PTEST_PATH}/required_kernel_modules
+}
+
+do_install_ptest_append_xilinx-zynqhf() {
+    cp ${WORKDIR}/required_kernel_modules.arm ${D}${PTEST_PATH}/required_kernel_modules
 }
