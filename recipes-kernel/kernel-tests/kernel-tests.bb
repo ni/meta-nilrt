@@ -11,7 +11,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-files:"
 S = "${WORKDIR}"
 
 DEPENDS = "virtual/kernel libcap"
-RDEPENDS_${PN}-ptest += "bash libcap kmod"
+RDEPENDS_${PN}-ptest += "bash libcap kmod dmidecode"
 
 ALLOW_EMPTY_${PN} = "1"
 
