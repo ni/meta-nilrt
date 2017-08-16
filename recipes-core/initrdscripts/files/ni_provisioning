@@ -1,7 +1,9 @@
 #!/bin/bash
 
+INVALID_NILRT_ID_MSG="Invalid value for PROVISION_PART_NILRT_ID. Use UUID=<value> or PARTUUID=<value> or auto."
+
 # verify required tools are installed
-for toolName in poweroff reboot mount umount sync ls rm ln mkdir cp echo printf dirname basename find grep egrep tar bzip2 bunzip2 lsblk; do
+for toolName in poweroff reboot mount umount sync ls rm ln mkdir cp echo printf dirname basename find grep egrep tar bzip2 bunzip2 lsblk cut; do
     if ! type "$toolName" >/dev/null; then
         printf "\n***Error: Missing $toolName\n"
         printf "PROVISIONING FAILED!"
@@ -42,15 +44,59 @@ if [[ $restore == "provision" ]]; then
     fi
     echo
 
-    echo "The boot style is $BOOT_STYLE"
-    echo
-    echo "Continuing will partition the disk, format, and install minimal image to the target."
-    echo
+    if [[ "$PROVISION_PART_NILRT_ID" = "auto" ]]; then
+        echo "The boot style is $BOOT_STYLE"
+        echo
 
-    prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" PROVISION_REPARTITION_TARGET
-    if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
-        provision_target usb
-    fi
+        echo "Continuing will partition the disk, format, and install minimal image to the target."
+        echo
+
+        prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" PROVISION_REPARTITION_TARGET
+        if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
+            provision_target usb
+        fi
+    else
+        case "$PROVISION_PART_NILRT_ID" in
+            LABEL=*)
+		;;
+            UUID=*)
+                ;;
+            PARTUUID=*)
+                ;;
+            *)
+                die "$INVALID_NILRT_ID_MSG"
+                ;;
+        esac
+
+	column=${PROVISION_PART_NILRT_ID%%=*}
+	nilrt_id=${PROVISION_PART_NILRT_ID##*=}
+	if [[ -z "$nilrt_id" ]]; then
+            die "$INVALID_NILRT_ID_MSG"
+        fi
+        if [[ "$column" = "LABEL" ]]; then
+            grep_options=""
+        else
+            grep_options="-i"
+        fi
+	nilrt_path=`lsblk -rnpo NAME,"$column" | grep $grep_options "$nilrt_id" | cut -d' ' -f1`
+        if [[ -z "$nilrt_path" ]]; then
+            die "Partition with "$PROVISION_PART_NILRT_ID" not found."
+        fi
+
+        echo "The boot style is $BOOT_STYLE"
+        echo
+
+        echo "Continuing will format the specified partition and install minimal image to the target."
+        echo
+
+        prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" PROVISION_REPARTITION_TARGET
+        if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
+	   if [[ "$column" = "UUID" ]]; then
+	       uuid="$nilrt_id"
+	   fi
+           restore_minimal_image "$nilrt_path" "$uuid"
+        fi
+   fi
 
 elif [[ $restore == "migrate" || $restore == "backward-migrate" ]]; then
     PROVISION_REBOOT_METHOD="reboot"

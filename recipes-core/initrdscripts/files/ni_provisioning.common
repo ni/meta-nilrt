@@ -210,15 +210,34 @@ EOF
 
     restore_minimal_image()
     {
-        echo "Formatting $NILRT_LABEL partition..."
-        do_silent partition_format $TARGET_DISK $NILRT_LABEL
+	local nilrt_path="$1" uuid="$2"
+
         NILRT_MOUNTPOINT=/var/volatile/nilrt
         mkdir $NILRT_MOUNTPOINT -p
-        NILRT_ERROR=`mount -L $NILRT_LABEL $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
+	if [[ -z "$nilrt_path" ]]; then
+            echo "Formatting $NILRT_LABEL partition..."
+            do_silent partition_format $TARGET_DISK $NILRT_LABEL
+            NILRT_ERROR=`mount -L $NILRT_LABEL $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
+            nilrt_path="$TARGET_DISK"3
+	else
+            echo "Formatting $nilrt_path partition..."
+            existing_nilrt_partition_format "$nilrt_path" "$uuid"
+            NILRT_ERROR=`mount "$nilrt_path" $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
+        fi
+
         echo "Deploying minimal image..."
 
         # NOTE: `--numeric-owner` option: always use numbers for user/group names (ignore symbolic names)
         TAR_ERROR="`tar -x -j --numeric-owner -f /payload/factory-image.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1`" || die "$TAR_ERROR"
+
+        nilrt_part_uuid=`lsblk -rnpo NAME,PARTUUID | grep "$nilrt_path" | cut -d' ' -f2`
+        if [[ -n "$nilrt_part_uuid" ]]; then
+            root_partition_value="PARTUUID=$nilrt_part_uuid"
+        else
+            root_partition_value="$nilrt_path"
+        fi
+
+        grub-editenv $NILRT_MOUNTPOINT/boot/grubenv set root_partition_name="$root_partition_value"
 
         sync
         umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
@@ -397,7 +416,7 @@ source_answer_file() {
     fi
 
     mkdir -p "$ANSWER_FILE_DISK_MOUNTPOINT"
-    for devNode in `lsblk -lpn -o NAME,RM | grep '1$' | cut -d' ' -f1 || true`; do
+    for devNode in `lsblk -rpn -o NAME,RM | grep '1$' | cut -d' ' -f1 || true`; do
         devNodeInfo="`lsblk -n -o 'FSTYPE,SERIAL,UUID,LABEL' "$devNode" | tr -s ' '`"
         mount -o ro "$devNode"  "$ANSWER_FILE_DISK_MOUNTPOINT"
         if check_answer_file    "$ANSWER_FILE_DISK_MOUNTPOINT/ni_provisioning.answers"; then

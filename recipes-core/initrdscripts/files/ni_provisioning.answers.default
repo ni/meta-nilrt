@@ -23,3 +23,15 @@ PROVISION_RESTORE_MINIMAL_IMAGE="?"
 #  "poweroff" = Power off the target
 #  "shell" = Drop to a shell
 PROVISION_REBOOT_METHOD="?"
+
+# Specify a partition to use as the nilrt partition.
+# This option does not support the "?" value to cause an interactive user prompt.
+#  "auto" = Repartition the disk, recreate the filesystems, and initialize them
+#  "LABEL=<label>" = Reformat and initialize only the partition with the specified partition label
+#                    as the nilrt partition. No other partitions are modified.
+#  "UUID=<uuid>" = Reformat and initialize only the partition with the specified filesystem UUID.
+#                  as the nilrt partition. No other partitions are modified. The filesystem UUID
+#                  of the specified partition is maintained during this operation.
+#  "PARTUUID=<partuuid>" = Reformat and initialize only the partition with the specified partition UUID
+#                          as the nilrt partition. No other partitions are modified.
+PROVISION_PART_NILRT_ID="auto"
