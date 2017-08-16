@@ -59,6 +59,25 @@ partition_format()
     esac
 }
 
+existing_nilrt_partition_format()
+{
+    local partition="$1" uuid="$2"
+
+    partition_check $partition
+    if [[ -n "$uuid" ]]; then
+        mkfs.ext4 -F -L nilrt -U $uuid $partition
+    else
+	mkfs.ext4 -F -L nilrt $partition
+    fi
+}
+
+partition_check()
+{
+    local partition="$1"
+
+    [[ -e "$partition" ]] || die "Invalid or unspecified partition!"
+}
+
 disk_format()
 {
    local disk="$1"
