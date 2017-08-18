@@ -1,10 +1,5 @@
 #!/bin/bash
 
-die()
-{
-    echo $1 && exit 1
-}
-
 install_default_error_handler()
 {
     trap 'handle_err ${BASH_SOURCE} ${LINENO} ${FUNCNAME:-unknown} $? "$BASH_COMMAND"' ERR
