@@ -26,6 +26,54 @@ else
     do_silent() { "$@"; }
 fi
 
+cleanup_and_exit()
+{
+    echo $LOG_LEVEL > /proc/sys/kernel/printk
+    trap - ERR
+
+    sync
+
+    umount "$ANSWER_FILE_DISK_MOUNTPOINT" 2>/dev/null
+    umount -a -t vfat,ext4,ubifs,iso9660
+
+    if [ "$ARCH" = "armv7l" ]; then
+        #set the bootmode to default
+        echo -n 00 >  /sys/bus/i2c/devices/0-0040/scratch_hardreset
+    fi
+
+    if (( $1 == 0  && $REBOOT_REQUIRED == 1 )); then
+        echo "Unmounting all file systems:"
+        umount -v -a -r  # procfs is not unmounted
+        echo u > /proc/sysrq-trigger
+        sync
+
+        if [[ "${PROVISION_REBOOT_METHOD,,}" == "reboot" ]]; then
+            echo "Rebooting"
+            reboot -f
+            sleep 1
+            echo b > /proc/sysrq-trigger
+            sleep 1
+        elif [[ "${PROVISION_REBOOT_METHOD,,}" == "poweroff" ]]; then
+            echo "Powering off"
+            poweroff -f
+            sleep 1
+            echo o > /proc/sysrq-trigger
+            sleep 1
+        else
+            echo "Dropping to shell"
+        fi
+    fi
+
+    exit $1
+}
+
+die()
+{
+    printf "\n***Error: %s\n" "$1"
+    printf "PROVISIONING FAILED!"
+    cleanup_and_exit 1
+}
+
 if [ -e /disk_config ]; then
     source /disk_config
 else
@@ -260,13 +308,6 @@ print_warning()
     printf "\n***Warning: %s\n" "$1"
 }
 
-die()
-{
-    printf "\n***Error: %s\n" "$1"
-    printf "PROVISIONING FAILED!"
-    cleanup_and_exit 1
-}
-
 install_default_error_handler()
 {
     trap 'handle_err ${BASH_SOURCE} ${LINENO} ${FUNCNAME:-unknown} $? "$BASH_COMMAND"' ERR
@@ -276,47 +317,6 @@ handle_err()
 {
     TMP_EVAL=`eval echo $5`
     die "$1:$2 (fn=$3): Unexpected status code $4, while running command: '$TMP_EVAL'"
-}
-
-cleanup_and_exit()
-{
-    echo $LOG_LEVEL > /proc/sys/kernel/printk
-    trap - ERR
-
-    sync
-
-    umount "$ANSWER_FILE_DISK_MOUNTPOINT" 2>/dev/null
-    umount -a -t vfat,ext4,ubifs,iso9660
-
-    if [ "$ARCH" = "armv7l" ]; then
-        #set the bootmode to default
-        echo -n 00 >  /sys/bus/i2c/devices/0-0040/scratch_hardreset
-    fi
-
-    if (( $1 == 0  && $REBOOT_REQUIRED == 1 )); then
-        echo "Unmounting all file systems:"
-        umount -v -a -r  # procfs is not unmounted
-        echo u > /proc/sysrq-trigger
-        sync
-
-        if [[ "${PROVISION_REBOOT_METHOD,,}" == "reboot" ]]; then
-            echo "Rebooting"
-            reboot -f
-            sleep 1
-            echo b > /proc/sysrq-trigger
-            sleep 1
-        elif [[ "${PROVISION_REBOOT_METHOD,,}" == "poweroff" ]]; then
-            echo "Powering off"
-            poweroff -f
-            sleep 1
-            echo o > /proc/sysrq-trigger
-            sleep 1
-        else
-            echo "Dropping to shell"
-        fi
-    fi
-
-    exit $1
 }
 
 early_setup()
