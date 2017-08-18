@@ -90,6 +90,10 @@ migrate_target()
 		fi
 		cp /.newNILinuxRT/linux_fw_migrate.itb /boot/linux_runmode.itb
 	    fi
+	    # disable force safemode
+	    nirtcfg -s section=systemsettings,token='SafeMode.enabled',value='False'
+	    # force next boot to be in runmode
+	    /etc/init.d/nisetbootmode force-normal
 	    reboot
         fi
     elif [[ $target_flavor == "new" ]]; then
