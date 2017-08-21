@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <assert.h>
 
-#define EXPECTED_STACK_SIZE_KB 256
+#define EXPECTED_STACK_SIZE_KB 512
 
 int main(char argc, char** argv)
 {
