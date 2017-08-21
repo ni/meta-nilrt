@@ -26,9 +26,12 @@ PACKAGECONFIG = "tcp"
 
 RDEPENDS_${PN}-minion = "python ${PN}-common (= ${EXTENDPKGV}) python-msgpack python-avahi python-pyinotify python-pyroute2 python-pycrypto python-pika python-argparse python-psutil ${@base_conditional('DISTRO', 'nilrt-nxg', 'python-pyconnman', '', d)}"
 RDEPENDS_${PN}-common = " \
+    lsb \
     python \
     python-difflib \
     python-distutils \
+    python-futures \
+    python-importlib \
     python-jinja2 \
     python-misc \
     python-multiprocessing \
