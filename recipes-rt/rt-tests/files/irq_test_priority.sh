@@ -15,6 +15,13 @@ function test_priority() {
 
 	# Find the IRQ for active network interface and increment the existing priority
 	[[ $(ip route get $PING_DEST) =~ dev\ ([^ ]+) ]] && active_network_if=${BASH_REMATCH[1]}
+	if [ -z "${active_network_if}" ]; then
+		echo "ERROR: Could not determine the ethernet interface."
+		ptest_fail
+		return 0
+	else
+		echo "Found network interface: ${active_network_if}"
+	fi
 
 	dev_irqs=`{ grep "${active_network_if}-rx" /proc/interrupts || grep "${active_network_if}" /proc/interrupts | head -n 1; } | cut -d: -f1`
 
