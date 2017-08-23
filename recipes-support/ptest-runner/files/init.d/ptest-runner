@@ -22,7 +22,7 @@ case "$1" in
 		fi
 
 		echo "<tchamber>PTEST RUN START</tchamber>" > /dev/console
-		script -c "$CMD_PTEST" --flush /tmp/${CMD_PTEST}.log
+		script -c "$CMD_PTEST -t 510" --flush /tmp/${CMD_PTEST}.log
 		echo "<tchamber>PTEST RUN COMPLETE</tchamber>" > /dev/console
 		;;
 	"stop" | "status")
