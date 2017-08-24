@@ -61,13 +61,13 @@ partition_format()
 
 existing_nilrt_partition_format()
 {
-    local partition="$1" uuid="$2"
+    local partition="$1" uuid="$2" label="$3"
 
     partition_check $partition
     if [[ -n "$uuid" ]]; then
-        mkfs.ext4 -F -L nilrt -U $uuid $partition
+        mkfs.ext4 -F -L "$label" -U $uuid $partition
     else
-	mkfs.ext4 -F -L nilrt $partition
+	mkfs.ext4 -F -L "$label" $partition
     fi
 }
 

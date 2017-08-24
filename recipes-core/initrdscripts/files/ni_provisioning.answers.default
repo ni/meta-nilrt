@@ -35,3 +35,9 @@ PROVISION_REBOOT_METHOD="?"
 #  "PARTUUID=<partuuid>" = Reformat and initialize only the partition with the specified partition UUID
 #                          as the nilrt partition. No other partitions are modified.
 PROVISION_PART_NILRT_ID="auto"
+
+# Specify a partition label to use for the nilrt partition.
+# This option does not support the "?" value to cause an interactive user prompt.
+# You should always use a value of "nilrt" unless you have a specific use case where you know another value will work correctly.
+# This option only applies if PROVISION_PART_NILRT_ID is set to something other than "auto".
+PROVISION_PART_NILRT_LABEL="nilrt"
