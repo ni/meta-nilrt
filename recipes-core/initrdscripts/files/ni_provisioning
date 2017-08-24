@@ -93,8 +93,10 @@ if [[ $restore == "provision" ]]; then
         if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
 	   if [[ "$column" = "UUID" ]]; then
 	       uuid="$nilrt_id"
-	   fi
-           restore_minimal_image "$nilrt_path" "$uuid"
+	   else
+               uuid=""
+           fi
+           restore_minimal_image "$nilrt_path" "$uuid" "$PROVISION_PART_NILRT_LABEL"
         fi
    fi
 

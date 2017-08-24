@@ -210,7 +210,7 @@ EOF
 
     restore_minimal_image()
     {
-	local nilrt_path="$1" uuid="$2"
+	local nilrt_path="$1" uuid="$2" nilrt_label="$3"
 
         NILRT_MOUNTPOINT=/var/volatile/nilrt
         mkdir $NILRT_MOUNTPOINT -p
@@ -221,7 +221,7 @@ EOF
             nilrt_path="$TARGET_DISK"3
 	else
             echo "Formatting $nilrt_path partition..."
-            existing_nilrt_partition_format "$nilrt_path" "$uuid"
+            existing_nilrt_partition_format "$nilrt_path" "$uuid" "$nilrt_label"
             NILRT_ERROR=`mount "$nilrt_path" $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
         fi
 
