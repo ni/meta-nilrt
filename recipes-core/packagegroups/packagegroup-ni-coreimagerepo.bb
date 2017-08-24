@@ -11,7 +11,7 @@ RDEPENDS_${PN} = "\
 	packagegroup-ni-runmode \
 	packagegroup-ni-crio \
 	packagegroup-ni-restoremode \
-	packagegroup-core-x11 \
+	${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'packagegroup-core-x11', '', d)} \
 	packagegroup-core-standalone-sdk-target \
 	packagegroup-kernel-module-build \
 	apache2 \
@@ -20,7 +20,7 @@ RDEPENDS_${PN} = "\
 "
 
 RDEPENDS_${PN}_append_x64 = "\
-	packagegroup-ni-xfce \
+	${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'packagegroup-ni-xfce', '', d)} \
 "
 
 RDEPENDS_${PN}_append_n310 = "\
