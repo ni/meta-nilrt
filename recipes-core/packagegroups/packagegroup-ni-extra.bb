@@ -30,7 +30,6 @@ RDEPENDS_${PN}_append_x64 = "\
 		networkmanager \
 		numlockx \
 		openjdk-7-jre \
-		oprofileui \
 		openbox \
 		polkit \
 		python-pyqt \
@@ -220,7 +219,6 @@ RDEPENDS_${PN} += "\
 	latencytop \
 	linux-firmware \
 	oprofile \
-	oprofileui-server \
 	perf \
 	powertop \
 	sysprof \
