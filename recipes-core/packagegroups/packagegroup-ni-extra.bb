@@ -609,7 +609,6 @@ RDEPENDS_${PN} += "\
 	python-markupsafe \
 	python-jinja2 \
 	python-pexpect \
-	python-cloudeebus \
 	python-webdav \
 	python-dateutil \
 	python-ldap \
