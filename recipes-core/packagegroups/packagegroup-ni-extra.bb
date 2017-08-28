@@ -193,7 +193,7 @@ RDEPENDS_${PN} += "\
 	acl \
 	boost \
 	ca-certificates \
-	createrepo \
+	createrepo-c \
 	curl \
 	debianutils \
 	enchant \
