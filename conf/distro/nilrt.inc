@@ -40,8 +40,6 @@ VIRTUAL-RUNTIME_dev_manager ?= "udev"
 # For qemu images
 VIRTUAL-RUNTIME_keymaps = ""
 
-PREFERRED_PROVIDER_virtual/fftw = "fftwf"
-
 PREFERRED_PROVIDER_jpeg = "jpeg"
 PREFERRED_PROVIDER_jpeg-native = "jpeg-native"
 
