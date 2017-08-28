@@ -128,7 +128,6 @@ RDEPENDS_${PN} += "\
 	mkelfimage \
 	mmc-utils \
 	mtd-utils \
-	opensp \
 	ossp-uuid \
 	patchelf \
 	pax-utils \
@@ -145,7 +144,6 @@ RDEPENDS_${PN} += "\
 	python3-setuptools \
 	rpm \
 	rsync \
-	sgml-common \
 	unfs3 \
 	vala \
 	valgrind \
