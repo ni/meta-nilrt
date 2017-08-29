@@ -13,7 +13,7 @@ RDEPENDS_${PN}-hostname += "niacctbase"
 group = "${LVRT_GROUP}"
 
 # preserve existing behavior when installing base package
-RDEPENDS_${PN} += "\
+RDEPENDS_${PN}_class-target += "\
 	${PN}-hostname \
 	${PN}-ls \
 	${PN}-chcon \
