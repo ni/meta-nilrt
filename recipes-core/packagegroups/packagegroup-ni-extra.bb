@@ -240,7 +240,6 @@ RDEPENDS_${PN} += "\
 	dbench \
 	fio \
 	iozone3 \
-	iperf \
 	iperf3 \
 	libhugetlbfs \
 	lmbench \
