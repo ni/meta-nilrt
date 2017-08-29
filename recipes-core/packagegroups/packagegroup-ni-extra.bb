@@ -136,7 +136,7 @@ RDEPENDS_${PN} += "\
 	python-distribute \
 	python-imaging \
 	python-setuptools \
-	python-docutils \
+	python3-docutils \
 	python-mako \
 	python-nose \
 	python-numpy \
