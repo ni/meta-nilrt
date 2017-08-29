@@ -599,7 +599,6 @@ RDEPENDS_${PN} += "\
 	python-numeric \
 	python-matplotlib \
 	python-pyudev \
-	python-autobahn \
 	python-pyalsaaudio \
 	python-pip \
 	python-pyusb \
