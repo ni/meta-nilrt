@@ -46,7 +46,6 @@ RDEPENDS_${PN}_append_x64 = "\
 		vte \
 		x11vnc \
 		xbitmaps \
-		xchat \
 		xclock \
 		xcursorgen \
 		xdotool \
@@ -252,7 +251,6 @@ RDEPENDS_${PN} += "\
 # meta-openembedded/meta-oe/recipes-connectivity
 RDEPENDS_${PN} += "\
 	gammu \
-	gnokii \
 	hostapd \
 	iw \
 	krb5 \
@@ -309,7 +307,6 @@ RDEPENDS_${PN} += "\
 	swig \
 	tclap \
 	uw-imap \
-	vala-dbus-binding-tool \
 	yajl \
 	yasm \
 "
@@ -408,7 +405,6 @@ RDEPENDS_${PN} += "\
 	engine-pkcs11 \
 	espeak \
 	eventlog \
-	farsight2 \
 	fbset \
 	fbset-modes \
 	fftw \
@@ -449,7 +445,6 @@ RDEPENDS_${PN} += "\
 	opencv \
 	openldap \
 	opensc \
-	openwbem \
 	p11-kit \
 	p910nd \
 	pam-passwdqc \
