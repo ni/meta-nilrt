@@ -5,7 +5,7 @@ FILES_${PN}-cgdisk = "${sbindir}/cgdisk"
 FILES_${PN}-sgdisk = "${sbindir}/sgdisk"
 FILES_${PN}-fixparts = "${sbindir}/fixparts"
 
-RDEPENDS_${PN} += "\
+RDEPENDS_${PN}_class-target += "\
        ${PN}-gdisk \
        ${PN}-cgdisk \
        ${PN}-sgdisk \
