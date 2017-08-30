@@ -1,4 +1,4 @@
-From 22e21d1299fbeba7bfa51b4b3b081922d62dd737 Mon Sep 17 00:00:00 2001
+From a2e8142bc30422c2d8fb4a6606d73adebe760a02 Mon Sep 17 00:00:00 2001
 From: Haris Okanovic <haris.okanovic@ni.com>
 Date: Thu, 1 Oct 2015 14:56:41 -0500
 Subject: [PATCH 2/2] rtctl: Support multiple rtgroups files
@@ -15,7 +15,7 @@ Signed-off-by: Haris Okanovic <haris.okanovic@ni.com>
  1 file changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/rtctl b/rtctl
-index e3550d709040308276a2260a23d8d410ffd2f1be..1631f4a9cebb619ff5440d354874ce77af462d28 100755
+index 7bb6eab..80242c8 100755
 --- a/rtctl
 +++ b/rtctl
 @@ -24,8 +24,8 @@ case "$1" in
@@ -44,5 +44,5 @@ index e3550d709040308276a2260a23d8d410ffd2f1be..1631f4a9cebb619ff5440d354874ce77
  
  CMD=$1
 -- 
-2.4.5
+2.14.1
 
