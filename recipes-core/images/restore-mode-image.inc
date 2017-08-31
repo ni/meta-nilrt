@@ -9,6 +9,8 @@ PACKAGE_INSTALL = "${ROOTFS_BOOTSTRAP_INSTALL} \
 
 DEPENDS += "init-restore-mode ${FACTORY_IMAGE}"
 DEPENDS_xilinx-zynqhf += "zynq-bootscripts zynq-itb"
+DEPENDS_x64 += "wic-tools"
+
 do_rootfs[depends] += "${FACTORY_IMAGE}:do_image_complete"
 
 # Remove any kernel-image that the kernel-module-* packages may have pulled in.
