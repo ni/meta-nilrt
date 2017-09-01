@@ -15,6 +15,10 @@ SRC_URI += " \
             file://0006-buffer-overrun-fix.patch \
            "
 
+SRC_URI_append_armv7a = " \
+            file://arm-kernel-arch.conf \
+"
+
 PACKAGECONFIG = "libsolv"
 
 RDEPENDS_${PN}-ptest += "bash"
@@ -22,4 +26,9 @@ RDEPENDS_${PN}-ptest += "bash"
 do_install_ptest() {
         cp ${WORKDIR}/test_feedserver.sh ${D}${PTEST_PATH}
         cp ${WORKDIR}/test_ni_pxi_install.sh ${D}${PTEST_PATH}
+}
+
+do_install_append_armv7a () {
+    install -d ${D}/opkg
+    install -m 0644 ${WORKDIR}/arm-kernel-arch.conf ${D}${sysconfdir}/opkg/
 }
