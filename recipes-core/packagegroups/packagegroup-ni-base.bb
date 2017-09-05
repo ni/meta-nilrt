@@ -144,6 +144,7 @@ RRECOMMENDS_${PN}_x64 += "\
 	kernel-module-intel_agp \
 	kernel-module-ipv6 \
 	kernel-module-nic7018-wdt \
+	kernel-module-leds-nic78bx \
 	kernel-module-psmouse \
 	kernel-module-squashfs \
 	kernel-module-tg3 \
