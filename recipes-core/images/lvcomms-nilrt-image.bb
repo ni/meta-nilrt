@@ -36,4 +36,5 @@ IMAGE_INSTALL_NODEPS_append_x64 = " \
     ni-pxiplatformservices \
     ni-sync \
     ni-p2p \
+    ni-watchdog \
 "
