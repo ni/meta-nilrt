@@ -79,3 +79,5 @@ do_install_ptest_append_x64() {
 do_install_ptest_append_xilinx-zynqhf() {
     cp ${WORKDIR}/required_kernel_modules.arm ${D}${PTEST_PATH}/required_kernel_modules
 }
+
+PACKAGE_ARCH = "${MACHINE_ARCH}"
