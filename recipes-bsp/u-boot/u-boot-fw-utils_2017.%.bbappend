@@ -11,6 +11,10 @@ SRC_URI_append_arm = "\
         file://fw_env-${MACHINE}.config \
 "
 
+SRC_URI_append_n310 = " \
+	file://default-gcc.patch \
+"
+
 SRC_URI_append_xilinx-zynqhf = " \
         file://0001-Remove-hardcoded-softfp-from-arm-makefile.patch \
         file://fw-enw-fix-missing-stdint-h.patch \
