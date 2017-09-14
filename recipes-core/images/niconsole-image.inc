@@ -1,22 +1,4 @@
-
-inherit core-image
-
-ROOTFS_POSTPROCESS_COMMAND += "\
-	remove_unused_feeds; \
-	${@base_conditional('DISTRO', 'nilrt-nxg', '', 'prune_unused_packages;', d)} \
-"
-
-remove_unused_feeds() {
-	rm -f ${IMAGE_ROOTFS}/var/lib/opkg/lists/*
-}
-
-# Remove any kernel packages that may have pulled in.
-PACKAGE_REMOVE = "kernel-*"
-
-prune_unused_packages() {
-	opkg -o ${IMAGE_ROOTFS} -f ${IPKGCONF_TARGET} --force-depends remove ${PACKAGE_REMOVE}
-}
-
+# remove kernel on non nilrt-nxg because the kernel it's built outside OE
 IMAGE_PREPROCESS_COMMAND += "\
 	${@base_conditional('DISTRO', 'nilrt-nxg', '', 'remove_kernel;', d)} \
 "
@@ -38,3 +20,5 @@ IMAGE_FEATURES += "package-management"
 
 # Grant some space for package installs after boot
 IMAGE_ROOTFS_EXTRA_SPACE = "500000"
+
+require nilrt-image-common.inc

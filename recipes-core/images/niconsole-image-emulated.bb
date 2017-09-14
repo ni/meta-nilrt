@@ -1,7 +1,5 @@
 DESCRIPTION = "Runmode emulated image (NI Linux Realtime distribution)"
 
-IMAGE_PREPROCESS_COMMAND = "rootfs_update_timestamp; "
-
 IMAGE_INSTALL = "\
 	packagegroup-core-boot \
 	packagegroup-ni-base \
@@ -14,7 +12,7 @@ IMAGE_FSTYPES = "tar.bz2 ext3 vmdk"
 DEPENDS = "zip-native"
 
 require include/enable-empty-root-passwd.inc
-require include/niconsole-image.inc
+require niconsole-image.inc
 
 # make sure we have some free space (in Kbytes)
 IMAGE_ROOTFS_EXTRA_SPACE = "102400"

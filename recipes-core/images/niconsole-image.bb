@@ -1,7 +1,5 @@
 DESCRIPTION = "Runmode image for ethernet based, console only, NI Linux Realtime targets."
 
-IMAGE_PREPROCESS_COMMAND = "rootfs_update_timestamp; "
-
 IMAGE_INSTALL = "\
 	packagegroup-ni-base \
 	packagegroup-ni-tzdata \
@@ -11,5 +9,5 @@ IMAGE_INSTALL = "\
 
 IMAGE_FSTYPES = "tar.bz2"
 
-require include/niconsole-image.inc
+require niconsole-image.inc
 require include/licenses.inc
