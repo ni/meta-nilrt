@@ -54,6 +54,8 @@ dovecot:x:358:
 dovenull:x:357:
 www-data:x:356:
 lldpd:x:355:
+redis:x:354:
+_apt:x:353:
 ni:x:500:
 openvpn:x:499:
 niwscerts:x:498:
