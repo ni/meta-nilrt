@@ -20,8 +20,10 @@ do_compile() {
         done
     done
 
-    # Add NIOEMigration feed, which doesn't conform to the above
-    # template. See distro conf for more details.
-    test -n "${NIOEMigration_SUBFEED_URI}"
-    echo "src/gz NIOEMigration-all ${NIOEMigration_SUBFEED_URI}/all" > "${S}/${sysconfdir}/opkg/NIOEMigration-all-feed.conf"
+    # Load up the snowflakes in NILRT_ADDITIONAL_FEED_URIS
+    for feedTuple in "${NILRT_ADDITIONAL_FEED_URIS}"; do
+        feedName=${feedTuple%%##*}
+        feedUrl=${feedTuple##*##}
+        echo "src/gz ${feedName} ${feedUrl}" > "${S}/${sysconfdir}/opkg/${feedName}-feed.conf"
+    done
 }
