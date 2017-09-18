@@ -42,6 +42,7 @@ NILRT_x64_PACKAGES = "\
 	e2fsprogs \
 	e2fsprogs-mke2fs \
 	phc2sys \
+	nilrtdiskcrypt \
 "
 
 NILRT_NXG_PACKAGES = "\
