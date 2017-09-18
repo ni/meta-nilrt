@@ -66,6 +66,7 @@ RDEPENDS_${PN} = "\
 	packagegroup-core-buildessential \
 	packagegroup-core-tools-debug \
 	packagegroup-core-security \
+	packagegroup-tpm2 \
 "
 
 # meta-nilrt
@@ -805,7 +806,6 @@ RDEPENDS_${PN} += "\
 # meta-measured
 RDEPENDS_${PN} += "\
 	trousers \
-	tpm-tools \
 "
 
 # meta-virtualization
