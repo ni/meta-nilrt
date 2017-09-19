@@ -43,16 +43,18 @@ partition_format()
 {
     local disk="$1" label="$2"
 
+    partitions=($(lsblk -rnpo NAME -x NAME ${disk} | tail +2))
     disk_check "$disk"
+
     case "$label" in
         nigrub)
-            mkfs.vfat -n nigrub "$disk"1
+            mkfs.vfat -n nigrub "${partitions[0]}"
             ;;
         nirestore)
-            mkfs.ext4 -F -L nirestore "$disk"2
+            mkfs.ext4 -F -L nirestore "${partitions[1]}"
             ;;
         nilrt)
-            mkfs.ext4 -F -L nilrt "$disk"3
+            mkfs.ext4 -F -L nilrt "${partitions[2]}"
             ;;
         *)
             die "Invalid or unspecified label!"
