@@ -218,7 +218,7 @@ EOF
             echo "Formatting $NILRT_LABEL partition..."
             do_silent partition_format $TARGET_DISK $NILRT_LABEL
             NILRT_ERROR=`mount -L $NILRT_LABEL $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
-            nilrt_path="$TARGET_DISK"3
+            nilrt_path="`lsblk -rnpo NAME -x NAME ${TARGET_DISK} | tail -1`"
 	else
             echo "Formatting $nilrt_path partition..."
             existing_nilrt_partition_format "$nilrt_path" "$uuid" "$nilrt_label"
