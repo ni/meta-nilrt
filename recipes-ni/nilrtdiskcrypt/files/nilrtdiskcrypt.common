@@ -1,0 +1,326 @@
+#!/bin/bash
+set -e
+set -u
+set -o pipefail
+
+function error () {
+    echo >&2 "ERROR: $*"
+    exit 1
+}
+
+function warn () {
+    echo >&2 "WARNING: $*"
+}
+
+# Useful for test and debug
+if [ -z "${VERBOSE+x}" ]; then
+    VERBOSE=0
+fi
+
+[ "$VERBOSE" == "0" ] || [ "$VERBOSE" == "1" ] || [ "$VERBOSE" == "2" ] || error "Invalid VERBOSE flag specified"
+
+function status () {
+    if [ "$VERBOSE" -ge 1 ]; then
+        echo >&2 "DEBUG: $*"
+    fi
+}
+
+# Most tpm2-tools bins are overly verbose and don't provide a --quiet
+# flag (or something similar). This is a small hack to squench verbose
+# messages when we the user doesn't care to see them (when VERBOSE < 2).
+function do_silently () {
+    if [ "$VERBOSE" -ge 2 ]; then
+        $* 1>&2
+    else
+        $* 2>&1 | egrep -i "(error|fail|bug)" 1>&2 || true
+    fi
+}
+
+# constants
+VOLATILE_DIR="/var/volatile/nilrtdiskcrypt"
+LOCK_FILE="$VOLATILE_DIR/lock"
+EMPTY_DIR="$VOLATILE_DIR/emptydir"
+WORK_DIR="$VOLATILE_DIR/workdir"
+LOCK_TIMEOUT="300"  # 300 seconds = 5 minutes
+
+TPM_ALG_SHA256="0x000B"
+TPM_ALG_KEYEDHASH="0x0008"
+TPM_RH_OWNER="0x40000001"
+TPM_USER_STORAGE_HANDLE="0x81000001"
+
+KEY_SEALING_PCR_SET="$TPM_ALG_SHA256:0,2,4,9,10,11"
+
+KEY_MAGIC="nilrtdiskcrypt 1"
+KEY_SIZE="128" # 128 bytes = 1024 bits (max allowed by TPM2)
+
+KEYSLOT00_NVRAMHANDLE="0x01400000"
+KEYSLOT01_NVRAMHANDLE="0x01400001"
+
+# configure tpm2-tools to use default TPM device
+export TPM2TOOLS_TCTI_NAME="device"
+
+# user-only permissions
+umask 0077
+
+# Most functionality requires root
+function root_check () {
+    status "Root check"
+    [ "$UID" == "0" ] || warn "Most functinality in this tool is root-only (UID 0); current UID=$UID"
+}
+
+function init_volatile_dir () {
+    status "Touch VOLATILE_DIR=$VOLATILE_DIR and LOCK_FILE=$LOCK_FILE"
+    mkdir -p "$VOLATILE_DIR"
+    touch "$LOCK_FILE"
+}
+
+# TPM may not be used in paralel, so we need an interprocess lock
+#  while this script runs
+function take_lock () {
+    status "Take LOCK_FILE=$LOCK_FILE as fd=3"
+    exec 3<> "$LOCK_FILE"
+    flock --timeout "$LOCK_TIMEOUT" 3 || error "Failed to acquire LOCK_FILE=$LOCK_FILE in LOCK_TIMEOUT=$LOCK_TIMEOUT"
+}
+
+function clear_work_dir () {
+    status "Clear WORK_DIR=$WORK_DIR"
+    if [ -e  "$WORK_DIR" ]; then
+        local verboseFlag=""
+        [ "$VERBOSE" -ge 1 ] && verboseFlag="--verbose"
+        find "$WORK_DIR" -type f -exec shred $verboseFlag --iterations 1 --random-source /dev/urandom {} \;
+    fi
+    rm -Rf "$WORK_DIR"
+    [ ! -d "$WORK_DIR" ] || error "Failed to delete WORK_DIR=$WORK_DIR"
+}
+
+function init_work_dir () {
+    clear_work_dir
+
+    status "Create empty WORK_DIR=$WORK_DIR"
+    mkdir "$WORK_DIR"
+    chmod 0700 "$WORK_DIR"
+
+    status "Set trap to clear WORK_DIR on EXIT"
+    trap 'exitCode="$?"; set +e; status "Exit trap"; clear_work_dir; exit "$exitCode"' EXIT
+}
+
+function cd_to_empty () {
+    status "Change PWD to EMPTY_DIR=$EMPTY_DIR"
+    rm -Rf     "$EMPTY_DIR"
+    mkdir      "$EMPTY_DIR"
+    cd         "$EMPTY_DIR"
+    chmod 0500 "$EMPTY_DIR"
+}
+
+function create_seeds () {
+    status "Generate seed files rngseed.tpm and rngseed.urandom"
+    do_silently tpm2_getrandom -o "$WORK_DIR/rngseed.tpm" 32
+    do_silently dd if="/dev/urandom" of="$WORK_DIR/rngseed.urandom" bs="$KEY_SIZE" count="$KEY_SIZE"
+}
+
+function create_pcrlist () {
+    status "Create new pcrlist file for KEY_SEALING_PCR_SET=$KEY_SEALING_PCR_SET"
+
+    do_silently tpm2_pcrlist \
+        --selList "$KEY_SEALING_PCR_SET" \
+        --output "$WORK_DIR/pcrlist"
+}
+
+function create_sealing_policy () {
+    status "Create new sealingpol file for KEY_SEALING_PCR_SET=$KEY_SEALING_PCR_SET and pcrlist"
+
+    do_silently tpm2_createpolicy \
+        -P \
+        --set-list "$KEY_SEALING_PCR_SET" \
+        --pcr-input-file "$WORK_DIR/pcrlist" \
+        --policy-file "$WORK_DIR/sealingpol"
+}
+
+function create_disk_key () {
+    status "Create new magic and sn files"
+    echo "nilrtdiskcrypt 1" >"$WORK_DIR/magic"
+    fw_printenv 'serial#' | cut -d'=' -f2 >"$WORK_DIR/sn"
+
+    status "Create new key file ($KEY_SIZE bytes)"
+    do_silently openssl rand \
+        -rand "$WORK_DIR/rngseed.tpm:$WORK_DIR/rngseed.urandom" \
+        -out "$WORK_DIR/key" \
+        "$KEY_SIZE"
+}
+
+function seal_key () {
+    status "Create key.pub and key.priv (sealed TPM2 objects) from key"
+    do_silently tpm2_create \
+        --parent "$TPM_USER_STORAGE_HANDLE" \
+        --inFile "$WORK_DIR/key" \
+        --policy-file "$WORK_DIR/sealingpol" \
+        --kalg "$TPM_ALG_KEYEDHASH" \
+        --halg "$TPM_ALG_SHA256" \
+        --pubfile "$WORK_DIR/key.pub" \
+        --privfile "$WORK_DIR/key.priv" \
+        --enforce-policy 1
+}
+
+function unseal_key () {
+    status "Load key.pub and key.priv to loaded-key.handle"
+    do_silently tpm2_load \
+        --parent "$TPM_USER_STORAGE_HANDLE" \
+        --pubfile "$WORK_DIR/key.pub" \
+        --privfile "$WORK_DIR/key.priv" \
+        --context "loaded-key.handle"
+
+    status "Unseal key at loaded-key.handle with KEY_SEALING_PCR_SET=$KEY_SEALING_PCR_SET"
+    do_silently tpm2_unseal \
+        --itemContext "loaded-key.handle" \
+        --set-list "$KEY_SEALING_PCR_SET" \
+        --pcr-input-file "$WORK_DIR/pcrlist" \
+        --outfile "$WORK_DIR/key"
+
+    [ -f "$WORK_DIR/key" ] || error "Failed to unseal key"
+}
+
+function pack_unsealed_key () {
+    status "Create key.unsealed.gz containing magic, sn, and key"
+    ar rc "$WORK_DIR/key.unsealed" "$WORK_DIR/magic" "$WORK_DIR/sn" "$WORK_DIR/key"
+    gzip --keep "$WORK_DIR/key.unsealed"
+}
+
+function pack_sealed_key () {
+    status "Create key.sealed.gz containing magic, sn, key.priv, and key.pub"
+    ar rc "$WORK_DIR/key.sealed" "$WORK_DIR/magic" "$WORK_DIR/sn" "$WORK_DIR/key.priv" "$WORK_DIR/key.pub"
+    gzip --keep "$WORK_DIR/key.sealed"
+}
+
+function unpack_key () {
+    local filename="$1"
+    local gunzip_filename="$2"
+
+    status "Unpack $filename as $gunzip_filename"
+    rm -f "$WORK_DIR/$gunzip_filename"
+    do_silently gunzip --keep "$WORK_DIR/$filename"
+    [ -f "$WORK_DIR/$gunzip_filename" ] || error "Invalid gunzip_filename=$gunzip_filename specified"
+
+    status "Extract magic, sn, key, key.priv, key.pub from $filename.gunzip"
+    (cd "$WORK_DIR" && ar x "$WORK_DIR/$gunzip_filename")
+    [ -f "$WORK_DIR/magic" ] || error "Malformed data in TPM: Missing magic"
+    [ "`cat "$WORK_DIR/magic"`" == "$KEY_MAGIC" ] || error "Malformed data in TPM: Bad magic"
+    [ -f "$WORK_DIR/sn" ] || error "Malformed data in TPM: Missing sn"
+    [ -f "$WORK_DIR/key" ] || [ -f "$WORK_DIR/key.priv" -a -f "$WORK_DIR/key.pub" ] || error "Malformed data in TPM: Missing both sealed and unsealed key"
+}
+
+function has_unsealed_key () {
+    status "Check if WORK_DIR contians unsealed key"
+    [ -f "$WORK_DIR/key" ]
+}
+
+function has_sealed_key () {
+    status "Check if WORK_DIR contians sealed key"
+    [ -f "$WORK_DIR/key.priv" -a -f "$WORK_DIR/key.pub" ]
+}
+
+function get_key_slot_handle () {
+    local keySlotNumber="$1"
+    case "$keySlotNumber" in
+    0 )  echo "$KEYSLOT00_NVRAMHANDLE" ;;
+    1 )  echo "$KEYSLOT01_NVRAMHANDLE" ;;
+    \?)  error "Invalid keySlotNumber=$keySlotNumber" ;;
+    esac
+}
+
+function nvdestroy () {
+    local nvram_handle="$1"
+    status "Destroying contents of nvram_handle=$nvram_handle"
+    [ -c "/dev/urandom" ] || error "/dev/urandom does not exist"
+    do_silently tpm2_nvwrite \
+        --index "$nvram_handle" \
+        --authHandle "$nvram_handle" \
+        --file "/dev/urandom"
+}
+
+function nvwrite_file () {
+    local filename="$1"
+    local nvram_handle="$2"
+
+    status "Write $filename to nvram_handle=$nvram_handle"
+    [ -f "$WORK_DIR/$filename" ] || error "filename=$filename not in WORK_DIR"
+    do_silently tpm2_nvwrite \
+        --index "$nvram_handle" \
+        --authHandle "$nvram_handle" \
+        --file "$WORK_DIR/$filename"
+}
+
+function nvread_file () {
+    local filename="$1"
+    local nvram_handle="$2"
+
+    status "Read $filename from nvram_handle=$nvram_handle"
+    do_silently tpm2_nvread \
+        --index "$nvram_handle" \
+        --authHandle "$nvram_handle" \
+        --out-file "$WORK_DIR/$filename"
+
+    [ -f "$WORK_DIR/$filename" ] || error "filename=$filename not in WORK_DIR after read"
+}
+
+# generate new key starting with empty WORK_DIR
+function create_sealed_disk_key () {
+    status "Create sealed disk key"
+    create_pcrlist
+    create_sealing_policy
+    create_seeds
+    create_disk_key
+    seal_key
+    pack_unsealed_key
+    pack_sealed_key
+}
+
+# verify disk key is sealed (read and re-seal if open)
+function reseal_disk_key () {
+    local nvram_handle="$1"
+    nvread_file "key.out.gz" "$nvram_handle"
+    unpack_key "key.out.gz" "key.out"
+    if ! has_sealed_key; then
+        status "Reseal key"
+        has_unsealed_key || error "Missing unsealed key, malformed archive"
+        create_pcrlist
+        create_sealing_policy
+        seal_key
+        pack_sealed_key
+        nvwrite_file "key.sealed.gz" "$nvram_handle"
+    else
+        status "Key already sealed"
+    fi
+}
+
+# unseal key a key for use
+function read_and_unseal_disk_key () {
+    local nvram_handle="$1"
+    nvread_file "key.out.gz" "$nvram_handle"
+    unpack_key "key.out.gz" "key.out"
+    has_unsealed_key && error "Key must be sealed"
+    has_sealed_key   || error "No sealed key found"
+    create_pcrlist
+    create_sealing_policy
+    unseal_key
+    has_unsealed_key || error "No unsealed key after unseal operation"
+}
+
+function get_mapper_path () {
+    echo /dev/mapper/"nidiskcrypt_""`basename "$1"`"
+}
+
+function sanity_check_luks_volume_closed () {
+    local devNode="$1"
+    status "Sanity check: verify devNode=$devNode is unmounted and closed"
+    if mount | grep -q "^$devNode "; then
+        error "devNode=$devNode still mounted, umount failed"
+    fi
+    local mapperPath="`get_mapper_path "$devNode"`"
+    if [ -e "$mapperPath" ]; then
+        error "$mapperPath still exists"
+    fi
+}
+
+status "Common init"
+root_check
+init_volatile_dir

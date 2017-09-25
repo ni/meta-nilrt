@@ -1,0 +1,90 @@
+#!/bin/bash
+set -e
+source "/usr/lib/nilrtdiskcrypt.common"
+
+function print_usage_and_die () {
+    local message="$1"
+    echo >&2 "ERROR: $message"
+    echo >&2 ""
+    echo >&2 "Usage: $0 [ -u unsealedKeySlotNumber ...] [ -s sealedKeySlotNumber ...] [ -d devNode ... ]"
+    echo >&2 " Generates and seals a new key in speicfied TPM key slots,"
+    echo >&2 " then formats and opens specified partitions as luks"
+    echo >&2 " using new key."
+    exit 1
+}
+
+# get args
+unsealedKeySlotNumbers=""
+sealedKeySlotNumbers=""
+devNodes=""
+
+while getopts "u:s:d:" opt; do
+    case "$opt" in
+    u )  unsealedKeySlotNumbers="$unsealedKeySlotNumbers $OPTARG" ;;
+    s )  sealedKeySlotNumbers="$sealedKeySlotNumbers $OPTARG" ;;
+    d )  devNodes="$devNodes $OPTARG" ;;
+    \?)  print_usage_and_die "Invalid arg" ;;
+    esac
+done
+shift $(($OPTIND - 1))
+
+[ -n "$unsealedKeySlotNumbers""$sealedKeySlotNumbers" ] || print_usage_and_die "Must specify at least one TPM key slot number"
+[ -n "$devNodes" ] || print_usage_and_die "Must specify at least one device to format"
+
+status "Init"
+take_lock
+cd_to_empty
+init_work_dir
+
+status "Sanity check: Ensure specified devices are not mounted or open"
+for devNode in $devNodes; do
+    sanity_check_luks_volume_closed "$devNode"
+done
+
+status "Clear existing keys in TPM"
+for ksNumb in $unsealedKeySlotNumbers $sealedKeySlotNumbers; do
+    ksHandle="`get_key_slot_handle "$ksNumb"`"
+    nvdestroy "$ksHandle"
+done
+
+create_sealed_disk_key
+
+status "Format devices"
+for devNode in $devNodes; do
+    status "Destroy devNode=$devNode"
+    do_silently dd if=/dev/zero of="$devNode" bs=1048576 count=1  # 1048576 bytes = 1 MB
+
+    status "luksFormat devNode=$devNode"
+    cryptsetup \
+        -q \
+        --key-file "$WORK_DIR/key" \
+        --cipher aes-xts-plain64 \
+        --key-size 512 \
+        --hash sha256 \
+        luksFormat "$devNode"
+done
+
+status "Open devices"
+for devNode in $devNodes; do
+    status "luksOpen devNode=$devNode"
+    cryptsetup \
+        --key-file "$WORK_DIR/key" \
+        luksOpen "$devNode" "nidiskcrypt_""`basename "$devNode"`"
+done
+
+status "Store unsealed keys"
+for ksNumb in $unsealedKeySlotNumbers; do
+    ksHandle="`get_key_slot_handle "$ksNumb"`"
+    nvwrite_file "key.unsealed.gz" "$ksHandle"
+done
+
+status "Store sealed keys"
+for ksNumb in $sealedKeySlotNumbers; do
+    ksHandle="`get_key_slot_handle "$ksNumb"`"
+    nvwrite_file "key.sealed.gz" "$ksHandle"
+done
+
+status "Remove key"
+clear_work_dir
+
+status "SUCCESS"

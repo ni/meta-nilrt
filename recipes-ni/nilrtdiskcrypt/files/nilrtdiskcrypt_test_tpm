@@ -1,0 +1,38 @@
+#!/bin/bash
+set -e
+VERBOSE=1
+source "/usr/lib/nilrtdiskcrypt.common"
+
+status "TEST: Init"
+take_lock
+cd_to_empty
+
+status "TEST: provision keys"
+init_work_dir
+create_sealed_disk_key
+nvwrite_file "key.sealed.gz" "$KEYSLOT00_NVRAMHANDLE"
+nvwrite_file "key.unsealed.gz" "$KEYSLOT01_NVRAMHANDLE"
+
+status "TEST: read back safemode key"
+init_work_dir
+read_and_unseal_disk_key "$KEYSLOT00_NVRAMHANDLE"
+
+status "TEST: read back runmode key"
+init_work_dir
+nvread_file "key.out.gz" "$KEYSLOT01_NVRAMHANDLE"
+unpack_key "key.out.gz" "key.out"
+has_unsealed_key || error "Runmode key should be unsealed after provisioning"
+has_sealed_key   && error "Found sealed runmode key after provisioning"
+
+status "TEST: seal runmode key"
+create_pcrlist
+create_sealing_policy
+seal_key
+pack_sealed_key
+nvwrite_file "key.sealed.gz" "$KEYSLOT01_NVRAMHANDLE"
+
+status "TEST: read back re-sealed runmode key"
+init_work_dir
+read_and_unseal_disk_key "$KEYSLOT01_NVRAMHANDLE"
+
+status "TEST PASSED"

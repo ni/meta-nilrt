@@ -1,0 +1,55 @@
+#!/bin/bash
+set -e
+source "/usr/lib/nilrtdiskcrypt.common"
+
+function print_usage_and_die () {
+    local message="$1"
+    echo >&2 "ERROR: $message"
+    echo >&2 ""
+    echo >&2 "Usage: $0 -k keySlotNumber [ -d devNode ... ]"
+    echo >&2 " Unseals a key from specified key slot and opens"
+    echo >&2 " specified devices with it."
+    exit 1
+}
+
+# get args
+keySlotNumber=""
+devNodes=""
+
+while getopts "k:d:" opt; do
+    case "$opt" in
+    k )  [ -z "$keySlotNumber" ] && keySlotNumber="$OPTARG" || print_usage_and_die "Cannot specify more than one TPM key slot" ;;
+    d )  devNodes="$devNodes $OPTARG" ;;
+    \?)  print_usage_and_die "Invalid arg" ;;
+    esac
+done
+shift $(($OPTIND - 1))
+
+[ -n "$keySlotNumber" ] || print_usage_and_die "Must specify a TPM key slot number"
+[ -n "$devNodes" ] || print_usage_and_die "Must specify at least one device"
+
+status "Init"
+take_lock
+cd_to_empty
+init_work_dir
+
+status "Sanity check: Ensure specified devices are not mounted or open"
+for devNode in $devNodes; do
+    sanity_check_luks_volume_closed "$devNode"
+done
+
+ksHandle="`get_key_slot_handle "$keySlotNumber"`"
+read_and_unseal_disk_key "$ksHandle"
+
+status "Open devices"
+for devNode in $devNodes; do
+    status "luksOpen devNode=$devNode"
+    cryptsetup \
+        --key-file "$WORK_DIR/key" \
+        luksOpen "$devNode" "nidiskcrypt_""`basename "$devNode"`"
+done
+
+status "Remove key"
+clear_work_dir
+
+status "SUCCESS"

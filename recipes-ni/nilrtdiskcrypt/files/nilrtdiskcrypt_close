@@ -1,0 +1,57 @@
+#!/bin/bash
+set -e
+source "/usr/lib/nilrtdiskcrypt.common"
+
+function print_usage_and_die () {
+    local message="$1"
+    echo >&2 "ERROR: $message"
+    echo >&2 ""
+    echo >&2 "Usage: $0 [ -d devNode ... ]"
+    echo >&2 " Unmounts and closes the specified devices"
+    exit 1
+}
+
+# get args
+devNodes=""
+
+while getopts "d:" opt; do
+    case "$opt" in
+    d )  devNodes="$devNodes $OPTARG" ;;
+    \?)  print_usage_and_die "Invalid arg" ;;
+    esac
+done
+shift $(($OPTIND - 1))
+
+[ -n "$devNodes" ] || print_usage_and_die "Must specify at least one device"
+
+status "Init"
+take_lock
+cd_to_empty
+
+status "Unmount devices"
+for devNode in $devNodes; do
+    if mount | grep -q "^$devNode "; then
+        status "Unmount devNode=$devNode"
+        umount "$devNode"
+    else
+        status "SKIP unmount devNode=$devNode (not mounted)"
+    fi
+done
+
+status "luksClose devices"
+for devNode in $devNodes; do
+    mapperPath="`get_mapper_path "$devNode"`"
+    if [ -e "$mapperPath" ]; then
+        status "luksClose mapperPath=$mapperPath"
+        do_silently cryptsetup luksClose "$mapperPath"
+    else
+        status "SKIP luksClose mapperPath=$mapperPath (not open)"
+    fi
+done
+
+status "Sanity check: Ensure specified devices are not mounted or open"
+for devNode in $devNodes; do
+    sanity_check_luks_volume_closed "$devNode"
+done
+
+status "SUCCESS"
