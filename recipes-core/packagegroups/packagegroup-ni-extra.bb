@@ -191,7 +191,6 @@ RDEPENDS_${PN} += "\
 	boost \
 	ca-certificates \
 	createrepo-c \
-	curl \
 	debianutils \
 	enchant \
 	gnupg \

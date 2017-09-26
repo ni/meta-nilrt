@@ -85,6 +85,7 @@ RDEPENDS_${PN} = "\
 	busybox \
 	${@bb.utils.contains('MACHINE_FEATURES', 'acpi', 'busybox-acpid', '', d)} \
 	coreutils-hostname \
+	curl \
 	dhcp-client \
 	ethtool \
 	fuse-exfat \
