@@ -1,10 +1,11 @@
-PACKAGES =+ "${PN}-hostname ${PN}-ls ${PN}-chcon"
+PACKAGES =+ "${PN}-hostname ${PN}-ls ${PN}-chcon ${PN}-shred"
 
 EXTRA_OECONF_class-target += "--enable-install-program=hostname"
 
 FILES_${PN}-hostname = "${base_bindir}/hostname.${PN}"
 FILES_${PN}-ls = "${base_bindir}/ls.${PN}"
 FILES_${PN}-chcon = "${bindir}/chcon.${PN}"
+FILES_${PN}-shred = "${bindir}/shred.${PN}"
 
 DEPENDS += "shadow-native pseudo-native niacctbase"
 
@@ -17,6 +18,7 @@ RDEPENDS_${PN}_class-target += "\
 	${PN}-hostname \
 	${PN}-ls \
 	${PN}-chcon \
+	${PN}-shred \
 "
 
 do_install_append() {
@@ -51,3 +53,10 @@ pkg_prerm_coreutils-chcon () {
 	update-alternatives --remove chcon chcon.${BPN}
 }
 
+pkg_postinst_coreutils-shred () {
+	update-alternatives --install ${bindir}/shred shred shred.${BPN} 100
+}
+
+pkg_prerm_coreutils-shred () {
+	update-alternatives --remove shred shred.${BPN}
+}
