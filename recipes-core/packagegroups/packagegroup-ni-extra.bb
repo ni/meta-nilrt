@@ -494,6 +494,11 @@ RDEPENDS_${PN} += "\
 	crash \
 "
 
+# meta-openembedded/meta-initramfs/recipes-devtools
+RDEPENDS_${PN} += "\
+	mkinitcpio \
+"
+
 # meta-openembedded/meta-filesystems
 RDEPENDS_${PN} += "\
 	fuse-exfat \
