@@ -21,7 +21,7 @@ do_compile() {
     done
 
     # Load up the snowflakes in NILRT_ADDITIONAL_FEED_URIS
-    for feedTuple in "${NILRT_ADDITIONAL_FEED_URIS}"; do
+    for feedTuple in ${NILRT_ADDITIONAL_FEED_URIS}; do
         feedName=${feedTuple%%##*}
         feedUrl=${feedTuple##*##}
         echo "src/gz ${feedName} ${feedUrl}" > "${S}/${sysconfdir}/opkg/${feedName}-feed.conf"
