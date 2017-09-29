@@ -6,7 +6,8 @@ SRC_URI = "\
 	file://init-runmode-ramfs.sh	\
 "
 
-RDEPENDS_${PN} += "bash"
+DEPENDS = "bash busybox util-linux nilrtdiskcrypt"
+RDEPENDS_${PN} += "bash busybox util-linux-lsblk util-linux-switch-root nilrtdiskcrypt-open nilrtdiskcrypt-reseal"
 
 do_install() {
 	install -m 0755 ${WORKDIR}/init-runmode-ramfs.sh ${D}/init
