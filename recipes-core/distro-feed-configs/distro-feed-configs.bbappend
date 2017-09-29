@@ -22,8 +22,8 @@ do_compile() {
 
     # Load up the snowflakes in NILRT_ADDITIONAL_FEED_URIS
     for feedTuple in ${NILRT_ADDITIONAL_FEED_URIS}; do
-        feedName=${feedTuple%%##*}
-        feedUrl=${feedTuple##*##}
+        feedName=$(echo $feedTuple | sed 's/^[ \t]*\([^ \t#]*\)[ \t]*##.*$/\1/')
+        feedUrl=$(echo $feedTuple | sed 's/^.*##[ \t]*\([^ \t]*\)[ \t]*.*$/\1/')
         echo "src/gz ${feedName} ${feedUrl}" > "${S}/${sysconfdir}/opkg/${feedName}-feed.conf"
     done
 }
