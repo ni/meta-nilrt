@@ -20,7 +20,7 @@ RDEPENDS_${PN}-reseal += "${PN}-common"
 RDEPENDS_${PN} += "${PN}-common ${PN}-open ${PN}-reseal openssl"
 
 FILES_${PN}-common = "${libdir}/nilrtdiskcrypt.common"
-FILES_${PN}-open = "${sbindir}/nilrtdiskcrypt_open"
+FILES_${PN}-open = "${sbindir}/nilrtdiskcrypt_open ${sbindir}/nilrtdiskcrypt_canopen"
 FILES_${PN}-reseal = "${sbindir}/nilrtdiskcrypt_reseal"
 FILES_${PN} = "${sbindir}/nilrtdiskcrypt_format ${sbindir}/nilrtdiskcrypt_close"
 
@@ -32,6 +32,7 @@ S = "${WORKDIR}"
 SRC_URI = " \
     file://nilrtdiskcrypt.common \
     file://nilrtdiskcrypt_open \
+    file://nilrtdiskcrypt_canopen \
     file://nilrtdiskcrypt_reseal \
     file://nilrtdiskcrypt_close \
     file://nilrtdiskcrypt_format \
@@ -45,6 +46,7 @@ do_install () {
     install -m 0644 ${S}/nilrtdiskcrypt.common ${D}${libdir}/
 
     install -m 0755 ${S}/nilrtdiskcrypt_open ${D}${sbindir}/
+    install -m 0755 ${S}/nilrtdiskcrypt_canopen ${D}${sbindir}/
     install -m 0755 ${S}/nilrtdiskcrypt_reseal ${D}${sbindir}/
     install -m 0755 ${S}/nilrtdiskcrypt_close ${D}${sbindir}/
     install -m 0755 ${S}/nilrtdiskcrypt_format ${D}${sbindir}/
