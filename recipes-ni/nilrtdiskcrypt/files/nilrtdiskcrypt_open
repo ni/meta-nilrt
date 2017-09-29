@@ -4,11 +4,13 @@ source "/usr/lib/nilrtdiskcrypt.common"
 
 function print_usage_and_die () {
     local message="$1"
-    echo >&2 "ERROR: $message"
-    echo >&2 ""
-    echo >&2 "Usage: $0 -k keySlotNumber [ -d devNode ... ]"
-    echo >&2 " Unseals a key from specified key slot and opens"
-    echo >&2 " specified devices with it."
+    cat >&2 <<ENDHELP
+ERROR: $message
+
+Usage: $0 -k keySlotNumber [ -d devNode ... ]
+ Unseals a key from specified key slot and opens specified devices
+ with it.
+ENDHELP
     exit 1
 }
 

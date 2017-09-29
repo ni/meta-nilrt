@@ -4,10 +4,12 @@ source "/usr/lib/nilrtdiskcrypt.common"
 
 function print_usage_and_die () {
     local message="$1"
-    echo >&2 "ERROR: $message"
-    echo >&2 ""
-    echo >&2 "Usage: $0 [ -d devNode ... ]"
-    echo >&2 " Unmounts and closes the specified devices"
+    cat >&2 <<ENDHELP
+ERROR: $message
+
+Usage: $0 [ -d devNode ... ]
+ Unmounts and closes the specified devices
+ENDHELP
     exit 1
 }
 

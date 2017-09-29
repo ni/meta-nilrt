@@ -4,10 +4,12 @@ source "/usr/lib/nilrtdiskcrypt.common"
 
 function print_usage_and_die () {
     local message="$1"
-    echo >&2 "ERROR: $message"
-    echo >&2 ""
-    echo >&2 "Usage: $0 [ -u unsealedKeySlotNumber ...]"
-    echo >&2 " Reads and reseals disk key in specified slots"
+    cat >&2 <<ENDHELP
+ERROR: $message
+
+Usage: $0 [ -u unsealedKeySlotNumber ...]
+ Reads and reseals disk key in specified slots
+ENDHELP
     exit 1
 }
 

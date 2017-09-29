@@ -4,12 +4,13 @@ source "/usr/lib/nilrtdiskcrypt.common"
 
 function print_usage_and_die () {
     local message="$1"
-    echo >&2 "ERROR: $message"
-    echo >&2 ""
-    echo >&2 "Usage: $0 [ -u unsealedKeySlotNumber ...] [ -s sealedKeySlotNumber ...] [ -d devNode ... ]"
-    echo >&2 " Generates and seals a new key in speicfied TPM key slots,"
-    echo >&2 " then formats and opens specified partitions as luks"
-    echo >&2 " using new key."
+    cat >&2 <<ENDHELP
+ERROR: $message
+
+Usage: $0 [ -u unsealedKeySlotNumber ...] [ -s sealedKeySlotNumber ...] [ -d devNode ... ]
+ Generates and seals a new key in speicfied TPM key slots, then formats
+ and opens specified partitions as luks using new key.
+ENDHELP
     exit 1
 }
 
