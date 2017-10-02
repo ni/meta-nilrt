@@ -1,0 +1,44 @@
+#!/bin/bash
+set -e
+source "/usr/lib/nilrtdiskcrypt.common"
+
+function print_usage_and_die () {
+    local message="$1"
+    cat >&2 <<ENDHELP
+ERROR: $message
+
+Usage: $0 [ -d devNode ...]
+ Exits with 0 if the specified devices may be encrypted by TPM-resident keys.
+ Specify zero dev nodes to only check TPM capabilities.
+ Exists non-zero otherwise.
+ENDHELP
+    exit 1
+}
+
+# get args
+devNodes=""
+
+while getopts "d:" opt; do
+    case "$opt" in
+    d )  devNodes="$devNodes $OPTARG" ;;
+    \?)  print_usage_and_die "Invalid arg" ;;
+    esac
+done
+shift $(($OPTIND - 1))
+
+status "Init"
+take_lock
+cd_to_empty
+init_work_dir
+
+check_tpm_caps
+
+exitCode=0
+for devNode in $devNodes; do
+    if [ ! -b "$devNode" ]; then
+        echo >&2 "$devNode not supported (not block device)"
+        exitCode=1
+    fi
+done
+
+exit $exitCode

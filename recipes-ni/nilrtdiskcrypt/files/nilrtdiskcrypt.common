@@ -112,6 +112,19 @@ function cd_to_empty () {
     chmod 0500 "$EMPTY_DIR"
 }
 
+function check_tpm_caps () {
+    status "Verify TPM supports all desired functionality"
+    tpm2_dump_capability --capability algorithms >"$WORK_DIR/algorithms.tpmcaps"
+    tpm2_dump_capability --capability commands >"$WORK_DIR/commands.tpmcaps"
+    for algorithm in RSASSA AES CFB SHA256; do
+        if grep -q -i "$algorithm" "$WORK_DIR/algorithms.tpmcaps"; then
+            status "TPM has algorithm=$algorithm"
+        else
+            error "TPM does NOT have algorithm=$algorithm"
+        fi
+    done
+}
+
 function create_seeds () {
     status "Generate seed files rngseed.tpm and rngseed.urandom"
     do_silently tpm2_getrandom -o "$WORK_DIR/rngseed.tpm" 32
