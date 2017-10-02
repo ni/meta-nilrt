@@ -1,11 +1,6 @@
 DESCRIPTION ?= "Small initramfs for booting older NILRT runmode targets"
 LICENSE = "MIT"
 
-PACKAGE_INSTALL = "		\
-	util-linux-switch-root	\
-	cryptsetup		\
-	dash			\
-	mkinitcpio		\
-"
+PACKAGE_INSTALL = "init-runmode-ramfs mkinitcpio"
 
 require nilrt-image-common.inc
