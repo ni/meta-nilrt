@@ -35,4 +35,13 @@ status "TEST: read back re-sealed runmode key"
 init_work_dir
 read_and_unseal_disk_key "$KEYSLOT01_NVRAMHANDLE"
 
+status "TEST: destroy keys"
+init_work_dir
+nvdestroy "$KEYSLOT00_NVRAMHANDLE"
+nvread_file "garbage00" "$KEYSLOT00_NVRAMHANDLE"
+[ "`cat "$WORK_DIR/garbage.urandom"`" == "`cat "$WORK_DIR/garbage00"`" ]
+nvdestroy "$KEYSLOT01_NVRAMHANDLE"
+nvread_file "garbage01" "$KEYSLOT01_NVRAMHANDLE"
+[ "`cat "$WORK_DIR/garbage.urandom"`" == "`cat "$WORK_DIR/garbage01"`" ]
+
 status "TEST PASSED"

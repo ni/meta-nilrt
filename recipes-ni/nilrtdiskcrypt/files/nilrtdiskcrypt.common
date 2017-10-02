@@ -52,6 +52,7 @@ KEY_SEALING_PCR_SET="$TPM_ALG_SHA256:0,2,4,9,10,11"
 
 KEY_MAGIC="nilrtdiskcrypt 1"
 KEY_SIZE="128" # 128 bytes = 1024 bits (max allowed by TPM2)
+KEY_SLOT_SIZE="512"
 
 KEYSLOT00_NVRAMHANDLE="0x01400000"
 KEYSLOT01_NVRAMHANDLE="0x01400001"
@@ -242,12 +243,14 @@ function get_key_slot_handle () {
 
 function nvdestroy () {
     local nvram_handle="$1"
-    status "Destroying contents of nvram_handle=$nvram_handle"
-    [ -c "/dev/urandom" ] || error "/dev/urandom does not exist"
+    status "Generating garbage.urandom (KEY_SLOT_SIZE=$KEY_SLOT_SIZE)"
+    do_silently dd if="/dev/urandom" of="$WORK_DIR/garbage.urandom" bs="$KEY_SLOT_SIZE" count=1
+    [ "`wc -c "$WORK_DIR/garbage.urandom"`" == "$KEY_SLOT_SIZE $WORK_DIR/garbage.urandom" ]
+    status "Destroying contents of nvram_handle=$nvram_handle with garbage.urandom"
     do_silently tpm2_nvwrite \
         --index "$nvram_handle" \
         --authHandle "$nvram_handle" \
-        --file "/dev/urandom"
+        --file "$WORK_DIR/garbage.urandom"
 }
 
 function nvwrite_file () {
