@@ -20,6 +20,7 @@ SRC_URI_append_x64 = " \
 
 SRC_URI_append_armv7a = " \
             file://arm-kernel-arch.conf \
+            file://test_arm_kernel_arch.sh \
 "
 
 PACKAGECONFIG = "libsolv"
@@ -38,4 +39,8 @@ do_install_ptest_append_x64() {
 do_install_append_armv7a () {
     install -d ${D}${sysconfdir}/opkg
     install -m 0644 ${WORKDIR}/arm-kernel-arch.conf ${D}${sysconfdir}/opkg/
+}
+
+do_install_ptest_append_armv7a () {
+    install -m 0755 ${WORKDIR}/test_arm_kernel_arch.sh ${D}${PTEST_PATH}
 }
