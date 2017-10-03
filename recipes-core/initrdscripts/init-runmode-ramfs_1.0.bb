@@ -14,4 +14,4 @@ do_install() {
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-FILES_${PN} += "/init-ramfs.common /init"
+FILES_${PN} += "/init"
