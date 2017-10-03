@@ -29,6 +29,6 @@ do_install_ptest() {
 }
 
 do_install_append_armv7a () {
-    install -d ${D}/opkg
+    install -d ${D}${sysconfdir}/opkg
     install -m 0644 ${WORKDIR}/arm-kernel-arch.conf ${D}${sysconfdir}/opkg/
 }
