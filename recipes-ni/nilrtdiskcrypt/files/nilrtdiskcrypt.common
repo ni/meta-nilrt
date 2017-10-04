@@ -32,7 +32,7 @@ function do_silently () {
     if [ "$VERBOSE" -ge 2 ]; then
         $* 1>&2
     else
-        $* 2>&1 | egrep -i "(error|fail|bug)" 1>&2 || true
+        $* 2>&1 | (egrep -i "(error|fail|bug)" 1>&2 || true)
     fi
 }
 
