@@ -1,0 +1,7 @@
+#! /bin/sh
+
+for test in $(ls test*); do
+	./$test
+done
+
+exit 0

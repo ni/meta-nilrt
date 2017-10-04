@@ -8,6 +8,18 @@ export NIOEExtras_SUBFEED_URI
 export NI_SUBFEED_URI
 export NIOEMigration_SUBFEED_URI
 
+FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+
+inherit ptest
+
+SRC_URI_append = " \
+    file://run-ptest \
+    file://ptest-format.sh \
+    file://test_feed_listings.sh \
+"
+
+RDEPENDS_${PN}-ptest += " bash "
+
 do_compile() {
     mkdir -p ${S}/${sysconfdir}/opkg
 
@@ -26,4 +38,11 @@ do_compile() {
         feedUrl=$(echo $feedTuple | sed 's/^.*##[ \t]*\([^ \t]*\)[ \t]*.*$/\1/')
         echo "src/gz ${feedName} ${feedUrl}" > "${S}/${sysconfdir}/opkg/${feedName}-feed.conf"
     done
+}
+
+do_install_ptest() {
+    install -d ${D}${PTEST_PATH}
+    install -m 755 ${WORKDIR}/test_feed_listings.sh ${D}${PTEST_PATH}
+    install -m 644 ${WORKDIR}/ptest-format.sh ${D}${PTEST_PATH}
+    install -m 755 ${WORKDIR}/run-ptest ${D}${PTEST_PATH}
 }
