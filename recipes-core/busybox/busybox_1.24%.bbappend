@@ -9,6 +9,8 @@ SRC_URI =+ " \
             file://acpid-logrotate.conf \
 	    file://zcip-allow-action-script-to-reject-chosen-IP.patch"
 
+SRC_URI_append_x64 = "file://enable_ar_create_fragment.cfg"
+
 # we're using syslog-ng, don't build busybox syslog (avoids build warnings)
 SRC_URI_remove += "file://syslog.cfg"
 INITSCRIPT_PACKAGES_remove += "${PN}-syslog"
