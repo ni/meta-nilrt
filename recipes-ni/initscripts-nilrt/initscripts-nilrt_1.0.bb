@@ -12,6 +12,9 @@ DEPENDS += "shadow-native pseudo-native update-rc.d-native niacctbase"
 RDEPENDS_${PN} += "bash niacctbase update-rc.d"
 RDEPENDS_${PN}-ptest += "bash"
 
+DEPENDS_append_x64 = " nilrtdiskcrypt "
+RDEPENDS_${PN}_append_x64 = " nilrtdiskcrypt "
+
 SRC_URI = "file://nisetbootmode \
 	   file://firewall \
 	   file://mountdebugfs \
@@ -32,6 +35,10 @@ SRC_URI = "file://nisetbootmode \
 
 SRC_URI_append_x64 = "file://nidisablecstates \
                       file://nicheckbiosconfig \
+                      file://niopendisks \
+                      file://niclosedisks \
+                      file://test-niopendisks-init \
+                      file://test-niclosedisks-init \
 "
 
 S = "${WORKDIR}"
@@ -91,8 +98,19 @@ do_install_append_x64 () {
      update-rc.d -r ${D} nidisablecstates start 2 3 4 5 S .
      install -m 0755   ${WORKDIR}/nicheckbiosconfig      ${D}${sysconfdir}/init.d
      update-rc.d -r ${D} nicheckbiosconfig start 99 5 .
+
+     install -m 0755   ${WORKDIR}/niopendisks   ${D}${sysconfdir}/init.d
+     update-rc.d -r ${D} niopendisks start 05 S .
+
+     install -m 0755   ${WORKDIR}/niclosedisks  ${D}${sysconfdir}/init.d
+     update-rc.d -r ${D} niclosedisks start 41 0 . start 41 6 .
 }
 
 do_install_ptest () {
 	cp ${WORKDIR}/test-nisetcommitratio-* ${D}${PTEST_PATH}/
+}
+
+do_install_ptest_append_x64 () {
+	cp ${WORKDIR}/test-niopendisks-init  ${D}${PTEST_PATH}/
+	cp ${WORKDIR}/test-niclosedisks-init  ${D}${PTEST_PATH}/
 }

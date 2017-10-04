@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e
+set -u
+set -o pipefail
+
+trap 'exitCode="$?"; set +e; echo "FAIL $0"; exit "$exitCode"' EXIT
+
+echo "check that niclosedisks runs right before reboot"
+ls -l "/etc/rc6.d/S40umountfs"
+ls -l "/etc/rc6.d/S41niclosedisks"
+echo "OK"
+
+echo "check that niclosedisks runs right before halt"
+ls -l "/etc/rc0.d/S40umountfs"
+ls -l "/etc/rc0.d/S41niclosedisks"
+echo "OK"
+
+echo "PASS $0"
+trap - EXIT

@@ -1,0 +1,40 @@
+#!/bin/bash
+set -e
+set -u
+set -o pipefail
+
+# begin output
+echo -n "$0: "
+
+function error () {
+    echo >&2 "$0: ERROR: $*"
+    exit 1
+}
+
+[ "$#" -gt 0 ] || error "Must provide at least one arg"
+[ "$1" == "stop" ] || error "Only 'stop' operation is supported"
+
+CONFIGFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^niconfig '| tr -s ' ' | cut -d' ' -f2)"
+ROOTFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^nirootfs '| tr -s ' ' | cut -d' ' -f2)"
+
+# setup VERBOSE flag for nilrtdiskcrypt
+if [ "$VERBOSE" == "yes" ]; then
+    export VERBOSE=1
+else
+    export VERBOSE=0
+fi
+
+# Remount /var/volatile and /dev, used by nilrtdiskcrypt
+mounted_volatile=true
+mounted_dev=true
+mount -t tmpfs tmpfs /var/volatile && echo -n "mount volatile. " || mounted_volatile=false
+mount -o remount,rw -t devtmpfs devtmpfs /dev && echo -n "remount rw dev. " || mounted_dev=false
+
+nilrtdiskcrypt_close -d "$CONFIGFS_DEV" -d "$ROOTFS_DEV"
+
+# Umount /var/volatile and /dev, if mounted earlier
+$mounted_dev && umount -f -r /dev
+$mounted_volatile && umount /var/volatile
+
+# everything finished, end output
+echo "OK"

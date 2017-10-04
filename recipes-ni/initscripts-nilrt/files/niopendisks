@@ -1,0 +1,39 @@
+#!/bin/bash
+set -e
+set -u
+set -o pipefail
+
+# begin output
+echo -n "$0: "
+
+function error () {
+    echo >&2 "$0: ERROR: $*"
+    exit 1
+}
+
+[ "$#" -gt 0 ] || error "Must provide at least one arg"
+[ "$1" == "start" ] || error "Only 'start' operation is supported"
+
+CONFIGFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^niconfig '| tr -s ' ' | cut -d' ' -f2)"
+ROOTFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^nirootfs '| tr -s ' ' | cut -d' ' -f2)"
+
+# setup VERBOSE flag for nilrtdiskcrypt
+if [ "$VERBOSE" == "yes" ]; then
+    export VERBOSE=1
+else
+    export VERBOSE=0
+fi
+
+if nilrtdiskcrypt_canopen -d "$ROOTFS_DEV" -d "$CONFIGFS_DEV"; then
+    if [ -f /etc/natinst/safemode ]; then
+        nilrtdiskcrypt_open -k 0 -d "$ROOTFS_DEV" -d "$CONFIGFS_DEV" >/dev/null
+        mount -L nirootfs
+        mount -L niconfig
+    else
+        nilrtdiskcrypt_open -k 1 -d "$CONFIGFS_DEV" >/dev/null
+        mount -L niconfig
+    fi
+fi
+
+# everything finished, end output
+echo "OK"
