@@ -47,6 +47,8 @@ TPM_ALG_SHA256="0x000B"
 TPM_ALG_KEYEDHASH="0x0008"
 TPM_RH_OWNER="0x40000001"
 TPM_USER_STORAGE_HANDLE="0x81000001"
+TPM_PLATFORM_STORAGE_HANDLE="0x81000002"
+TPM_ATTESTATION_KEY_HANDLE="0x81000003"
 
 # BUG: adding more than 1 bank here causes tpm2_createpolicy to error out with
 # "Reading <pcrlist-file> failed: end of file", then segfault
@@ -115,6 +117,17 @@ function cd_to_empty () {
     chmod 0500 "$EMPTY_DIR"
 }
 
+function stdin_to_hex () {
+    # sanity check via egrep
+    hexdump -ve '1/1 "%.2x"' | egrep '^[0-9A-Fa-f]*$'
+}
+
+function create_meta_data () {
+    status "Create new magic and sn files"
+    echo "$KEY_MAGIC" >"$WORK_DIR/magic"
+    fw_printenv 'serial#' | cut -d'=' -f2 >"$WORK_DIR/sn"
+}
+
 function check_tpm_caps () {
     status "Verify TPM supports all desired functionality"
     tpm2_dump_capability --capability algorithms >"$WORK_DIR/algorithms.tpmcaps"
@@ -126,6 +139,34 @@ function check_tpm_caps () {
             error "TPM does NOT have algorithm=$algorithm"
         fi
     done
+}
+
+function read_attestation_public_key () {
+    status "Read public key of TPM_ATTESTATION_KEY_HANDLE=$TPM_ATTESTATION_KEY_HANDLE to attestation.pub"
+    do_silently tpm2_readpublic \
+        --object "$TPM_ATTESTATION_KEY_HANDLE" \
+        --opu "$WORK_DIR/attestation.pub"
+    [ -f "$WORK_DIR/attestation.pub" ]
+}
+
+function quote_pcr () {
+    local qualifier_hex="$1"
+    status "Quote KEY_SEALING_PCR_SET=$KEY_SEALING_PCR_SET to quote and quote.sig (TPM_ATTESTATION_KEY_HANDLE=$TPM_ATTESTATION_KEY_HANDLE, qualifier_hex=$qualifier_hex)"
+    local qualifier_hex_arg=""
+    if [ -n "$qualifier_hex" ]; then
+        # tpm2 only supports 32-bit qualifiers
+        echo "$qualifier_hex" | egrep -q '^0x[0-9A-Fa-f]*4$' || error "Malformed qualifier_hex=$qualifier_hex, must be 4-digit hex string beginning with 0x"
+        qualifier_hex_arg="--qualifyData ${qualifier_hex:2}"
+    fi
+    do_silently tpm2_quote \
+        --akHandle "$TPM_ATTESTATION_KEY_HANDLE" \
+        --selList "$KEY_SEALING_PCR_SET" \
+        --sigHashAlg "$TPM_ALG_SHA256" \
+        $qualifier_hex_arg \
+        --outFile "$WORK_DIR/quote" \
+        --outSigFile "$WORK_DIR/quote.sig"
+    [ -f "$WORK_DIR/quote" ]
+    [ -f "$WORK_DIR/quote.sig" ]
 }
 
 function create_seeds () {
@@ -153,10 +194,7 @@ function create_sealing_policy () {
 }
 
 function create_disk_key () {
-    status "Create new magic and sn files"
-    echo "$KEY_MAGIC" >"$WORK_DIR/magic"
-    fw_printenv 'serial#' | cut -d'=' -f2 >"$WORK_DIR/sn"
-
+    create_meta_data
     status "Create new key file ($KEY_SIZE bytes)"
     do_silently openssl rand \
         -rand "$WORK_DIR/rngseed.tpm:$WORK_DIR/rngseed.urandom" \
