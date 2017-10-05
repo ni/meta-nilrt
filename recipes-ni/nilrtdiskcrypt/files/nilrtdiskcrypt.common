@@ -273,7 +273,7 @@ function nvread_file () {
     do_silently tpm2_nvread \
         --index "$nvram_handle" \
         --authHandle "$nvram_handle" \
-        --out-file "$WORK_DIR/$filename"
+        --output "$WORK_DIR/$filename"
 
     [ -f "$WORK_DIR/$filename" ] || error "filename=$filename not in WORK_DIR after read"
 }
