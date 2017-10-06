@@ -30,13 +30,14 @@ status "Init"
 take_lock
 cd_to_empty
 
-status "Unmount devices"
+status "Unmount mapper devices"
 for devNode in $devNodes; do
-    if mount | grep -q "^$devNode "; then
-        status "Unmount devNode=$devNode"
-        umount "$devNode"
+    mapperPath="`get_mapper_path "$devNode"`"
+    if mount | grep -q "^$mapperPath "; then
+        status "Unmount mapperPath=$mapperPath"
+        umount "$mapperPath"
     else
-        status "SKIP unmount devNode=$devNode (not mounted)"
+        status "SKIP unmount mapperPath=$mapperPath (not mounted)"
     fi
 done
 
