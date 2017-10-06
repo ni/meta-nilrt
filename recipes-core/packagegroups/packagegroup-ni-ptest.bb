@@ -15,4 +15,6 @@ RDEPENDS_${PN} = "\
 	kernel-tests-ptest \
 	glibc-tests-ptest \
 	salt-ptest \
+	opkg-ptest \
+	distro-feed-configs-ptest \
 "
