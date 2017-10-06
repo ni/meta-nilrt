@@ -7,10 +7,11 @@ function print_usage_and_die () {
     cat >&2 <<ENDHELP
 ERROR: $message
 
-Usage: $0 [ -u unsealedKeySlotNumber ...] [ -s sealedKeySlotNumber ...] [ -d devNode ... ]
+Usage: $0 [ -u unsealedKeySlotNumber ...] [ -s sealedKeySlotNumber ...] [ -d devNode ... ] [ -B fslabel]
  Generates and seals a new key in speicfied TPM key slots, then formats
  and opens specified partitions as luks using new key. Prints paths to
  mapped device nodes.
+ -B stores the unsealed key on the filesystem labeled fslabel
 ENDHELP
     exit 1
 }
@@ -19,12 +20,14 @@ ENDHELP
 unsealedKeySlotNumbers=""
 sealedKeySlotNumbers=""
 devNodes=""
+backupKey=no
 
-while getopts "u:s:d:" opt; do
+while getopts "u:s:d:B:" opt; do
     case "$opt" in
     u )  unsealedKeySlotNumbers="$unsealedKeySlotNumbers $OPTARG" ;;
     s )  sealedKeySlotNumbers="$sealedKeySlotNumbers $OPTARG" ;;
     d )  devNodes="$devNodes $OPTARG" ;;
+    B )  backupKey=yes && backupLabel="$OPTARG" ;;
     \?)  print_usage_and_die "Invalid arg" ;;
     esac
 done
@@ -32,6 +35,16 @@ shift $(($OPTIND - 1))
 
 [ -n "$unsealedKeySlotNumbers""$sealedKeySlotNumbers" ] || print_usage_and_die "Must specify at least one TPM key slot number"
 [ -n "$devNodes" ] || print_usage_and_die "Must specify at least one device to format"
+
+if [ "$backupKey" = yes ]; then
+    [ -z "$backupLabel" ] && print_usage_and_die "Must specify a filesystem label for the arg -B"
+
+    status "Detecting backup device labeled $backupLabel"
+    bkpDevice=$(lsblk -l -n -o LABEL,NAME | grep "^$backupLabel " | tr -s ' ' | cut -d' ' -f2 || true )
+    if [ -z "$bkpDevice" ]; then
+        print_usage_and_die "Could not detect block device containing filesystem label $backupLabel"
+    fi
+fi
 
 status "Init"
 take_lock
@@ -91,6 +104,16 @@ for ksNumb in $sealedKeySlotNumbers; do
     ksHandle="`get_key_slot_handle "$ksNumb"`"
     nvwrite_file "key.sealed.gz" "$ksHandle"
 done
+
+if [ "$backupKey" = yes ]; then
+    status "Store unsealed keys to backup labeled \"$backupLabel\""
+    devSerialNo=$(ar p "$WORK_DIR/key.unsealed" sn)
+    # assume $backupLabel is mounted by the system
+    mountPoint=$(lsblk -l -n -o LABEL,MOUNTPOINT | grep "^$backupLabel " | tr -s ' ' | cut -d' ' -f2)
+    mkdir -p "$mountPoint/nilrtdiskcrypt.keystore/"
+    cp "$WORK_DIR/key.unsealed" "$mountPoint/nilrtdiskcrypt.keystore/key-$devSerialNo.ar.gz"
+    sync
+fi
 
 status "Remove key"
 clear_work_dir
