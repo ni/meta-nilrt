@@ -332,9 +332,6 @@ function sanity_check_luks_volume_closed () {
     if mount | grep -q "^$mapperPath "; then
         error "mapperPath=$mapperPath still mounted, umount failed"
     fi
-    if mount | grep -q "^$devNode "; then
-        error "devNode=$devNode still mounted, umount failed"
-    fi
     if [ -e "$mapperPath" ]; then
         error "$mapperPath still exists, luksClose failed"
     fi
