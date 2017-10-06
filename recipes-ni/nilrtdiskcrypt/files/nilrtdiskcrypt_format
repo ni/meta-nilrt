@@ -73,7 +73,7 @@ for devNode in $devNodes; do
     [ ! -e "$mapperPath" ] || error "devNode=$devNode already open at mapperPath=$mapperPath"
     cryptsetup \
         --key-file "$WORK_DIR/key" \
-        luksOpen "$devNode" "nidiskcrypt_""`basename "$devNode"`"
+        luksOpen "$devNode" "`basename "$mapperPath"`"
     [ -e "$mapperPath" ] || error "luksOpen failed to create mapperPath=$mapperPath"
 
     # print mapped device path

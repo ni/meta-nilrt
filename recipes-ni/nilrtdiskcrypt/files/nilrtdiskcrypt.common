@@ -322,18 +322,21 @@ function read_and_unseal_disk_key () {
 }
 
 function get_mapper_path () {
-    echo /dev/mapper/"nidiskcrypt_""`basename "$1"`"
+    echo /dev/mapper/"nilrtdiskcrypt_""`basename "$1"`"
 }
 
 function sanity_check_luks_volume_closed () {
     local devNode="$1"
-    status "Sanity check: verify devNode=$devNode is unmounted and closed"
+    local mapperPath="`get_mapper_path "$devNode"`"
+    status "Sanity check: verify devNode=$devNode (mapperPath=$mapperPath) is unmounted and closed"
+    if mount | grep -q "^$mapperPath "; then
+        error "mapperPath=$mapperPath still mounted, umount failed"
+    fi
     if mount | grep -q "^$devNode "; then
         error "devNode=$devNode still mounted, umount failed"
     fi
-    local mapperPath="`get_mapper_path "$devNode"`"
     if [ -e "$mapperPath" ]; then
-        error "$mapperPath still exists"
+        error "$mapperPath still exists, luksClose failed"
     fi
 }
 
