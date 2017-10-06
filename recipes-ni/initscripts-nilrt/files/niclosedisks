@@ -3,11 +3,13 @@ set -e
 set -u
 set -o pipefail
 
+SCRIPT_NAME="niclosedisks"
+
 # begin output
-echo -n "$0: "
+echo -n "$SCRIPT_NAME: "
 
 function error () {
-    echo >&2 "$0: ERROR: $*"
+    echo >&2 "$SCRIPT_NAME: ERROR: $*"
     exit 1
 }
 
