@@ -202,7 +202,7 @@ function pack_unsealed_key () {
 function pack_sealed_key () {
     status "Create key.sealed.gz containing magic, sn, key.priv, and key.pub"
     ar rc "$WORK_DIR/key.sealed" "$WORK_DIR/magic" "$WORK_DIR/sn" "$WORK_DIR/key.priv" "$WORK_DIR/key.pub"
-    gzip --keep "$WORK_DIR/key.sealed"
+    cat "$WORK_DIR/key.sealed" | gzip -c >"$WORK_DIR/key.sealed.gz"
 }
 
 function unpack_key () {
@@ -211,8 +211,7 @@ function unpack_key () {
 
     status "Unpack $filename as $gunzip_filename"
     rm -f "$WORK_DIR/$gunzip_filename"
-    do_silently gunzip --keep "$WORK_DIR/$filename"
-    [ -f "$WORK_DIR/$gunzip_filename" ] || error "Invalid gunzip_filename=$gunzip_filename specified"
+    cat "$WORK_DIR/$filename" | gunzip -c >"$WORK_DIR/$gunzip_filename"
 
     status "Extract magic, sn, key, key.priv, key.pub from $filename.gunzip"
     (cd "$WORK_DIR" && ar x "$WORK_DIR/$gunzip_filename")
