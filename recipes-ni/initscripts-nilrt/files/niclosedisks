@@ -32,7 +32,11 @@ mounted_dev=true
 mount -t tmpfs tmpfs /var/volatile && echo -n "mount volatile. " || mounted_volatile=false
 mount -o remount,rw -t devtmpfs devtmpfs /dev && echo -n "remount rw dev. " || mounted_dev=false
 
-nilrtdiskcrypt_close -d "$CONFIGFS_DEV" -d "$ROOTFS_DEV"
+if [ -f /etc/natinst/safemode ]; then
+    nilrtdiskcrypt_close -d "$CONFIGFS_DEV" -d "$ROOTFS_DEV"
+else
+    nilrtdiskcrypt_close -d "$CONFIGFS_DEV"
+fi
 
 # Umount /var/volatile and /dev, if mounted earlier
 $mounted_dev && umount -f -r /dev
