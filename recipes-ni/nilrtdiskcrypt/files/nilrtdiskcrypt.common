@@ -80,7 +80,7 @@ function init_volatile_dir () {
 function take_lock () {
     status "Take LOCK_FILE=$LOCK_FILE as fd=3"
     exec 3<> "$LOCK_FILE"
-    flock --timeout "$LOCK_TIMEOUT" 3 || error "Failed to acquire LOCK_FILE=$LOCK_FILE in LOCK_TIMEOUT=$LOCK_TIMEOUT"
+    timeout "$LOCK_TIMEOUT"s flock 3 || error "Failed to acquire LOCK_FILE=$LOCK_FILE in LOCK_TIMEOUT=$LOCK_TIMEOUT"
 }
 
 function clear_work_dir () {

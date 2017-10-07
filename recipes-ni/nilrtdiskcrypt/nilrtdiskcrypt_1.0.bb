@@ -14,7 +14,7 @@ DEPENDS += "bash busybox coreutils tpm2-tools openssl cryptsetup"
 
 PACKAGES += "${PN}-common ${PN}-open ${PN}-reseal"
 
-RDEPENDS_${PN}-common += "bash busybox coreutils-shred tpm2-tools cryptsetup"
+RDEPENDS_${PN}-common += "bash busybox coreutils-shred coreutils-timeout tpm2-tools cryptsetup"
 RDEPENDS_${PN}-open += "${PN}-common"
 RDEPENDS_${PN}-reseal += "${PN}-common"
 RDEPENDS_${PN} += "${PN}-common ${PN}-open ${PN}-reseal openssl"
