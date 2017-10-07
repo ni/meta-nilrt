@@ -1,4 +1,4 @@
-PACKAGES =+ "${PN}-hostname ${PN}-ls ${PN}-chcon ${PN}-shred"
+PACKAGES =+ "${PN}-hostname ${PN}-ls ${PN}-chcon ${PN}-shred ${PN}-timeout"
 
 EXTRA_OECONF_class-target += "--enable-install-program=hostname"
 
@@ -6,6 +6,7 @@ FILES_${PN}-hostname = "${base_bindir}/hostname.${PN}"
 FILES_${PN}-ls = "${base_bindir}/ls.${PN}"
 FILES_${PN}-chcon = "${bindir}/chcon.${PN}"
 FILES_${PN}-shred = "${bindir}/shred.${PN}"
+FILES_${PN}-timeout = "${bindir}/timeout.${PN}"
 
 DEPENDS += "shadow-native pseudo-native niacctbase"
 
@@ -19,6 +20,7 @@ RDEPENDS_${PN}_class-target += "\
 	${PN}-ls \
 	${PN}-chcon \
 	${PN}-shred \
+    ${PN}-timeout \
 "
 
 do_install_append() {
@@ -59,4 +61,12 @@ pkg_postinst_coreutils-shred () {
 
 pkg_prerm_coreutils-shred () {
 	update-alternatives --remove shred shred.${BPN}
+}
+
+pkg_postinst_coreutils-timeout () {
+	update-alternatives --install ${bindir}/timeout timeout timeout.${BPN} 100
+}
+
+pkg_prerm_coreutils-timeout () {
+	update-alternatives --remove timeout timeout.${BPN}
 }
