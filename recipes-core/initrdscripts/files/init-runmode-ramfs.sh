@@ -38,6 +38,10 @@ function error () {
 ENDSCREENERROR
 }
 
+ORIG_KMSG_CONFIG="`cat /proc/sys/kernel/printk_devkmsg`"
+echo on              >"/proc/sys/kernel/printk_devkmsg"
+status "Set printk_devkmsg=on (previous: $ORIG_KMSG_CONFIG)"
+
 ARCH="`uname -m`"
 status "Running init process on ARCH=$ARCH"
 
@@ -93,15 +97,19 @@ if [ "$ARCH" == "x86_64" ]; then
     status "Mount bootdevice=$bootdevice at /mnt/root"
     mkdir -p /mnt/root
     mount "$bootdevice" /mnt/root
-    [ -f /mnt/root/sbin/init -o -L /mnt/root/sbin/init ] || error "No /mnt/root/sbin/init, cannot boot bootdevice=$bootdevice"
 
-    status "switch_root to /mnt/root"
-    exec switch_root /mnt/root /sbin/init
+    if [ -f /mnt/root/sbin/init -o -L /mnt/root/sbin/init ]; then
+        status "switch_root to /mnt/root (restore printk_devkmsg=$ORIG_KMSG_CONFIG)"
+        echo "$ORIG_KMSG_CONFIG" >"/proc/sys/kernel/printk_devkmsg"
+        exec switch_root /mnt/root /sbin/init
+    else
+        error "No /mnt/root/sbin/init, cannot boot bootdevice=$bootdevice"
+    fi
+else
+    error "ARCH=$ARCH is not supported by this initramfs"
 fi
 
-# we should never reach this point
-error "ARCH=$ARCH is not supported by this initramfs"
-
+# cleanup
 umount -a -r
 sync
 
