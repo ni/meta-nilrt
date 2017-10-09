@@ -73,15 +73,14 @@ if [ "$ARCH" == "x86_64" ]; then
         nilrtdiskcrypt_reseal -u 0 -u 1
 
         status "Check for encrypted disks"
-        if nilrtdiskcrypt_canopen "$rootdevice" 2>/dev/null; then
+        if nilrtdiskcrypt_canopen -d "$rootdevice"; then
             status "Open runmode parition at rootdevice=$rootdevice"
-            bootdevice="`nilrtdiskcrypt_open -k 0 -d "$rootdevice"`"
+            bootdevice="`nilrtdiskcrypt_open -k 1 -d "$rootdevice"`"
 
             if [ -z "$bootdevice" ]; then
-                echo ""
-                echo "ERROR: nilrtdiskcrypt_open failed on rootdevice=$rootdevice"
-                echo "       System is unbootable. Force safemode and reformat."
-                echo ""
+                error \
+                    "nilrtdiskcrypt_open failed on rootdevice=$rootdevice" \
+                    "System is unbootable. Force safemode and reformat."
             fi
         else
             status "No encrypted paritions found"
