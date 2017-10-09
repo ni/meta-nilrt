@@ -61,9 +61,11 @@ if [ "$ARCH" == "x86_64" ]; then
     status "Check for tpm"
     modprobe tpm
     if [ -e "/dev/tpm0" ]; then
-        if [ ! -z "${debug+x}" ]; then
-            # Enable verbose status messages in nilrtdiskcrypt when
-            #  kernel debug flag is passed
+        # Enable verbose status messages in nilrtdiskcrypt when
+        #  "initramfs_debug" or "debug" flag are passed to kernel
+        if egrep "(^| )initramfs_debug($| )" /proc/cmdline; then
+            export VERBOSE=2
+        elif egrep "(^| )debug($| )" /proc/cmdline; then
             export VERBOSE=1
         fi
 
