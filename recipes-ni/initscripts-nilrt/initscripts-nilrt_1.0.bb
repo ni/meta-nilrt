@@ -100,7 +100,7 @@ do_install_append_x64 () {
      update-rc.d -r ${D} nicheckbiosconfig start 99 5 .
 
      install -m 0755   ${WORKDIR}/niopendisks   ${D}${sysconfdir}/init.d
-     update-rc.d -r ${D} niopendisks start 05 S .
+     update-rc.d -r ${D} niopendisks start 00 S .
 
      install -m 0755   ${WORKDIR}/niclosedisks  ${D}${sysconfdir}/init.d
      update-rc.d -r ${D} niclosedisks start 41 0 . start 41 6 .

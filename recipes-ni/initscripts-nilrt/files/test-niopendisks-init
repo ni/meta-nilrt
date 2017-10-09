@@ -5,9 +5,10 @@ set -o pipefail
 
 trap 'exitCode="$?"; set +e; echo "FAIL $0"; exit "$exitCode"' EXIT
 
-echo "check that niopendisks runs right after sysfs"
-ls -l "/etc/rcS.d/S04udev"
-ls -l "/etc/rcS.d/S05niopendisks"
+echo "check that niopendisks runs before mountall and sysfs"
+ls -l "/etc/rcS.d/S00niopendisks"
+ls -l "/etc/rcS.d/S02mountall.sh"
+ls -l "/etc/rcS.d/S02sysfs.sh"
 echo "OK"
 
 echo "PASS $0"
