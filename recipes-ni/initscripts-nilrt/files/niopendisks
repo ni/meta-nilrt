@@ -46,6 +46,8 @@ if [ -e "/dev/tpm0" ] && nilrtdiskcrypt_canopen -d "$ROOTFS_DEV" -d "$CONFIGFS_D
         nilrtdiskcrypt_open -k 1 -d "$CONFIGFS_DEV" >/dev/null
         mount -L niconfig
     fi
+
+    [ -f "/etc/tpm/disable_key_unseal" ] && nilrtdiskcrypt_disableunseal
 else
     modprobe -r tpm_tis
     remaining_modules="`lsmod | grep tpm || true`"
