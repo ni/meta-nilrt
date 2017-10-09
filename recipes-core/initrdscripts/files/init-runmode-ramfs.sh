@@ -58,8 +58,8 @@ if [ "$ARCH" == "x86_64" ]; then
     \?) warn "rootuuid=$rootuuid not unique, booting first rootdevice=$rootdevice" ;;
     esac
 
-    status "Check for tpm"
-    modprobe tpm
+    status "Check for TPM"
+    modprobe tpm_tis
     if [ -e "/dev/tpm0" ]; then
         # Enable verbose status messages in nilrtdiskcrypt when
         #  "initramfs_debug" or "debug" flag are passed to kernel
@@ -84,8 +84,12 @@ if [ "$ARCH" == "x86_64" ]; then
             fi
         else
             status "No encrypted paritions found"
-            rmmod tpm
             bootdevice="$rootdevice"
+
+            status "Cleanup TPM modules"
+            modprobe -r tpm_tis
+            remaining_modules="`lsmod | grep tpm || true`"
+            [ -z "$remaining_modules" ] || warn "TPM modules remaining after cleanup: $remaining_modules"
         fi
 
         # no more nilrtdiskcrypt
