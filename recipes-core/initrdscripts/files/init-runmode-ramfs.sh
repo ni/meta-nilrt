@@ -28,8 +28,14 @@ function warn () {
     echo "initramfs WARNING: $*"
 }
 
+# prints to kernel log and screen
 function error () {
     echo "initramfs ERROR: $*"
+    cat >/dev/tty0 <<ENDSCREENERROR
+
+  initramfs ERROR: $*
+
+ENDSCREENERROR
 }
 
 ARCH="`uname -m`"
