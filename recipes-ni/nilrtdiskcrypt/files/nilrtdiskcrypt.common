@@ -152,7 +152,7 @@ function create_sealing_policy () {
 
 function create_disk_key () {
     status "Create new magic and sn files"
-    echo "nilrtdiskcrypt 1" >"$WORK_DIR/magic"
+    echo "$KEY_MAGIC" >"$WORK_DIR/magic"
     fw_printenv 'serial#' | cut -d'=' -f2 >"$WORK_DIR/sn"
 
     status "Create new key file ($KEY_SIZE bytes)"
