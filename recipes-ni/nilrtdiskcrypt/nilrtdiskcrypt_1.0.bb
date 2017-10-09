@@ -22,7 +22,7 @@ RDEPENDS_${PN} += "${PN}-common ${PN}-open ${PN}-reseal openssl"
 FILES_${PN}-common = "${libdir}/nilrtdiskcrypt.common"
 FILES_${PN}-open = "${sbindir}/nilrtdiskcrypt_open ${sbindir}/nilrtdiskcrypt_canopen"
 FILES_${PN}-reseal = "${sbindir}/nilrtdiskcrypt_reseal"
-FILES_${PN} = "${sbindir}/nilrtdiskcrypt_format ${sbindir}/nilrtdiskcrypt_canformat ${sbindir}/nilrtdiskcrypt_close ${sbindir}/nilrtdiskcrypt_wipe ${sbindir}/nilrtdiskcrypt_unseal ${sbindir}/nilrtdiskcrypt_disableunseal"
+FILES_${PN} = "${sbindir}/nilrtdiskcrypt_format ${sbindir}/nilrtdiskcrypt_canformat ${sbindir}/nilrtdiskcrypt_close ${sbindir}/nilrtdiskcrypt_wipe ${sbindir}/nilrtdiskcrypt_unseal ${sbindir}/nilrtdiskcrypt_disableunseal ${sysconfdir}"
 
 RDEPENDS_${PN}-ptest += "${PN}"
 FILES_${PN}-ptest += "${PTEST_PATH}"
@@ -58,6 +58,11 @@ do_install () {
     install -m 0755 ${S}/nilrtdiskcrypt_format ${D}${sbindir}/
     install -m 0755 ${S}/nilrtdiskcrypt_canformat ${D}${sbindir}/
     install -m 0755 ${S}/nilrtdiskcrypt_wipe ${D}${sbindir}/
+
+    # this logic is only for older nilrt and nilrt-xfce
+    if ${@base_conditional('DISTRO', 'nilrt-nxg', 'false', 'true', d)}; then
+        ln -sf ${sysconfdir}/natinst/share/tpm ${D}${sysconfdir}/tpm
+    fi
 }
 
 do_install_ptest_append () {
