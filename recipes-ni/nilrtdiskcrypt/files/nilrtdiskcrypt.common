@@ -307,6 +307,22 @@ function reseal_disk_key () {
     fi
 }
 
+function unseal_disk_key () {
+    local nvram_handle="$1"
+    nvread_file "key.out.gz" "$nvram_handle"
+    unpack_key "key.out.gz" "key.out"
+    if has_sealed_key; then
+        status "Unseal key"
+        create_pcrlist
+        create_sealing_policy
+        unseal_key
+        pack_unsealed_key
+        nvwrite_file "key.unsealed.gz" "$nvram_handle"
+    else
+        status "Key already unsealed"
+    fi
+}
+
 # unseal key a key for use
 function read_and_unseal_disk_key () {
     local nvram_handle="$1"

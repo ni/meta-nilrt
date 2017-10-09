@@ -1,0 +1,43 @@
+#!/bin/bash
+set -e
+source "/usr/lib/nilrtdiskcrypt.common"
+
+function print_usage_and_die () {
+    local message="$1"
+    cat >&2 <<ENDHELP
+ERROR: $message
+
+Usage: $0 [ -s sealedKeySlotNumber ...]
+ Reads and unseals disk key in specified slots
+ENDHELP
+    exit 1
+}
+
+# get args
+sealedKeySlotNumbers=""
+
+while getopts "s:" opt; do
+    case "$opt" in
+    s )  sealedKeySlotNumbers="$sealedKeySlotNumbers $OPTARG" ;;
+    \?)  print_usage_and_die "Invalid arg" ;;
+    esac
+done
+shift $(($OPTIND - 1))
+
+[ -n "$sealedKeySlotNumbers" ] || print_usage_and_die "Must specify at least one key slot"
+
+status "Init"
+take_lock
+cd_to_empty
+init_work_dir
+
+for ksNumb in $sealedKeySlotNumbers; do
+    ksHandle="`get_key_slot_handle "$ksNumb"`"
+    unseal_disk_key "$ksHandle"
+    init_work_dir
+done
+
+status "Remove key"
+clear_work_dir
+
+status "SUCCESS"
