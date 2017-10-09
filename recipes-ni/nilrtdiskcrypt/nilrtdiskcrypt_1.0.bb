@@ -12,7 +12,7 @@ inherit allarch ptest
 
 DEPENDS += "bash busybox coreutils tpm2-tools openssl cryptsetup"
 
-PACKAGES += "${PN}-common ${PN}-open ${PN}-reseal"
+PACKAGES =+ "${PN}-common ${PN}-open ${PN}-reseal"
 
 RDEPENDS_${PN}-common += "bash busybox coreutils-shred coreutils-timeout tpm2-tools cryptsetup"
 RDEPENDS_${PN}-open += "${PN}-common"
@@ -22,7 +22,6 @@ RDEPENDS_${PN} += "${PN}-common ${PN}-open ${PN}-reseal openssl"
 FILES_${PN}-common = "${libdir}/nilrtdiskcrypt.common"
 FILES_${PN}-open = "${sbindir}/nilrtdiskcrypt_open ${sbindir}/nilrtdiskcrypt_canopen"
 FILES_${PN}-reseal = "${sbindir}/nilrtdiskcrypt_reseal"
-FILES_${PN} = "${sbindir}/nilrtdiskcrypt_format ${sbindir}/nilrtdiskcrypt_canformat ${sbindir}/nilrtdiskcrypt_close ${sbindir}/nilrtdiskcrypt_wipe ${sbindir}/nilrtdiskcrypt_unseal ${sbindir}/nilrtdiskcrypt_disableunseal ${sysconfdir}"
 
 RDEPENDS_${PN}-ptest += "${PN}"
 FILES_${PN}-ptest += "${PTEST_PATH}"
