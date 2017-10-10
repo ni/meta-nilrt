@@ -51,6 +51,11 @@ take_lock
 cd_to_empty
 init_work_dir
 
+status "Sanity check: Ensure PCR 11 is not set (key unsealing is disabled)"
+if ! tpm2_pcrlist -L "$TPM_ALG_SHA256:11" | grep -q '^PCR_11:0\+$'; then
+    print_usage_and_die "Format is not allowed if key unsealing is disabled. Please enable key unsealing by removing the /etc/tpm/disable_key_unseal file"
+fi
+
 status "Sanity check: Ensure specified devices are not mounted or open"
 for devNode in $devNodes; do
     sanity_check_luks_volume_closed "$devNode"
