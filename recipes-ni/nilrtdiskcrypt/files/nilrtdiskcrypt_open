@@ -41,7 +41,7 @@ for devNode in $devNodes; do
 done
 
 ksHandle="`get_key_slot_handle "$keySlotNumber"`"
-read_and_unseal_disk_key "$ksHandle"
+download_disk_key "$ksHandle"
 
 status "Open devices"
 for devNode in $devNodes; do

@@ -325,8 +325,8 @@ function unseal_disk_key () {
     fi
 }
 
-# unseal key a key for use
-function read_and_unseal_disk_key () {
+# unseal a key and store it in workdir for later use
+function download_disk_key () {
     local nvram_handle="$1"
     nvread_file "key.out.gz" "$nvram_handle"
     unpack_key "key.out.gz" "key.out"

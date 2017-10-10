@@ -15,7 +15,7 @@ nvwrite_file "key.unsealed.gz" "$KEYSLOT01_NVRAMHANDLE"
 
 status "TEST: read back safemode key"
 init_work_dir
-read_and_unseal_disk_key "$KEYSLOT00_NVRAMHANDLE"
+download_disk_key "$KEYSLOT00_NVRAMHANDLE"
 
 status "TEST: read back runmode key"
 init_work_dir
@@ -33,7 +33,7 @@ nvwrite_file "key.sealed.gz" "$KEYSLOT01_NVRAMHANDLE"
 
 status "TEST: read back re-sealed runmode key"
 init_work_dir
-read_and_unseal_disk_key "$KEYSLOT01_NVRAMHANDLE"
+download_disk_key "$KEYSLOT01_NVRAMHANDLE"
 
 status "TEST: destroy keys"
 init_work_dir
