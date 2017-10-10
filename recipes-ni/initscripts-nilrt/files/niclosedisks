@@ -6,7 +6,10 @@ set -o pipefail
 SCRIPT_NAME="niclosedisks"
 
 # begin output
-echo -n "$SCRIPT_NAME: "
+echo -n "$SCRIPT_NAME: " || true
+
+# close stdin
+exec 0<&-
 
 function error () {
     echo >&2 "$SCRIPT_NAME: ERROR: $*"
@@ -19,8 +22,17 @@ function error () {
 # Remount /var/volatile and /dev, used by nilrtdiskcrypt
 mounted_volatile=true
 mounted_dev=true
-mount -t tmpfs tmpfs /var/volatile && echo -n "mount volatile. " || mounted_volatile=false
-mount -o remount,rw -t devtmpfs devtmpfs /dev && echo -n "remount rw dev. " || mounted_dev=false
+mount -t tmpfs tmpfs /var/volatile || mounted_volatile=false
+mount -o remount,rw -t devtmpfs devtmpfs /dev || mounted_dev=false
+
+# suppress stdout and stderr if echo fails, so that subsequent
+#  tools dont error out when prints occur
+if ! echo ""; then
+    exec 1>/dev/null
+fi
+if ! echo 1>&2 ""; then
+    exec 2>&1
+fi
 
 CONFIGFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^niconfig '| tr -s ' ' | cut -d' ' -f2)"
 ROOTFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^nirootfs '| tr -s ' ' | cut -d' ' -f2)"

@@ -6,10 +6,13 @@ set -o pipefail
 SCRIPT_NAME="niopendisks"
 
 # begin output
-echo -n "$SCRIPT_NAME: "
+echo -n "$SCRIPT_NAME: " || true
+
+# close stdin
+exec 0<&-
 
 function warn () {
-    echo >&2 "$SCRIPT_NAME: WARNING: $*"
+    echo >&2 "$SCRIPT_NAME: WARNING: $*" || true
 }
 
 function error () {
@@ -23,8 +26,17 @@ function error () {
 # Mount /var/volatile and /dev, used by nilrtdiskcrypt
 mounted_volatile=true
 mounted_dev=true
-mount -t tmpfs tmpfs /var/volatile && echo -n "mount volatile. " || mounted_volatile=false
-mount -t devtmpfs devtmpfs /dev && echo -n "mount dev. " || mounted_dev=false
+mount -t tmpfs tmpfs /var/volatile || mounted_volatile=false
+mount -t devtmpfs devtmpfs /dev || mounted_dev=false
+
+# suppress stdout and stderr if echo fails, so that subsequent
+#  tools dont error out when prints occur
+if ! echo ""; then
+    exec 1>/dev/null
+fi
+if ! echo 1>&2 ""; then
+    exec 2>&1
+fi
 
 CONFIGFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^niconfig '| tr -s ' ' | cut -d' ' -f2)"
 ROOTFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^nirootfs '| tr -s ' ' | cut -d' ' -f2)"
