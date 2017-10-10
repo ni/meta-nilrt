@@ -48,6 +48,8 @@ TPM_ALG_KEYEDHASH="0x0008"
 TPM_RH_OWNER="0x40000001"
 TPM_USER_STORAGE_HANDLE="0x81000001"
 
+# BUG: adding more than 1 bank here causes tpm2_createpolicy to error out with
+# "Reading <pcrlist-file> failed: end of file", then segfault
 KEY_SEALING_PCR_SET="$TPM_ALG_SHA256:0,2,4,9,10,11"
 
 KEY_MAGIC="nilrtdiskcrypt 1"
