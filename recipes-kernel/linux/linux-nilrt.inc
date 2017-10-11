@@ -42,6 +42,8 @@ DEPENDS_append += "rsync-native"
 
 DEPENDS_append_armv7a += "dtc-native"
 
+RDEPENDS_kernel-dev += "bash binutils gcc gcc-symlinks"
+
 KERNEL_DEVICETREE_xilinx-zynqhf = "\
         ni-762F.dtb \
         ni-76D3.dtb \
@@ -117,6 +119,7 @@ do_install_append() {
 	--exclude=".*.cmd" \
 	--include="/arch/${ARCH}/include/generated/**" \
 	--include="/include/**" \
+	--exclude="/scripts/mod/${CROSS_COMPILE}modpost" \
 	--include="/scripts/**${CROSS_COMPILE}*" \
 	--include="/scripts/**.h" \
 	--include=".config" \
@@ -125,7 +128,7 @@ do_install_append() {
 	. $kerneldevdir
 
 	# Strip cross compile prefix from target-specific binaries
-	for u in recordmcount fixdep modpost genksyms; do
+	for u in recordmcount fixdep genksyms; do
 		find $kerneldevdir/scripts -name "${CROSS_COMPILE}$u" -printf %h | \
 		xargs -n 1 -I '{}' mv -f '{}'"/${CROSS_COMPILE}$u" '{}'"/$u"
 	done
@@ -160,3 +163,16 @@ do_tag_kernel_build() {
 }
 
 addtask tag_kernel_build after do_compile before do_install
+
+# Include a postinst script with kernel-dev that builds modpost.
+pkg_postinst_kernel-dev () {
+#!/bin/bash -e
+if [ ! x"$D" = "x" ]; then
+	exit 1
+fi
+
+cd /lib/modules/${KERNEL_VERSION}/build/scripts/mod
+mv ${HOST_PREFIX}elfconfig.h elfconfig.h
+gcc -o modpost modpost.h modpost.c file2alias.c sumversion.c
+exit 0
+}
