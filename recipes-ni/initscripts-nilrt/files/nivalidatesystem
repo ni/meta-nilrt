@@ -1,22 +1,6 @@
 #! /bin/sh
 # Copyright (c) 2012-2013 National Instruments.
 # All rights reserved.
-SCRIPT_NAME="nivalidatesystem"
-
-if [ -e "/dev/tpm0" ]; then
-    CONFIGFS_MOUNTPOINT="$(lsblk -l -n -o LABEL,MOUNTPOINT | grep '^niconfig '| tr -s ' ' | cut -d' ' -f2)"
-    ROOTFS_MOUNTPOINT="$(lsblk -l -n -o LABEL,MOUNTPOINT | grep '^nirootfs '| tr -s ' ' | cut -d' ' -f2)"
-    if [ -z "$CONFIGFS_MOUNTPOINT" ] || [ -z "$ROOTFS_MOUNTPOINT" ]; then
-        if [ -f /etc/natinst/safemode ]; then
-            echo 1>&2 "$SCRIPT_NAME WARNING: Failed to open niconfig ($CONFIGFS_MOUNTPOINT) and nirootfs ($ROOTFS_MOUNTPOINT)"
-        else
-            echo 1>&2 "$SCRIPT_NAME ERROR: Failed to open niconfig ($CONFIGFS_MOUNTPOINT) and nirootfs ($ROOTFS_MOUNTPOINT)"
-            /etc/init.d/nisetbootmode force-safemode "$SCRIPT_NAME failed to open niconfig and nirootfs"
-            reboot
-            exit 1
-        fi
-    fi
-fi
 
 status_led=/usr/bin/status_led
 
