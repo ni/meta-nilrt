@@ -96,6 +96,9 @@ function clear_work_dir () {
     fi
     rm -Rf "$WORK_DIR"
     [ ! -d "$WORK_DIR" ] || error "Failed to delete WORK_DIR=$WORK_DIR"
+    # also clear objects from TPM memory
+    # TODO: Remove this once we're past kernel 4.12 (use the in-kernel resource manager logic)
+    tpm2_flushallhandles
 }
 
 function init_work_dir () {
