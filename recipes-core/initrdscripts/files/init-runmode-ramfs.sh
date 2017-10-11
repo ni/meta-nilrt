@@ -45,6 +45,13 @@ status "Set printk_devkmsg=on (previous: $ORIG_KMSG_CONFIG)"
 ARCH="`uname -m`"
 status "Running init process on ARCH=$ARCH"
 
+status "Setting next boot to safemode in case booting runmode fails"
+mkdir -p /mnt/boot
+mount -L nibootfs -o rw,sync /mnt/boot
+echo -n "" >/mnt/boot/bootflags.d/safemode
+rm -f /mnt/boot/bootflags.d/runtime
+umount /mnt/boot
+
 if [ "$ARCH" == "x86_64" ]; then
     status "Running depmod"
     depmod -a
@@ -119,5 +126,4 @@ umount -a -r
 sync
 
 sleep 10
-sync
-exit 1
+reboot -f
