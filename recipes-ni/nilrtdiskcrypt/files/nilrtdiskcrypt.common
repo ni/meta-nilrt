@@ -198,7 +198,7 @@ function unseal_key () {
 function pack_unsealed_key () {
     status "Create key.unsealed.gz containing magic, sn, and key"
     ar rc "$WORK_DIR/key.unsealed" "$WORK_DIR/magic" "$WORK_DIR/sn" "$WORK_DIR/key"
-    gzip --keep "$WORK_DIR/key.unsealed"
+    cat "$WORK_DIR/key.unsealed" | gzip -c >"$WORK_DIR/key.unsealed.gz"
 }
 
 function pack_sealed_key () {
