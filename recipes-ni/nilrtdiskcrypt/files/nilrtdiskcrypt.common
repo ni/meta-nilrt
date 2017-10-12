@@ -80,6 +80,8 @@ function init_volatile_dir () {
     status "Touch VOLATILE_DIR=$VOLATILE_DIR and LOCK_FILE=$LOCK_FILE"
     mkdir -p "$VOLATILE_DIR"
     touch "$LOCK_FILE"
+    [ "`df -P -T "$VOLATILE_DIR" | tail -n +2 | tr -s " " | cut -d" " -f2`" == "tmpfs" ] || error "VOLATILE_DIR=$VOLATILE_DIR not on tmpfs"
+    [ -z "`cat /proc/swaps | tail -n +2`" ] || warn "Running with swap is not supported"
 }
 
 # TPM may not be used in paralel, so we need an interprocess lock
