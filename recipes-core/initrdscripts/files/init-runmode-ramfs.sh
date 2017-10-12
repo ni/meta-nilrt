@@ -52,6 +52,11 @@ echo -n "" >/mnt/boot/bootflags.d/safemode
 rm -f /mnt/boot/bootflags.d/runtime
 umount /mnt/boot
 
+# expected by nilrtdiskcrypt
+status "Mount /var/volatile as tmpfs"
+mkdir -p /var/volatile
+mount -t tmpfs tmpfs /var/volatile
+
 if [ "$ARCH" == "x86_64" ]; then
     status "Running depmod"
     depmod -a
@@ -112,6 +117,7 @@ if [ "$ARCH" == "x86_64" ]; then
 
     if [ -f /mnt/root/sbin/init -o -L /mnt/root/sbin/init ]; then
         status "switch_root to /mnt/root (restore printk_devkmsg=$ORIG_KMSG_CONFIG)"
+        umount /var/volatile
         echo "$ORIG_KMSG_CONFIG" >"/proc/sys/kernel/printk_devkmsg"
         exec switch_root /mnt/root /sbin/init
     else
