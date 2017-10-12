@@ -113,10 +113,11 @@ done
 if [ "$backupKey" = yes ]; then
     status "Store unsealed keys to backup labeled \"$backupLabel\""
     devSerialNo=$(ar p "$WORK_DIR/key.unsealed" sn)
+    deviceDesc=$(fw_printenv | egrep "^DeviceDesc=" | head -1 | cut -d= -f2)
     # assume $backupLabel is mounted by the system
     mountPoint=$(lsblk -l -n -o LABEL,MOUNTPOINT | grep "^$backupLabel " | tr -s ' ' | cut -d' ' -f2)
     mkdir -p "$mountPoint/nilrtdiskcrypt.keystore/"
-    cp "$WORK_DIR/key.unsealed" "$mountPoint/nilrtdiskcrypt.keystore/key-$devSerialNo.ar.gz"
+    cp "$WORK_DIR/key.unsealed" "$mountPoint/nilrtdiskcrypt.keystore/${deviceDesc}_${devSerialNo}_recovery"
     sync
 fi
 
