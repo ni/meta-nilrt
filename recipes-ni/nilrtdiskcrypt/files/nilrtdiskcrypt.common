@@ -91,7 +91,7 @@ function clear_work_dir () {
     status "Clear WORK_DIR=$WORK_DIR"
     if [ -e  "$WORK_DIR" ]; then
         local verboseFlag=""
-        [ "$VERBOSE" -ge 1 ] && verboseFlag="--verbose"
+        [ "$VERBOSE" -ge 2 ] && verboseFlag="--verbose"
         find "$WORK_DIR" -type f -exec shred $verboseFlag --iterations 1 --random-source /dev/urandom {} \;
     fi
     rm -Rf "$WORK_DIR"
