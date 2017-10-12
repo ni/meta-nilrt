@@ -67,6 +67,9 @@ export TPM2TOOLS_TCTI_NAME="device"
 # user-only permissions
 umask 0077
 
+# disable core dumps
+ulimit -c 0
+
 # Most functionality requires root
 function root_check () {
     status "Root check"
