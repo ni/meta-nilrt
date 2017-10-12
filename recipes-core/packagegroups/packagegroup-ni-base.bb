@@ -112,6 +112,7 @@ RDEPENDS_${PN} = "\
 	opkg \
 	run-postinsts \
 	start-stop-daemon \
+	sudo \
 	syslog-ng \
 	sysvinit \
 	tar \
