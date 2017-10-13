@@ -1,6 +1,4 @@
 #!/bin/bash
-set -u
-set -o pipefail
 
 # close stdin
 exec 0<&-
@@ -61,6 +59,8 @@ if [ "$ARCH" == "x86_64" ]; then
     status "Running depmod"
     depmod -a
 
+    bootdevice=""
+
     rootdevice_list="`lsblk -l -n -o NAME,PARTUUID | tr -s " " | grep " $rootuuid"`"
     rootdevice_count="`echo "$rootdevice_list" | wc -l`"
     rootdevice="/dev/`echo "$rootdevice_list" | head -1 | cut -d" " -f1`"
@@ -84,15 +84,36 @@ if [ "$ARCH" == "x86_64" ]; then
         status "Reseal runmode key"
         nilrtdiskcrypt_reseal -u 1
 
-        status "Check for encrypted disks"
-        if nilrtdiskcrypt_canopen -d "$rootdevice"; then
-            status "Open runmode parition at rootdevice=$rootdevice"
-            bootdevice="`nilrtdiskcrypt_open -k 1 -d "$rootdevice"`"
+        # NILRT on rootfs will mount niconfig by label. Verify niconfig
+        #  also opens or do not open either.
+        configdevice="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^niconfig '| tr -s ' ' | cut -d' ' -f2)"
+        status "Found configdevice=$configdevice"
 
-            if [ -z "$bootdevice" ]; then
-                error \
-                    "nilrtdiskcrypt_open failed on rootdevice=$rootdevice" \
-                    "System is unbootable. Force safemode and reformat."
+        status "Check for encrypted disks at rootdevice=$rootdevice and configdevice=$configdevice"
+        if nilrtdiskcrypt_canopen -d "$rootdevice" -d "$configdevice"; then
+            status "Open partitions rootdevice=$rootdevice and configdevice=$configdevice"
+            cryptdevs=( $(nilrtdiskcrypt_open -k 1 -d "$rootdevice" -d "$configdevice") )
+
+            do_failsafe=false
+
+            [ -n "${cryptdevs[0]}" ] || do_failsafe=true
+            [ -n "${cryptdevs[1]}" ] || do_failsafe=true
+
+            [ "`lsblk -l -n -o LABEL | egrep "^nirootfs$" | wc -l`" == 1 ] || do_failsafe=true
+            [ "`lsblk -l -n -o LABEL | egrep "^niconfig$" | wc -l`" == 1 ] || do_failsafe=true
+
+            lsblk -l -n -o LABEL,TYPE,NAME | egrep -q "^nirootfs +crypt +""`basename "${cryptdevs[0]}"`""\$" || do_failsafe=true
+            lsblk -l -n -o LABEL,TYPE,NAME | egrep -q "^niconfig +crypt +""`basename "${cryptdevs[1]}"`""\$" || do_failsafe=true
+
+            # all or nothing failsafe
+            if $do_failsafe; then
+                nilrtdiskcrypt_close -d "$rootdevice"
+                nilrtdiskcrypt_close -d "$configdevice"
+                nilrtdiskcrypt_disableunseal
+
+                error "Failed to open nirootfs and niconfig"
+            else
+                bootdevice="${cryptdevs[0]}"
             fi
         else
             status "No encrypted paritions found"
@@ -122,6 +143,7 @@ if [ "$ARCH" == "x86_64" ]; then
         exec switch_root /mnt/root /sbin/init
     else
         error "No /mnt/root/sbin/init, cannot boot bootdevice=$bootdevice"
+        error "System is unbootable. Force safemode and reformat."
     fi
 else
     error "ARCH=$ARCH is not supported by this initramfs"

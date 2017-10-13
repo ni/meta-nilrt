@@ -20,7 +20,12 @@ RDEPENDS_${PN}-reseal += "${PN}-common"
 RDEPENDS_${PN} += "${PN}-common ${PN}-open ${PN}-reseal openssl"
 
 FILES_${PN}-common = "${libdir}/nilrtdiskcrypt.common"
-FILES_${PN}-open = "${sbindir}/nilrtdiskcrypt_open ${sbindir}/nilrtdiskcrypt_canopen"
+FILES_${PN}-open = " \
+    ${sbindir}/nilrtdiskcrypt_open \
+    ${sbindir}/nilrtdiskcrypt_canopen \
+    ${sbindir}/nilrtdiskcrypt_close \
+    ${sbindir}/nilrtdiskcrypt_disableunseal \
+"
 FILES_${PN}-reseal = "${sbindir}/nilrtdiskcrypt_reseal"
 
 RDEPENDS_${PN}-ptest += "${PN}"
