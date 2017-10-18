@@ -1,6 +1,6 @@
 #! /bin/sh
 
-for test in $(ls test*); do
+for test in $(find ./ -name "test*"); do
 	./$test
 	if [ $? -ne 0 ]; then
 		echo "FAIL: $test"
