@@ -43,6 +43,9 @@ VIRTUAL-RUNTIME_keymaps = ""
 PREFERRED_PROVIDER_jpeg = "jpeg"
 PREFERRED_PROVIDER_jpeg-native = "jpeg-native"
 
+PREFERRED_VERSION_python-gevent = "1.2.%"
+PREFERRED_VERSION_python3-gevent = "1.2.%"
+
 # If SDKMACHINE is not defined, assume toolchain is created
 # for a target device and use kernel version 3.14.3 to take
 # advantage of ARM optimizations
