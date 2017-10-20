@@ -81,8 +81,8 @@ if [ "$ARCH" == "x86_64" ]; then
             export VERBOSE=1
         fi
 
-        status "Reseal keys"
-        nilrtdiskcrypt_reseal -u 0 -u 1
+        status "Reseal runmode key"
+        nilrtdiskcrypt_reseal -u 1
 
         status "Check for encrypted disks"
         if nilrtdiskcrypt_canopen -d "$rootdevice"; then
