@@ -27,10 +27,10 @@ mount -t devtmpfs devtmpfs /dev || mounted_dev=false
 
 # suppress stdout and stderr if echo fails, so that subsequent
 #  tools dont error out when prints occur
-if ! echo ""; then
+if ! echo -n " "; then
     exec 1>/dev/null
 fi
-if ! echo 1>&2 ""; then
+if ! echo -n " " 1>&2; then
     exec 2>&1
 fi
 
