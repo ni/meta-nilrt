@@ -59,6 +59,7 @@ create_meta_data
 read_attestation_public_key
 echo "$qualifier_hex" >"$WORK_DIR/qualifier"
 quote_pcr "$qualifier_hex"
+verify_signature "quote" "quote.sig" "attestation.pub"
 create_pcrlist
 sha256sum "$WORK_DIR/pcrlist" | cut -d' ' -f1 >"$WORK_DIR/pcrlist.sum"
 
@@ -68,6 +69,9 @@ ar rc "$WORK_DIR/pcrquote" \
     "$WORK_DIR/sn" \
     "$WORK_DIR/quote" \
     "$WORK_DIR/quote.sig" \
+    "$WORK_DIR/quote.format" \
+    "$WORK_DIR/quote.sighash" \
+    "$WORK_DIR/quote.sigscheme" \
     "$WORK_DIR/attestation.pub" \
     "$WORK_DIR/qualifier" \
     "$WORK_DIR/pcrlist" \
@@ -75,7 +79,7 @@ ar rc "$WORK_DIR/pcrquote" \
 cat "$WORK_DIR/pcrquote" | gzip -c >"$WORK_DIR/pcrquote.gz"
 
 function filter_json () {
-    tr -C 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 \n' '_'
+    tr -C 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 \-\n' '_'
 }
 
 cat >"$WORK_DIR/pcrquote.json" <<ENDJSON
@@ -84,6 +88,9 @@ cat >"$WORK_DIR/pcrquote.json" <<ENDJSON
     "sn": "`ar p "$WORK_DIR/pcrquote" sn | filter_json`",
     "quote": "`ar p "$WORK_DIR/pcrquote" quote | stdin_to_hex | filter_json`",
     "quote.sig": "`ar p "$WORK_DIR/pcrquote" quote.sig | stdin_to_hex | filter_json`",
+    "quote.format": "`ar p "$WORK_DIR/pcrquote" quote.format | filter_json`",
+    "quote.sighash": "`ar p "$WORK_DIR/pcrquote" quote.sighash | filter_json`",
+    "quote.sigscheme": "`ar p "$WORK_DIR/pcrquote" quote.sigscheme | filter_json`",
     "attestation.pub": "`ar p "$WORK_DIR/pcrquote" attestation.pub | stdin_to_hex | filter_json`",
     "qualifier": "`ar p "$WORK_DIR/pcrquote" qualifier | filter_json`",
     "pcrlist": "`ar p "$WORK_DIR/pcrquote" pcrlist | stdin_to_hex | filter_json`",
