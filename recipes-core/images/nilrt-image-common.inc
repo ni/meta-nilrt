@@ -16,10 +16,10 @@ remove_unused_feeds() {
 
 ROOTFS_POSTPROCESS_COMMAND += "prune_unused_packages; remove_unused_feeds;"
 
-IMAGE_PREPROCESS_COMMAND = "rootfs_update_timestamp;"
+IMAGE_PREPROCESS_COMMAND += "rootfs_update_timestamp;"
 
-IMAGE_FEATURES = ""
+IMAGE_FEATURES ??= ""
 
-IMAGE_LINGUAS = ""
+IMAGE_LINGUAS ??= ""
 
 inherit core-image
