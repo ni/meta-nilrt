@@ -60,22 +60,19 @@ read_attestation_public_key
 echo "$qualifier_hex" >"$WORK_DIR/qualifier"
 quote_pcr "$qualifier_hex"
 verify_signature "quote" "quote.sig" "attestation.pub"
-create_pcrlist
-sha256sum "$WORK_DIR/pcrlist" | cut -d' ' -f1 >"$WORK_DIR/pcrlist.sum"
 
 # archive the quote
 ar rc "$WORK_DIR/pcrquote" \
     "$WORK_DIR/magic" \
     "$WORK_DIR/sn" \
     "$WORK_DIR/quote" \
+    "$WORK_DIR/quote.pcrdigest" \
     "$WORK_DIR/quote.sig" \
     "$WORK_DIR/quote.format" \
     "$WORK_DIR/quote.sighash" \
     "$WORK_DIR/quote.sigscheme" \
     "$WORK_DIR/attestation.pub" \
-    "$WORK_DIR/qualifier" \
-    "$WORK_DIR/pcrlist" \
-    "$WORK_DIR/pcrlist.sum"
+    "$WORK_DIR/qualifier"
 cat "$WORK_DIR/pcrquote" | gzip -c >"$WORK_DIR/pcrquote.gz"
 
 function filter_json () {
@@ -87,14 +84,13 @@ cat >"$WORK_DIR/pcrquote.json" <<ENDJSON
     "magic": "`ar p "$WORK_DIR/pcrquote" magic | filter_json`",
     "sn": "`ar p "$WORK_DIR/pcrquote" sn | filter_json`",
     "quote": "`ar p "$WORK_DIR/pcrquote" quote | stdin_to_hex | filter_json`",
+    "quote.pcrdigest": "`ar p "$WORK_DIR/pcrquote" quote.pcrdigest | filter_json`",
     "quote.sig": "`ar p "$WORK_DIR/pcrquote" quote.sig | stdin_to_hex | filter_json`",
     "quote.format": "`ar p "$WORK_DIR/pcrquote" quote.format | filter_json`",
     "quote.sighash": "`ar p "$WORK_DIR/pcrquote" quote.sighash | filter_json`",
     "quote.sigscheme": "`ar p "$WORK_DIR/pcrquote" quote.sigscheme | filter_json`",
     "attestation.pub": "`ar p "$WORK_DIR/pcrquote" attestation.pub | stdin_to_hex | filter_json`",
     "qualifier": "`ar p "$WORK_DIR/pcrquote" qualifier | filter_json`",
-    "pcrlist": "`ar p "$WORK_DIR/pcrquote" pcrlist | stdin_to_hex | filter_json`",
-    "pcrlist.sum": "`ar p "$WORK_DIR/pcrquote" pcrlist.sum | filter_json`"
 }
 ENDJSON
 
@@ -106,9 +102,9 @@ if [ "$outputFormat" == "j" ]; then
     fi
 elif [ "$outputFormat" == "d" ]; then
     if [ "$outputLocation" == "-" ]; then
-        cat "$WORK_DIR/pcrlist.sum"
+        cat "$WORK_DIR/quote.pcrdigest"
     else
-        cp "$WORK_DIR/pcrlist.sum" "$outputLocation"
+        cp "$WORK_DIR/quote.pcrdigest" "$outputLocation"
     fi
 else
     if [ "$outputLocation" == "-" ]; then

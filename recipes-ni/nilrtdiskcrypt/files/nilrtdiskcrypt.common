@@ -161,7 +161,7 @@ function read_attestation_public_key () {
 function quote_pcr () {
     local qualifier_hex="$1"
 
-    status "Quote KEY_SEALING_PCR_SET=$KEY_SEALING_PCR_SET to quote and quote.sig (TPM_ATTESTATION_KEY_HANDLE=$TPM_ATTESTATION_KEY_HANDLE, qualifier_hex=$qualifier_hex)"
+    status "Quote KEY_SEALING_PCR_SET=$KEY_SEALING_PCR_SET to quote, quote.sig, and quote.pcrdigest (TPM_ATTESTATION_KEY_HANDLE=$TPM_ATTESTATION_KEY_HANDLE, qualifier_hex=$qualifier_hex)"
 
     local qualifier_hex_arg=""
     if [ -n "$qualifier_hex" ]; then
@@ -182,6 +182,9 @@ function quote_pcr () {
 
     [ -f "$WORK_DIR/quote" ]
     [ -f "$WORK_DIR/quote.sig" ]
+
+    status "Extract quote.pcrdigest from quote"
+    tpm2_print_quote "$WORK_DIR/quote" | grep "^attested.quote.pcrDigest=" | cut -d"=" -f2 >"$WORK_DIR/quote.pcrdigest"
 
     status "Write quote metadata: quote.format, quote.sighash, and quote.sigscheme"
     echo "tpm2" >"$WORK_DIR/quote.format"
