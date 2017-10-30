@@ -173,7 +173,8 @@ function quote_pcr () {
         --sig-hash-algorithm "$TPM_ALG_SHA256" \
         $qualifier_hex_arg \
         --outFile "$WORK_DIR/quote" \
-        --signature "$WORK_DIR/quote.sig"
+        --signature "$WORK_DIR/quote.sig" \
+        --format "plain"
 
     [ -f "$WORK_DIR/quote" ]
     [ -f "$WORK_DIR/quote.sig" ]
