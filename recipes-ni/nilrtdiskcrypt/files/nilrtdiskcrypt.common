@@ -169,10 +169,11 @@ function quote_pcr () {
     do_silently tpm2_quote \
         --akHandle "$TPM_ATTESTATION_KEY_HANDLE" \
         --selList "$KEY_SEALING_PCR_SET" \
-        --sigHashAlg "$TPM_ALG_SHA256" \
+        --sig-hash-algorithm "$TPM_ALG_SHA256" \
         $qualifier_hex_arg \
         --outFile "$WORK_DIR/quote" \
-        --outSigFile "$WORK_DIR/quote.sig"
+        --signature "$WORK_DIR/quote.sig"
+
     [ -f "$WORK_DIR/quote" ]
     [ -f "$WORK_DIR/quote.sig" ]
 }
