@@ -10,7 +10,7 @@ FEED_URIS = ""
 # this option avoids creating a /dev folder in the image
 USE_DEVFS = "1"
 
-IMAGE_FSTYPES = "squashfs"
+IMAGE_FSTYPES_append += "squashfs"
 
 # clean-up files we don't need
 do_cleanup() {

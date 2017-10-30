@@ -2,7 +2,8 @@ DESCRIPTION ?= "Base image setup used in all NILRT images"
 LICENSE = "MIT"
 
 IMAGE_FSTYPES = "${INITRAMFS_FSTYPES} tar.bz2"
-IMAGE_FSTYPES_xilinx-zynqhf += "cpio.gz.u-boot"
+IMAGE_FSTYPES_append_n310 += "wic"
+INITRAMFS_FSTYPES_xilinx_zynqhf = "cpio.gz.u-boot"
 
 PACKAGE_REMOVE = "kernel-*"
 

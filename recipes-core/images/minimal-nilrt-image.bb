@@ -6,7 +6,7 @@ IMAGE_INSTALL = "\
 	packagegroup-ni-tzdata \
     "
 
-IMAGE_FSTYPES = "tar.bz2 ext2"
+IMAGE_FSTYPES_append += "ext2"
 
 require niconsole-image.inc
 

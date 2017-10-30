@@ -7,7 +7,5 @@ IMAGE_INSTALL = "\
 	packagegroup-ni-wifi \
 	"
 
-IMAGE_FSTYPES = "tar.bz2"
-
 require niconsole-image.inc
 require include/licenses.inc

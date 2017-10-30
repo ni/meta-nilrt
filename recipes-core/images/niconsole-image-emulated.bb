@@ -7,7 +7,7 @@ IMAGE_INSTALL = "\
 	packagegroup-ni-runmode \
 	"
 
-IMAGE_FSTYPES = "tar.bz2 ext3 vmdk"
+IMAGE_FSTYPES_append += "ext3 vmdk"
 
 DEPENDS = "zip-native"
 
