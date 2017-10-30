@@ -153,7 +153,8 @@ function read_attestation_public_key () {
     status "Read public key of TPM_ATTESTATION_KEY_HANDLE=$TPM_ATTESTATION_KEY_HANDLE to attestation.pub"
     do_silently tpm2_readpublic \
         --object "$TPM_ATTESTATION_KEY_HANDLE" \
-        --opu "$WORK_DIR/attestation.pub"
+        --opu "$WORK_DIR/attestation.pub" \
+        --format "pem"
     [ -f "$WORK_DIR/attestation.pub" ]
 }
 
