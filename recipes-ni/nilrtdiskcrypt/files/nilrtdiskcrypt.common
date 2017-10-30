@@ -166,7 +166,7 @@ function quote_pcr () {
     local qualifier_hex_arg=""
     if [ -n "$qualifier_hex" ]; then
         # tpm2 only supports 32-bit qualifiers
-        echo "$qualifier_hex" | egrep -q '^0x[0-9A-Fa-f]*4$' || error "Malformed qualifier_hex=$qualifier_hex, must be 4-digit hex string beginning with 0x"
+        echo "$qualifier_hex" | egrep -q '^0x[0-9A-Fa-f]{8}$' || error "Malformed qualifier_hex=$qualifier_hex, must be 8-digit hex string beginning with 0x"
         qualifier_hex_arg="--qualifyData ${qualifier_hex:2}"
     fi
 
