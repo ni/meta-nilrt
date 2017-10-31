@@ -58,6 +58,7 @@ KEY_MAGIC="nilrtdiskcrypt 1"
 KEY_SIZE="128" # 128 bytes = 1024 bits (max allowed by TPM2)
 KEY_SLOT_SIZE="512"
 
+ATTESTATION_CERT_NVRAMHANDLE="0x01410000"
 KEYSLOT00_NVRAMHANDLE="0x01400000"
 KEYSLOT01_NVRAMHANDLE="0x01400001"
 
@@ -156,6 +157,25 @@ function read_attestation_public_key () {
         --opu "$WORK_DIR/attestation.pub" \
         --format "pem"
     [ -f "$WORK_DIR/attestation.pub" ]
+
+    status "Read attestation.crt from ATTESTATION_CERT_NVRAMHANDLE=$ATTESTATION_CERT_NVRAMHANDLE"
+    tpm2_nvread \
+        --index "$ATTESTATION_CERT_NVRAMHANDLE" \
+        --authHandle "$ATTESTATION_CERT_NVRAMHANDLE" \
+        --output "$WORK_DIR/attestation.crt.der" \
+        >"$WORK_DIR/tool-output" 2>&1 || echo -n >"$WORK_DIR/attestation.crt.der"
+    openssl x509 \
+        -inform "der" -outform "pem" \
+        -in "$WORK_DIR/attestation.crt.der" \
+        -out "$WORK_DIR/attestation.crt" \
+        >>"$WORK_DIR/tool-output" 2>&1 || echo -n >"$WORK_DIR/attestation.crt"
+    if [ "$VERBOSE" -ge 2 -a -s "$WORK_DIR/tool-output" ]; then
+        # XXX drop stdout/stderr redirection once we have tool to check
+        #  if nvram slot is empty. For now reading a crt silently fails
+        #  with empty attestation.crt file when VERBOSE < 2.
+        cat "$WORK_DIR/tool-output" 1>&2
+    fi
+    [ -f "$WORK_DIR/attestation.crt" ]
 }
 
 function quote_pcr () {
