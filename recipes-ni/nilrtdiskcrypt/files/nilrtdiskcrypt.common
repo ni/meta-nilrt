@@ -209,6 +209,7 @@ function quote_pcr () {
 
     status "Extract quote.pcrdigest from quote"
     tpm2_print_quote "$WORK_DIR/quote" | grep "^attested.quote.pcrDigest=" | cut -d"=" -f2 >"$WORK_DIR/quote.pcrdigest"
+    tpm2_print_quote "$WORK_DIR/quote" | grep "^extraData=" | cut -d"=" -f2 >"$WORK_DIR/quote.extradata"
 
     status "Write quote metadata: quote.format, quote.sighash, and quote.sigscheme"
     echo "tpm2" >"$WORK_DIR/quote.format"
