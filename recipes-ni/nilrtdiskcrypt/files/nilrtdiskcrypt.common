@@ -134,7 +134,8 @@ function stdin_to_hex () {
 function create_meta_data () {
     status "Create new magic and sn files"
     echo "$KEY_MAGIC" >"$WORK_DIR/magic"
-    fw_printenv 'serial#' | cut -d'=' -f2 >"$WORK_DIR/sn"
+    fw_printenv 'DeviceDesc' | head -1 | cut -d'=' -f2 >"$WORK_DIR/model"
+    fw_printenv 'serial#' | head -1 | cut -d'=' -f2 >"$WORK_DIR/sn"
 }
 
 function check_tpm_caps () {

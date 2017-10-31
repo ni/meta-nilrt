@@ -64,6 +64,7 @@ verify_signature "quote" "quote.sig" "attestation.pub"
 # archive the quote
 ar rc "$WORK_DIR/pcrquote" \
     "$WORK_DIR/magic" \
+    "$WORK_DIR/model" \
     "$WORK_DIR/sn" \
     "$WORK_DIR/quote" \
     "$WORK_DIR/quote.pcrdigest" \
@@ -83,6 +84,7 @@ function filter_json () {
 cat >"$WORK_DIR/pcrquote.json" <<ENDJSON
 {
     "magic": "`ar p "$WORK_DIR/pcrquote" magic | filter_json`",
+    "model": "`ar p "$WORK_DIR/pcrquote" model | filter_json`",
     "sn": "`ar p "$WORK_DIR/pcrquote" sn | filter_json`",
     "quote": "`ar p "$WORK_DIR/pcrquote" quote | stdin_to_hex | filter_json`",
     "quote.pcrdigest": "`ar p "$WORK_DIR/pcrquote" quote.pcrdigest | filter_json`",
