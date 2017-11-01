@@ -346,14 +346,26 @@ function get_key_slot_handle () {
 
 function nvdestroy () {
     local nvram_handle="$1"
+
     status "Generating garbage.urandom (KEY_SLOT_SIZE=$KEY_SLOT_SIZE)"
     do_silently dd if="/dev/urandom" of="$WORK_DIR/garbage.urandom" bs="$KEY_SLOT_SIZE" count=1
     [ "`wc -c "$WORK_DIR/garbage.urandom"`" == "$KEY_SLOT_SIZE $WORK_DIR/garbage.urandom" ]
+
     status "Destroying contents of nvram_handle=$nvram_handle with garbage.urandom"
     do_silently tpm2_nvwrite \
         --index "$nvram_handle" \
         --authHandle "$nvram_handle" \
         --file "$WORK_DIR/garbage.urandom"
+
+    status "Generating empty key file garbage.zero"
+    do_silently dd if="/dev/zero" of="$WORK_DIR/garbage.zero" bs="$KEY_SLOT_SIZE" count=1
+    [ "`wc -c "$WORK_DIR/garbage.zero"`" == "$KEY_SLOT_SIZE $WORK_DIR/garbage.zero" ]
+
+    status "Writing empty key file garbage.zero to nvram_handle=$nvram_handle"
+    do_silently tpm2_nvwrite \
+        --index "$nvram_handle" \
+        --authHandle "$nvram_handle" \
+        --file "$WORK_DIR/garbage.zero"
 }
 
 function nvwrite_file () {
