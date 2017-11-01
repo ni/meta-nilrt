@@ -15,12 +15,17 @@ function warn () {
     echo >&2 "WARNING: $*"
 }
 
-# Useful for test and debug
+# Setup VERBOSE, useful for test and debug
 if [ -z "${VERBOSE+x}" ]; then
-    VERBOSE=0
+    export VERBOSE=0
+elif [ "$VERBOSE" == "yes" ]; then
+    # in init scripts
+    export VERBOSE=1
+elif [ "$VERBOSE" != "0" ] && [ "$VERBOSE" != "1" ] && [ "$VERBOSE" != "2" ]; then
+    export VERBOSE=0
+else
+    export VERBOSE
 fi
-
-[ "$VERBOSE" == "0" ] || [ "$VERBOSE" == "1" ] || [ "$VERBOSE" == "2" ] || error "Invalid VERBOSE flag specified"
 
 function status () {
     if [ "$VERBOSE" -ge 1 ]; then
