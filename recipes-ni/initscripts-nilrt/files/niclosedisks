@@ -33,13 +33,6 @@ fi
 CONFIGFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^niconfig '| tr -s ' ' | cut -d' ' -f2)"
 ROOTFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^nirootfs '| tr -s ' ' | cut -d' ' -f2)"
 
-# setup VERBOSE flag for nilrtdiskcrypt
-if [ "${VERBOSE+x}" == "yes" ]; then
-    export VERBOSE=1
-else
-    export VERBOSE=0
-fi
-
 if [ -f /etc/natinst/safemode ]; then
     nilrtdiskcrypt_close -d "$CONFIGFS_DEV" -d "$ROOTFS_DEV"
 else

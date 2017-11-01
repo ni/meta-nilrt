@@ -37,13 +37,6 @@ fi
 CONFIGFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^niconfig '| tr -s ' ' | cut -d' ' -f2)"
 ROOTFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^nirootfs '| tr -s ' ' | cut -d' ' -f2)"
 
-# setup VERBOSE flag for nilrtdiskcrypt
-if [ "${VERBOSE+x}" == "yes" ]; then
-    export VERBOSE=1
-else
-    export VERBOSE=0
-fi
-
 modprobe tpm_tis
 if [ -e "/dev/tpm0" ] && nilrtdiskcrypt_canopen -d "$ROOTFS_DEV" -d "$CONFIGFS_DEV"; then
     # open nirootfs and niconfig in safemode boot
