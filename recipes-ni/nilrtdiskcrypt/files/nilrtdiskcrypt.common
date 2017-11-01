@@ -309,7 +309,13 @@ function unpack_key () {
 
     status "Unpack $filename as $gunzip_filename"
     rm -f "$WORK_DIR/$gunzip_filename"
-    cat "$WORK_DIR/$filename" | gunzip -c >"$WORK_DIR/$gunzip_filename"
+    cat "$WORK_DIR/$filename" | gunzip -c >"$WORK_DIR/$gunzip_filename" 2>"$WORK_DIR/tool-output"
+    if [ "$VERBOSE" -ge 2 -a -s "$WORK_DIR/tool-output" ]; then
+        # XXX tpm2_nvread zero pads output resulting in "trailing junk"
+        #  warning from gunzip. Suppress warning when VERBOSE < 2.
+        #  Remove this when tpm2_nvread correctly truncates output.
+        cat "$WORK_DIR/tool-output" 1>&2
+    fi
 
     status "Extract magic, sn, key, key.priv, key.pub from $gunzip_filename"
     (cd "$WORK_DIR" && ar x "$WORK_DIR/$gunzip_filename")
