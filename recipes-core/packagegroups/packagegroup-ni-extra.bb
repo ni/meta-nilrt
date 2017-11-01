@@ -183,6 +183,11 @@ RDEPENDS_${PN} += "\
 	time \
 "
 
+# openembedded-core/meta/recipes-rt
+RDEPENDS_${PN} += "\
+	rt-tests \
+"
+
 # openembedded-core/meta/recipes-support
 RDEPENDS_${PN} += "\
 	apr \
