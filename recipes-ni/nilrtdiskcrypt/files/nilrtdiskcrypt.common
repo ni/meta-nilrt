@@ -405,24 +405,6 @@ function reseal_disk_key () {
     fi
 }
 
-# unseal a key and store it back in same TPM memory
-function unseal_disk_key () {
-    local nvram_handle="$1"
-    nvread_file "key.out.gz" "$nvram_handle"
-    unpack_key "key.out.gz" "key.out"
-    if has_sealed_key; then
-        status "Unseal key"
-        create_pcrlist
-        create_sealing_policy
-        unseal_key
-        has_unsealed_key || error "No unsealed key after unseal operation"
-        pack_unsealed_key
-        nvwrite_file "key.unsealed.gz" "$nvram_handle"
-    else
-        status "Key already unsealed"
-    fi
-}
-
 # unseal a key and store it in workdir for later use
 function download_disk_key () {
     local nvram_handle="$1"
