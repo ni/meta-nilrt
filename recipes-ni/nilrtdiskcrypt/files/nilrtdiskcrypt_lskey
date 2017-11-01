@@ -1,0 +1,75 @@
+#!/bin/bash
+set -e
+source "/usr/lib/nilrtdiskcrypt.common"
+
+function print_usage_and_die () {
+    local message="$1"
+    cat >&2 <<ENDHELP
+ERROR: $message
+
+Usage: $0 [ -k keySlotNumber ...]
+ Prints information about specified keys
+ENDHELP
+    exit 1
+}
+
+# get args
+keySlotNumbers=""
+
+while getopts "k:" opt; do
+    case "$opt" in
+    k )  keySlotNumbers="$keySlotNumbers $OPTARG" ;;
+    \?)  print_usage_and_die "Invalid arg" ;;
+    esac
+done
+shift $(($OPTIND - 1))
+
+[ -n "$keySlotNumbers" ] || print_usage_and_die "Must specify at least one key slot"
+
+status "Init"
+take_lock
+cd_to_empty
+init_work_dir
+
+exitCode=0
+
+for ksNumb in $keySlotNumbers; do
+    status "Reading key in slot $ksNumb"
+    ksHandle="`get_key_slot_handle "$ksNumb"`"
+
+    if ! (
+        # for comparison below
+        status "Generating empty key file garbage.zero"
+        do_silently dd if="/dev/zero" of="$WORK_DIR/garbage.zero" bs="$KEY_SLOT_SIZE" count=1
+
+        nvread_file "key.out.gz" "$ksHandle"
+        keyslotDigest="`sha256sum "$WORK_DIR/key.out.gz" | cut -d' ' -f1`"
+
+        if cmp -s "$WORK_DIR/key.out.gz" "$WORK_DIR/garbage.zero"; then
+            echo "Key slot $ksNumb: empty"
+        else
+            unpack_key "key.out.gz" "key.out"
+
+            if has_unsealed_key; then
+                echo "Key slot $ksNumb: unsealed ($keyslotDigest)"
+            elif has_sealed_key; then
+                echo "Key slot $ksNumb: sealed ($keyslotDigest)"
+            else
+                error "Key corrupted"
+            fi
+        fi
+    ); then
+        # warn and continue to other keys
+        warn "Failed to read or parse key in slot $ksNumb"
+        exitCode=1
+    fi
+
+    init_work_dir
+done
+
+status "Remove key"
+clear_work_dir
+
+status "SUCCESS"
+
+exit "$exitCode"
