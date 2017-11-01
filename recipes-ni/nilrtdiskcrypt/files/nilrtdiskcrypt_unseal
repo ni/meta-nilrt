@@ -41,7 +41,8 @@ download_disk_key "$downloadHandle"
 pack_unsealed_key
 
 for ksNumb in $unsealedKeySlotNumbers; do
-    uploadHandle="`get_key_slot_handle "$sealedKeySlotNumber"`"
+    status "Writing unsealed key to slot $ksNumb"
+    uploadHandle="`get_key_slot_handle "$ksNumb"`"
     nvwrite_file "key.unsealed.gz" "$uploadHandle"
 done
 
