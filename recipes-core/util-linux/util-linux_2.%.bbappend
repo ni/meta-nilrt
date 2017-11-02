@@ -9,6 +9,7 @@ group = "${LVRT_GROUP}"
 pkg_postinst_${PN} () {
 	chmod 4550 $D${base_sbindir}/hwclock
 	chown 0:${group} $D${base_sbindir}/hwclock
+	update-alternatives --install ${base_sbindir}/hwclock hwclock ${base_sbindir}/hwclock.${BPN} 80
 }
 
 # To delay the execution of the postinst to first boot, check $D and error
