@@ -54,9 +54,12 @@ LOCK_TIMEOUT="300"  # 300 seconds = 5 minutes
 TPM_ALG_SHA256="0x000B"
 TPM_ALG_KEYEDHASH="0x0008"
 TPM_RH_OWNER="0x40000001"
-TPM_USER_STORAGE_HANDLE="0x81000001"
-TPM_PLATFORM_STORAGE_HANDLE="0x81000002"
-TPM_ATTESTATION_KEY_HANDLE="0x81000003"
+
+#TPM_PLATFORM_STORAGE_KEY_HANDLE="0x81800000"
+TPM_USER_STORAGE_KEY_HANDLE="0x81000001"
+
+#TPM_IDEVID_KEY_HANDLE="0x81810000"
+TPM_ATTESTATION_KEY_HANDLE="0x81810001"
 
 # BUG: adding more than 1 bank here causes tpm2_createpolicy to error out with
 # "Reading <pcrlist-file> failed: end of file", then segfault
@@ -66,6 +69,7 @@ KEY_MAGIC="nilrtdiskcrypt 1"
 KEY_SIZE="128" # 128 bytes = 1024 bits (max allowed by TPM2)
 KEY_SLOT_SIZE="512"
 
+#IDEVID_CERT_NVRAMHANDLE="0x01C90000"
 ATTESTATION_CERT_NVRAMHANDLE="0x01410000"
 KEYSLOT00_NVRAMHANDLE="0x01400000"
 KEYSLOT01_NVRAMHANDLE="0x01400001"
@@ -268,7 +272,7 @@ function create_disk_key () {
 function seal_key () {
     status "Create key.pub and key.priv (sealed TPM2 objects) from key"
     do_silently tpm2_create \
-        --parent "$TPM_USER_STORAGE_HANDLE" \
+        --parent "$TPM_USER_STORAGE_KEY_HANDLE" \
         --inFile "$WORK_DIR/key" \
         --policy-file "$WORK_DIR/sealingpol" \
         --kalg "$TPM_ALG_KEYEDHASH" \
@@ -281,7 +285,7 @@ function seal_key () {
 function unseal_key () {
     status "Load key.pub and key.priv to loaded-key.handle"
     do_silently tpm2_load \
-        --parent "$TPM_USER_STORAGE_HANDLE" \
+        --parent "$TPM_USER_STORAGE_KEY_HANDLE" \
         --pubfile "$WORK_DIR/key.pub" \
         --privfile "$WORK_DIR/key.priv" \
         --context "loaded-key.handle"
