@@ -93,7 +93,7 @@ cat >"$WORK_DIR/pcrquote.json" <<ENDJSON
     "quote.sighash": "`ar p "$WORK_DIR/pcrquote" quote.sighash | filter_json`",
     "quote.sigscheme": "`ar p "$WORK_DIR/pcrquote" quote.sigscheme | filter_json`",
     "attestation.pub": "`ar p "$WORK_DIR/pcrquote" attestation.pub | stdin_to_hex | filter_json`",
-    "attestation.crt": "`ar p "$WORK_DIR/pcrquote" attestation.crt | stdin_to_hex | filter_json`",
+    "attestation.crt": "`ar p "$WORK_DIR/pcrquote" attestation.crt | stdin_to_hex | filter_json`"
 }
 ENDJSON
 
