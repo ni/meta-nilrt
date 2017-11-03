@@ -9,7 +9,7 @@ cd_to_empty
 
 status "TEST: provision keys"
 init_work_dir
-create_sealed_disk_key
+create_sealed_disk_key "$DEFAULT_KEY_SEALING_PCR_SET"
 nvwrite_file "key.sealed.gz" "$KEYSLOT00_NVRAMHANDLE"
 nvwrite_file "key.unsealed.gz" "$KEYSLOT01_NVRAMHANDLE"
 
@@ -25,8 +25,8 @@ has_unsealed_key || error "Runmode key should be unsealed after provisioning"
 has_sealed_key   && error "Found sealed runmode key after provisioning"
 
 status "TEST: seal runmode key"
-create_pcrlist
-create_sealing_policy
+create_sealing_policy "$DEFAULT_KEY_SEALING_PCR_SET"
+write_sealing_pcr_set "$DEFAULT_KEY_SEALING_PCR_SET"
 seal_key
 pack_sealed_key
 nvwrite_file "key.sealed.gz" "$KEYSLOT01_NVRAMHANDLE"

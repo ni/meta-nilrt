@@ -7,7 +7,7 @@ function print_usage_and_die () {
     cat >&2 <<ENDHELP
 ERROR: $message
 
-Usage: $0 [-s | -f filePath ] [ -a | -j | -h ] [-q hex_uint32]
+Usage: $0 [-s | -f filePath ] [ -a | -j | -h ] [-q hex_uint32] [-P PCRSet]
  Returns a signed quote from TPM as either an ar archive or JSON file.
  The quote may optionally be qualified (salted) via -q parameter,
  which is delivered to TPM during signing to guard again replay attacks.
@@ -18,6 +18,7 @@ Usage: $0 [-s | -f filePath ] [ -a | -j | -h ] [-q hex_uint32]
   -j: Format quote as json (binary data hex encoded)
   -d: Returns only unqualified PCR digest (hex encoded)
   -q hex_uint32: A qualifier (E.g. nonce) to send to TPM
+  -P quote specified PCR set instead of default ($DEFAULT_QUOTING_PCR_SET)
 ENDHELP
     exit 1
 }
@@ -26,8 +27,9 @@ ENDHELP
 outputLocation=""
 outputFormat=""
 qualifier_hex=""
+pcrSet=""
 
-while getopts "sf:ajdq:" opt; do
+while getopts "sf:ajdq:P:" opt; do
     case "$opt" in
     s)  [ -z "$outputLocation" ] && outputLocation="-"       || print_usage_and_die "Cannot specify more than one output location" ;;
     f)  [ -z "$outputLocation" ] && outputLocation="$OPTARG" || print_usage_and_die "Cannot specify more than one output location" ;;
@@ -35,6 +37,7 @@ while getopts "sf:ajdq:" opt; do
     j)  [ -z "$outputFormat" ] && outputFormat="j" || print_usage_and_die "Cannot specify more than one output format" ;;
     d)  [ -z "$outputFormat" ] && outputFormat="d" || print_usage_and_die "Cannot specify more than one output format" ;;
     q)  [ -z "$qualifier_hex" ] && qualifier_hex="$OPTARG" || print_usage_and_die "Cannot specify more than one qualifier" ;;
+    P)  [ -z "$pcrSet" ] && pcrSet="$OPTARG" || print_usage_and_die "Cannot specify more than one PCR set" ;;
     \?)  print_usage_and_die "Invalid arg" ;;
     esac
 done
@@ -42,7 +45,12 @@ shift $(($OPTIND - 1))
 
 [ -n "$outputLocation" ] || outputLocation="-"
 [ -n "$outputFormat" ] || outputFormat="a"
+[ -n "$pcrSet" ] || pcrSet="$DEFAULT_QUOTING_PCR_SET"
 [ "$outputFormat" == "d" -a -n "$qualifier_hex" ] && print_usage_and_die "Cannot qualify digest-only output format"
+
+if ! echo "$pcrSet" | egrep -q '^[0-9]+(,[0-9]+)*$'; then
+    print_usage_and_die "PCR set must be a comma separated list of integers"
+fi
 
 # make abs path
 if [ "$outputLocation" != "-" ]; then
@@ -57,7 +65,7 @@ init_work_dir
 
 create_meta_data
 read_attestation_public_key
-quote_pcr "$qualifier_hex"
+quote_pcr "$pcrSet" "$qualifier_hex"
 verify_signature "quote" "quote.sig" "attestation.pub"
 
 # archive the quote

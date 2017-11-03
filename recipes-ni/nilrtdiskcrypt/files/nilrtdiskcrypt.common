@@ -61,11 +61,10 @@ TPM_USER_STORAGE_KEY_HANDLE="0x81000001"
 #TPM_IDEVID_KEY_HANDLE="0x81810000"
 TPM_ATTESTATION_KEY_HANDLE="0x81810001"
 
-# BUG: adding more than 1 bank here causes tpm2_createpolicy to error out with
-# "Reading <pcrlist-file> failed: end of file", then segfault
-KEY_SEALING_PCR_SET="$TPM_ALG_SHA256:0,2,4,9,10,11"
+DEFAULT_KEY_SEALING_PCR_SET="0,2,4,9,10,11"
+DEFAULT_QUOTING_PCR_SET="$DEFAULT_KEY_SEALING_PCR_SET,12"
 
-KEY_MAGIC="nilrtdiskcrypt 1"
+KEY_MAGIC="ndc01"
 KEY_SIZE="128" # 128 bytes = 1024 bits (max allowed by TPM2)
 KEY_SLOT_SIZE="512"
 
@@ -192,9 +191,10 @@ function read_attestation_public_key () {
 }
 
 function quote_pcr () {
-    local qualifier_hex="$1"
+    local pcrSet="$1"
+    local qualifier_hex="$2"
 
-    status "Quote KEY_SEALING_PCR_SET=$KEY_SEALING_PCR_SET to quote, quote.sig, and quote.pcrdigest (TPM_ATTESTATION_KEY_HANDLE=$TPM_ATTESTATION_KEY_HANDLE, qualifier_hex=$qualifier_hex)"
+    status "Quote pcrSet=$pcrSet to quote, quote.sig, and quote.pcrdigest (TPM_ATTESTATION_KEY_HANDLE=$TPM_ATTESTATION_KEY_HANDLE, qualifier_hex=$qualifier_hex)"
 
     local qualifier_hex_arg=""
     if [ -n "$qualifier_hex" ]; then
@@ -205,7 +205,7 @@ function quote_pcr () {
 
     do_silently tpm2_quote \
         --akHandle "$TPM_ATTESTATION_KEY_HANDLE" \
-        --selList "$KEY_SEALING_PCR_SET" \
+        --selList "$TPM_ALG_SHA256:$pcrSet" \
         --sig-hash-algorithm "$TPM_ALG_SHA256" \
         $qualifier_hex_arg \
         --outFile "/dev/null" \
@@ -242,26 +242,42 @@ function create_seeds () {
     do_silently dd if="/dev/urandom" of="$WORK_DIR/rngseed.urandom" bs="$KEY_SIZE" count="$KEY_SIZE"
 }
 
-function create_pcrlist () {
-    status "Create new pcrlist file for KEY_SEALING_PCR_SET=$KEY_SEALING_PCR_SET"
-
-    do_silently tpm2_pcrlist \
-        --selList "$KEY_SEALING_PCR_SET" \
-        --output "$WORK_DIR/pcrlist"
-}
-
 function create_sealing_policy () {
-    status "Create new sealingpol file for KEY_SEALING_PCR_SET=$KEY_SEALING_PCR_SET and pcrlist"
+    local sealingPCRSet="$1"
 
+    status "Create new pcrlist file for sealingPCRSet=$sealingPCRSet"
+    do_silently tpm2_pcrlist \
+        --selList "$TPM_ALG_SHA256:$sealingPCRSet" \
+        --output "$WORK_DIR/pcrlist"
+
+    status "Create new sealingpol file for sealingPCRSet=$sealingPCRSet and pcrlist"
     do_silently tpm2_createpolicy \
         -P \
-        --set-list "$KEY_SEALING_PCR_SET" \
+        --set-list "$TPM_ALG_SHA256:$sealingPCRSet" \
         --pcr-input-file "$WORK_DIR/pcrlist" \
         --policy-file "$WORK_DIR/sealingpol"
 }
 
+function write_sealing_pcr_set () {
+    local sealingPCRSet="$1"
+
+    status "Create new pcrselect file with sealingPCRSet=$sealingPCRSet"
+    echo "$sealingPCRSet" >"$WORK_DIR/pcrselect"
+}
+
+function read_sealing_pcr_set () {
+    local sealingPCRSet=""
+
+    status "Reading sealingPCRSet from pcrselect file"
+    [ -f "$WORK_DIR/pcrselect" ] || error "Missing pcrselect file"
+    egrep -q '^[0-9]+(,[0-9]+)*$' "$WORK_DIR/pcrselect" || error "Malformed pcrselect file"
+    sealingPCRSet="$(<"$WORK_DIR/pcrselect")"
+    status "Got sealingPCRSet=$sealingPCRSet"
+
+    echo "$sealingPCRSet"
+}
+
 function create_disk_key () {
-    create_meta_data
     status "Create new key file ($KEY_SIZE bytes)"
     do_silently openssl rand \
         -rand "$WORK_DIR/rngseed.tpm:$WORK_DIR/rngseed.urandom" \
@@ -283,6 +299,8 @@ function seal_key () {
 }
 
 function unseal_key () {
+    local sealingPCRSet="$1"
+
     status "Load key.pub and key.priv to loaded-key.handle"
     do_silently tpm2_load \
         --parent "$TPM_USER_STORAGE_KEY_HANDLE" \
@@ -290,10 +308,10 @@ function unseal_key () {
         --privfile "$WORK_DIR/key.priv" \
         --context "loaded-key.handle"
 
-    status "Unseal key at loaded-key.handle with KEY_SEALING_PCR_SET=$KEY_SEALING_PCR_SET"
+    status "Unseal key at loaded-key.handle with sealingPCRSet=$sealingPCRSet and pcrlist"
     do_silently tpm2_unseal \
         --itemContext "loaded-key.handle" \
-        --set-list "$KEY_SEALING_PCR_SET" \
+        --set-list "$TPM_ALG_SHA256:$sealingPCRSet" \
         --pcr-input-file "$WORK_DIR/pcrlist" \
         --outfile "$WORK_DIR/key"
 
@@ -301,15 +319,17 @@ function unseal_key () {
 }
 
 function pack_unsealed_key () {
-    status "Create key.unsealed.gz containing magic, sn, and key"
-    ar rc "$WORK_DIR/key.unsealed" "$WORK_DIR/magic" "$WORK_DIR/sn" "$WORK_DIR/key"
+    status "Create key.unsealed.gz containing magic, sn, key, and pcrselect"
+    ar rc "$WORK_DIR/key.unsealed" "$WORK_DIR/magic" "$WORK_DIR/sn" "$WORK_DIR/key" "$WORK_DIR/pcrselect"
     cat "$WORK_DIR/key.unsealed" | gzip -c >"$WORK_DIR/key.unsealed.gz"
+    [ "`wc -c "$WORK_DIR/key.unsealed.gz" | cut -d' ' -f1`" -le "$KEY_SLOT_SIZE" ] || error "key.unsealed.gz too big for key slot"
 }
 
 function pack_sealed_key () {
-    status "Create key.sealed.gz containing magic, sn, key.priv, and key.pub"
-    ar rc "$WORK_DIR/key.sealed" "$WORK_DIR/magic" "$WORK_DIR/sn" "$WORK_DIR/key.priv" "$WORK_DIR/key.pub"
+    status "Create key.sealed.gz containing magic, sn, key.priv, key.pub, and pcrselect"
+    ar rc "$WORK_DIR/key.sealed" "$WORK_DIR/magic" "$WORK_DIR/sn" "$WORK_DIR/key.priv" "$WORK_DIR/key.pub" "$WORK_DIR/pcrselect"
     cat "$WORK_DIR/key.sealed" | gzip -c >"$WORK_DIR/key.sealed.gz"
+    [ "`wc -c "$WORK_DIR/key.sealed.gz" | cut -d' ' -f1`" -le "$KEY_SLOT_SIZE" ] || error "key.sealed.gz too big for key slot"
 }
 
 function unpack_key () {
@@ -326,12 +346,13 @@ function unpack_key () {
         cat "$WORK_DIR/tool-output" 1>&2
     fi
 
-    status "Extract magic, sn, key, key.priv, key.pub from $gunzip_filename"
+    status "Extract magic, sn, key, key.priv, key.pub, and pcrselect from $gunzip_filename"
     (cd "$WORK_DIR" && ar x "$WORK_DIR/$gunzip_filename")
     [ -f "$WORK_DIR/magic" ] || error "Malformed data in TPM: Missing magic"
     [ "`cat "$WORK_DIR/magic"`" == "$KEY_MAGIC" ] || error "Malformed data in TPM: Bad magic"
     [ -f "$WORK_DIR/sn" ] || error "Malformed data in TPM: Missing sn"
     [ -f "$WORK_DIR/key" ] || [ -f "$WORK_DIR/key.priv" -a -f "$WORK_DIR/key.pub" ] || error "Malformed data in TPM: Missing both sealed and unsealed key"
+    [ -f "$WORK_DIR/pcrselect" ] || error "Malformed data in TPM: Missing pcrselect"
 }
 
 function has_unsealed_key () {
@@ -404,9 +425,12 @@ function nvread_file () {
 
 # generate new key starting with empty WORK_DIR
 function create_sealed_disk_key () {
-    status "Create sealed disk key"
-    create_pcrlist
-    create_sealing_policy
+    local sealingPCRSet="$1"
+
+    status "Create sealed disk key with sealingPCRSet=$sealingPCRSet"
+    create_meta_data
+    create_sealing_policy "$sealingPCRSet"
+    write_sealing_pcr_set "$sealingPCRSet"
     create_seeds
     create_disk_key
     seal_key
@@ -422,8 +446,8 @@ function reseal_disk_key () {
     if ! has_sealed_key; then
         status "Reseal key"
         has_unsealed_key || error "Missing unsealed key, malformed archive"
-        create_pcrlist
-        create_sealing_policy
+        local sealingPCRSet="`read_sealing_pcr_set`"
+        create_sealing_policy "$sealingPCRSet"
         seal_key
         pack_sealed_key
         nvwrite_file "key.sealed.gz" "$nvram_handle"
@@ -439,9 +463,9 @@ function download_disk_key () {
     unpack_key "key.out.gz" "key.out"
     has_unsealed_key && error "Key must be sealed"
     has_sealed_key   || error "No sealed key found"
-    create_pcrlist
-    create_sealing_policy
-    unseal_key
+    local sealingPCRSet="`read_sealing_pcr_set`"
+    create_sealing_policy "$sealingPCRSet"
+    unseal_key "$sealingPCRSet"
     has_unsealed_key || error "No unsealed key after unseal operation"
 }
 

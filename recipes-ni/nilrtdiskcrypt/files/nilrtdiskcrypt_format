@@ -7,11 +7,12 @@ function print_usage_and_die () {
     cat >&2 <<ENDHELP
 ERROR: $message
 
-Usage: $0 [ -u unsealedKeySlotNumber ...] [ -s sealedKeySlotNumber ...] [ -d devNode ... ] [ -B fslabel]
+Usage: $0 [ -u unsealedKeySlotNumber ...] [ -s sealedKeySlotNumber ...] [ -d devNode ... ] [ -B fslabel] [-P sealingPCRSet]
  Generates and seals a new key in speicfied TPM key slots, then formats
  and opens specified partitions as luks using new key. Prints paths to
  mapped device nodes.
  -B stores the unsealed key on the filesystem labeled fslabel
+ -P seals disk key to specified PCR set instead of default ($DEFAULT_KEY_SEALING_PCR_SET)
 ENDHELP
     exit 1
 }
@@ -21,13 +22,15 @@ unsealedKeySlotNumbers=""
 sealedKeySlotNumbers=""
 devNodes=""
 backupKey=no
+sealingPCRSet="$DEFAULT_KEY_SEALING_PCR_SET"
 
-while getopts "u:s:d:B:" opt; do
+while getopts "u:s:d:B:P:" opt; do
     case "$opt" in
     u )  unsealedKeySlotNumbers="$unsealedKeySlotNumbers $OPTARG" ;;
     s )  sealedKeySlotNumbers="$sealedKeySlotNumbers $OPTARG" ;;
     d )  devNodes="$devNodes $OPTARG" ;;
     B )  backupKey=yes && backupLabel="$OPTARG" ;;
+    P )  sealingPCRSet="$OPTARG" ;;
     \?)  print_usage_and_die "Invalid arg" ;;
     esac
 done
@@ -35,6 +38,10 @@ shift $(($OPTIND - 1))
 
 [ -n "$unsealedKeySlotNumbers""$sealedKeySlotNumbers" ] || print_usage_and_die "Must specify at least one TPM key slot number"
 [ -n "$devNodes" ] || print_usage_and_die "Must specify at least one device to format"
+
+if ! echo "$sealingPCRSet" | egrep -q '^[0-9]+(,[0-9]+)*$'; then
+    print_usage_and_die "PCR set must be a comma separated list of integers"
+fi
 
 if [ "$backupKey" = yes ]; then
     [ -z "$backupLabel" ] && print_usage_and_die "Must specify a filesystem label for the arg -B"
@@ -67,7 +74,7 @@ for ksNumb in $unsealedKeySlotNumbers $sealedKeySlotNumbers; do
     nvdestroy "$ksHandle"
 done
 
-create_sealed_disk_key
+create_sealed_disk_key "$sealingPCRSet"
 
 status "Format devices"
 for devNode in $devNodes; do
