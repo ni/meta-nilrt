@@ -43,6 +43,8 @@ if [ -e "/dev/tpm0" ] && nilrtdiskcrypt_canopen -d "$ROOTFS_DEV" -d "$CONFIGFS_D
     # initramfs should open nirootfs and niconfig in runmode boot,
     #  and kicks back to safemode on failure as failsafe
     if [ -f /etc/natinst/safemode ]; then
+        nilrtdiskcrypt_reseal -u 0
+
         cryptdevs=( $(nilrtdiskcrypt_open -k 0 -d "$ROOTFS_DEV" -d "$CONFIGFS_DEV") )
 
         if [ -n "$cryptdevs" ]; then
