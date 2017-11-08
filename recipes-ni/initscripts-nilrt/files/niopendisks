@@ -89,7 +89,9 @@ if [ -e "/dev/tpm0" ] && nilrtdiskcrypt_canopen -d "$ROOTFS_DEV" -d "$CONFIGFS_D
         fi
     fi
 
-    [ -f "/etc/tpm/disable_key_unseal" ] && nilrtdiskcrypt_disableunseal
+    [ -e "/etc/tpm/disable_key_unseal" ] && nilrtdiskcrypt_disableunseal
+
+    [ -e "/etc/tpm/boot_extend.lst" ] && nilrtdiskcrypt_pcrextend -l "/etc/tpm/boot_extend.lst"
 else
     modprobe -r tpm_tis
     remaining_modules="`lsmod | grep tpm || true`"
