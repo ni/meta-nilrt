@@ -46,6 +46,7 @@ SRC_URI = " \
     file://nilrtdiskcrypt_wipe \
     file://nilrtdiskcrypt_quote \
     file://nilrtdiskcrypt_lskey \
+    file://nilrtdiskcrypt_pcrextend \
     file://nilrtdiskcrypt_test_tpm \
 "
 
@@ -66,6 +67,7 @@ do_install () {
     install -m 0755 ${S}/nilrtdiskcrypt_wipe ${D}${sbindir}/
     install -m 0755 ${S}/nilrtdiskcrypt_quote ${D}${sbindir}/
     install -m 0755 ${S}/nilrtdiskcrypt_lskey ${D}${sbindir}/
+    install -m 0755 ${S}/nilrtdiskcrypt_pcrextend ${D}${sbindir}/
 
     # this logic is only for older nilrt and nilrt-xfce
     if ${@base_conditional('DISTRO', 'nilrt-nxg', 'false', 'true', d)}; then
