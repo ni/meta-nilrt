@@ -124,7 +124,7 @@ if [ "$backupKey" = yes ]; then
     # assume $backupLabel is mounted by the system
     mountPoint=$(lsblk -l -n -o LABEL,MOUNTPOINT | grep "^$backupLabel " | tr -s ' ' | cut -d' ' -f2)
     mkdir -p "$mountPoint/nilrtdiskcrypt.keystore/"
-    cp "$WORK_DIR/key.unsealed" "$mountPoint/nilrtdiskcrypt.keystore/${deviceModelNo}_${devSerialNo}_recovery"
+    cp "$WORK_DIR/key.unsealed.gz" "$mountPoint/nilrtdiskcrypt.keystore/${deviceModelNo}_${devSerialNo}_recovery.key.gz"
     sync
 fi
 
