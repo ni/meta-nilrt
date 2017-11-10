@@ -36,63 +36,66 @@ if ! echo -n " " 1>&2; then
     exec 2>&1
 fi
 
-CONFIGFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^niconfig '| tr -s ' ' | cut -d' ' -f2)"
-ROOTFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^nirootfs '| tr -s ' ' | cut -d' ' -f2)"
-
 modprobe tpm_tis
-if [ -e "/dev/tpm0" ] && nilrtdiskcrypt_canopen -d "$ROOTFS_DEV" -d "$CONFIGFS_DEV"; then
-    # open nirootfs and niconfig in safemode boot
-    # initramfs should open nirootfs and niconfig in runmode boot,
-    #  and kicks back to safemode on failure as failsafe
-    if [ -f /etc/natinst/safemode ]; then
-        nilrtdiskcrypt_reseal -u 0
+if [ -e "/dev/tpm0" ]; then
+    CONFIGFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^niconfig '| tr -s ' ' | cut -d' ' -f2)"
+    ROOTFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^nirootfs '| tr -s ' ' | cut -d' ' -f2)"
 
-        cryptdevs=( $(nilrtdiskcrypt_open -k 0 -d "$ROOTFS_DEV" -d "$CONFIGFS_DEV") )
+    if nilrtdiskcrypt_canopen -d "$ROOTFS_DEV" -d "$CONFIGFS_DEV"; then
+        # open nirootfs and niconfig in safemode boot
+        # initramfs should open nirootfs and niconfig in runmode boot,
+        #  and kicks back to safemode on failure as failsafe
+        if [ -f /etc/natinst/safemode ]; then
+            nilrtdiskcrypt_reseal -u 0
 
-        if [ -n "$cryptdevs" ]; then
-            do_failsafe=false
+            cryptdevs=( $(nilrtdiskcrypt_open -k 0 -d "$ROOTFS_DEV" -d "$CONFIGFS_DEV") )
 
-            [ -n "${cryptdevs[0]}" ] || do_failsafe=true
-            [ -n "${cryptdevs[1]}" ] || do_failsafe=true
+            if [ -n "$cryptdevs" ]; then
+                do_failsafe=false
 
-            [ "`lsblk -l -n -o LABEL | egrep "^nirootfs$" | wc -l`" == 1 ] || do_failsafe=true
-            [ "`lsblk -l -n -o LABEL | egrep "^niconfig$" | wc -l`" == 1 ] || do_failsafe=true
+                [ -n "${cryptdevs[0]}" ] || do_failsafe=true
+                [ -n "${cryptdevs[1]}" ] || do_failsafe=true
 
-            lsblk -l -n -o LABEL,TYPE,NAME | egrep -q "^nirootfs +crypt +""`basename "${cryptdevs[0]}"`""\$" || do_failsafe=true
-            lsblk -l -n -o LABEL,TYPE,NAME | egrep -q "^niconfig +crypt +""`basename "${cryptdevs[1]}"`""\$" || do_failsafe=true
+                [ "`lsblk -l -n -o LABEL | egrep "^nirootfs$" | wc -l`" == 1 ] || do_failsafe=true
+                [ "`lsblk -l -n -o LABEL | egrep "^niconfig$" | wc -l`" == 1 ] || do_failsafe=true
 
-            mount -L nirootfs || do_failsafe=true
-            mount -L niconfig || do_failsafe=true
+                lsblk -l -n -o LABEL,TYPE,NAME | egrep -q "^nirootfs +crypt +""`basename "${cryptdevs[0]}"`""\$" || do_failsafe=true
+                lsblk -l -n -o LABEL,TYPE,NAME | egrep -q "^niconfig +crypt +""`basename "${cryptdevs[1]}"`""\$" || do_failsafe=true
 
-            # all or nothing failsafe
-            if $do_failsafe; then
-                umount /mnt/userfs
-                umount /etc/natinst/share
-                sync
+                mount -L nirootfs || do_failsafe=true
+                mount -L niconfig || do_failsafe=true
 
+                # all or nothing failsafe
+                if $do_failsafe; then
+                    umount /mnt/userfs
+                    umount /etc/natinst/share
+                    sync
+
+                    nilrtdiskcrypt_close -d "$ROOTFS_DEV"
+                    nilrtdiskcrypt_close -d "$CONFIGFS_DEV"
+                    nilrtdiskcrypt_disableunseal
+                fi
+            fi
+        else
+            # mount niconfig to access disable_key_unseal config below
+            if ! mount -L niconfig; then
                 nilrtdiskcrypt_close -d "$ROOTFS_DEV"
                 nilrtdiskcrypt_close -d "$CONFIGFS_DEV"
                 nilrtdiskcrypt_disableunseal
+
+                /etc/init.d/nisetbootmode force-safemode
+
+                umount -a -r
+                sync
+
+                reboot
             fi
         fi
     else
-        # mount niconfig to access disable_key_unseal config below
-        if ! mount -L niconfig; then
-            nilrtdiskcrypt_close -d "$ROOTFS_DEV"
-            nilrtdiskcrypt_close -d "$CONFIGFS_DEV"
-            nilrtdiskcrypt_disableunseal
-
-            /etc/init.d/nisetbootmode force-safemode
-
-            umount -a -r
-            sync
-
-            reboot
-        fi
+        mount -L niconfig
     fi
 
     [ -e "/etc/tpm/disable_key_unseal" ] && nilrtdiskcrypt_disableunseal
-
     [ -e "/etc/tpm/boot_extend.lst" ] && nilrtdiskcrypt_pcrextend -l "/etc/tpm/boot_extend.lst"
 else
     modprobe -r tpm_tis
