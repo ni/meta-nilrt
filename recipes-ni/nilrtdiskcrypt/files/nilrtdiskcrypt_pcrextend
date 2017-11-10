@@ -116,9 +116,9 @@ function print_file () {
     print_path_stats "$filepath"
 
     if [ -d "$filepath" ]; then
-        while read sub_filepath; do
+        for sub_filepath in `find "$filepath/" '!' -path "$filepath/"`; do
             print_file "$sub_filepath"
-        done < <(find "$filepath/" '!' -path "$filepath/")
+        done
     else
         echo "-----BEGIN-----"
         cat "$filepath" || echo 1>&2 "Failed to read filepath=$filepath"
