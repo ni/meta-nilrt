@@ -6,8 +6,6 @@ IMAGE_INSTALL = "\
 	packagegroup-ni-tzdata \
     "
 
-IMAGE_FSTYPES_append += "ext2"
-
 require niconsole-image.inc
 
 require include/ni-external-components.inc
