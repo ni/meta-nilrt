@@ -65,17 +65,17 @@ readonly_grub_variable()
 	return $?
 }
 
-get_8135_ethernet_MAC_address()
+get_ethernet_MAC_address()
 {
 	devaddr="00000000"
 
 	#Iterate through all adapters to find the onboard NIC address of
-	#a PXIe-8135. If not found, do not return a unique serial number.
+	#a PXIe-8135 (0x1502) or PXIe-8840 dual core (0x153a). If not found, do not return a unique serial number.
 	for devpath in /sys/class/net/*; do
 		devvendorid="$(cat $devpath/device/vendor 2>/dev/null)" || continue
 		devdeviceid="$(cat $devpath/device/device 2>/dev/null)" || continue
 
-		if [ "$devvendorid" = "0x8086" -a "$devdeviceid" = "0x1502" ]; then
+		if [[ "$devvendorid" = "0x8086" ]] && ( [[ "$devdeviceid" = "0x1502" ]] || [[ "$devdeviceid" = "0x153a" ]] ); then
 			devaddr="$(cat $devpath/address)"
 			break
 		fi
@@ -128,7 +128,7 @@ show_variable_smbios(){
 
 		#Set serial number using PXIe-8135 eth0 MAC address if available
 		if [ "$key" = "serial#" -a "$value" = "Not Applicable" ] ; then
-			value=$(get_8135_ethernet_MAC_address | tr -d ":\n" | tail -c8)
+			value=$(get_ethernet_MAC_address | tr -d ":\n" | tail -c8)
 			ret=0
 		fi
 
