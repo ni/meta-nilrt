@@ -572,6 +572,7 @@ RDEPENDS_${PN} += "\
 
 # meta-oe/recipes-devtools/python (most now in meta-oe/meta-python)
 RDEPENDS_${PN} += "\
+	python-future \
 	python-pycrypto \
 	python-feedparser \
 	python-requests \
