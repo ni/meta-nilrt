@@ -12,6 +12,7 @@ SRC_URI = " \
        file://mount.sh \
        file://mount.blacklist \
        file://localextra.rules \
+       file://localextra_rfkill.rules \
        file://net-hotplug.rules \
        file://hotplug.script \
        file://50-plugdev.rules \
@@ -27,12 +28,17 @@ do_install() {
     install -d ${D}${sysconfdir}/udev/rules.d
 
     install -m 0644 ${WORKDIR}/automount.rules     ${D}${sysconfdir}/udev/rules.d/automount.rules
-    install -m 0644 ${WORKDIR}/localextra.rules    ${D}${sysconfdir}/udev/rules.d/localextra.rules
     install -m 0644 ${WORKDIR}/net-hotplug.rules   ${D}${sysconfdir}/udev/rules.d/net-hotplug.rules
     install -m 0644 ${WORKDIR}/50-plugdev.rules    ${D}${sysconfdir}/udev/rules.d/50-plugdev.rules
     install -m 0644 ${WORKDIR}/61-removable-storage-polling.rules    ${D}${sysconfdir}/udev/rules.d/61-removable-storage-polling.rules
     install -m 0644 ${WORKDIR}/70-usb-serial-permissions.rules ${D}${sysconfdir}/udev/rules.d/70-usb-serial-permissions.rules
     install -m 0644 ${WORKDIR}/leds.rules          ${D}${sysconfdir}/udev/rules.d/leds.rules
+
+    install -m 0644 ${WORKDIR}/localextra.rules    ${D}${sysconfdir}/udev/rules.d/localextra.rules
+    if [ "${DISTRO}" == "nilrt" -o "${DISTRO}" == "nilrt-xfce" ]; then
+        # only needed pre-NXG
+        install -m 0644 ${WORKDIR}/localextra_rfkill.rules    ${D}${sysconfdir}/udev/rules.d/localextra_rfkill.rules
+    fi
 
     install -m 0644 ${WORKDIR}/mount.blacklist     ${D}${sysconfdir}/udev/
 
