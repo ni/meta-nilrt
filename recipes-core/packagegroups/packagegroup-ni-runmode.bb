@@ -23,7 +23,6 @@ RDEPENDS_${PN} = "\
 	iproute2-tc \
 	lldpd \
 	niwatchdogpet \
-	ni-module-versioning-tools \
 	parted \
 	rtctl \
 	util-linux-sfdisk \
