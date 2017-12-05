@@ -115,6 +115,7 @@ RDEPENDS_${PN} = "\
 	syslog-ng \
 	sysvinit \
 	tar \
+	eudev \
 	udev-extraconf \
 	util-linux-agetty \
 	util-linux-hwclock \
@@ -122,7 +123,6 @@ RDEPENDS_${PN} = "\
 	util-linux-umount \
 	util-linux-runuser \
 	${VIRTUAL-RUNTIME_mountpoint} \
-	${VIRTUAL-RUNTIME_dev_manager} \
 	${MACHINE_ESSENTIAL_EXTRA_RDEPENDS} \
 	${@bb.utils.contains('TARGET_ARCH', 'arm', \
 		'${ALL_DISTRO_ARM_PACKAGES}', \
