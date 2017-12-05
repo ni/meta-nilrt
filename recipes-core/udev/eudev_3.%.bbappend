@@ -6,3 +6,6 @@ SRC_URI =+ " \
 "
 
 EXTRA_OECONF =+ "--disable-mtd_probe"
+
+# we don't use the hwdb and it consumes around 10mb of space so disable it
+PACKAGECONFIG_remove += "hwdb"
