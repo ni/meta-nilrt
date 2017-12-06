@@ -573,6 +573,8 @@ RDEPENDS_${PN} += "\
 # meta-oe/recipes-devtools/python (most now in meta-oe/meta-python)
 RDEPENDS_${PN} += "\
 	python-future \
+	python-gsocketpool \
+	python-mprpc \
 	python-pycrypto \
 	python-feedparser \
 	python-requests \
@@ -613,6 +615,9 @@ RDEPENDS_${PN} += "\
 	python-pytz \
 	python-zopeinterface \
 	python-pyparted \
+	python3-gevent \
+	python3-greenlet \
+	python3-gsocketpool \
 "
 # python-matplotlib: hang on do_install
 
