@@ -13,6 +13,7 @@ IMAGE_INSTALL_NODEPS += " \
     lvrt \
     ni-datacomms-lvinterface \
     nitaglv \
+    nisvcloc \
     ni-nwstreams \
     ni-flexrio \
     ni-usrp-rio \
@@ -20,7 +21,6 @@ IMAGE_INSTALL_NODEPS += " \
 "
 
 IMAGE_INSTALL_NODEPS_remove_armv7a = " \
-    ni-datacomms-lvinterface \
     ni-flexrio \
     ni-usrp-rio \
     mt \
