@@ -35,7 +35,7 @@ do_install() {
     install -m 0644 ${WORKDIR}/leds.rules          ${D}${sysconfdir}/udev/rules.d/leds.rules
 
     install -m 0644 ${WORKDIR}/localextra.rules    ${D}${sysconfdir}/udev/rules.d/localextra.rules
-    if [ "${DISTRO}" == "nilrt" -o "${DISTRO}" == "nilrt-xfce" ]; then
+    if ${@base_conditional('DISTRO', 'nilrt-nxg', 'false', 'true', d)}; then
         # only needed pre-NXG
         install -m 0644 ${WORKDIR}/localextra_rfkill.rules    ${D}${sysconfdir}/udev/rules.d/localextra_rfkill.rules
     fi
