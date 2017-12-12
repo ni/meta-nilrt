@@ -28,7 +28,6 @@ RDEPENDS_${PN} = "\
 	dhcp-client \
 	distro-feed-configs \
 	ethtool \
-	fuse-exfat \
 	initscripts \
 	initscripts-nilrt \
 	iproute2 \
