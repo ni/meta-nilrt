@@ -7,6 +7,8 @@ RDEPENDS_${PN} = "linux-firmware-wl12xx linux-firmware-wl18xx"
 
 PV = "R8.6+git${SRCPV}"
 
+PR = "r5"
+
 #Tag: R8.6
 SRCREV = "cf8965aad73764022669647fa33852558a657930"
 SRC_URI = "git://git.ti.com/wilink8-wlan/18xx-ti-utils.git \
