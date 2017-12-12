@@ -89,7 +89,6 @@ RDEPENDS_${PN} = "\
 	curl \
 	dhcp-client \
 	ethtool \
-	fuse-exfat \
 	initscripts \
 	initscripts-nilrt \
 	iproute2 \
