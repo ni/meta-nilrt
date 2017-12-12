@@ -480,7 +480,6 @@ RDEPENDS_${PN} += "\
 
 # meta-openembedded/meta-filesystems
 RDEPENDS_${PN} += "\
-	fuse-exfat \
 	ntfs-3g-ntfsprogs \
 	smbnetfs \
 	sshfs-fuse \
@@ -488,7 +487,6 @@ RDEPENDS_${PN} += "\
 	fuse \
 	physfs \
 	aufs-util \
-	exfat-utils \
 	xfsprogs \
 "
 
