@@ -1,21 +1,26 @@
 DESCRIPTION = "The calibrator and other useful utilities for TI wireless solution based on wl12xx driver"
-LICENSE = "CLOSED"
+LICENSE = "BSD"
+LIC_FILES_CHKSUM = "file://COPYING;md5=4725015cb0be7be389cf06deeae3683d"
 
 DEPENDS = "libnl"
 
-PV ="0.0-git${SRCPV}"
+PV = "R8.6+git${SRCPV}"
 
-SRCREV = "f4508cf40df603456d806e2c64fd4a99b13d1aaf"
-SRC_URI = "git://github.com/TI-OpenLink/ti-utils.git;protocol=git \
-	file://upgrade_libnl_to_32.patch"
+#Tag: R8.6
+SRCREV = "cf8965aad73764022669647fa33852558a657930"
+SRC_URI = "git://git.ti.com/wilink8-wlan/18xx-ti-utils.git \
+"
 
 S = "${WORKDIR}/git"
 
 export CROSS_COMPILE = "${TARGET_PREFIX}"
-CFLAGS += " -DCONFIG_LIBNL20 -I${STAGING_INCDIR}/libnl3"
+
+EXTRA_OEMAKE = 'CFLAGS="${CFLAGS} -I${STAGING_INCDIR}/libnl3/ -DCONFIG_LIBNL32 " \
+		LDFLAGS="${LDFLAGS} -L${STAGING_LIBDIR}" \
+		CC="${CC}" \
+		NLVER=3'
 
 do_install() {
-	install -d ${D}${bindir}
-
-	install -m 0755 calibrator ${D}${bindir}/
+    install -d ${D}${bindir}
+    install -m 0755 calibrator ${D}${bindir}/
 }
