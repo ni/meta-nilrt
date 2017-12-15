@@ -175,6 +175,7 @@ RDEPENDS_${PN} += "\
 	libxml-sax-perl \
 	procps \
 	psmisc \
+	screen \
 	shadow \
 	slang \
 	stat \
