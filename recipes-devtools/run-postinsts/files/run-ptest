@@ -1,0 +1,8 @@
+#!/bin/bash
+
+SCRIPT_DIR="`dirname "$BASH_SOURCE[0]"`"
+
+"$SCRIPT_DIR/test-opkg-status.sh"
+"$SCRIPT_DIR/test-run-postinsts-log.sh"
+
+exit 0

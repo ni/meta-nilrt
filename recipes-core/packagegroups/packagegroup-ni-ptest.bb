@@ -17,4 +17,5 @@ RDEPENDS_${PN} = "\
 	salt-ptest \
 	opkg-ptest \
 	distro-feed-configs-ptest \
+	run-postinsts-ptest \
 "
