@@ -1,0 +1,23 @@
+--- a/bootmisc.sh
++++ b/bootmisc.sh
+@@ -60,6 +60,20 @@ fi
+ #
+ # This is as good a place as any for a sanity check
+ #
++# /tmp should be a symlink to /var/tmp to cut down on the number of mounted
++# ramdisks.
++if test ! -L /tmp && test -d /var/tmp
++then
++	rm -rf /tmp
++	ln -sf /var/tmp /tmp
++fi
++
++# Update lib cache if config is present
++# Do it twice because ni libs don't follow normal UNIX name conventions.
++if [ -e /etc/ld.so.conf ] ; then
++	/sbin/ldconfig
++	/sbin/ldconfig
++fi
+ 
+ # Set the system clock from hardware clock, if it is available.
+ if test -x /etc/init.d/hwclock.sh && hwclock --show >/dev/null; then

@@ -1,0 +1,21 @@
+--- a/bootmisc.sh
++++ b/bootmisc.sh
+@@ -60,10 +60,14 @@ fi
+ #
+ # This is as good a place as any for a sanity check
+ #
+-# Set the system clock from hardware clock
+-# If the timestamp is more recent than the current time,
+-# use the timestamp instead.
+-test -x /etc/init.d/hwclock.sh && /etc/init.d/hwclock.sh start
++
++# Set the system clock from hardware clock, if it is available.
++if test -x /etc/init.d/hwclock.sh && hwclock --show >/dev/null; then
++	/etc/init.d/hwclock.sh start && exit 0
++fi
++
++# Otherwise, if the timestamp is more recent than the current time, use the
++# timestamp instead.
+ if test -e /etc/timestamp
+ then
+ 	SYSTEMDATE=`date -u +%4Y%2m%2d%2H%2M%2S`
