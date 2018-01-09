@@ -17,7 +17,7 @@ PACKAGES_append = " kernel-module-versioning "
 RDEPENDS_kernel_append = " kernel-module-versioning "
 FILES_kernel-module-versioning = "${KERNEL_SQUASHFS_DEST}"
 PKG_kernel-module-versioning = "kernel-module-versioning-${@legitimize_package_name('${KERNEL_VERSION}')}"
-RDEPENDS_kernel-module-versioning = " ${KERNEL_MODULE_PACKAGE_NAME_PREPEND}-squashfs "
+RDEPENDS_kernel-module-versioning = " ${KERNEL_PACKAGE_NAME}-module-squashfs "
 
 addtask kernel_make_squashfs after do_compile_kernelmodules before do_strip
 
