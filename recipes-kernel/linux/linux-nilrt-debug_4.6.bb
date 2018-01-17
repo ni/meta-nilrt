@@ -11,11 +11,7 @@ SRC_URI += "\
 # to avoid errors related to multiple recipes providing virtual/kernel
 PROVIDES = ""
 
-NI_RELEASE_VERSION = "17.0"
-LINUX_VERSION = "4.6"
 LINUX_VERSION_EXTENSION = "-debug"
-KBRANCH = "nilrt/${NI_RELEASE_VERSION}/${LINUX_VERSION}"
-
 KERNEL_PACKAGE_NAME = "kernel${LINUX_VERSION_EXTENSION}"
 
 # Subfolder of the same name will be added to FILESEXTRAPATHS and also
