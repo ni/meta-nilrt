@@ -26,11 +26,6 @@ IMAGE_INSTALL_NODEPS_remove_armv7a = " \
     mt \
 "
 
-IMAGE_INSTALL_append_n310 = " \
-    u-boot \
-    expand-disk \
-"
-
 IMAGE_INSTALL_NODEPS_append_x64 = " \
     ni-atca \
     ni-pxiplatformservices \

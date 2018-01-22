@@ -2,7 +2,6 @@ DESCRIPTION ?= "Base image setup used in all NILRT images"
 LICENSE = "MIT"
 
 IMAGE_FSTYPES = "${INITRAMFS_FSTYPES} tar.bz2 ext2"
-IMAGE_FSTYPES_append_n310 += "wic"
 
 IMAGE_FEATURES ??= ""
 IMAGE_LINGUAS ??= ""

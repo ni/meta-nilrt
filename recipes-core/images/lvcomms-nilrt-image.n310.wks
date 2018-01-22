@@ -1,2 +1,0 @@
-part /boot --source bootimg-partition --ondisk mmcblk0 --fstype vfat --label boot --align 24576 --active --size 16383k
-part / --source rootfs --ondisk mmcblk0 --fstype=ext4 --label rootfs --align 4

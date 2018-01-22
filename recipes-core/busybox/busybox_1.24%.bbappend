@@ -45,5 +45,3 @@ do_install_append () {
 		install -m 0644 ${WORKDIR}/acpid-logrotate.conf ${D}${sysconfdir}/logrotate.d/acpid.conf
 	fi
 }
-
-PACKAGE_ARCH = "${MACHINE_ARCH}"
