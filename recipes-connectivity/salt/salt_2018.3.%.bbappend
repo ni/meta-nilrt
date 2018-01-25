@@ -3,7 +3,6 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=fb92f464675f6b5df90f540d60237915"
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI = "git://github.com/ni/salt.git;branch=ni/master/2018.3 \
-           file://set_python_location_hashbang.patch \
            file://minion \
            file://salt-minion \
            file://salt-common.bash_completion \
@@ -25,14 +24,13 @@ S="${WORKDIR}/git"
 PACKAGECONFIG = "tcp"
 
 RDEPENDS_${PN}-minion_append += "\
-    python-avahi \
-    python-iso8601 \
-    python-pyinotify \
-    python-pyroute2 \
-    python-pika \
-    python-argparse \
-    python-psutil \
-    ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'python-pyconnman', '', d)} \
+    python3-avahi \
+    python3-iso8601 \
+    python3-pyinotify \
+    python3-pyroute2 \
+    python3-pika \
+    python3-psutil \
+    ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'python3-pyconnman', '', d)} \
 "
 
 RDEPENDS_${PN}-minion_append_armv7a += "\
@@ -40,22 +38,22 @@ RDEPENDS_${PN}-minion_append_armv7a += "\
 "
 
 RDEPENDS_${PN}-common_append += " \
-    python-difflib \
-    python-distutils \
-    python-misc \
-    python-multiprocessing \
-    python-profile \
-    python-resource \
-    python-terminal \
-    python-unixadmin \
-    python-xmlrpc \
+    python3-difflib \
+    python3-distutils \
+    python3-misc \
+    python3-multiprocessing \
+    python3-profile \
+    python3-resource \
+    python3-terminal \
+    python3-unixadmin \
+    python3-xmlrpc \
 "
 
 # Note that the salt test suite (salt-tests) require python-pyzmq to run
 # properly even though we run them in tcp mode
 RDEPENDS_${PN}-tests_append += "\
-    python-pyzmq \
-    python-six \
+    python3-pyzmq \
+    python3-six \
 "
 
 RDEPENDS_${PN}-ptest += "salt-tests"
