@@ -42,6 +42,11 @@ KBUILD_DEFCONFIG_x64 = "nati_x86_64_defconfig"
 KBUILD_DEFCONFIG_armv7a = "nati_zynq_defconfig"
 KCONFIG_MODE="--alldefconfig"
 
+# i915 video driver module options to disable render and display power saving
+# disabling them improves real-time determinism
+KERNEL_MODULE_PROBECONF += "i915"
+module_conf_i915 = "options i915 enable_rc6=0 enable_dc=0"
+
 #create dtb-s fromt dts files for armv7a targets
 DEPENDS_append += "rsync-native"
 
