@@ -23,8 +23,8 @@ INHIBIT_PACKAGE_DEBUG_SPLIT="1"
 # link against the gcc provided runtime
 do_kernel_configme[depends] += "libgcc:do_populate_sysroot"
 
-NI_RELEASE_VERSION = "cardassia"
-LINUX_VERSION = "4.6"
+NI_RELEASE_VERSION = "18.0"
+LINUX_VERSION = "4.9"
 
 KBRANCH = "nilrt/${NI_RELEASE_VERSION}/${LINUX_VERSION}"
 
