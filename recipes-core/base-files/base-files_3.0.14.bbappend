@@ -35,6 +35,11 @@ do_install_append () {
 		install ${WORKDIR}/safemode-ps1.sh ${D}${sysconfdir}/profile.d/
 	fi
 
+	if [ "${TARGET_ARCH}" = "arm" ]; then
+		echo "ubi0:bootfs          /boot                ubifs      noatime,sync          0  0" \
+		>> ${D}${sysconfdir}/fstab
+        fi
+
 	install -d ${D}${sysconfdir}/default/volatiles/
 	echo "d root root 0755 /var/volatile/cache none" \
 		>> ${D}${sysconfdir}/default/volatiles/10_varcache
