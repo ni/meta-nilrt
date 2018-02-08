@@ -47,7 +47,6 @@ NILRT_x64_PACKAGES = "\
 
 NILRT_NXG_PACKAGES = "\
 	distro-feed-configs \
-	initscripts-nilrt \
 	lsb \
 	modutils-initscripts \
 	ni-utils \
@@ -91,6 +90,7 @@ RDEPENDS_${PN} = "\
 	dhcp-client \
 	ethtool \
 	initscripts \
+	initscripts-nilrt \
 	iproute2 \
 	iptables \
 	kmod \
