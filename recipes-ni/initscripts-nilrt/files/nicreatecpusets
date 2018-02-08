@@ -7,6 +7,8 @@
 mkdir -p /dev/cgroup/cpuset
 mount -t cpuset none /dev/cgroup/cpuset
 cd /dev/cgroup/cpuset
+
+mkdir LabVIEW_ScanEngine_set
 mkdir LabVIEW_tl_set
 mkdir system_set
 
@@ -17,6 +19,9 @@ cat mems > ./system_set/mems
 
 cat cpus > ./LabVIEW_tl_set/cpus
 cat mems > ./LabVIEW_tl_set/mems
+
+cat cpus > ./LabVIEW_ScanEngine_set/cpus
+cat mems > ./LabVIEW_ScanEngine_set/mems
 
 # fast_task_writes was added to 3.2 for performance reasons, but does not exist and is not
 # necessary in the 3.10 kernel. 
