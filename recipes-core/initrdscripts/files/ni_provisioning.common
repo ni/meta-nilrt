@@ -210,16 +210,16 @@ EOF
 
     restore_minimal_image()
     {
-	local nilrt_path="$1" uuid="$2" nilrt_label="$3"
+        local nilrt_path="$1" uuid="$2" nilrt_label="$3"
 
         NILRT_MOUNTPOINT=/var/volatile/nilrt
         mkdir $NILRT_MOUNTPOINT -p
-	if [[ -z "$nilrt_path" ]]; then
+        if [[ -z "$nilrt_path" ]]; then
             echo "Formatting $NILRT_LABEL partition..."
             do_silent partition_format $TARGET_DISK $NILRT_LABEL
             NILRT_ERROR=`mount -L $NILRT_LABEL $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
             nilrt_path="`lsblk -rnpo NAME -x NAME ${TARGET_DISK} | tail -1`"
-	else
+        else
             echo "Formatting $nilrt_path partition..."
             existing_nilrt_partition_format "$nilrt_path" "$uuid" "$nilrt_label"
             NILRT_ERROR=`mount "$nilrt_path" $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
@@ -344,7 +344,7 @@ early_setup()
     LOG_LEVEL=`cut -f1 /proc/sys/kernel/printk`
     echo 6 > /proc/sys/kernel/printk
 
-        if [ "$ARCH" = "x86_64" ]; then
+    if [ "$ARCH" = "x86_64" ]; then
         OPTIND=1
 
         while getopts "ht:" opt; do
@@ -358,7 +358,7 @@ early_setup()
                     exit 1
                     ;;
             esac
-            done
+        done
 
         shift $((OPTIND-1))
 
@@ -382,10 +382,11 @@ early_setup()
         else
             BOOT_STYLE="legacy"
         fi
-        fi
+    fi
 }
 
-check_answer_file() {
+check_answer_file()
+{
     local filePath="$1"
     if [ -r "$filePath" ]; then
         # Answer file may only contain lines beginning with '#' or 'PROVISION_*=' variables
@@ -398,14 +399,16 @@ check_answer_file() {
     return 1
 }
 
-source_default_answer_file() {
+source_default_answer_file()
+{
     if ! check_answer_file "/ni_provisioning.answers.default"; then
         die "Missing or corrupt file /ni_provisioning.answers.default"
     fi
     source "/ni_provisioning.answers.default"
 }
 
-source_answer_file() {
+source_answer_file()
+{
     echo "Searching for answer files:"
 
     # first check for embedded answer file on the boot disk
@@ -433,7 +436,8 @@ source_answer_file() {
     echo "No answer file found; using default configuration"
 }
 
-prompt_user() {
+prompt_user()
+{
     local question="$1"
     local answerPattern="$2"
     local defaultAnswer="$3"
