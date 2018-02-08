@@ -69,7 +69,7 @@ existing_nilrt_partition_format()
     if [[ -n "$uuid" ]]; then
         mkfs.ext4 -F -L "$label" -U $uuid $partition
     else
-	mkfs.ext4 -F -L "$label" $partition
+        mkfs.ext4 -F -L "$label" $partition
     fi
 }
 

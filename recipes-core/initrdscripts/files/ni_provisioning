@@ -58,7 +58,7 @@ if [[ $restore == "provision" ]]; then
     else
         case "$PROVISION_PART_NILRT_ID" in
             LABEL=*)
-		;;
+                ;;
             UUID=*)
                 ;;
             PARTUUID=*)
@@ -68,9 +68,9 @@ if [[ $restore == "provision" ]]; then
                 ;;
         esac
 
-	column=${PROVISION_PART_NILRT_ID%%=*}
-	nilrt_id=${PROVISION_PART_NILRT_ID##*=}
-	if [[ -z "$nilrt_id" ]]; then
+        column=${PROVISION_PART_NILRT_ID%%=*}
+        nilrt_id=${PROVISION_PART_NILRT_ID##*=}
+        if [[ -z "$nilrt_id" ]]; then
             die "$INVALID_NILRT_ID_MSG"
         fi
         if [[ "$column" = "LABEL" ]]; then
@@ -78,7 +78,7 @@ if [[ $restore == "provision" ]]; then
         else
             grep_options="-i"
         fi
-	nilrt_path=`lsblk -rnpo NAME,"$column" | grep $grep_options "$nilrt_id" | cut -d' ' -f1`
+        nilrt_path=`lsblk -rnpo NAME,"$column" | grep $grep_options "$nilrt_id" | cut -d' ' -f1`
         if [[ -z "$nilrt_path" ]]; then
             die "Partition with "$PROVISION_PART_NILRT_ID" not found."
         fi
@@ -91,14 +91,14 @@ if [[ $restore == "provision" ]]; then
 
         prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" PROVISION_REPARTITION_TARGET
         if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
-	   if [[ "$column" = "UUID" ]]; then
-	       uuid="$nilrt_id"
-	   else
-               uuid=""
-           fi
-           restore_minimal_image "$nilrt_path" "$uuid" "$PROVISION_PART_NILRT_LABEL"
+            if [[ "$column" = "UUID" ]]; then
+                uuid="$nilrt_id"
+            else
+                uuid=""
+            fi
+            restore_minimal_image "$nilrt_path" "$uuid" "$PROVISION_PART_NILRT_LABEL"
         fi
-   fi
+    fi
 
 elif [[ $restore == "migrate" || $restore == "backward-migrate" ]]; then
     PROVISION_REBOOT_METHOD="reboot"
