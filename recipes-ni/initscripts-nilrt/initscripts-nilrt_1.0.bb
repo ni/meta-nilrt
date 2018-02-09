@@ -26,7 +26,7 @@ SRC_URI = "file://nisetbootmode \
 	   file://test-nisetcommitratio-common.sh \
 	   file://test-nisetcommitratio-system \
 	   file://test-nisetcommitratio-unit \
-	   file://nivalidatesystem \
+	   file://nisetled \
 	   file://wirelesssetdomain \
 	   file://iso3166-translation.txt \
 	   file://nisetupirqpriority \
@@ -56,7 +56,6 @@ do_install () {
      install -m 0755   ${WORKDIR}/nicreatecpuacctgroups         ${D}${sysconfdir}/init.d
      install -m 0755   ${WORKDIR}/nisetupkernelconfig         ${D}${sysconfdir}/init.d
      install -m 0755   ${WORKDIR}/nisetcommitratio         ${D}${sysconfdir}/init.d
-     install -m 0755   ${WORKDIR}/nivalidatesystem         ${D}${sysconfdir}/init.d
      install -m 0755   ${WORKDIR}/wirelesssetdomain         ${D}${sysconfdir}/init.d
      install -m 0755   ${S}/nisetupirqpriority         ${D}${sysconfdir}/init.d
 
@@ -71,8 +70,13 @@ do_install () {
      update-rc.d -r ${D} nicreatecpuacctgroups start 2 5 .
      update-rc.d -r ${D} nisetupkernelconfig start 3 5 .
      update-rc.d -r ${D} nisetcommitratio start 99 S .
-     update-rc.d -r ${D} nivalidatesystem start 40 S .
      update-rc.d -r ${D} wirelesssetdomain start 36 S .
+
+     # only for nilrt-nxg, on older nilrt it's installed via p4
+     if ${@base_conditional('DISTRO', 'nilrt-nxg', 'true', 'false', d)}; then
+          install -m 0755   ${WORKDIR}/nisetled         ${D}${sysconfdir}/init.d
+          update-rc.d -r ${D} nisetled start 40 S .
+     fi
 
      # CAR 450019: Remove this code (and associated script) and migrate responsibility for
      # setting IRQ thread priority to RIO nisetupirqpriority script that sets up kernel
