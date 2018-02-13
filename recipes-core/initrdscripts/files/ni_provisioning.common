@@ -14,8 +14,7 @@ TEMP_MOUNTPOINT=/var/volatile/temp_dir
 NIGRUB_LABEL=nigrub
 NIRESTORE_LABEL=nirestore
 NILRT_LABEL=nilrt
-NIBOOTFS_LABEL=bootfs
-NIROOTFS_LABEL=rootfs
+OLDER_NILRT_NIBOOTFS_LABEL=nibootfs
 LOG_LEVEL=7
 
 ARCH=`uname -m`
@@ -215,23 +214,25 @@ EOF
         NILRT_MOUNTPOINT=/var/volatile/nilrt
         mkdir $NILRT_MOUNTPOINT -p
         if [[ -z "$nilrt_path" ]]; then
-            echo "Formatting $NILRT_LABEL partition..."
+            echo "Formatting $TARGET_DISK $NILRT_LABEL partition..."
             do_silent partition_format $TARGET_DISK $NILRT_LABEL
-            NILRT_ERROR=`mount -L $NILRT_LABEL $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
-            nilrt_path="`lsblk -rnpo NAME -x NAME ${TARGET_DISK} | tail -1`"
+            nilrt_path=`lsblk -rpn $TARGET_DISK -o NAME,LABEL | grep " $NILRT_LABEL"'$'  | tail -1 | cut -d' ' -f1`
         else
             echo "Formatting $nilrt_path partition..."
             existing_nilrt_partition_format "$nilrt_path" "$uuid" "$nilrt_label"
-            NILRT_ERROR=`mount "$nilrt_path" $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
         fi
+
+        do_silent echo "Mounting $nilrt_path partition..."
+        NILRT_ERROR=`mount "$nilrt_path" $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
 
         echo "Deploying minimal image..."
 
         # NOTE: `--numeric-owner` option: always use numbers for user/group names (ignore symbolic names)
         TAR_ERROR="`tar -x -j --numeric-owner -f /payload/factory-image.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1`" || die "$TAR_ERROR"
 
-        nilrt_part_uuid=`lsblk -rnpo NAME,PARTUUID | grep "$nilrt_path" | cut -d' ' -f2`
+        nilrt_part_uuid=`lsblk -rn $nilrt_path -o PARTUUID`
         if [[ -n "$nilrt_part_uuid" ]]; then
+            # grub from nilrt partition needs PARTUUID to boot kernel from same partition
             root_partition_value="PARTUUID=$nilrt_part_uuid"
         else
             root_partition_value="$nilrt_path"
@@ -253,9 +254,12 @@ EOF
             mount -o ro -L NIRECOVERY $USB_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
             SOURCE_DIR=$USB_MOUNTPOINT
         elif [ "$1" = "onboard" ]; then
+            # only migrate and backward-migrate use cases, using older NI Linux RT nibootfs partition
             mkdir -p $TEMP_MOUNTPOINT
             mkdir -p $BOOTFS_MOUNTPOINT
-            mount -L nibootfs $TEMP_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
+            older_nilrt_nibootfs_path=`lsblk -rpn $TARGET_DISK -o NAME,LABEL | grep " $OLDER_NILRT_NIBOOTFS_LABEL"'$' | tail -1 | cut -d' ' -f1`
+            do_silent echo "Mounting $older_nilrt_nibootfs_path $OLDER_NILRT_NIBOOTFS_LABEL partition..."
+            mount $older_nilrt_nibootfs_path $TEMP_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
             cp -r $TEMP_MOUNTPOINT/.newNILinuxRT/* $BOOTFS_MOUNTPOINT/
             umount $TEMP_MOUNTPOINT || die "Failed to umount $TEMP_MOUNTPOINT"
             SOURCE_DIR=$BOOTFS_MOUNTPOINT
@@ -270,7 +274,9 @@ EOF
 
         GRUB_MOUNTPOINT=/var/volatile/grub
         mkdir $GRUB_MOUNTPOINT -p
-        MOUNT_ERROR=`mount -L $NIGRUB_LABEL $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
+        nigrub_path=`lsblk -rpn $TARGET_DISK -o NAME,LABEL | grep " $NIGRUB_LABEL"'$' | tail -1 | cut -d' ' -f1`
+        do_silent echo "Mounting $nigrub_path $NIGRUB_LABEL partition..."
+        MOUNT_ERROR=`mount $nigrub_path $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
 
         # Always configure for UEFI boot
         EFI_GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/efi/boot
@@ -299,10 +305,13 @@ EOF
         #install restore kernel and ramdisk
         RESTORE_MOUNTPOINT=/var/volatile/restore
         mkdir $RESTORE_MOUNTPOINT -p
-        RESTORE_ERROR=`mount -L $NIRESTORE_LABEL $RESTORE_MOUNTPOINT 2>&1` || die "$RESTORE_ERROR"
+        nirestore_path=`lsblk -rpn $TARGET_DISK -o NAME,LABEL | grep " $NIRESTORE_LABEL"'$' | tail -1 | cut -d' ' -f1`
+        do_silent echo "Mounting $nirestore_path $NIRESTORE_LABEL partition..."
+        RESTORE_ERROR=`mount $nirestore_path $RESTORE_MOUNTPOINT 2>&1` || die "$RESTORE_ERROR"
 
         cp $SOURCE_DIR/bzImage $RESTORE_MOUNTPOINT/
         cp $SOURCE_DIR/initrd $RESTORE_MOUNTPOINT/ramdisk
+        sync
 
         restore_minimal_image
 
