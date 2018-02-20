@@ -9,13 +9,16 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-RDEPENDS_${PN} = "\
-	ptest-runner \
-	rt-tests-ptest \
-	kernel-tests-ptest \
-	glibc-tests-ptest \
-	salt-ptest \
-	opkg-ptest \
-	distro-feed-configs-ptest \
-	run-postinsts-ptest \
+RDEPENDS_${PN} = "ptest-runner"
+
+# ptest packages
+RDEPENDS_${PN}_append = "\
+    distro-feed-configs-ptest \
+    glibc-tests-ptest \
+    hwclock-init-ptest \
+    kernel-tests-ptest \
+    opkg-ptest \
+    rt-tests-ptest \
+    run-postinsts-ptest \
+    salt-ptest \
 "
