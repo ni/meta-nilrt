@@ -11,5 +11,6 @@ IMAGE_INSTALL = "\
 IMAGE_FSTYPES = "tar.bz2 ext2"
 
 require include/niconsole-image.inc
+require include/compress-lic-pkgs.inc
 
 require include/ni-external-components.inc
