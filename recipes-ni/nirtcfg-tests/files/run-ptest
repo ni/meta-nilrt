@@ -1,0 +1,15 @@
+#!/bin/bash
+
+./test_binary.sh
+
+source ./setup.sh
+
+./test_clear.sh
+./test_get.sh
+./test_list.sh
+./test_set.sh
+./test_rm-if-empty.sh
+
+./teardown.sh
+
+exit 0
