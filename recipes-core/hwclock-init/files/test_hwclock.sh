@@ -25,13 +25,11 @@ cd $HWCLOCK_TEMPDIR
 # MISC FUNCTIONS #
 ##################
 
-function nirtcfg_debug_output () {
-	test -n "$hwclock_args" && printf "<args>%s</args>\n" "$hwclock_args" >&2
-	test -n $hwclock_rc && printf "<return_code>%d</return_code>\n" >&2
-	test -n "$hwclock_stdout" && printf "<stdout>%s</stdout>\n" \
-	                                    "$hwclock_stdout" >&2
-	test -n "$hwclock_stderr" && printf "<stderr>%s</stderr>\n" \
-	                                    "$hwclock_stderr" >&2
+function hwclock_debug_output () {
+	printf "<args>%s</args>\n" "$hwclock_args" >&2
+	printf "<return_code>%d</return_code>\n" $hwclock_rc >&2
+	printf "<stdout>%s</stdout>\n" "$hwclock_stdout" >&2
+	printf "<stderr>%s</stderr>\n" "$hwclock_stderr" >&2
 }
 
 function hwclock_store_output () {
@@ -114,7 +112,6 @@ function test_hwclock_systohc () {
 ########
 
 which_hwclock
-
 
 # --show
 ptest_change_subtest 1 "operation: show"
