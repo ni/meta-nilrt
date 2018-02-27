@@ -847,5 +847,6 @@ RDEPENDS_${PN} += "\
 
 # meta-nilrt/recipes-ni
 RDEPENDS_${PN} += "\
+	nirtcfg-tests \
 	sysconfig-settings \
 "
