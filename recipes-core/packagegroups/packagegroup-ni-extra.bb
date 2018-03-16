@@ -96,6 +96,11 @@ RDEPENDS_${PN} += "\
 	sysfsutils \
 "
 
+# openembedded-core/meta/recipes-core
+RDEPENDS_${PN} += "\
+	libcgroup \
+"
+
 # openembedded-core/meta/recipes-bsp
 RDEPENDS_${PN} += "\
 	alsa-state \
