@@ -1,0 +1,131 @@
+From 7e00902ffbe87118994b3352f5a4fcda842b85fb Mon Sep 17 00:00:00 2001
+From: Alejandro del Castillo <alejandro.delcastillo@ni.com>
+Date: Thu, 29 Mar 2018 14:06:27 -0500
+Subject: [PATCH] libsolv_solver_transaction_preamble: add arch information to
+ get matching package
+
+The function pkg_hash_fetch_by_name_version is called to find the pkg
+object that corresponds to the solvable returned by libsolv. The
+matching is done using name and version, which is incomplete as there
+might be several packages with the same name/version, but with different
+architecture. Add architecture information to the comparision.
+
+Signed-off-by: Alejandro del Castillo <alejandro.delcastillo@ni.com>
+---
+ libopkg/pkg_hash.c                            |  8 +++++--
+ libopkg/pkg_hash.h                            |  5 +++--
+ libopkg/solvers/libsolv/opkg_solver_libsolv.c |  3 ++-
+ tests/Makefile                                |  1 +
+ tests/core/40_arch.py                         | 31 +++++++++++++++++++++++++++
+ 5 files changed, 43 insertions(+), 5 deletions(-)
+ create mode 100755 tests/core/40_arch.py
+
+diff --git a/libopkg/pkg_hash.c b/libopkg/pkg_hash.c
+index f220a98..d241f60 100644
+--- a/libopkg/pkg_hash.c
++++ b/libopkg/pkg_hash.c
+@@ -603,7 +603,9 @@ pkg_t *pkg_hash_fetch_best_installation_candidate_by_name(const char *name)
+     return pkg_hash_fetch_best_installation_candidate(apkg, NULL, NULL, 0, 0);
+ }
+ 
+-pkg_t *pkg_hash_fetch_by_name_version(const char *pkg_name, const char *version)
++pkg_t *pkg_hash_fetch_by_name_version_arch(const char *pkg_name,
++                                           const char *version,
++                                           const char *arch)
+ {
+     pkg_vec_t *vec;
+     unsigned int i;
+@@ -618,7 +620,9 @@ pkg_t *pkg_hash_fetch_by_name_version(const char *pkg_name, const char *version)
+     // This is so that libsolv choses the correct package for reinstall
+     for (i = vec->len-1; i >= 0; i--) {
+         version_str = pkg_version_str_alloc(vec->pkgs[i]);
+-        if (strcmp(version_str, version) == 0) {
++        int is_match = (strcmp(version_str, version) == 0)
++                && (strcmp(vec->pkgs[i]->architecture, arch) == 0);
++        if (is_match) {
+             free(version_str);
+             break;
+         }
+diff --git a/libopkg/pkg_hash.h b/libopkg/pkg_hash.h
+index ed0b0d2..fc22365 100644
+--- a/libopkg/pkg_hash.h
++++ b/libopkg/pkg_hash.h
+@@ -40,8 +40,9 @@ void hash_insert_pkg(pkg_t * pkg, int set_status);
+ 
+ abstract_pkg_t *ensure_abstract_pkg_by_name(const char *pkg_name);
+ void pkg_hash_fetch_all_installed(pkg_vec_t * installed, int include_half_installed);
+-pkg_t *pkg_hash_fetch_by_name_version(const char *pkg_name,
+-                                      const char *version);
++pkg_t *pkg_hash_fetch_by_name_version_arch(const char *pkg_name,
++                                           const char *version,
++                                           const char *arch);
+ abstract_pkg_t *abstract_pkg_fetch_by_name(const char *pkg_name);
+ void abstract_pkgs_fetch_by_glob(const char *pkg_glob, abstract_pkg_vec_t *apkgs);
+ pkg_t *pkg_hash_fetch_best_installation_candidate(abstract_pkg_t * apkg,
+diff --git a/libopkg/solvers/libsolv/opkg_solver_libsolv.c b/libopkg/solvers/libsolv/opkg_solver_libsolv.c
+index d261b40..2fe97e3 100644
+--- a/libopkg/solvers/libsolv/opkg_solver_libsolv.c
++++ b/libopkg/solvers/libsolv/opkg_solver_libsolv.c
+@@ -788,8 +788,9 @@ static int libsolv_solver_execute_transaction(libsolv_solver_t *libsolv_solver)
+ 
+             const char *pkg_name = pool_id2str(libsolv_solver->pool, solvable->name);
+             const char *evr = pool_id2str(libsolv_solver->pool, solvable->evr);
++            const char *arch = pool_id2str(libsolv_solver->pool, solvable->arch);
+ 
+-            pkg = pkg_hash_fetch_by_name_version(pkg_name, evr);
++            pkg = pkg_hash_fetch_by_name_version_arch(pkg_name, evr, arch);
+             pkg_vec_insert(pkgs, pkg);
+ 
+             if (pkg->local_filename == NULL && opkg_config->download_first &&
+diff --git a/tests/Makefile b/tests/Makefile
+index acffaad..0272b2a 100644
+--- a/tests/Makefile
++++ b/tests/Makefile
+@@ -36,6 +36,7 @@ REGRESSION_TESTS := core/01_install.py \
+ 		    core/35_download_only.py \
+ 		    core/36_install_virtual.py \
+ 		    core/37_globs.py \
++		    core/40_arch.py \
+ 		    regress/issue26.py \
+ 		    regress/issue31.py \
+ 		    regress/issue32.py \
+diff --git a/tests/core/40_arch.py b/tests/core/40_arch.py
+new file mode 100755
+index 0000000..b1658dd
+--- /dev/null
++++ b/tests/core/40_arch.py
+@@ -0,0 +1,31 @@
++#! /usr/bin/env python3
++#
++# Create package 'x(1.0)' with architecture a and 'x(1.0)' with architecture b.
++# Install 'x' with --add-arch a:2 and --add-arch b:3.
++# Check that 'x(1.0), arch b' is installed.
++#
++
++import os
++import opk, cfg, opkgcl
++
++opk.regress_init()
++
++o = opk.OpkGroup()
++o.add(Package="x", Version="1.0", Architecture="b")
++o.add(Package="x", Version="1.0", Architecture="a")
++
++o.write_opk()
++o.write_list()
++
++opkgcl.update()
++
++# install should pick arch=b version
++opkgcl.install("x", "--add-arch a:2 --add-arch b:3")
++if opkgcl.is_installed("x", "1.0", "--add-arch a:2"):
++        opk.fail("Package 'x(1.0), arch b' available but arch a installed")
++if not opkgcl.is_installed("x", "1.0", "--add-arch b:3"):
++        opk.fail("Package 'x(1.0), arch=b' available but was not installed.")
++
++opkgcl.install("x", "--force-reinstall --add-arch a:2 --add-arch b:3")
++if not opkgcl.is_installed("x", "1.0", "--add-arch b:3"):
++        opk.fail("Package 'x(1.0), arch=b' available but was not re-installed.")
+-- 
+2.7.4
+

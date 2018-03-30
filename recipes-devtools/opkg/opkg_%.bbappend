@@ -11,6 +11,7 @@ SRC_URI += " \
             file://0004-libopkg-add-support-for-user-defined-fields.patch \
             file://0005-parse_userfields-parse-values-until-newline.patch \
             file://0006-buffer-overrun-fix.patch \
+            file://0007-libsolv_solver_transaction_preamble-add-arch-informa.patch \
            "
 
 SRC_URI_append_armv7a = " \
