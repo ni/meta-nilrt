@@ -154,6 +154,7 @@ RRECOMMENDS_${PN}_x64 += "\
 	kernel-module-psmouse \
 	kernel-module-squashfs \
 	kernel-module-tg3 \
+	kernel-module-tpm-tis \
 	kernel-module-tulip \
 	kernel-module-usbtouchscreen \
 	kernel-module-wacom \
