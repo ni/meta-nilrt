@@ -5,34 +5,34 @@ BBPATH = "${TOPDIR}"
 BBFILES = ""
 
 BBLAYERS ?= " \
-    ##PWD##/sources/openembedded-core/meta \
-    ##PWD##/sources/meta-openembedded/meta-oe \
-    ##PWD##/sources/meta-openembedded/meta-filesystems \
-    ##PWD##/sources/meta-openembedded/meta-gnome \
-    ##PWD##/sources/meta-openembedded/meta-multimedia \
-    ##PWD##/sources/meta-openembedded/meta-networking \
-    ##PWD##/sources/meta-openembedded/meta-perl \
-    ##PWD##/sources/meta-openembedded/meta-python \
-    ##PWD##/sources/meta-openembedded/meta-ruby \
-    ##PWD##/sources/meta-openembedded/meta-webserver \
-    ##PWD##/sources/meta-openembedded/meta-xfce \
-    ##PWD##/sources/meta-openembedded/meta-initramfs \
-    ##PWD##/sources/meta-mingw \
-    ##PWD##/sources/meta-nilrt \
-    ##PWD##/sources/meta-selinux \
-    ##PWD##/sources/meta-cloud-services/meta-openstack \
-    ##PWD##/sources/meta-cloud-services \
-    ##PWD##/sources/meta-mono \
-    ##PWD##/sources/meta-virtualization \
-    ##PWD##/sources/meta-security \
-    ##PWD##/sources/meta-orgconf \
-    ##PWD##/sources/meta-sdr \
-    ##PWD##/sources/meta-java \
-    ##PWD##/sources/meta-measured \
-    ##PWD##/sources/meta-qt4 \
+    ${TOPDIR}/../sources/openembedded-core/meta \
+    ${TOPDIR}/../sources/meta-openembedded/meta-oe \
+    ${TOPDIR}/../sources/meta-openembedded/meta-filesystems \
+    ${TOPDIR}/../sources/meta-openembedded/meta-gnome \
+    ${TOPDIR}/../sources/meta-openembedded/meta-multimedia \
+    ${TOPDIR}/../sources/meta-openembedded/meta-networking \
+    ${TOPDIR}/../sources/meta-openembedded/meta-perl \
+    ${TOPDIR}/../sources/meta-openembedded/meta-python \
+    ${TOPDIR}/../sources/meta-openembedded/meta-ruby \
+    ${TOPDIR}/../sources/meta-openembedded/meta-webserver \
+    ${TOPDIR}/../sources/meta-openembedded/meta-xfce \
+    ${TOPDIR}/../sources/meta-openembedded/meta-initramfs \
+    ${TOPDIR}/../sources/meta-mingw \
+    ${TOPDIR}/../sources/meta-nilrt \
+    ${TOPDIR}/../sources/meta-selinux \
+    ${TOPDIR}/../sources/meta-cloud-services/meta-openstack \
+    ${TOPDIR}/../sources/meta-cloud-services \
+    ${TOPDIR}/../sources/meta-mono \
+    ${TOPDIR}/../sources/meta-virtualization \
+    ${TOPDIR}/../sources/meta-security \
+    ${TOPDIR}/../sources/meta-orgconf \
+    ${TOPDIR}/../sources/meta-sdr \
+    ${TOPDIR}/../sources/meta-java \
+    ${TOPDIR}/../sources/meta-measured \
+    ${TOPDIR}/../sources/meta-qt4 \
     "
 
 BBLAYERS_NON_REMOVABLE ?= " \
-    ##PWD##/sources/openembedded-core/meta \
+    ${TOPDIR}/../sources/openembedded-core/meta \
     "
 
