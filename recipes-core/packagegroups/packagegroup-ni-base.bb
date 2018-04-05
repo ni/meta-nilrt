@@ -88,6 +88,7 @@ RDEPENDS_${PN} = "\
 	${@bb.utils.contains('MACHINE_FEATURES', 'acpi', 'busybox-acpid', '', d)} \
 	coreutils-hostname \
 	curl \
+	daemonize \
 	dhcp-client \
 	ethtool \
 	initscripts \
