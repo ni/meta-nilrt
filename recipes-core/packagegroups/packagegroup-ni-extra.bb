@@ -532,6 +532,7 @@ RDEPENDS_${PN} += "\
 	ufw \
 	vlan \
 	vpnc \
+	vsftpd \
 	atftp \
 	autofs \
 	cyrus-sasl \
