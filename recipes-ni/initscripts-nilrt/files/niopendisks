@@ -23,8 +23,12 @@ function error () {
 mounted_volatile=true
 mounted_dev=true
 mounted_nibootfs=true
+mounted_dev_boot=false
+if mountpoint -q /dev;then
+	mounted_dev_boot=true
+fi
 mount -t tmpfs tmpfs /var/volatile || mounted_volatile=false
-mount -t devtmpfs devtmpfs /dev || mounted_dev=false
+$mounted_dev_boot || mount -t devtmpfs devtmpfs /dev || mounted_dev=false
 mount -L nibootfs || mounted_nibootfs=false
 
 # suppress stdout and stderr if echo fails, so that subsequent
@@ -105,7 +109,7 @@ fi
 
 # Umount /var/volatile and /dev, if mounted earlier
 $mounted_nibootfs && umount /boot
-$mounted_dev && umount /dev
+$mounted_dev && ! $mounted_dev_boot  && umount /dev
 $mounted_volatile && umount /var/volatile
 
 # everything finished, end output
