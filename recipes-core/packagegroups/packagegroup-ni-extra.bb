@@ -610,6 +610,7 @@ RDEPENDS_${PN} += "\
 	python-pyzmq \
 	python-m2crypto \
 	python-cheetah \
+	python-configparser \
 	python-lxml \
 	python-numeric \
 	python-matplotlib \
