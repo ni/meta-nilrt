@@ -63,7 +63,6 @@ NILRT_NXG_PACKAGES = "\
 
 NILRT_PACKAGES = "\
 	busybox-ifplugd \
-	cronie \
 	glibc-gconv-utf-16 \
 	gptfdisk-sgdisk \
 	init-ifupdown \
@@ -88,6 +87,7 @@ RDEPENDS_${PN} = "\
 	busybox \
 	${@bb.utils.contains('MACHINE_FEATURES', 'acpi', 'busybox-acpid', '', d)} \
 	coreutils-hostname \
+	cronie \
 	curl \
 	daemonize \
 	dhcp-client \
