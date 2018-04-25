@@ -56,6 +56,7 @@ NILRT_NXG_PACKAGES = "\
 	salt-minion \
 	connman \
 	python-pyiface \
+	python-configparser \
 	${@bb.utils.contains('TARGET_ARCH', 'arm', \
 		'${NILRT_NXG_ARM_PACKAGES}', \
 		'${NILRT_NXG_x64_PACKAGES}', d)} \
