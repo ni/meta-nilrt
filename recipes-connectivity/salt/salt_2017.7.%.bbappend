@@ -25,6 +25,7 @@ S="${WORKDIR}/git"
 PACKAGECONFIG = "tcp"
 
 RDEPENDS_${PN}-minion = "python ${PN}-common (= ${EXTENDPKGV}) python-msgpack python-avahi python-pyinotify python-pyroute2 python-pycrypto python-pika python-argparse python-psutil ${@base_conditional('DISTRO', 'nilrt-nxg', 'python-pyconnman', '', d)}"
+RDEPENDS_${PN}-minion_armv7a += "${@base_conditional('DISTRO', 'nilrt', 'u-boot-mkimage', '', d)}"
 RDEPENDS_${PN}-common = " \
     lsb \
     python \
