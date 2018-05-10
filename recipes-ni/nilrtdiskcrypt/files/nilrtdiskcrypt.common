@@ -65,8 +65,8 @@ DEFAULT_KEY_SEALING_PCR_SET="0,2,4,9,10,11"
 DEFAULT_QUOTING_PCR_SET="$DEFAULT_KEY_SEALING_PCR_SET,12"
 
 KEY_MAGIC="ndc01"
-KEY_SIZE="128" # 128 bytes = 1024 bits (max allowed by TPM2)
-KEY_SLOT_SIZE="512"
+KEY_SIZE="128" # 128 bytes = 1024 bits
+KEY_SLOT_ATTRIBUTES="authwrite|authread|writeall|no_da"
 
 #IDEVID_CERT_NVRAMHANDLE="0x01C90000"
 ATTESTATION_CERT_NVRAMHANDLE="0x01410000"
@@ -322,14 +322,12 @@ function pack_unsealed_key () {
     status "Create key.unsealed.gz containing magic, sn, key, and pcrselect"
     ar rc "$WORK_DIR/key.unsealed" "$WORK_DIR/magic" "$WORK_DIR/sn" "$WORK_DIR/key" "$WORK_DIR/pcrselect"
     cat "$WORK_DIR/key.unsealed" | gzip -c >"$WORK_DIR/key.unsealed.gz"
-    [ "`wc -c "$WORK_DIR/key.unsealed.gz" | cut -d' ' -f1`" -le "$KEY_SLOT_SIZE" ] || error "key.unsealed.gz too big for key slot"
 }
 
 function pack_sealed_key () {
     status "Create key.sealed.gz containing magic, sn, key.priv, key.pub, and pcrselect"
     ar rc "$WORK_DIR/key.sealed" "$WORK_DIR/magic" "$WORK_DIR/sn" "$WORK_DIR/key.priv" "$WORK_DIR/key.pub" "$WORK_DIR/pcrselect"
     cat "$WORK_DIR/key.sealed" | gzip -c >"$WORK_DIR/key.sealed.gz"
-    [ "`wc -c "$WORK_DIR/key.sealed.gz" | cut -d' ' -f1`" -le "$KEY_SLOT_SIZE" ] || error "key.sealed.gz too big for key slot"
 }
 
 function unpack_key () {
@@ -374,28 +372,38 @@ function get_key_slot_handle () {
     esac
 }
 
-function nvdestroy () {
+# Releases nvram_handle if defined; noop otherwise.
+# XXX We should rewrite this in the future, once tpm2-tools has a good
+# way to check existence of nvram_handle. E.g.
+#   if is_nv_defined "$nvram_handle"; then
+#     tpm2_nvrelease ... "$nvram_handle" ...
+#   fi
+function nvrelease_ifdefined () {
     local nvram_handle="$1"
 
-    status "Generating garbage.urandom (KEY_SLOT_SIZE=$KEY_SLOT_SIZE)"
-    do_silently dd if="/dev/urandom" of="$WORK_DIR/garbage.urandom" bs="$KEY_SLOT_SIZE" count=1
-    [ "`wc -c "$WORK_DIR/garbage.urandom"`" == "$KEY_SLOT_SIZE $WORK_DIR/garbage.urandom" ]
-
-    status "Destroying contents of nvram_handle=$nvram_handle with garbage.urandom"
-    do_silently tpm2_nvwrite \
+    status "Release nvram_handle=$nvram_handle (if defined)"
+    tpm2_nvrelease \
+        --authHandle "$TPM_RH_OWNER" \
         --index "$nvram_handle" \
-        --authHandle "$nvram_handle" \
-        --file "$WORK_DIR/garbage.urandom"
+        >"$WORK_DIR/tpm2_nvrelease.stdout" 2>&1 || true
 
-    status "Generating empty key file garbage.zero"
-    do_silently dd if="/dev/zero" of="$WORK_DIR/garbage.zero" bs="$KEY_SLOT_SIZE" count=1
-    [ "`wc -c "$WORK_DIR/garbage.zero"`" == "$KEY_SLOT_SIZE $WORK_DIR/garbage.zero" ]
+    if [ "$VERBOSE" -ge 2 ]; then
+        echo "tpm2_nvrelease.stdout:" 1>&2
+        cat "$WORK_DIR/tpm2_nvrelease.stdout" 1>&2
+    fi
+}
 
-    status "Writing empty key file garbage.zero to nvram_handle=$nvram_handle"
-    do_silently tpm2_nvwrite \
+function nvdefine () {
+    local nvram_handle="$1"
+    local nvram_size="$2"
+    local nvram_attributes="$3"
+
+    status "Define nvram_handle=$nvram_handle, nvram_size=$nvram_size, nvram_attributes=$nvram_attributes"
+    tpm2_nvdefine \
+        --authHandle "$TPM_RH_OWNER" \
         --index "$nvram_handle" \
-        --authHandle "$nvram_handle" \
-        --file "$WORK_DIR/garbage.zero"
+        --size "$nvram_size" \
+        --attribute "$nvram_attributes"
 }
 
 function nvwrite_file () {
@@ -421,6 +429,30 @@ function nvread_file () {
         --output "$WORK_DIR/$filename"
 
     [ -f "$WORK_DIR/$filename" ] || error "filename=$filename not in WORK_DIR after read"
+}
+
+# Reads nvram_handle to file; writes empty file otherwise.
+# XXX We should rewrite this in the future, once tpm2-tools has a good
+# way to check existence of nvram_handle. E.g.
+#   if is_nv_defined "$nvram_handle"; then
+#     nvread_file "$filename" "$nvram_handle"
+#   fi
+function nvread_file_ifdefined () {
+    local filename="$1"
+    local nvram_handle="$2"
+
+    status "Read $filename from nvram_handle=$nvram_handle (if defined)"
+    echo -n >"$WORK_DIR/$filename"
+    tpm2_nvread \
+        --index "$nvram_handle" \
+        --authHandle "$nvram_handle" \
+        --output "$WORK_DIR/$filename" \
+        >"$WORK_DIR/tpm2_nvread.stdout" 2>&1 || true
+
+    if [ "$VERBOSE" -ge 2 ]; then
+        echo "tpm2_nvread.stdout:" 1>&2
+        cat "$WORK_DIR/tpm2_nvread.stdout" 1>&2
+    fi
 }
 
 # generate new key starting with empty WORK_DIR
@@ -450,6 +482,8 @@ function reseal_disk_key () {
         create_sealing_policy "$sealingPCRSet"
         seal_key
         pack_sealed_key
+        nvrelease_ifdefined "$nvram_handle"
+        nvdefine "$nvram_handle" "`stat -c %s "$WORK_DIR/key.sealed.gz"`" "$KEY_SLOT_ATTRIBUTES"
         nvwrite_file "key.sealed.gz" "$nvram_handle"
     else
         status "Key already sealed"

@@ -43,6 +43,8 @@ pack_unsealed_key
 for ksNumb in $unsealedKeySlotNumbers; do
     status "Writing unsealed key to slot $ksNumb"
     uploadHandle="`get_key_slot_handle "$ksNumb"`"
+    nvrelease_ifdefined "$uploadHandle"
+    nvdefine "$uploadHandle" "`stat -c %s "$WORK_DIR/key.unsealed.gz"`" "$KEY_SLOT_ATTRIBUTES"
     nvwrite_file "key.unsealed.gz" "$uploadHandle"
 done
 

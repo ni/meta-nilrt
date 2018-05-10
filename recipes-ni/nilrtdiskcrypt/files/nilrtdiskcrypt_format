@@ -71,7 +71,7 @@ done
 status "Clear existing keys in TPM"
 for ksNumb in $unsealedKeySlotNumbers $sealedKeySlotNumbers; do
     ksHandle="`get_key_slot_handle "$ksNumb"`"
-    nvdestroy "$ksHandle"
+    nvrelease_ifdefined "$ksHandle"
 done
 
 create_sealed_disk_key "$sealingPCRSet"
@@ -105,13 +105,25 @@ for devNode in $devNodes; do
     echo "$mapperPath"
 done
 
-status "Store unsealed keys"
+status "Define nvram key slots for unsealed keys"
+for ksNumb in $unsealedKeySlotNumbers; do
+    ksHandle="`get_key_slot_handle "$ksNumb"`"
+    nvdefine "$ksHandle" "`stat -c %s "$WORK_DIR/key.unsealed.gz"`" "$KEY_SLOT_ATTRIBUTES"
+done
+
+status "Define nvram key slots for sealed keys"
+for ksNumb in $sealedKeySlotNumbers; do
+    ksHandle="`get_key_slot_handle "$ksNumb"`"
+    nvdefine "$ksHandle" "`stat -c %s "$WORK_DIR/key.sealed.gz"`" "$KEY_SLOT_ATTRIBUTES"
+done
+
+status "Write unsealed keys to nvram"
 for ksNumb in $unsealedKeySlotNumbers; do
     ksHandle="`get_key_slot_handle "$ksNumb"`"
     nvwrite_file "key.unsealed.gz" "$ksHandle"
 done
 
-status "Store sealed keys"
+status "Write sealed keys to nvram"
 for ksNumb in $sealedKeySlotNumbers; do
     ksHandle="`get_key_slot_handle "$ksNumb"`"
     nvwrite_file "key.sealed.gz" "$ksHandle"

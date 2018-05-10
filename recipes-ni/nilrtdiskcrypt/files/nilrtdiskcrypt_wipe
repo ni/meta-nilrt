@@ -34,7 +34,7 @@ init_work_dir
 status "Clear existing keys in TPM"
 for ksNumb in $keySlotNumbers; do
     ksHandle="`get_key_slot_handle "$ksNumb"`"
-    nvdestroy "$ksHandle"
+    nvrelease_ifdefined "$ksHandle"
 done
 
 status "SUCCESS"
