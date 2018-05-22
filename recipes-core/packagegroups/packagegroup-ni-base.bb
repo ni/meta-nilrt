@@ -25,6 +25,7 @@ RDEPENDS_${PN} = "\
 	${@base_contains("MACHINE_FEATURES", "acpi", "busybox-acpid", "", d)} \
 	connman \
 	coreutils-hostname \
+	cronie \
 	dhcp-client \
 	distro-feed-configs \
 	ethtool \
