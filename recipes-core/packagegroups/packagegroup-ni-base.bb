@@ -23,6 +23,7 @@ ALL_DISTRO_x64_PACKAGES = "\
 	linux-firmware-i915 \
 	linux-firmware-radeon \
 	dmidecode \
+	efivar \
 "
 
 NILRT_NXG_ARM_PACKAGES = "\
@@ -31,7 +32,6 @@ NILRT_NXG_ARM_PACKAGES = "\
 "
 
 NILRT_NXG_x64_PACKAGES = "\
-	efivar \
 	grub-efi-nilrt \
 "
 
