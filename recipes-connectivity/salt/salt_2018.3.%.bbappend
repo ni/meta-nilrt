@@ -24,35 +24,41 @@ S="${WORKDIR}/git"
 
 PACKAGECONFIG = "tcp"
 
-RDEPENDS_${PN}-minion = "python ${PN}-common (= ${EXTENDPKGV}) python-msgpack python-avahi python-pyinotify python-pyroute2 python-pycrypto python-pika python-argparse python-psutil ${@base_conditional('DISTRO', 'nilrt-nxg', 'python-pyconnman', '', d)}"
-RDEPENDS_${PN}-minion_append_armv7a += "${@base_conditional('DISTRO', 'nilrt', 'u-boot-mkimage', '', d)}"
-RDEPENDS_${PN}-common = " \
-    lsb \
-    python \
+RDEPENDS_${PN}-minion_append += "\
+    python-avahi \
+    python-pyinotify \
+    python-pyroute2 \
+    python-pika \
+    python-argparse \
+    python-psutil \
+    ${@base_conditional('DISTRO', 'nilrt-nxg', 'python-pyconnman', '', d)} \
+"
+
+RDEPENDS_${PN}-minion_append_armv7a += "\
+    ${@base_conditional('DISTRO', 'nilrt', 'u-boot-mkimage', '', d)} \
+"
+
+RDEPENDS_${PN}-common_append += " \
     python-difflib \
     python-distutils \
-    python-futures \
     python-importlib \
-    python-jinja2 \
     python-misc \
     python-multiprocessing \
     python-profile \
-    python-pyyaml \
     python-resource \
     python-terminal \
-    python-tornado (>= 4.2.1) \
     python-unixadmin \
     python-xmlrpc \
-    "
-RDEPENDS_${PN}-ssh = "python ${PN}-common (= ${EXTENDPKGV}) python-msgpack"
-RDEPENDS_${PN}-api = "python ${PN}-master"
-RDEPENDS_${PN}-master = "python ${PN}-common (= ${EXTENDPKGV}) python-msgpack python-pycrypto"
-RDEPENDS_${PN}-syndic = "python ${PN}-master (= ${EXTENDPKGV})"
-RDEPENDS_${PN}-cloud = "python ${PN}-common (= ${EXTENDPKGV})"
-RDEPENDS_${PN}-tests += "python-pyzmq python-six python-image"
-RDEPENDS_${PN}-ptest += "salt-tests"
+"
+
 # Note that the salt test suite (salt-tests) require python-pyzmq to run
 # properly even though we run them in tcp mode
+RDEPENDS_${PN}-tests_append += "\
+    python-pyzmq \
+    python-six \
+"
+
+RDEPENDS_${PN}-ptest += "salt-tests"
 
 inherit update-rc.d ptest
 INITSCRIPT_PARAMS_${PN}-minion = "defaults 93 7"
