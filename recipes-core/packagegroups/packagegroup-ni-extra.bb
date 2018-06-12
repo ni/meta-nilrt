@@ -651,9 +651,6 @@ RDEPENDS_${PN} += "\
 "
 # python-matplotlib: hang on do_install
 
-# meta-openembedded/meta-ruby
-RDEPENDS_${PN} += "ruby"
-
 # meta-openembedded/meta-webserver
 RDEPENDS_${PN} += "\
 	apache2 \

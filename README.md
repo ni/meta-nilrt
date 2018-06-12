@@ -11,7 +11,7 @@ revision: HEAD
 
 URI: git://github.com/ni/meta-oe.git
 layers: meta-oe, meta-gnome, meta-xfce, meta-networking, meta-webserver, meta-filesystems,
-meta-perl, meta-python, meta-ruby
+meta-perl, meta-python
 branch: nilrt/comms-2.0/fido
 revision: HEAD
 
