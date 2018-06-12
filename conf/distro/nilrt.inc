@@ -22,6 +22,7 @@ DISTRO_FEATURES += "\
         pam \
         ptest \
         selinux \
+	virtualization \
 "
 
 LVRT_USER = "lvuser"
