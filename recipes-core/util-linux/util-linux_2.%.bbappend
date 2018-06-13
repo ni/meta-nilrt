@@ -2,7 +2,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
 DEPENDS_class-target += "shadow-native pseudo-native niacctbase"
 
-RDEPENDS_util-linux-hwclock += "niacctbase"
+RDEPENDS_${PN}-hwclock_append += "niacctbase"
 
 group = "${LVRT_GROUP}"
 
