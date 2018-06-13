@@ -1,0 +1,28 @@
+From ed9ce55000e26801b69a38be7c53c8c529313492 Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+Date: Tue, 26 Sep 2017 18:03:05 +0300
+Subject: [PATCH 2/2] Makefile: don't preserve ownership on install
+
+Upstream-Status: Inappropriate [embedded-specific]
+
+Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index dbbf0a8..db31313 100644
+--- a/Makefile
++++ b/Makefile
+@@ -53,7 +53,7 @@ install: all
+ 	install -m644 -t $(DESTDIR)/usr/lib/initcpio init_functions functions
+ 	install -m644 udev/01-memdisk.rules $(DESTDIR)/usr/lib/initcpio/udev/01-memdisk.rules
+ 
+-	cp -at $(DESTDIR)/usr/lib/initcpio hooks install
++	cp -rt $(DESTDIR)/usr/lib/initcpio hooks install
+ 	install -m644 -t $(DESTDIR)/usr/share/mkinitcpio mkinitcpio.d/*
+ 	install -m644 systemd/mkinitcpio-generate-shutdown-ramfs.service \
+ 			$(DESTDIR)/usr/lib/systemd/system/mkinitcpio-generate-shutdown-ramfs.service
+-- 
+2.14.1
+

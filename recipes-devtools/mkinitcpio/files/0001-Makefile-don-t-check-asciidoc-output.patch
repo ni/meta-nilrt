@@ -1,0 +1,35 @@
+From 6388c79f5d9458c58451c231eb6163184d6801bc Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+Date: Tue, 26 Sep 2017 15:28:19 +0300
+Subject: [PATCH 1/2] Makefile: don't check asciidoc output
+
+Don't use xmllint to validate the doc xsl schema because mkinitcpio's
+use of docbook is broken in a cross-compile environment (docbookx.dtd
+can't be found even though it's present in the recipe's sysroot).
+
+Investigating this is time consuming and this check is 99.9% benign
+anyway so it's safe to disable it.
+
+Upstream-Status: Inappropriate [embedded-specific]
+
+Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 264f077..dbbf0a8 100644
+--- a/Makefile
++++ b/Makefile
+@@ -72,7 +72,7 @@ install: all
+ 
+ doc: $(MANPAGES)
+ man/%: man/%.txt Makefile
+-	a2x -d manpage \
++	a2x -L -d manpage \
+ 		-f manpage \
+ 		-a manversion=$(VERSION) \
+ 		-a manmanual="mkinitcpio manual" $<
+-- 
+2.14.1
+
