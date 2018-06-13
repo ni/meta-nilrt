@@ -29,6 +29,7 @@ BBLAYERS ?= " \
     ${TOPDIR}/../sources/meta-java \
     ${TOPDIR}/../sources/meta-measured \
     ${TOPDIR}/../sources/meta-qt4 \
+    ${TOPDIR}/../sources/meta-qt5 \
     "
 
 BBLAYERS_NON_REMOVABLE ?= " \
