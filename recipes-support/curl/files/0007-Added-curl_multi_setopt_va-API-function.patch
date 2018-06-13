@@ -1,7 +1,7 @@
-From 71711537d4e535162b6fb28219b8c91f49c0a5b7 Mon Sep 17 00:00:00 2001
+From 76b06a5bc08418e78b5dbaa033eeb19e36b0bc27 Mon Sep 17 00:00:00 2001
 From: Jonathan David <jonathan.david@ni.com>
 Date: Mon, 21 Jul 2014 14:32:25 -0500
-Subject: [PATCH 07/22] Added curl_multi_setopt_va() API function
+Subject: [PATCH] Added curl_multi_setopt_va() API function
 
 Added API function with `va_list` variable argument parameter in
 addition to cURL's function using `...`.
@@ -12,10 +12,10 @@ Upstream-Status: Submitted [curl-library@cool.haxx.se]
  1 file changed, 16 insertions(+), 6 deletions(-)
 
 diff --git a/lib/multi.c b/lib/multi.c
-index 2432b15..88755b9 100644
+index f85284695..5c82a5520 100644
 --- a/lib/multi.c
 +++ b/lib/multi.c
-@@ -2650,18 +2650,14 @@ static CURLMcode multi_socket(struct Curl_multi *multi,
+@@ -2648,12 +2648,10 @@ static CURLMcode multi_socket(struct Curl_multi *multi,
    return result;
  }
  
@@ -30,13 +30,16 @@ index 2432b15..88755b9 100644
  
    if(!GOOD_MULTI_HANDLE(multi))
      return CURLM_BAD_HANDLE;
+@@ -2661,8 +2659,6 @@ CURLMcode curl_multi_setopt(struct Curl_multi *multi,
+   if(multi->in_callback)
+     return CURLM_RECURSIVE_API_CALL;
  
 -  va_start(param, option);
 -
    switch(option) {
    case CURLMOPT_SOCKETFUNCTION:
      multi->socket_cb = va_arg(param, curl_socket_callback);
-@@ -2714,7 +2710,21 @@ CURLMcode curl_multi_setopt(struct Curl_multi *multi,
+@@ -2715,7 +2711,21 @@ CURLMcode curl_multi_setopt(struct Curl_multi *multi,
      res = CURLM_UNKNOWN_OPTION;
      break;
    }
@@ -59,5 +62,5 @@ index 2432b15..88755b9 100644
  }
  
 -- 
-2.10.2
+2.17.1
 

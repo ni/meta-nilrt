@@ -5,7 +5,6 @@ SRC_URI += " \
         file://0002-Including-wrn-coreip-hostLib.h-in-lib-hostip4.c-for-.patch \
         file://0003-Including-selectLib.h-in-lib-select.c-for-VxWorks-bu.patch \
         file://0004-Added-curl_easy_getinfo_va-API-function.patch \
-        file://0005-Added-curl_easy_setopt_va-API-function.patch \
         file://0006-Added-curl_formadd_va-API-function.patch \
         file://0007-Added-curl_multi_setopt_va-API-function.patch \
         file://0008-Added-curl_share_setopt_va-API-function.patch \
@@ -24,3 +23,7 @@ SRC_URI += " \
         file://0022-config-win32.h-Disable-Win32-crypto-API-on-Phar-Lap-.patch \
         file://0023-Decorate-API-functions-on-Windows-with-__cdecl.patch \
 "
+
+SELECTED_OPTIMIZATION += "-Wno-deprecated-declarations"
+
+ENABLE_SRC_INSTALL_${PN} = "1"

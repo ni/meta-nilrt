@@ -1,7 +1,7 @@
-From b954a795430b3cf15862f67aa50b0965d53a27e6 Mon Sep 17 00:00:00 2001
+From 92596afb3a325502b631744896472b911b1ca024 Mon Sep 17 00:00:00 2001
 From: Haris Okanovic <haris.okanovic@ni.com>
 Date: Mon, 21 Jul 2014 14:11:42 -0500
-Subject: [PATCH 01/22] Updated Curl_wait_ms() for VxWorks
+Subject: [PATCH] Updated Curl_wait_ms() for VxWorks
 
 Not declaring `struct timeval` on VxWorks systems.
 Using taskDelay() API to sleep for `timeout_ms` on VxWorks.
@@ -12,7 +12,7 @@ Upstream-Status: Inappropriate [NI VxWorks specific change]
  1 file changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/lib/select.c b/lib/select.c
-index 1c6481c..fc00ce9 100644
+index 28390a4a6..8d7db4087 100644
 --- a/lib/select.c
 +++ b/lib/select.c
 @@ -22,6 +22,11 @@
@@ -27,7 +27,7 @@ index 1c6481c..fc00ce9 100644
  #ifdef HAVE_SYS_SELECT_H
  #include <sys/select.h>
  #endif
-@@ -75,7 +80,7 @@ int Curl_ack_eintr = 0;
+@@ -74,7 +79,7 @@ int Curl_ack_eintr = 0;
   */
  int Curl_wait_ms(int timeout_ms)
  {
@@ -36,7 +36,7 @@ index 1c6481c..fc00ce9 100644
  #ifndef HAVE_POLL_FINE
    struct timeval pending_tv;
  #endif
-@@ -95,6 +100,8 @@ int Curl_wait_ms(int timeout_ms)
+@@ -94,6 +99,8 @@ int Curl_wait_ms(int timeout_ms)
    delay(timeout_ms);
  #elif defined(USE_WINSOCK)
    Sleep(timeout_ms);
@@ -44,7 +44,7 @@ index 1c6481c..fc00ce9 100644
 +  taskDelay((timeout_ms*sysClkRateGet())/1000);
  #else
    pending_ms = timeout_ms;
-   initial_tv = curlx_tvnow();
+   initial_tv = Curl_now();
 -- 
-1.9.1
+2.17.1
 

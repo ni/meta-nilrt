@@ -1,7 +1,7 @@
-From 95fa4c9085cd07d5aaa28fd251845cffe521aa3d Mon Sep 17 00:00:00 2001
+From 473cd8cbd7dd5806284f69539589b6e76398a56f Mon Sep 17 00:00:00 2001
 From: Haris Okanovic <haris.okanovic@ni.com>
 Date: Wed, 30 Jul 2014 13:17:54 -0500
-Subject: [PATCH 18/22] Modified include/curl/curlbuild.h.dist for NI's VxWorks
+Subject: [PATCH] Modified include/curl/curlbuild.h.dist for NI's VxWorks
  distribution
 
 Added VxWorks case to GCC entry.
@@ -15,15 +15,15 @@ for compiler/CPU combinations that don't support Autoconf.
 
 Upstream-Status: Inappropriate [configuration]
 ---
- include/curl/curlbuild.h | 9 +++++++++
+ include/curl/system.h | 9 +++++++++
  1 file changed, 9 insertions(+)
 
-diff --git a/include/curl/curlbuild.h b/include/curl/curlbuild.h
-index f09419a..a7e72b4 100644
---- a/include/curl/curlbuild.h
-+++ b/include/curl/curlbuild.h
-@@ -547,6 +547,15 @@
- #    define CURL_SIZEOF_CURL_OFF_T     8
+diff --git a/include/curl/system.h b/include/curl/system.h
+index eac4cfeb6..d78bc5a00 100644
+--- a/include/curl/system.h
++++ b/include/curl/system.h
+@@ -366,6 +366,15 @@
+ #    define CURL_FORMAT_CURL_OFF_TU    "lu"
  #    define CURL_SUFFIX_CURL_OFF_T     L
  #    define CURL_SUFFIX_CURL_OFF_TU    UL
 +#  elif defined(VXWORKS_PPC)
@@ -37,7 +37,7 @@ index f09419a..a7e72b4 100644
 +#    define CURL_SUFFIX_CURL_OFF_TU    ULL
  #  endif
  #  define CURL_TYPEOF_CURL_SOCKLEN_T socklen_t
- #  define CURL_SIZEOF_CURL_SOCKLEN_T 4
+ #  define CURL_PULL_SYS_TYPES_H      1
 -- 
-1.9.1
+2.17.1
 
