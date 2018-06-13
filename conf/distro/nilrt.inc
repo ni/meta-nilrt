@@ -44,6 +44,9 @@ VIRTUAL-RUNTIME_keymaps = ""
 PREFERRED_PROVIDER_jpeg = "jpeg"
 PREFERRED_PROVIDER_jpeg-native = "jpeg-native"
 
+PREFERRED_PROVIDER_getopt = "busybox"
+VIRTUAL-RUNTIME_getopt = "busybox"
+
 PREFERRED_VERSION_python-gevent = "1.2.%"
 PREFERRED_VERSION_python3-gevent = "1.2.%"
 
