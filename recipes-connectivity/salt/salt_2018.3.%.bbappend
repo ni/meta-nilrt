@@ -31,11 +31,11 @@ RDEPENDS_${PN}-minion_append += "\
     python-pika \
     python-argparse \
     python-psutil \
-    ${@base_conditional('DISTRO', 'nilrt-nxg', 'python-pyconnman', '', d)} \
+    ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'python-pyconnman', '', d)} \
 "
 
 RDEPENDS_${PN}-minion_append_armv7a += "\
-    ${@base_conditional('DISTRO', 'nilrt', 'u-boot-mkimage', '', d)} \
+    ${@oe.utils.conditional('DISTRO', 'nilrt', 'u-boot-mkimage', '', d)} \
 "
 
 RDEPENDS_${PN}-common_append += " \

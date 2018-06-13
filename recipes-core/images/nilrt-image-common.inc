@@ -9,7 +9,7 @@ IMAGE_LINGUAS ??= ""
 IMAGE_PREPROCESS_COMMAND += "rootfs_update_timestamp;"
 
 ROOTFS_POSTPROCESS_COMMAND += "\
-	${@base_conditional('DISTRO', 'nilrt-nxg', '', 'prune_unused_packages; remove_kernel;', d)} \
+	${@oe.utils.conditional('DISTRO', 'nilrt-nxg', '', 'prune_unused_packages; remove_kernel;', d)} \
 	remove_unused_feeds; \
 "
 

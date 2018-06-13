@@ -73,7 +73,7 @@ do_install () {
      update-rc.d -r ${D} wirelesssetdomain start 36 S .
 
      # only for nilrt-nxg, on older nilrt it's installed via p4
-     if ${@base_conditional('DISTRO', 'nilrt-nxg', 'true', 'false', d)}; then
+     if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'true', 'false', d)}; then
           install -m 0755   ${WORKDIR}/nisetled         ${D}${sysconfdir}/init.d
           update-rc.d -r ${D} nisetled start 40 S .
      fi

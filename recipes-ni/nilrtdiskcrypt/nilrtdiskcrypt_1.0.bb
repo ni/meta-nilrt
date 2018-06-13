@@ -70,7 +70,7 @@ do_install () {
     install -m 0755 ${S}/nilrtdiskcrypt_pcrextend ${D}${sbindir}/
 
     # this logic is only for older nilrt and nilrt-xfce
-    if ${@base_conditional('DISTRO', 'nilrt-nxg', 'false', 'true', d)}; then
+    if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'false', 'true', d)}; then
         mkdir -p ${D}${sysconfdir}/natinst/share/tpm
         ln -sf ${sysconfdir}/natinst/share/tpm ${D}${sysconfdir}/tpm
     fi

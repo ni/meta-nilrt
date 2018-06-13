@@ -22,12 +22,12 @@ USERADD_WEBSERVICES = "-m -N -g ${LVRT_GROUP} -G niwscerts,plugdev,adm,tty -c 'W
 # add parameter -m if you want home directories created with default files (.profile, .bashrc)
 USERADD_PARAM_${PN} = " -m -N -g ${LVRT_GROUP} -G niwscerts,plugdev,tty -c 'LabVIEW user' ${LVRT_USER}; \
 		-N -g openvpn -G network -c 'OpenVPN' -r openvpn; \
-		${@base_conditional('DISTRO', 'nilrt-nxg', '', d.getVar('USERADD_WEBSERVICES', True), d)}"
+		${@oe.utils.conditional('DISTRO', 'nilrt-nxg', '', d.getVar('USERADD_WEBSERVICES', True), d)}"
 
 useradd_preinst_append () {
     eval ${PSEUDO} chmod g+s ${SYSROOT}/home/${LVRT_USER} || true
     # this logic is only for nilrt and nilrt-xfce
-    if ${@base_conditional('DISTRO', 'nilrt-nxg', 'false', 'true', d)}; then
+    if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'false', 'true', d)}; then
 	eval ${PSEUDO} chmod g+s ${SYSROOT}/home/webserv || true
 	eval ${PSEUDO} ln -sf /home/admin ${SYSROOT}/home/root || true
     fi

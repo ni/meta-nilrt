@@ -10,7 +10,7 @@ SRC_URI += " \
 do_install_append() {
 	# install custom urandom defaults file only for older NILRT because it needs to
 	# be accessible both from its runmode & safemode
-	if ${@base_conditional('DISTRO', 'nilrt-nxg', 'false', 'true', d)}; then
+	if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'false', 'true', d)}; then
 		install -d ${D}${sysconfdir}/default
 		install -m 0644 ${WORKDIR}/urandom.default ${D}${sysconfdir}/default/urandom
 	fi

@@ -130,7 +130,7 @@ RDEPENDS_${PN} = "\
 	${@bb.utils.contains('TARGET_ARCH', 'arm', \
 		'${ALL_DISTRO_ARM_PACKAGES}', \
 		'${ALL_DISTRO_x64_PACKAGES}', d)} \
-	${@base_conditional('DISTRO', 'nilrt-nxg', \
+	${@oe.utils.conditional('DISTRO', 'nilrt-nxg', \
 		'${NILRT_NXG_PACKAGES}', \
 		'${NILRT_PACKAGES}', d)} \
 "
