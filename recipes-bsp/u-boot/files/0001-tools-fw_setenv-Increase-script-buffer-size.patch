@@ -1,0 +1,34 @@
+From b9743a5a9e6677ced83ea6e7b6b40d36bfc8d616 Mon Sep 17 00:00:00 2001
+From: Joe Hershberger <joe.hershberger@ni.com>
+Date: Mon, 21 Apr 2014 14:21:31 -0500
+Subject: [PATCH 1/2] tools: fw_setenv: Increase script buffer size
+
+Some bootscripts can be quite complex and not fit into the current 1024 size.
+At the time of writing we're looking at > 1.5k.
+
+Upstream-Status: Not applicable [superseded by commit 94b233f443456]
+
+This commit should we drop once we upgrade u-boot > 2018.01
+
+Signed-off-by: Joe Hershberger <joe.hershberger@ni.com>
+Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+---
+ tools/env/fw_env.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/env/fw_env.c b/tools/env/fw_env.c
+index 18c2324d2f..5d3186c250 100644
+--- a/tools/env/fw_env.c
++++ b/tools/env/fw_env.c
+@@ -740,7 +740,7 @@ int fw_env_set(int argc, char *argv[], struct env_opts *opts)
+ int fw_parse_script(char *fname, struct env_opts *opts)
+ {
+ 	FILE *fp;
+-	char dump[1024];	/* Maximum line length in the file */
++	char dump[4096];	/* Maximum line length in the file */
+ 	char *name;
+ 	char *val;
+ 	int lineno = 0;
+-- 
+2.17.1
+
