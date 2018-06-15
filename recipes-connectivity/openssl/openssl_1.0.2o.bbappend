@@ -26,3 +26,5 @@ SRC_URI += " \
 	file://0012-crypto-Use-i686-instead-of-i486-in-MASM-script.patch \
 	file://0013-perlasm-x86masm.pl-make-it-work.patch \
 "
+
+ENABLE_SRC_INSTALL_${PN} = "1"

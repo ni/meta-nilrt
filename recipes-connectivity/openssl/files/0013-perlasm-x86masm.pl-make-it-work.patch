@@ -1,7 +1,7 @@
-From 6320b764de75cc23cb702a17658bb9d32b5da45f Mon Sep 17 00:00:00 2001
+From 9b3f92f5e8cb99228785586cadb2dd4f4732da26 Mon Sep 17 00:00:00 2001
 From: Andy Polyakov <appro@openssl.org>
 Date: Sun, 22 Feb 2015 19:23:25 +0100
-Subject: [PATCH 13/13] perlasm/x86masm.pl: make it work.
+Subject: [PATCH] perlasm/x86masm.pl: make it work.
 
 Though this doesn't mean that masm becomes supported, the script is
 still provided on don't-ask-in-case-of-doubt-use-nasm basis.
@@ -10,12 +10,13 @@ See RT#3650 for background.
 Reviewed-by: Matt Caswell <matt@openssl.org>
 
 Upstream-Status: Backport
+
 ---
  crypto/perlasm/x86masm.pl | 12 ++++++------
  1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/crypto/perlasm/x86masm.pl b/crypto/perlasm/x86masm.pl
-index 786b3c483b..b7f49d1c41 100644
+index 786b3c4..b7f49d1 100644
 --- a/crypto/perlasm/x86masm.pl
 +++ b/crypto/perlasm/x86masm.pl
 @@ -18,10 +18,10 @@ sub ::generic
@@ -49,6 +50,3 @@ index 786b3c483b..b7f49d1c41 100644
  
  sub ::align
  {   push(@out,"ALIGN\t$_[0]\n");	}
--- 
-2.13.1
-

@@ -1,19 +1,20 @@
-From 407eafc782ddcfff31f30ba3f3ba861f5ee515a4 Mon Sep 17 00:00:00 2001
+From aba8b39375cfce6ab67292707ad82891435aa2b9 Mon Sep 17 00:00:00 2001
 From: Haris Okanovic <haris.okanovic@ni.com>
 Date: Sun, 1 Sep 2013 14:16:04 -0500
-Subject: [PATCH 01/13] crypto/ts: Implement def_time_cb() on VxWorks
+Subject: [PATCH] crypto/ts: Implement def_time_cb() on VxWorks
 
 Upstream-Status: Inappropriate [VxWorks support]
+
 ---
  crypto/ts/ts_rsp_sign.c | 14 ++++++++++++++
  1 file changed, 14 insertions(+)
 
 diff --git a/crypto/ts/ts_rsp_sign.c b/crypto/ts/ts_rsp_sign.c
-index db6ce3241f..a9dfcaab6f 100644
+index d55e903..39262ef 100644
 --- a/crypto/ts/ts_rsp_sign.c
 +++ b/crypto/ts/ts_rsp_sign.c
-@@ -60,7 +60,11 @@
- #include "cryptlib.h"
+@@ -61,7 +61,11 @@
+ #include "o_time.h"
  
  #if defined(OPENSSL_SYS_UNIX)
 +#ifndef VXWORKS_PPC
@@ -24,7 +25,7 @@ index db6ce3241f..a9dfcaab6f 100644
  #endif
  
  #include <openssl/objects.h>
-@@ -115,6 +119,10 @@ static ASN1_INTEGER *def_serial_cb(struct TS_resp_ctx *ctx, void *data)
+@@ -116,6 +120,10 @@ static ASN1_INTEGER *def_serial_cb(struct TS_resp_ctx *ctx, void *data)
  static int def_time_cb(struct TS_resp_ctx *ctx, void *data,
                         long *sec, long *usec)
  {
@@ -35,7 +36,7 @@ index db6ce3241f..a9dfcaab6f 100644
      struct timeval tv;
      if (gettimeofday(&tv, NULL) != 0) {
          TSerr(TS_F_DEF_TIME_CB, TS_R_TIME_SYSCALL_ERROR);
-@@ -123,9 +131,15 @@ static int def_time_cb(struct TS_resp_ctx *ctx, void *data,
+@@ -124,9 +132,15 @@ static int def_time_cb(struct TS_resp_ctx *ctx, void *data,
          TS_RESP_CTX_add_failure_info(ctx, TS_INFO_TIME_NOT_AVAILABLE);
          return 0;
      }
@@ -51,6 +52,3 @@ index db6ce3241f..a9dfcaab6f 100644
  
      return 1;
  }
--- 
-2.13.1
-

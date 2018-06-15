@@ -1,18 +1,19 @@
-From 090ef51468fa8d62cd62916bd03ad8d612ef4f8a Mon Sep 17 00:00:00 2001
+From e75899b37bd6ced8192e7a082f97ade670a39b56 Mon Sep 17 00:00:00 2001
 From: Haris Okanovic <haris.okanovic@ni.com>
 Date: Thu, 2 Apr 2015 14:21:11 -0500
-Subject: [PATCH 07/13] crypto/rand: Don't include unsupported Windows headers
- on Phar Lap ETS
+Subject: [PATCH] crypto/rand: Don't include unsupported Windows headers on
+ Phar Lap ETS
 
 Don't include unsupported Windows headers on Phar Lap ETS in rand_win.c.
 
 Upstream-Status: Inappropriate [Phar Lap ETS support]
+
 ---
  crypto/rand/rand_win.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/crypto/rand/rand_win.c b/crypto/rand/rand_win.c
-index 8d65ff59a9..2e0533579d 100644
+index d59cb48..b567335 100644
 --- a/crypto/rand/rand_win.c
 +++ b/crypto/rand/rand_win.c
 @@ -113,7 +113,7 @@
@@ -24,6 +25,3 @@ index 8d65ff59a9..2e0533579d 100644
  # include <windows.h>
  # ifndef _WIN32_WINNT
  #  define _WIN32_WINNT 0x0400
--- 
-2.13.1
-
