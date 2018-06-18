@@ -34,6 +34,7 @@ NILRT_NXG_ARM_PACKAGES = "\
 
 NILRT_NXG_x64_PACKAGES = "\
 	grub-efi-rootfs-chainloaded \
+	efibootmgr \
 "
 
 NILRT_ARM_PACKAGES = "\
@@ -53,6 +54,7 @@ NILRT_NXG_PACKAGES = "\
 	lsb \
 	modutils-initscripts \
 	ni-utils \
+	rauc \
 	rtctl \
 	salt-minion \
 	connman \
