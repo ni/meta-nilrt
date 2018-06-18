@@ -1,7 +1,5 @@
 PACKAGES =+ "${PN}-hostname ${PN}-ls ${PN}-chcon ${PN}-shred ${PN}-timeout"
 
-EXTRA_OECONF_class-target += "--enable-install-program=hostname"
-
 FILES_${PN}-hostname = "${base_bindir}/hostname.${PN}"
 FILES_${PN}-ls = "${base_bindir}/ls.${PN}"
 FILES_${PN}-chcon = "${bindir}/chcon.${PN}"
@@ -22,11 +20,6 @@ RDEPENDS_${PN}_class-target += "\
 	${PN}-shred \
     ${PN}-timeout \
 "
-
-do_install_append() {
-	# rename hostname manually since its not part of base_bindir_progs
-	mv ${D}${bindir}/hostname ${D}${base_bindir}/hostname.${BPN}
-}
 
 pkg_postinst_coreutils-hostname () {
 	chmod 4550 $D${base_bindir}/hostname.coreutils
