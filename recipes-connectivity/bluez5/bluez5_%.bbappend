@@ -1,3 +1,0 @@
-
-PACKAGECONFIG += "experimental"
-
