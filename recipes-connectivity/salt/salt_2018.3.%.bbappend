@@ -41,7 +41,6 @@ RDEPENDS_${PN}-minion_append_armv7a += "\
 RDEPENDS_${PN}-common_append += " \
     python-difflib \
     python-distutils \
-    python-importlib \
     python-misc \
     python-multiprocessing \
     python-profile \
