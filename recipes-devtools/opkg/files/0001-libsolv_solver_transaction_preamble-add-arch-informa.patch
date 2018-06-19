@@ -1,6 +1,6 @@
-From 7e00902ffbe87118994b3352f5a4fcda842b85fb Mon Sep 17 00:00:00 2001
+From 76a386a93e26bc70f873f51575bf39a754aecda8 Mon Sep 17 00:00:00 2001
 From: Alejandro del Castillo <alejandro.delcastillo@ni.com>
-Date: Thu, 29 Mar 2018 14:06:27 -0500
+Date: Wed, 28 Mar 2018 13:53:56 -0500
 Subject: [PATCH] libsolv_solver_transaction_preamble: add arch information to
  get matching package
 
@@ -12,19 +12,19 @@ architecture. Add architecture information to the comparision.
 
 Signed-off-by: Alejandro del Castillo <alejandro.delcastillo@ni.com>
 ---
- libopkg/pkg_hash.c                            |  8 +++++--
- libopkg/pkg_hash.h                            |  5 +++--
- libopkg/solvers/libsolv/opkg_solver_libsolv.c |  3 ++-
+ libopkg/pkg_hash.c                            |  8 +++--
+ libopkg/pkg_hash.h                            |  5 +--
+ libopkg/solvers/libsolv/opkg_solver_libsolv.c |  3 +-
  tests/Makefile                                |  1 +
- tests/core/40_arch.py                         | 31 +++++++++++++++++++++++++++
+ tests/core/40_arch.py                         | 31 +++++++++++++++++++
  5 files changed, 43 insertions(+), 5 deletions(-)
  create mode 100755 tests/core/40_arch.py
 
 diff --git a/libopkg/pkg_hash.c b/libopkg/pkg_hash.c
-index f220a98..d241f60 100644
+index cb7d0c0..83155c3 100644
 --- a/libopkg/pkg_hash.c
 +++ b/libopkg/pkg_hash.c
-@@ -603,7 +603,9 @@ pkg_t *pkg_hash_fetch_best_installation_candidate_by_name(const char *name)
+@@ -634,7 +634,9 @@ pkg_t *pkg_hash_fetch_best_installation_candidate_by_name(const char *name)
      return pkg_hash_fetch_best_installation_candidate(apkg, NULL, NULL, 0, 0);
  }
  
@@ -34,8 +34,8 @@ index f220a98..d241f60 100644
 +                                           const char *arch)
  {
      pkg_vec_t *vec;
-     unsigned int i;
-@@ -618,7 +620,9 @@ pkg_t *pkg_hash_fetch_by_name_version(const char *pkg_name, const char *version)
+     long i;
+@@ -649,7 +651,9 @@ pkg_t *pkg_hash_fetch_by_name_version(const char *pkg_name, const char *version)
      // This is so that libsolv choses the correct package for reinstall
      for (i = vec->len-1; i >= 0; i--) {
          version_str = pkg_version_str_alloc(vec->pkgs[i]);
@@ -47,13 +47,13 @@ index f220a98..d241f60 100644
              break;
          }
 diff --git a/libopkg/pkg_hash.h b/libopkg/pkg_hash.h
-index ed0b0d2..fc22365 100644
+index f5b52d5..ddfcc58 100644
 --- a/libopkg/pkg_hash.h
 +++ b/libopkg/pkg_hash.h
-@@ -40,8 +40,9 @@ void hash_insert_pkg(pkg_t * pkg, int set_status);
+@@ -47,8 +47,9 @@ void hash_insert_pkg(pkg_t * pkg, int set_status);
  
  abstract_pkg_t *ensure_abstract_pkg_by_name(const char *pkg_name);
- void pkg_hash_fetch_all_installed(pkg_vec_t * installed, int include_half_installed);
+ void pkg_hash_fetch_all_installed(pkg_vec_t * installed, fetch_type_t constain);
 -pkg_t *pkg_hash_fetch_by_name_version(const char *pkg_name,
 -                                      const char *version);
 +pkg_t *pkg_hash_fetch_by_name_version_arch(const char *pkg_name,
@@ -63,28 +63,28 @@ index ed0b0d2..fc22365 100644
  void abstract_pkgs_fetch_by_glob(const char *pkg_glob, abstract_pkg_vec_t *apkgs);
  pkg_t *pkg_hash_fetch_best_installation_candidate(abstract_pkg_t * apkg,
 diff --git a/libopkg/solvers/libsolv/opkg_solver_libsolv.c b/libopkg/solvers/libsolv/opkg_solver_libsolv.c
-index d261b40..2fe97e3 100644
+index bf0b72c..cdb567a 100644
 --- a/libopkg/solvers/libsolv/opkg_solver_libsolv.c
 +++ b/libopkg/solvers/libsolv/opkg_solver_libsolv.c
-@@ -788,8 +788,9 @@ static int libsolv_solver_execute_transaction(libsolv_solver_t *libsolv_solver)
+@@ -837,8 +837,9 @@ static int libsolv_solver_transaction_preamble(libsolv_solver_t *libsolv_solver,
  
-             const char *pkg_name = pool_id2str(libsolv_solver->pool, solvable->name);
-             const char *evr = pool_id2str(libsolv_solver->pool, solvable->evr);
-+            const char *arch = pool_id2str(libsolv_solver->pool, solvable->arch);
+         const char *pkg_name = pool_id2str(libsolv_solver->pool, solvable->name);
+         const char *evr = pool_id2str(libsolv_solver->pool, solvable->evr);
++        const char *arch = pool_id2str(libsolv_solver->pool, solvable->arch);
  
--            pkg = pkg_hash_fetch_by_name_version(pkg_name, evr);
-+            pkg = pkg_hash_fetch_by_name_version_arch(pkg_name, evr, arch);
-             pkg_vec_insert(pkgs, pkg);
+-        pkg = pkg_hash_fetch_by_name_version(pkg_name, evr);
++        pkg = pkg_hash_fetch_by_name_version_arch(pkg_name, evr, arch);
+         pkg_vec_insert(pkgs, pkg);
  
-             if (pkg->local_filename == NULL && opkg_config->download_first &&
+         if (!no_action && pkg->local_filename == NULL &&
 diff --git a/tests/Makefile b/tests/Makefile
-index acffaad..0272b2a 100644
+index 148c844..27b34ac 100644
 --- a/tests/Makefile
 +++ b/tests/Makefile
-@@ -36,6 +36,7 @@ REGRESSION_TESTS := core/01_install.py \
- 		    core/35_download_only.py \
- 		    core/36_install_virtual.py \
+@@ -38,6 +38,7 @@ REGRESSION_TESTS := core/01_install.py \
  		    core/37_globs.py \
+ 		    core/38_install_constrained_version.py \
+ 		    core/39_distupgrade.py \
 +		    core/40_arch.py \
  		    regress/issue26.py \
  		    regress/issue31.py \
@@ -127,5 +127,5 @@ index 0000000..b1658dd
 +if not opkgcl.is_installed("x", "1.0", "--add-arch b:3"):
 +        opk.fail("Package 'x(1.0), arch=b' available but was not re-installed.")
 -- 
-2.7.4
+2.17.1
 

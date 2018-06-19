@@ -1,4 +1,4 @@
-From 212ea51bdd2b550a8cc02d67d81ec4138de7fc46 Mon Sep 17 00:00:00 2001
+From 39bc89bc4dd545d97b7c4d6200a0ea30399d30f4 Mon Sep 17 00:00:00 2001
 From: Alejandro del Castillo <alejandro.delcastillo@ni.com>
 Date: Tue, 19 Jun 2018 13:55:45 -0500
 Subject: [PATCH] populate_installed_repo: add Essential field support
@@ -9,21 +9,21 @@ be removed before the Essential package is processed. For each installed
 Essential package, add a job that will ensure the package will stay
 installed (but upgradable).
 
-Signed-off-by: Alejandro del Castillo <alejandro.delcastillo@ni.com>
+Upstream-Status: Backport [master branch commit 7b436aa2ea0967]
 
-Upstream-Status: Pending
+Signed-off-by: Alejandro del Castillo <alejandro.delcastillo@ni.com>
 ---
- libopkg/solvers/libsolv/opkg_solver_libsolv.c |  6 +++++
+ libopkg/solvers/libsolv/opkg_solver_libsolv.c |  6 ++++
  tests/Makefile                                |  1 +
- tests/core/25a_essential.py                   | 36 +++++++++++++++++++++++++++
+ tests/core/25a_essential.py                   | 36 +++++++++++++++++++
  3 files changed, 43 insertions(+)
  create mode 100755 tests/core/25a_essential.py
 
 diff --git a/libopkg/solvers/libsolv/opkg_solver_libsolv.c b/libopkg/solvers/libsolv/opkg_solver_libsolv.c
-index 2fe97e3..4c81725 100644
+index bf0b72c..f4becd5 100644
 --- a/libopkg/solvers/libsolv/opkg_solver_libsolv.c
 +++ b/libopkg/solvers/libsolv/opkg_solver_libsolv.c
-@@ -498,6 +498,12 @@ static void populate_installed_repo(libsolv_solver_t *libsolv_solver)
+@@ -524,6 +524,12 @@ static void populate_installed_repo(libsolv_solver_t *libsolv_solver)
          if (opkg_config->force_depends)
              queue_push2(&libsolv_solver->solver_jobs, SOLVER_SOLVABLE
                          | SOLVER_WEAKENDEPS, solvable_id);
@@ -37,7 +37,7 @@ index 2fe97e3..4c81725 100644
  
      pkg_vec_free(installed_pkgs);
 diff --git a/tests/Makefile b/tests/Makefile
-index 0272b2a..1a0ba9b 100644
+index 148c844..5c277a5 100644
 --- a/tests/Makefile
 +++ b/tests/Makefile
 @@ -24,6 +24,7 @@ REGRESSION_TESTS := core/01_install.py \
@@ -91,5 +91,5 @@ index 0000000..cc53670
 +if not opkgcl.is_installed('a'):
 +        opk.fail("Essential package 'a' was incorrectly removed")
 -- 
-2.7.4
+2.18.0
 
