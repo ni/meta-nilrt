@@ -1,7 +1,7 @@
 SUMMARY = "Create two itb files with the purpose of redirecting U-Boot to boot.scr to continue the bootflow. For compatibility with older U-Boot environments the names of the itbs remain the same linux_safemode.itb and linux_runmode.itb. Also create two itb's for migration (linux_fw/bw_migrate.itb), which will be installed on targets as linux_runmode.itb to trigger the migration process."
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384361b4de20420"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
 # next-safemode & next-runmode are used for backwards-compatibility
 SRC_URI = "\
