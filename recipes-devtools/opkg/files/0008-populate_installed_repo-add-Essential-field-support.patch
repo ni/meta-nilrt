@@ -1,0 +1,95 @@
+From 212ea51bdd2b550a8cc02d67d81ec4138de7fc46 Mon Sep 17 00:00:00 2001
+From: Alejandro del Castillo <alejandro.delcastillo@ni.com>
+Date: Tue, 19 Jun 2018 13:55:45 -0500
+Subject: [PATCH] populate_installed_repo: add Essential field support
+
+Debian "Essential" field is being enforced at package removal time,
+instead of at solve time. This is problematic, since other packages can
+be removed before the Essential package is processed. For each installed
+Essential package, add a job that will ensure the package will stay
+installed (but upgradable).
+
+Signed-off-by: Alejandro del Castillo <alejandro.delcastillo@ni.com>
+
+Upstream-Status: Pending
+---
+ libopkg/solvers/libsolv/opkg_solver_libsolv.c |  6 +++++
+ tests/Makefile                                |  1 +
+ tests/core/25a_essential.py                   | 36 +++++++++++++++++++++++++++
+ 3 files changed, 43 insertions(+)
+ create mode 100755 tests/core/25a_essential.py
+
+diff --git a/libopkg/solvers/libsolv/opkg_solver_libsolv.c b/libopkg/solvers/libsolv/opkg_solver_libsolv.c
+index 2fe97e3..4c81725 100644
+--- a/libopkg/solvers/libsolv/opkg_solver_libsolv.c
++++ b/libopkg/solvers/libsolv/opkg_solver_libsolv.c
+@@ -498,6 +498,12 @@ static void populate_installed_repo(libsolv_solver_t *libsolv_solver)
+         if (opkg_config->force_depends)
+             queue_push2(&libsolv_solver->solver_jobs, SOLVER_SOLVABLE
+                         | SOLVER_WEAKENDEPS, solvable_id);
++
++        if (pkg->essential && !opkg_config->force_removal_of_essential_packages) {
++            Id essential_pkg_id = pool_str2id(libsolv_solver->pool, pkg->name, 1);
++            queue_push2(&libsolv_solver->solver_jobs, SOLVER_SOLVABLE_NAME
++                        | SOLVER_INSTALL | SOLVER_ESSENTIAL, essential_pkg_id);
++        }
+     }
+ 
+     pkg_vec_free(installed_pkgs);
+diff --git a/tests/Makefile b/tests/Makefile
+index 0272b2a..1a0ba9b 100644
+--- a/tests/Makefile
++++ b/tests/Makefile
+@@ -24,6 +24,7 @@ REGRESSION_TESTS := core/01_install.py \
+ 		    core/23_force_depends.py \
+ 		    core/24_nodeps.py \
+ 		    core/25_essential.py \
++		    core/25a_essential.py \
+ 		    core/26_prefer_arch_to_version.py \
+ 		    core/27_reldeps_lt.py \
+ 		    core/28_reldeps_lteq.py \
+diff --git a/tests/core/25a_essential.py b/tests/core/25a_essential.py
+new file mode 100755
+index 0000000..cc53670
+--- /dev/null
++++ b/tests/core/25a_essential.py
+@@ -0,0 +1,36 @@
++#! /usr/bin/env python3
++#
++# Create essential packages 'a', which Depends on b. Package 'b' depends on 'c'
++# Install 'a'.
++# Remove 'c' using --force-removal-of-dependent-packages
++# Make sure nothing is removed.
++
++import os
++import opk, cfg, opkgcl
++
++opk.regress_init()
++
++o = opk.OpkGroup()
++o.add(Package='a', Depends='b', Essential='yes')
++o.add(Package='b', Depends='c')
++o.add(Package='c')
++
++o.write_opk()
++o.write_list()
++opkgcl.update()
++
++opkgcl.install('a')
++if not opkgcl.is_installed('a'):
++        opk.fail("Package 'a' installed but does not report as installed.")
++if not opkgcl.is_installed('b'):
++        opk.fail("Package 'b' installed but does not report as installed.")
++if not opkgcl.is_installed('c'):
++        opk.fail("Package 'c' installed but does not report as installed.")
++
++opkgcl.remove('c', '--force-removal-of-dependent-packages')
++if not opkgcl.is_installed('b'):
++        opk.xfail("[internalsolv] Package 'b' was removed, but Essential package 'a' depends on it")
++if not opkgcl.is_installed('c'):
++        opk.fail("Package 'c' was removed, which breaks Essential package 'a'")
++if not opkgcl.is_installed('a'):
++        opk.fail("Essential package 'a' was incorrectly removed")
+-- 
+2.7.4
+
