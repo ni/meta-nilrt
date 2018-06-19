@@ -9,6 +9,8 @@ SRC_URI_append = " \
     file://test-run-postinsts-log.sh \
 "
 
+RDEPENDS_${PN}-ptest += "bash"
+
 do_install_append() {
 
     # Install a run-postinsts config file
