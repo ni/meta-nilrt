@@ -10,6 +10,7 @@ DISTRO_FEATURES += "${DISTRO_FEATURES_LIBC}"
 # Common features enabled on all NILRT flavours
 DISTRO_FEATURES += "\
         argp \
+        efi \
         ext2 \
         largefile \
         usbgadget \
@@ -52,6 +53,8 @@ OLDEST_KERNEL = "3.14.3"
 QTDEMOS = "quicky fotowall"
 
 GCCVERSION = "7.3%"
+
+EFI_PROVIDER = "grub-efi"
 
 DISTRO_FEATURES_BACKFILL_CONSIDERED = "gobject-introspection-data"
 
