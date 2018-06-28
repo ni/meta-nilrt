@@ -2,7 +2,7 @@
 # long-description: Creates an EFI and legacy bootable hybrid ISO image
 # which can be used on optical media as well as USB media.
 
-part /boot --source isoimage-isohybrid --sourceparams="loader=grub-efi,image_name=NI_RECOVERY_IMG" --ondisk cd --label NIRECOVERY --fstype=ext3
+part /boot --source isoimage-isohybrid --sourceparams="loader=grub-efi,image_name=NI_RECOVERY_IMG" --ondisk cd --label NIRECOVERY
 
 # note that --append is ignored by grub when using a configfile
 # and only processed by syslinux as configured below
