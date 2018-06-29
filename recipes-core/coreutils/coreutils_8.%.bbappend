@@ -18,48 +18,48 @@ RDEPENDS_${PN}_class-target += "\
 	${PN}-ls \
 	${PN}-chcon \
 	${PN}-shred \
-    ${PN}-timeout \
+	${PN}-timeout \
 "
 
-pkg_postinst_coreutils-hostname () {
-	chmod 4550 $D${base_bindir}/hostname.coreutils
-	chown 0:${group} $D${base_bindir}/hostname.coreutils
+pkg_postinst_${PN}-hostname () {
+	chmod 4550 $D${base_bindir}/hostname.${BPN}
+	chown 0:${group} $D${base_bindir}/hostname.${BPN}
 
 	update-alternatives --install ${base_bindir}/hostname hostname hostname.${BPN} 100
 }
 
-pkg_prerm_coreutils-hostname () {
+pkg_prerm_${PN}-hostname () {
 	update-alternatives --remove hostname hostname.${BPN}
 }
 
-pkg_postinst_coreutils-ls () {
+pkg_postinst_${PN}-ls () {
 	update-alternatives --install ${base_bindir}/ls ls ls.${BPN} 100
 }
 
-pkg_prerm_coreutils-ls () {
+pkg_prerm_${PN}-ls () {
 	update-alternatives --remove ls ls.${BPN}
 }
 
-pkg_postinst_coreutils-chcon () {
+pkg_postinst_${PN}-chcon () {
 	update-alternatives --install ${bindir}/chcon chcon chcon.${BPN} 100
 }
 
-pkg_prerm_coreutils-chcon () {
+pkg_prerm_${PN}-chcon () {
 	update-alternatives --remove chcon chcon.${BPN}
 }
 
-pkg_postinst_coreutils-shred () {
+pkg_postinst_${PN}-shred () {
 	update-alternatives --install ${bindir}/shred shred shred.${BPN} 100
 }
 
-pkg_prerm_coreutils-shred () {
+pkg_prerm_${PN}-shred () {
 	update-alternatives --remove shred shred.${BPN}
 }
 
-pkg_postinst_coreutils-timeout () {
+pkg_postinst_${PN}-timeout () {
 	update-alternatives --install ${bindir}/timeout timeout timeout.${BPN} 100
 }
 
-pkg_prerm_coreutils-timeout () {
+pkg_prerm_${PN}-timeout () {
 	update-alternatives --remove timeout timeout.${BPN}
 }
