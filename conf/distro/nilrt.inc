@@ -42,6 +42,12 @@ VIRTUAL-RUNTIME_base-utils-hwclock = "util-linux-hwclock"
 # For qemu images
 VIRTUAL-RUNTIME_keymaps = ""
 
+PREFERRED_PROVIDER_virtual/xserver ?= "xserver-xorg"
+
+PREFERRED_PROVIDER_virtual/libgl ?= "mesa"
+PREFERRED_PROVIDER_virtual/libgles1 ?= "mesa"
+PREFERRED_PROVIDER_virtual/libgles2 ?= "mesa"
+
 PREFERRED_PROVIDER_virtual/kernel ?= "linux-nilrt"
 
 PREFERRED_PROVIDER_jpeg = "jpeg"
