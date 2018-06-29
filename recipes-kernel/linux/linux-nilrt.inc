@@ -179,15 +179,8 @@ do_tag_kernel_build() {
 
 addtask tag_kernel_build after do_compile before do_install
 
-# Include a postinst script with kernel-dev that builds modpost.
-pkg_postinst_kernel-dev () {
-#!/bin/bash -e
-if [ ! x"$D" = "x" ]; then
-	exit 1
-fi
-
-cd /lib/modules/${KERNEL_VERSION}/build/scripts/mod
-mv ${HOST_PREFIX}elfconfig.h elfconfig.h
-gcc -o modpost modpost.h modpost.c file2alias.c sumversion.c
-exit 0
+pkg_postinst_ontarget_kernel-dev () {
+	cd /lib/modules/${KERNEL_VERSION}/build/scripts/mod
+	mv ${HOST_PREFIX}elfconfig.h elfconfig.h
+	gcc -o modpost modpost.h modpost.c file2alias.c sumversion.c
 }

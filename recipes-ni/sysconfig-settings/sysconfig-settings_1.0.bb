@@ -36,13 +36,6 @@ do_install () {
 	install -m 0755 ${WORKDIR}/niselectsystemsettings ${D}${sysconfdir}/natinst/
 }
 
-# To delay the execution of the postinst to first boot, check $D and error
-# if empty. Process explained in the Yocto Manual Post-Installation Scripts
-# section.
-pkg_postinst_${PN} () {
-	if [ x"$D" = "x" ]; then
-		${sysconfdir}/natinst/niselectsystemsettings postinst
-	else
-		exit 1
-	fi
+pkg_postinst_ontarget_${PN} () {
+	${sysconfdir}/natinst/niselectsystemsettings postinst
 }

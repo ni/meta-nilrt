@@ -12,15 +12,8 @@ pkg_postinst_${PN}-hwclock () {
 	update-alternatives --install ${base_sbindir}/hwclock hwclock ${base_sbindir}/hwclock.${BPN} 80
 }
 
-# To delay the execution of the postinst to first boot, check $D and error
-# if empty. Process explained in the Yocto Manual Post-Installation Scripts
-# section.
-pkg_postinst_util-linux-hwclock () {
-	if [ x"$D" = "x" ]; then
+pkg_postinst_ontarget_${PN}-hwclock () {
         if [ ! -f /etc/natinst/safemode ]; then
             setcap CAP_SYS_TIME+ep ${base_sbindir}/hwclock.util-linux
         fi
-	else
-		exit 1
-	fi
 }
