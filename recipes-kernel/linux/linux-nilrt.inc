@@ -11,6 +11,13 @@ LINUX_VERSION_EXTENSION = "$([ -z "${BUILD_IDENTIFIER}" ] || echo '-')${BUILD_ID
 # the compiler and flags to the compiler/linker/etc.)
 EXTRA_OEMAKE_append += 'CFLAGS="${TOOLCHAIN_OPTIONS}"'
 
+# Kbuild intenionally clobbers CFLAGS/LDFLAGS for some binaries we ship in nilrt,
+# particularly in the tools/ dir (fixdep, genksyms etc), and OE has this insanity check
+# to see if binaries were built using the OE-supplied *FLAGS, so skip this sanity check to
+# avoid this OE<>Kernel clash (linux-yocto recipe doesn't have this problem because it does
+# not ship tools like we do for our 'on target versioning')
+INSANE_SKIP += "ldflags"
+
 # The default -hf arm tools don't default to -mfloat-abi=hard, and this
 # causes build failures when building the scripts utilities
 TOOLCHAIN_OPTIONS_append = " ${@bb.utils.contains('TUNE_FEATURES','callconvention-hard',' -mfloat-abi=hard ','',d)} ${CFLAGS} "
