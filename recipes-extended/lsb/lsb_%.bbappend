@@ -2,4 +2,5 @@
 # nilrt-xfce to be the same as nilrt
 do_install_append() {
 	sed -i 's/DISTRIB_ID=nilrt-xfce/DISTRIB_ID=nilrt/' ${D}${sysconfdir}/lsb-release
+	echo "DISTRIB_CODENAME=${NILRT_RELEASE_NAME}" >> ${D}${sysconfdir}/lsb-release
 }
