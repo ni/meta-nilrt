@@ -20,7 +20,7 @@ CACHED_CONFIGUREVARS += "grub_cv_target_cc_soft_float="
 
 GRUB_BUILDIN += "smbios chain multiboot efi_uga font gfxterm gfxmenu terminal \
                 minicmd iorw echo reboot terminfo loopback memdisk tar help serial \
-                ls search_fs_uuid udf btrfs ntfs reiserfs xfs lvm ata"
+                ls search_fs_uuid udf btrfs ntfs reiserfs xfs lvm ata tpm measure"
 
 GRUB_NILRT_IMAGE = "grubx64.efi"
 
@@ -43,3 +43,6 @@ do_install_append_class-target() {
 
 FILES_${PN}-nilrt = "/boot/${GRUB_NILRT_IMAGE} \
                      /boot/grub.cfg"
+
+# Downstream NI-branch code quality is not yet ready to build with -Werror
+CFLAGS_append += "-Wno-error"
