@@ -1,5 +1,7 @@
 DISTRO_NAME = "NI Linux Real-Time"
 
+DISTRO_VERSION = "6.0"
+
 MAINTAINER = "NI Linux Real-Time Maintainers <nilrt@ni.com>"
 
 TARGET_VENDOR = "-nilrt"
