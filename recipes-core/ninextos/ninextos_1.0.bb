@@ -4,9 +4,8 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 SRC_URI_x64 = "file://bootimage.cfg"
 
-DEPENDS = " restore-mode-image "
-DEPENDS_append_x64 = " grub "
-do_install[depends] = " restore-mode-image:do_image_complete "
+DEPENDS_append_x64 += "grub-efi"
+do_install[depends] = "restore-mode-image:do_image_complete linux-nilrt:do_deploy"
 
 S = "${WORKDIR}"
 
@@ -34,13 +33,13 @@ do_install_append_xilinx-zynqhf() {
     install -m 0644 ${DEPLOY_DIR_IMAGE}/uImage ${D}/.newNILinuxRT/.restore/
 }
 
-FILES_${PN} = ""
-
-FILES_${PN}_append_x64 = "/boot/.newNILinuxRT/* \
-                         "
-FILES_${PN}_append_xilinx-zynqhf = "/boot   \
-                                    /.newNILinuxRT/*    \
-                                    /.newNILinuxRT/.restore/*   \
-                                    /.newNILinuxRT/.restore/dtbs/*  \
-                                    /.newNILinuxRT/.safe/*  \
-                                   "
+FILES_${PN}_x64 = "\
+    /boot/.newNILinuxRT/* \
+"
+FILES_${PN}_xilinx-zynqhf = "\
+    /boot \
+    /.newNILinuxRT/* \
+    /.newNILinuxRT/.restore/* \
+    /.newNILinuxRT/.restore/dtbs/* \
+    /.newNILinuxRT/.safe/* \
+"
