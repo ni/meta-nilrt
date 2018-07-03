@@ -7,7 +7,7 @@ PACKAGE_INSTALL = "${ROOTFS_BOOTSTRAP_INSTALL} \
                    packagegroup-ni-restoremode \
 "
 
-DEPENDS += "init-restore-mode ${FACTORY_IMAGE}"
+DEPENDS += "init-restore-mode"
 DEPENDS_xilinx-zynqhf += "zynq-bootscripts zynq-itb"
 DEPENDS_x64 += "wic-tools"
 
