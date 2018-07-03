@@ -83,6 +83,8 @@ KERNEL_DEVICETREE_xilinx-zynqhf = "\
         ni-7885.dtb \
 "
 
+KERNEL_DEVICETREE_xilinx-zynq = "${KERNEL_DEVICETREE_xilinx-zynqhf}"
+
 #create uImage for armv7a targets
 KERNEL_IMAGETYPE_armv7a = "uImage"
 UBOOT_LOADADDRESS ?= "0x8000"
