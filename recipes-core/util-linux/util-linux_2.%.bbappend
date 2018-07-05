@@ -7,8 +7,8 @@ RDEPENDS_util-linux-hwclock += "niacctbase"
 group = "${LVRT_GROUP}"
 
 pkg_postinst_${PN} () {
-	chmod 4550 $D${base_sbindir}/hwclock
-	chown 0:${group} $D${base_sbindir}/hwclock
+	chmod 4550 $D${base_sbindir}/hwclock.${BPN}
+	chown 0:${group} $D${base_sbindir}/hwclock.${BPN}
 	update-alternatives --install ${base_sbindir}/hwclock hwclock ${base_sbindir}/hwclock.${BPN} 80
 }
 
