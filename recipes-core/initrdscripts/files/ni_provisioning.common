@@ -249,20 +249,23 @@ EOF
 
     provision_target()
     {
-        if [ "$1" = "usb" ]; then
-            mkdir -p $USB_MOUNTPOINT
-            mount -o ro -L NIRECOVERY $USB_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
-            SOURCE_DIR=$USB_MOUNTPOINT
-        elif [ "$1" = "onboard" ]; then
-            # only migrate and backward-migrate use cases, using older NI Linux RT nibootfs partition
-            mkdir -p $TEMP_MOUNTPOINT
-            mkdir -p $BOOTFS_MOUNTPOINT
-            older_nilrt_nibootfs_path=`lsblk -rpn $TARGET_DISK -o NAME,LABEL | grep " $OLDER_NILRT_NIBOOTFS_LABEL"'$' | tail -1 | cut -d' ' -f1`
-            do_silent echo "Mounting $older_nilrt_nibootfs_path $OLDER_NILRT_NIBOOTFS_LABEL partition..."
-            mount $older_nilrt_nibootfs_path $TEMP_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
-            cp -r $TEMP_MOUNTPOINT/.newNILinuxRT/* $BOOTFS_MOUNTPOINT/
-            umount $TEMP_MOUNTPOINT || die "Failed to umount $TEMP_MOUNTPOINT"
-            SOURCE_DIR=$BOOTFS_MOUNTPOINT
+	if [[ $restore == "backward-migrate" ]]; then
+	    source /ni_provisioning.safemode
+	    REBOOT_REQUIRED=1
+	    return
+	elif [ $restore == "migrate" ]; then
+	    mkdir -p $TEMP_MOUNTPOINT
+	    mkdir -p $BOOTFS_MOUNTPOINT
+	    older_nilrt_nibootfs_path=`lsblk -rpn $TARGET_DISK -o NAME,LABEL | grep " $OLDER_NILRT_NIBOOTFS_LABEL"'$' | tail -1 | cut -d' ' -f1`
+	    do_silent echo "Mounting $older_nilrt_nibootfs_path $OLDER_NILRT_NIBOOTFS_LABEL partition..."
+	    mount $older_nilrt_nibootfs_path $TEMP_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
+	    cp -r $TEMP_MOUNTPOINT/.newNILinuxRT/* $BOOTFS_MOUNTPOINT/
+	    umount $TEMP_MOUNTPOINT || die "Failed to umount $TEMP_MOUNTPOINT"
+	    SOURCE_DIR=$BOOTFS_MOUNTPOINT
+	elif [ "$1" = "usb" ]; then
+	    mkdir -p $USB_MOUNTPOINT
+	    mount -o ro -L NIRECOVERY $USB_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
+	    SOURCE_DIR=$USB_MOUNTPOINT
         fi
 
         echo "Installing restore to: $TARGET_DISK using $BOOT_STYLE boot style."
@@ -284,18 +287,18 @@ EOF
         cp -r $SOURCE_DIR/EFI/BOOT/* $EFI_GRUB_TARGET_DIR/
 
         if [[ $BOOT_STYLE == "efi" ]]; then
-            echo "Configuring EFI grub2..."
-            for ENTRY in `efibootmgr | grep "LabVIEW RT"| egrep -o '[0-9A-F]{4}' || true`
-            do
-            EFIMGR=`efibootmgr -b $ENTRY -B 2>&1` || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
-            done
-            do_silent efibootmgr -c -d ${TARGET_DISK} -p 1 -L 'LabVIEW RT' -l '\efi\boot\bootx64.efi'
+	    echo "Configuring EFI grub2..."
+	    for ENTRY in `efibootmgr | grep "LabVIEW RT"| egrep -o '[0-9A-F]{4}' || true`
+	    do
+		EFIMGR=`efibootmgr -b $ENTRY -B 2>&1` || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
+	    done
+	    do_silent efibootmgr -c -d ${TARGET_DISK} -p 1 -L 'LabVIEW RT' -l '\efi\boot\bootx64.efi'
         else
-            echo "Configuring legacy grub2..."
-            LEGACY_GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/boot/grub
-            parted -s ${TARGET_DISK} set 1 boot on
-            grub-install --recheck --root-directory=$GRUB_MOUNTPOINT $TARGET_DISK
-            cp /grub.cfg ${LEGACY_GRUB_TARGET_DIR}/grub.cfg
+	    echo "Configuring legacy grub2..."
+	    LEGACY_GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/boot/grub
+	    parted -s ${TARGET_DISK} set 1 boot on
+	    grub-install --recheck --root-directory=$GRUB_MOUNTPOINT $TARGET_DISK
+	    cp /grub.cfg ${LEGACY_GRUB_TARGET_DIR}/grub.cfg
         fi
 
         echo "Installing kernel and ramdisk..."
@@ -319,14 +322,13 @@ EOF
         umount $RESTORE_MOUNTPOINT || die "Failed to umount $RESTORE_MOUNTPOINT"
         umount $GRUB_MOUNTPOINT || die "Failed to umount $GRUB_MOUNTPOINT"
         if [ "$1" = "usb" ]; then
-            umount $USB_MOUNTPOINT || die "Failed to umount $USB_MOUNTPOINT"
+	    umount $USB_MOUNTPOINT || die "Failed to umount $USB_MOUNTPOINT"
         fi
 
         echo ""
         echo "PROVISIONING SUCCESSFUL!"
         REBOOT_REQUIRED=1
     }
-
 fi
 
 #common functions for both architectures with little differences

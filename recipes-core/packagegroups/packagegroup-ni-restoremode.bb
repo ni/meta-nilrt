@@ -27,6 +27,7 @@ RDEPENDS_${PN}_append_x64 = "\
     fw-printenv         \
     grub                \
     grub-editenv        \
+    eudev               \
     kernel-module-atkbd \
     "
 

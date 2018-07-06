@@ -14,6 +14,7 @@ SRC_URI_append_xilinx-zynqhf = "\
 "
 
 SRC_URI_append_x64 = "\
+	file://ni_provisioning.safemode \
 	file://disk_config_x64 \
 	file://grub.cfg	\
 "
@@ -28,6 +29,7 @@ do_install() {
 }
 
 do_install_append_x64() {
+	install -m 0644 ${WORKDIR}/ni_provisioning.safemode ${D}/ni_provisioning.safemode
 	install -m 0755 ${WORKDIR}/disk_config_x64 ${D}/disk_config
 	install -m 0644 ${WORKDIR}/grub.cfg ${D}/grub.cfg
 }
@@ -38,5 +40,5 @@ do_install_append_xilinx-zynqhf() {
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-FILES_${PN} += " /init /ni_provisioning /ni_provisioning.common /ni_provisioning.answers.default /disk_config"
+FILES_${PN} += " /init /ni_provisioning* /disk_config"
 FILES_${PN}_append_x64 += " /grub.cfg "

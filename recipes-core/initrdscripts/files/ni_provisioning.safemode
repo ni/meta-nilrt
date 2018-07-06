@@ -1,0 +1,514 @@
+#!/bin/bash
+
+USB_MOUNTPOINT=/var/volatile/usbrtdeploy
+red='\e[0;31m'
+NC='\e[0m'
+yellow='\e[1;33m'
+verbose_mode=0
+ask_at_every_error="N"
+
+print_info()
+{
+    if [ $verbose_mode -eq 1 ]; then
+        >&3 echo $1
+    else
+        >&3 echo -n $1
+    fi
+}
+
+print_verbose()
+{
+    if [[ $verbose_mode -eq 1 ]]; then
+        echo $1
+    fi
+}
+
+print_warning()
+{
+    >&4 echo -e ${yellow}"\n***Warning: $1\n"${NC}
+}
+
+print_error()
+{
+    >&4 echo -e ${red}"\n***Error: $1\n"${NC}
+	local continue_on_error="N"
+    if [[ "$ask_at_every_error" == "y" ]]; then
+        exec 2>&4
+        read -p "Do you want to ignore this error?[y/N]" continue_on_error
+		exec 4>&2
+	fi
+	if [[ "$continue_on_error" == "N" || "$continue_on_error" == "n" || "$continue_on_error" == "" ]]; then
+        >&4 echo -e ${red}"PROVISIONING FAILED!"${NC}
+        cleanup_and_exit 1
+    fi
+}
+
+die()
+{
+    >&4 echo -e ${red}"\n***Fatal Error: $1"${NC}
+    >&4 echo -e ${red}"PROVISIONING FAILED!"${NC}
+    cleanup_and_exit 1
+}
+
+print_done()
+{
+    if [ $verbose_mode -eq 0 ]; then
+        >&3 echo "Done"
+    fi
+}
+
+show_help()
+{
+    >&3 echo -e "\nUsage: $0 [-hav] [-t DEVICE]\n"
+    >&3 echo -e "Options\n"
+    >&3 echo "   -h : Show help."
+    >&3 echo "   -a : Ask at every error if continue. Default is N, so at the first error abort."
+    >&3 echo "   -v : Verbose mode."
+    >&3 echo "   -t DEVICE : DEVICE is the device name for the disk to update. (e.g /dev/sda)"
+    >&3 echo "               If DEVICE is not specificed, the first non-removable block device"
+    >&3 echo "               that is not the recovery tool is used."
+}
+disable_automount()
+{
+    echo -e $TARGET_DISK >> /etc/udev/mount.blacklist
+    AUTOMOUNT_DISABLED=1
+}
+
+enable_automount()
+{
+    sed -ie "\#$TARGET_DISK#d" /etc/udev/mount.blacklist
+    AUTOMOUNT_DISABLED=0
+}
+#waits until the four partitions are visible
+wait_for_partitions()
+{
+    DEVICE_TMP=$1
+    for i in 1 2 3 4
+    do
+        #wait max 3 seconds for each partition
+        print_verbose "Waiting for $DEVICE_TMP$i "
+        MaxTries=30
+        while [ ! -b ${DEVICE_TMP}${PART_SEPARATOR}$i -a $MaxTries -gt 0 ];
+        do
+            print_verbose "."
+            #sleep 0.1 seconds
+            usleep 100000
+            MaxTries=$(($MaxTries - 1))
+        done
+        if [ $MaxTries -eq 0 ]; then
+            return 1
+        fi
+    done
+}
+
+install_default_error_handler()
+{
+    trap 'handle_err ${BASH_SOURCE} ${LINENO} ${FUNCNAME:-unknown} $? "$BASH_COMMAND"' ERR
+}
+
+handle_err()
+{
+    TMP_EVAL=`eval echo $5`
+    print_error "$1:$2 (fn=$3): Unexpected status code $4, while running command: '$TMP_EVAL'" ${NC}
+}
+
+umount_partitions()
+{
+    for PART in `ls -1 ${TARGET_DISK}* | tail -n +2`
+    do
+        if [ ! -z "`mount | grep $PART`" ]; then
+            umount $PART
+        fi
+    done
+}
+
+check_all_used_binaries()
+{
+    commands=(dmidecode e2label hexdump lsblk mkfs.ext4 mkfs.vfat parted sed sfdisk sgdisk udevadm)
+    for ind_command in ${commands[@]}; do
+        one_command=`command -v ${ind_command}`
+        if [[ -z $one_command ]]; then
+            die "Command \"${ind_command}\" not found. Please install ${ind_command}."
+        fi
+    done
+
+}
+
+list_block_devices()
+{
+    for device in /sys/block/*; do
+        if udevadm info --query=property --path=$device | grep -q ^ID_BUS=$1; then
+            echo $device;
+        fi
+    done
+}
+
+is_valid_block_device()
+{
+    # Choose first block device that is not removable and is not the recovery tool
+    if [[ $(cat $device/removable) == 1 ]]; then
+        return 1
+    fi
+
+    valid_block=0
+    partlist=`ls -1d $1/\`basename $1\`*`
+    for partition in $partlist; do
+        label=`lsblk /dev/\`basename $partition\` -n -o LABEL`
+        if [[ "$label" == "NIRECOVERY" ]]; then
+            valid_block=1
+            break
+        fi
+    done
+
+    return $valid_block
+}
+
+find_target_block_device()
+{
+    list_block_devices $1 | while read device; do
+        if is_valid_block_device $device; then
+            echo /dev/`basename $device`
+            break;
+        fi
+    done
+}
+
+override_primaryport_grubenv()
+{
+    # Add target-specific override of primary ethernet port if the lowest ifIndex is not to be used
+    device_code=$(/usr/sbin/dmidecode -t 11 | grep -- "String 2: " | awk -F "String 2: TargetID:" '{print $2}')
+    # CVS-1458RT
+    if [[ x"$device_code" == x"77AA" ]]; then
+        # Set eth0 (note: renamed to eth0 via udev) as the primary port. Do not let the primary
+        # port selection logic decide since it selects the 'eth' port with the lowest ifIndex
+        # value. (Renaming the port via udev does not alter ifIndex, so eth0 is not the lowest)
+        grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "ethaddr=`cat /sys/class/net/eth0/address`"
+    fi
+}
+
+add_USB_gadget_args_to_grubenv()
+{
+    USB_DEVICE_SMBIOS_NUM=155
+    # If SMBIOS table type 155 does not exist, the target does not support device USB.
+    if [[ ! -z `/usr/sbin/dmidecode -t $USB_DEVICE_SMBIOS_NUM |grep $USB_DEVICE_SMBIOS_NUM` ]]; then
+
+        #read MAC address for USB device from SMBIOS and write to grubenv
+        value=$(/usr/sbin/dmidecode | sed -n "/DMI type $USB_DEVICE_SMBIOS_NUM/,/^$/p" | sed -n 6p | xargs)
+        if [[ ! -z $value ]]; then
+            echo set usbgadgetethaddr=$value >> $GRUB_MOUNTPOINT/grubvar_readonly
+        else
+            print_error "The USB gadget MAC address is missing from SMBIOS! UPGRADE your BIOS if using NI Target. USB Gadget will not be functional."
+            return
+        fi
+
+        #read USB device PID and VID from SMBIOS and write to grubenv
+        value=$(/usr/sbin/dmidecode | sed -n "/DMI type $USB_DEVICE_SMBIOS_NUM/,/^$/p" | sed -n 4p | xargs)
+        if [[ ! -z $value ]]; then
+            VID=$(echo $value | awk '{print substr($0,16,2) substr($0,13,2)}')
+            PID=$(echo $value | awk '{print substr($0,22,2) substr($0,19,2)}')
+            echo set USBVendorID=0x$VID >> $GRUB_MOUNTPOINT/grubvar_readonly
+            echo set USBProductID=0x$PID >> $GRUB_MOUNTPOINT/grubvar_readonly
+        else
+            print_error "The USB vendor ID and product ID are missing from SMBIOS! UPGRADE your BIOS if using NI Target. USB Gadget will not be functional."
+            return
+        fi
+
+        #read serial number from SMBIOS and write to grubenv
+        value=$(/usr/sbin/dmidecode | sed -n "/System Information/,/^$/p" | grep -- "Serial Number: " | awk -F "Serial Number: " '{print $2}')
+        if [[ ! -z $value ]]; then
+            echo set SerialNum=$value >> $GRUB_MOUNTPOINT/grubvar_readonly
+        else
+            print_error "The serial number is missing from SMBIOS! UPGRADE your BIOS if using NI Target. USB Gadget will not be functional."
+            return
+        fi
+
+        #read USBDevice from SMBIOS and write to grubenv
+        value=$(/usr/sbin/dmidecode | sed -n "/OEM Strings/,/^$/p" | grep -- "String 2: TargetID:" | awk -F "String 2: TargetID:" '{print $2}')
+        if [[ ! -z $value ]]; then
+            echo set USBDevice=0x$value >> $GRUB_MOUNTPOINT/grubvar_readonly
+        else
+            print_error "The target ID is missing from SMBIOS! UPGRADE you BIOS if using NI Target. USB Gadget will not be functional."
+            return
+        fi
+
+        #read USBProduct from SMBIOS and write to grubenv
+        value=$(/usr/sbin/dmidecode | sed -n "/System Information/,/^$/p" | grep -- "Product Name: NI " | awk -F "Product Name: NI " '{print $2}')
+        if [[ ! -z $value ]]; then
+            echo set USBProduct=$value >> $GRUB_MOUNTPOINT/grubvar_readonly
+        else
+            print_error "The product name is missing from SMBIOS! UPGRADE your BIOS if using NI Target. USB Gadget will not be functional."
+            return
+        fi
+    fi
+}
+
+set_serial_port()
+{
+    if [[ -f /sys/class/tty/ttyS0/port ]]; then
+        echo "set serial_port="`cat /sys/class/tty/ttyS0/port` >> $GRUB_MOUNTPOINT/grubvar_readonly
+    fi
+}
+
+#############
+#main script#
+#############
+
+install_default_error_handler
+
+exec 3>&1
+exec 4>&2
+
+LOG_LEVEL=`cut -f1 /proc/sys/kernel/printk`
+
+OPTIND=1
+
+while getopts "havt:" opt; do
+    case "$opt" in
+        h)  show_help
+            exit 1
+            ;;
+        a)  ask_at_every_error="y"
+            ;;
+        v)  verbose_mode=1
+            >&3 echo "Verbose mode..."
+            ;;
+        t)  TARGET_DISK=$OPTARG
+            ;;
+		*)  show_help
+			exit 1
+			;;	
+    esac
+done
+
+shift $((OPTIND-1))
+
+[ "$1" = "--" ] && shift
+
+if [[ $verbose_mode -eq 0 ]]; then
+    exec 1>/dev/null
+    exec 2>/dev/null
+    MKFS_ARGS="-q"
+else
+    MKFS_ARGS="-v"
+fi
+
+if [[ -z $TARGET_DISK ]]; then
+    TARGET_DISK=`find_target_block_device`
+    if [[ -z TARGET_DISK ]]; then
+        die "No target device found for installation."
+    fi
+else
+    if [[ ! -e $TARGET_DISK ]]; then
+        >&4 echo -e ${red}"Error: DEVICE $TARGET_DISK does not exist."${NC}
+        show_help
+        exit 1
+    fi
+fi
+
+#separate partition number from block device names ending in a digit
+PART_SEPARATOR=''
+if [[ "${TARGET_DISK: -1}" =~ [0-9] ]]; then
+    PART_SEPARATOR='p'
+fi
+
+check_all_used_binaries
+
+if [[ -d "/sys/firmware/efi" ]]; then
+    BOOT_STYLE="efi"
+else
+    BOOT_STYLE="legacy"
+fi
+
+echo "Installing safemode to: $TARGET_DISK using $BOOT_STYLE boot style."
+
+echo 6 > /proc/sys/kernel/printk
+
+if [[ $restore == "backward-migrate" ]]; then
+    SOURCE_DIR=/boot/.oldNILinuxRT
+else
+    #find and mount USB key
+    mkdir -p $USB_MOUNTPOINT
+    MOUNT_ERROR=`mount -L NIRECOVERY $USB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
+    SOURCE_DIR=$USB_MOUNTPOINT
+fi
+
+print_info "Partitioning $TARGET_DISK..."
+PART1_LABEL=nigrub
+PART2_LABEL=nibootfs
+PART3_LABEL=niconfig
+PART4_LABEL=nirootfs
+
+print_done
+
+# GPT partitions must assign a partition name whereas
+# MSDOS partitions must assign a partition type (e.g. primary)
+if [[ "$BOOT_STYLE" == "efi" ]]; then
+    PART_STYLE=gpt
+    PART1_NAME=$PART1_LABEL
+    PART2_NAME=$PART2_LABEL
+    PART3_NAME=$PART3_LABEL
+    PART4_NAME=$PART4_LABEL
+else
+    PART_STYLE=msdos
+    PART1_NAME=primary
+    PART2_NAME=primary
+    PART3_NAME=primary
+    PART4_NAME=primary
+fi
+
+umount_partitions
+disable_automount
+
+PARTED_ERROR=`parted -s $TARGET_DISK mklabel $PART_STYLE 2>&1` || die "$PARTED_ERROR"
+PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART1_NAME 1MB 16MB 2>&1` || die "$PARTED_ERROR"
+PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART2_NAME 16MB 200MB 2>&1` || die "$PARTED_ERROR"
+PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART3_NAME 200MB 216MB 2>&1` || die "$PARTED_ERROR"
+PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART4_NAME 216MB 100% 2>&1` || die "$PARTED_ERROR"
+
+print_info "Assigning EFI System Partition..."
+
+if [[ "$BOOT_STYLE" == "efi" ]]; then
+    sgdisk --typecode=1:C12A7328-F81F-11D2-BA4B-00A0C93EC93B $TARGET_DISK
+else
+    sfdisk -c $TARGET_DISK 1 EF
+fi
+
+print_done
+
+wait_for_partitions $TARGET_DISK
+
+print_info "Formatting partitions..."
+
+MKFS_ERROR=`mkfs.vfat -n $PART1_LABEL ${TARGET_DISK}${PART_SEPARATOR}1 2>&1` || die "$MKFS_ERROR"
+mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}${PART_SEPARATOR}2 || die "Format failed!"
+mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}${PART_SEPARATOR}3 || die "Format failed!"
+mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}${PART_SEPARATOR}4 || die "Format failed!"
+
+LABEL_ERROR=`e2label ${TARGET_DISK}${PART_SEPARATOR}2 $PART2_LABEL 2>&1` || die "$LABEL_ERROR"
+LABEL_ERROR=`e2label ${TARGET_DISK}${PART_SEPARATOR}3 $PART3_LABEL 2>&1` || die "$LABEL_ERROR"
+LABEL_ERROR=`e2label ${TARGET_DISK}${PART_SEPARATOR}4 $PART4_LABEL 2>&1` || die "$LABEL_ERROR"
+
+print_done
+
+#install grub
+
+
+GRUB_MOUNTPOINT=/var/volatile/grub
+mkdir $GRUB_MOUNTPOINT -p
+MOUNT_ERROR=`mount -L $PART1_LABEL $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
+
+if [[ "$BOOT_STYLE" == "efi" ]]; then
+    print_info "Configuring EFI grub2..."
+    GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/efi/boot
+    mkdir -p $GRUB_TARGET_DIR
+    cp -r /boot/EFI/BOOT/bootx64.efi $GRUB_TARGET_DIR
+    for ENTRY in `efibootmgr | grep "LabVIEW RT"| egrep -o '[0-9A-F]{4}' || true`
+    do
+	EFIMGR=`efibootmgr -b $ENTRY -B 2>&1` || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
+    done
+    do_silent efibootmgr -c -d ${TARGET_DISK} -p 1 -L 'LabVIEW RT' -l '\efi\boot\bootx64.efi'
+else
+    print_info "Configuring legacy grub2..."
+    GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/boot/grub
+    #grub tools expect /lib64 instead of /lib
+    ln -sf /lib /lib64
+    # set ${TARGET_DISK}1 boot flag on
+    parted -s ${TARGET_DISK} set 1 boot on
+    grub-install --recheck --root-directory=$GRUB_MOUNTPOINT $TARGET_DISK
+fi
+print_done
+
+print_info "Insalling kernel and ramdisk..."
+
+cp $SOURCE_DIR/safemode_files/grub.cfg $GRUB_TARGET_DIR/grub.cfg
+mkdir -p $GRUB_TARGET_DIR/fonts
+cp $SOURCE_DIR/safemode_files/fonts/unicode.pf2 $GRUB_TARGET_DIR/fonts/
+
+#install safemode kernel and ramdisk
+BOOTFS_MOUNTPOINT=/var/volatile/bootfs
+mkdir $BOOTFS_MOUNTPOINT -p
+BOOTFS_ERROR=`mount -L $PART2_LABEL $BOOTFS_MOUNTPOINT 2>&1` || die "$BOOTFS_ERROR"
+mkdir -p $BOOTFS_MOUNTPOINT/.safe
+
+safemode_files=(bzImage ramdisk.gz bootimage.ini bootimage.cfg)
+for safemode_file in ${safemode_files[@]}; do
+    cp $SOURCE_DIR/safemode_files/$safemode_file $BOOTFS_MOUNTPOINT/.safe
+done
+
+print_done
+
+mkdir $BOOTFS_MOUNTPOINT/grub
+
+#check if target is NI target
+CPLD_REGISTER=$(dd if=/dev/port bs=1 count=1 skip=512 |  od -An -t x1 -N 1 | cut -d ' ' -f 2)
+[[ "$CPLD_REGISTER" == "e5" ]] && NI_TARGET=true || NI_TARGET=false
+
+touch $BOOTFS_MOUNTPOINT/grub/grubenv
+touch $BOOTFS_MOUNTPOINT/.safe/SMBIOS_NI_vars
+touch $BOOTFS_MOUNTPOINT/.safe/EFI_NI_vars
+touch $BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars
+if [[ "$NI_TARGET" == "true" ]]; then
+    #is ni target
+    cp $SOURCE_DIR/safemode_files/grubenv $BOOTFS_MOUNTPOINT/grub
+    cp $SOURCE_DIR/safemode_files/SMBIOS_NI_vars $BOOTFS_MOUNTPOINT/.safe
+    if [[ "$BOOT_STYLE" == "efi" ]]; then
+        cp $SOURCE_DIR/safemode_files/EFI_NI_vars $BOOTFS_MOUNTPOINT/.safe
+        add_USB_gadget_args_to_grubenv
+        override_primaryport_grubenv
+    fi
+else
+    cp $SOURCE_DIR/safemode_files/grubenv_non_ni_target $BOOTFS_MOUNTPOINT/grub/grubenv
+fi
+
+set_serial_port
+
+grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "BIOSBootMode=$BOOT_STYLE"
+grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "NITarget=$NI_TARGET"
+
+#Mark BIOSBootMode and NITarget as grub read-only variables"
+echo "BIOSBootMode" >> $BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars
+echo "NITarget" >> $BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars
+
+# save rootfs UUID for grub to reference
+if [[ "$BOOT_STYLE" == "efi" ]]; then
+    ROOTUUID=`lsblk ${TARGET_DISK}${PART_SEPARATOR}4 -n -o PARTUUID`
+else
+    # On msdos partitions, the NT disk signature is accepted as a valid
+    # PARTUUID value. The PARTUUID has the format SSSSSSSS-PP, where
+    # the first field is the "NT disk signature" and the second field is the
+    # partition number.  Both fields use hex representation.
+
+    # Read "NT disk signature" from MBR offset 0x1B8 (440d) and
+    # append rootfs partition number.
+    ROOTUUID=`hexdump -s 440 -n 4 -e '1 4 "%08x" "\n"' ${TARGET_DISK}`-04
+fi
+echo set rootuuid=$ROOTUUID >> $GRUB_MOUNTPOINT/grubvar_readonly
+
+# set proper permissions on and backup firmware variable files
+chown 0:500 $BOOTFS_MOUNTPOINT/grub/grubenv
+chmod ug=rw,o=r $BOOTFS_MOUNTPOINT/grub/grubenv
+cp -p $BOOTFS_MOUNTPOINT/grub/grubenv $BOOTFS_MOUNTPOINT/grub/grubenv.bak
+chmod a=r $BOOTFS_MOUNTPOINT/.safe/SMBIOS_NI_vars
+chmod a=r $BOOTFS_MOUNTPOINT/.safe/EFI_NI_vars
+chmod a=r $BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars
+
+# mount config partition and set proper ownership/permissions
+CONFIG_MOUNTPOINT=/var/volatile/configfs
+mkdir -p $CONFIG_MOUNTPOINT
+mount -L $PART3_LABEL $CONFIG_MOUNTPOINT
+chown 500:500 $CONFIG_MOUNTPOINT
+chmod ug=rwx,o=rx $CONFIG_MOUNTPOINT
+
+echo $LOG_LEVEL > /proc/sys/kernel/printk
+
+print_info "Unmounting partitions..."
+
+umount_partitions
+enable_automount
+trap - ERR
+exec 1>&3
+exec 2>&4
+print_done
+
+green='\e[0;32m'
+echo -e ${green}"PROVISIONING SUCCESSFUL!"${NC} 1>&3 2>&4
