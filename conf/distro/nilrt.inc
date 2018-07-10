@@ -41,6 +41,8 @@ VIRTUAL-RUNTIME_graphical_init_manager = "xserver-xfce-init"
 
 VIRTUAL-RUNTIME_base-utils-hwclock = "util-linux-hwclock"
 
+VIRTUAL-RUNTIME_initscripts = "initscripts"
+
 # For qemu images
 VIRTUAL-RUNTIME_keymaps = ""
 
