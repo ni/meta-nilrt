@@ -61,30 +61,6 @@ DEPENDS_append_armv7a += "dtc-native"
 
 RDEPENDS_kernel-dev += "bash binutils gcc gcc-symlinks"
 
-KERNEL_DEVICETREE_xilinx-zynqhf = "\
-        ni-762F.dtb \
-        ni-76D3.dtb \
-        ni-76D6.dtb \
-        ni-76F2.dtb \
-        ni-7740.dtb \
-        ni-7741.dtb \
-        ni-7742.dtb \
-        ni-7743.dtb \
-        ni-7744.dtb \
-        ni-774C.dtb \
-        ni-774E.dtb \
-        ni-775E.dtb \
-        ni-77AC.dtb \
-        ni-77B1.dtb \
-        ni-77B2.dtb \
-        ni-77D4.dtb \
-        ni-77D5.dtb \
-        ni-77D6.dtb \
-        ni-7885.dtb \
-"
-
-KERNEL_DEVICETREE_xilinx-zynq = "${KERNEL_DEVICETREE_xilinx-zynqhf}"
-
 #create uImage for armv7a targets
 KERNEL_IMAGETYPE_armv7a = "uImage"
 UBOOT_LOADADDRESS ?= "0x8000"
