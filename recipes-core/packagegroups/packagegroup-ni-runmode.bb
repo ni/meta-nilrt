@@ -25,7 +25,6 @@ RDEPENDS_${PN} = "\
 	parted \
 	rtctl \
 	util-linux-sfdisk \
-	udev-cache \
 	vlan \
 	zip \
 "
