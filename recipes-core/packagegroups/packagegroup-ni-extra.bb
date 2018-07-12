@@ -10,7 +10,6 @@ RDEPENDS_${PN}_append_x64 = "\
 	${@bb.utils.contains('DISTRO_FEATURES', 'x11', '\
 		packagegroup-self-hosted \
 		packagegroup-core-lsb \
-		packagegroup-core-qt \
 		packagegroup-xfce-extended \
 		packagegroup-ni-mono-extra \
 		consolekit \
@@ -20,7 +19,6 @@ RDEPENDS_${PN}_append_x64 = "\
 		gnuradio \
 		gtk+3 \
 		iceauth \
-		florence \
 		fltk \
 		libvncserver \
 		libwmf \
@@ -31,8 +29,8 @@ RDEPENDS_${PN}_append_x64 = "\
 		numlockx \
 		openjdk-7-jre \
 		openbox \
+		onboard \
 		polkit \
-		python-pyqt \
 		sessreg \
 		setxkbmap \
 		sip \
@@ -67,6 +65,7 @@ RDEPENDS_${PN} = "\
 	packagegroup-core-tools-debug \
 	packagegroup-core-security \
 	packagegroup-tpm2 \
+	packagegroup-fonts-truetype \
 "
 
 # meta-nilrt
@@ -79,10 +78,11 @@ RDEPENDS_${PN} += "\
 	avahi \
 	bind \
 	cifs-utils \
-	dhcp \
+	dhcp-server \
+	dhcp-client \
+	dhcp-omshell \
 	libpcap \
 	ofono \
-	portmap \
 	ppp \
 	ppp-dialin \
 	python-salttesting \
@@ -130,7 +130,6 @@ RDEPENDS_${PN} += "\
 	flex \
 	gnu-config \
 	i2c-tools \
-	mkelfimage \
 	mmc-utils \
 	mtd-utils \
 	ossp-uuid \
@@ -173,7 +172,6 @@ RDEPENDS_${PN} += "\
 	mailx \
 	msmtp \
 	net-tools \
-	pax \
 	pigz \
 	libconvert-asn1-perl \
 	libtimedate-perl \
@@ -184,7 +182,6 @@ RDEPENDS_${PN} += "\
 	screen \
 	shadow \
 	slang \
-	stat \
 	sysklogd \
 	tcp-wrappers \
 	time \
@@ -225,7 +222,6 @@ RDEPENDS_${PN} += "\
 	dtc \
 	kexec-tools \
 	kmod \
-	latencytop \
 	linux-firmware \
 	oprofile \
 	perf \
@@ -377,14 +373,10 @@ RDEPENDS_${PN}_append_x64 += "\
 	jasper \
 	packagegroup-fonts-truetype \
 	terminus-font \
-	ttf-dejavu \
-	ttf-droid \
 	ttf-gentium \
 	ttf-inconsolata \
-	ttf-liberation \
 	ttf-mplus \
 	ttf-pt-sans \
-	ttf-ubuntu-font-family \
 	xorg-sgml-doctools \
 "
 
@@ -482,7 +474,6 @@ RDEPENDS_${PN} += "\
 	start-stop-daemon \
 	strongswan \
 	system-config-keyboard \
-	system-setup-keyboard \
 	libtalloc \
 	tbb \
 	tree \
@@ -547,11 +538,12 @@ RDEPENDS_${PN} += "\
 	ebtables \
 	netkit-ftp \
 	netkit-rpc \
-	netkit-rsh \
-	netkit-rusers \
-	netkit-rwho \
+	netkit-rsh-client \
+	netkit-rsh-server \
+	netkit-rwho-server \
+	netkit-tftp-client \
+	netkit-tftp-server \
 	netkit-telnet \
-	netkit-tftp \
 	net-snmp \
 	openflow \
 	openl2tp \
