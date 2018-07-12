@@ -54,6 +54,10 @@ PREFERRED_PROVIDER_virtual/libgles2 ?= "mesa"
 
 PREFERRED_PROVIDER_virtual/kernel ?= "linux-nilrt"
 
+PREFERRED_RPROVIDER_java2-runtime = "openjdk-8"
+
+PREFERRED_RPROVIDER_refpolicy = "refpolicy-standard"
+
 PREFERRED_PROVIDER_jpeg = "jpeg"
 PREFERRED_PROVIDER_jpeg-native = "jpeg-native"
 
