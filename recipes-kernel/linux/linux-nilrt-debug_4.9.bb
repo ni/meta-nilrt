@@ -7,10 +7,6 @@ SRC_URI += "\
 	file://debug.cfg \
 "
 
-# This is an extra kernel package; zero out the PROVIDES set in kernel.bbclass
-# to avoid errors related to multiple recipes providing virtual/kernel
-PROVIDES = ""
-
 LINUX_VERSION_EXTENSION = "-debug"
 KERNEL_PACKAGE_NAME = "kernel${LINUX_VERSION_EXTENSION}"
 
