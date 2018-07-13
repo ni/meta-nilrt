@@ -4,5 +4,13 @@ LICENSE = "MIT"
 inherit packagegroup
 
 RDEPENDS_${PN} = "\
-	linux-nilrt-debug \
-	"
+	kernel-debug \
+	kernel-debug-base \
+	kernel-debug-vmlinux \
+	kernel-debug-image \
+	kernel-debug-dev \
+	kernel-debug-modules \
+	kernel-module-versioning \
+	kernel-debug-devicetree \
+	kernel-debug-image-bzimage \
+"
