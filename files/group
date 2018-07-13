@@ -56,6 +56,8 @@ www-data:x:356:
 lldpd:x:355:
 redis:x:354:
 _apt:x:353:
+coroqnetd:x:352:
+logcheck:x:351:
 ni:x:500:
 openvpn:x:499:
 niwscerts:x:498:
