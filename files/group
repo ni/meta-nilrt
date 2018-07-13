@@ -1,4 +1,5 @@
 mail:x:8:
+postgres:x:28:
 netdev:x:999:
 messagebus:x:998:
 avahi:x:997:
@@ -38,7 +39,6 @@ lpadmin:x:374:
 www:x:373:
 systemd-timesync:x:372:
 mpd:x:371:
-postgres:x:370
 rabbitmq:x:369:
 trove:x:368:
 nova:x:367:
