@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 S = "${WORKDIR}"
 
 DEPENDS = "shadow-native pseudo-native niacctbase"
-RDEPENDS_${PN} = "niacctbase xfce4-settings xfce4-session xfce4-panel"
+RDEPENDS_${PN} = "bash niacctbase xfce4-settings xfce4-session xfce4-panel"
 
 user = "${LVRT_USER}"
 group = "${LVRT_GROUP}"
