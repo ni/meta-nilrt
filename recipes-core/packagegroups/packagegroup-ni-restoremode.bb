@@ -36,3 +36,7 @@ RDEPENDS_${PN}_append_xilinx-zynqhf = "\
     mtd-utils-ubifs     \
     u-boot-fw-utils     \
     "
+
+# important: don't change this to RDEPENDS, we don't want to include these in
+# all restore-mode packages, we just want to ensure they get built
+DEPENDS_x64 += "safemode-image"
