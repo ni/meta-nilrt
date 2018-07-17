@@ -60,6 +60,8 @@ PREFERRED_RPROVIDER_refpolicy = "refpolicy-standard"
 
 PREFERRED_RPROVIDER_polarssl = "polarssl"
 
+PREFERRED_RPROVIDER_initd-functions = "initscripts"
+
 PREFERRED_PROVIDER_jpeg = "jpeg"
 PREFERRED_PROVIDER_jpeg-native = "jpeg-native"
 
