@@ -238,7 +238,8 @@ EOF
             root_partition_value="$nilrt_path"
         fi
 
-        grub-editenv $NILRT_MOUNTPOINT/boot/grubenv set root_partition_name="$root_partition_value"
+        mkdir -p $NILRT_MOUNTPOINT/boot/grub
+        grub-editenv $NILRT_MOUNTPOINT/boot/grub/grubenv set root_partition_name="$root_partition_value"
 
         sync
         umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
