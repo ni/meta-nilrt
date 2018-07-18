@@ -121,7 +121,7 @@ if [ "$ARCH" = "armv7l" ]; then
             #replace the linux_safemode.itb with the fake one
             cp $NILRT_MOUNTPOINT/.newNILinuxRT/.safe/linux_next_safemode.itb $NIRESTORE_MOUNTPOINT/.safe/linux_safemode.itb
             #copy all the necessary files for restore-mode
-            mkdir $NIRESTORE_MOUNTPOINT/.restore
+            mkdir -p $NIRESTORE_MOUNTPOINT/.restore
             cp $NILRT_MOUNTPOINT/.newNILinuxRT/.restore/dtbs/ni-$DEVICE_CODE.dtb $NIRESTORE_MOUNTPOINT/.restore/ || die "ni-$DEVICE_CODE.dtb file not found!"
             cp $NILRT_MOUNTPOINT/.newNILinuxRT/.restore/uImage $NIRESTORE_MOUNTPOINT/.restore/ || die "Kernel not found!"
             cp $NILRT_MOUNTPOINT/.newNILinuxRT/.restore/ramdisk $NIRESTORE_MOUNTPOINT/.restore/ || die "Ramdisk not found!"
@@ -212,7 +212,7 @@ EOF
         local nilrt_path="$1" uuid="$2" nilrt_label="$3"
 
         NILRT_MOUNTPOINT=/var/volatile/nilrt
-        mkdir $NILRT_MOUNTPOINT -p
+        mkdir -p $NILRT_MOUNTPOINT
         if [[ -z "$nilrt_path" ]]; then
             echo "Formatting $TARGET_DISK $NILRT_LABEL partition..."
             do_silent partition_format $TARGET_DISK $NILRT_LABEL
@@ -240,7 +240,6 @@ EOF
 
         mkdir -p $NILRT_MOUNTPOINT/boot/grub
         grub-editenv $NILRT_MOUNTPOINT/boot/grub/grubenv set root_partition_name="$root_partition_value"
-
         sync
         umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
 
@@ -274,7 +273,7 @@ EOF
         #install grub
 
         GRUB_MOUNTPOINT=/var/volatile/grub
-        mkdir $GRUB_MOUNTPOINT -p
+        mkdir -p $GRUB_MOUNTPOINT
         nigrub_path=`lsblk -rpn $TARGET_DISK -o NAME,LABEL | grep " $NIGRUB_LABEL"'$' | tail -1 | cut -d' ' -f1`
         do_silent echo "Mounting $nigrub_path $NIGRUB_LABEL partition..."
         MOUNT_ERROR=`mount $nigrub_path $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
@@ -305,7 +304,7 @@ EOF
 
         #install restore kernel and ramdisk
         RESTORE_MOUNTPOINT=/var/volatile/restore
-        mkdir $RESTORE_MOUNTPOINT -p
+        mkdir -p $RESTORE_MOUNTPOINT
         nirestore_path=`lsblk -rpn $TARGET_DISK -o NAME,LABEL | grep " $NIRESTORE_LABEL"'$' | tail -1 | cut -d' ' -f1`
         do_silent echo "Mounting $nirestore_path $NIRESTORE_LABEL partition..."
         RESTORE_ERROR=`mount $nirestore_path $RESTORE_MOUNTPOINT 2>&1` || die "$RESTORE_ERROR"
