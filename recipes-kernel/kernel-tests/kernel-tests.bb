@@ -42,13 +42,13 @@ LDFLAGS += "-lcap -lpthread"
 
 do_compile_ptest_append() {
     cd ${WORKDIR}
-    ${CC} -o test_kernel_mcopy_functionality test_kernel_mcopy_functionality.c
-    ${CC} -o test_kernel_mcopy_freed_memory test_kernel_mcopy_freed_memory.c
-    ${CC} -o test_exe_cap_support test_exe_cap_support.c ${LDFLAGS}
-    ${CC} -o cap_support_exe_to_test cap_support_exe_to_test.c ${LDFLAGS}
-    ${CC} -o test_proc_cap_support test_proc_cap_support.c ${LDFLAGS}
-    ${CC} -o test_kernel_hrtimers test_kernel_hrtimers.c
-    ${CC} -o test_pthread_stack_size test_pthread_stack_size.c ${LDFLAGS}
+    ${CC} ${CFLAGS} -o test_kernel_mcopy_functionality test_kernel_mcopy_functionality.c ${LDFLAGS}
+    ${CC} ${CFLAGS} -o test_kernel_mcopy_freed_memory test_kernel_mcopy_freed_memory.c ${LDFLAGS}
+    ${CC} ${CFLAGS} -o test_exe_cap_support test_exe_cap_support.c ${LDFLAGS}
+    ${CC} ${CFLAGS} -o cap_support_exe_to_test cap_support_exe_to_test.c ${LDFLAGS}
+    ${CC} ${CFLAGS} -o test_proc_cap_support test_proc_cap_support.c ${LDFLAGS}
+    ${CC} ${CFLAGS} -o test_kernel_hrtimers test_kernel_hrtimers.c ${LDFLAGS}
+    ${CC} ${CFLAGS} -o test_pthread_stack_size test_pthread_stack_size.c ${LDFLAGS}
 }
 
 do_install_ptest_append() {
