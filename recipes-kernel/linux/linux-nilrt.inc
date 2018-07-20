@@ -70,7 +70,7 @@ KERNEL_EXTRA_ARGS_armv7a += "LOADADDR=0x8000"
 # Install headers and build objects for kernel versioning into
 # /lib/modules/${KERNEL_VERSION}/build for inclusion in kernel-dev.
 do_install_append() {
-	kerneldevdir=${D}/lib/modules/${KERNEL_VERSION}/build
+	kerneldevdir=${D}${base_libdir}/modules/${KERNEL_VERSION}/build
 	install -d $kerneldevdir
 
 	cd ${S}

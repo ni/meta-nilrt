@@ -24,9 +24,9 @@ do_compile() {
 do_install() {
 	install -m 0755 -d ${D}${bindir}
         install -m 0755 ${S}/crda ${D}${bindir}
-	install -m 0755 -d ${D}/lib/udev/rules.d
+	install -m 0755 -d ${D}${libdir}/udev/rules.d
 	sed 's:$(SBINDIR):${bindir}/:' ${S}/udev/regulatory.rules > ${S}/udev/regulatory.rules.parsed
-	install -m 0755 ${S}/udev/regulatory.rules.parsed ${D}/lib/udev/rules.d/85-regulatory.rules
+	install -m 0755 ${S}/udev/regulatory.rules.parsed ${D}${libdir}/udev/rules.d/85-regulatory.rules
 }
 
-FILES_${PN} += "${base_libdir}/udev/rules.d/85-regulatory.rules"
+FILES_${PN} += "${libdir}/udev/rules.d/85-regulatory.rules"
