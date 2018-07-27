@@ -1,5 +1,4 @@
 #! /bin/sh
-set -e
 
 PROGRAM_NAME='rtctld'
 EXE_PATH='/usr/sbin/rtctld'
@@ -12,36 +11,48 @@ EXE_PATH='/usr/sbin/rtctld'
 
 setsched()
 {
-    set -e
     echo -n "Setting $PROGRAM_NAME scheduler priority to $CHRT_SCHED_POLICY:$CHRT_SCHED_PRIOR "
     daemonPid="`pidof "$EXE_PATH"`"
 
     # root check
-    [ -n "`cat "/proc/$daemonPid/status" | egrep '^Uid:(\W+0){4}$'`" ]
-    [ -n "`cat "/proc/$daemonPid/status" | egrep '^Gid:(\W+0){4}$'`" ]
+    [ -n "`cat "/proc/$daemonPid/status" | egrep '^Uid:(\W+0){4}$'`" ] || echo "WARNING: $PROGRAM_NAME (pid $daemonPid) not running as root user"
+    [ -n "`cat "/proc/$daemonPid/status" | egrep '^Gid:(\W+0){4}$'`" ] || echo "WARNING: $PROGRAM_NAME (pid $daemonPid) not running as root group"
 
     # set scheduler policy
-    chrt -p -"$CHRT_SCHED_POLICY" "$CHRT_SCHED_PRIOR" "$daemonPid" >/dev/null
-
-    echo "done"
+    if chrt -p -"$CHRT_SCHED_POLICY" "$CHRT_SCHED_PRIOR" "$daemonPid" >/dev/null; then
+        echo "done"
+    else
+        echo "ERROR: chrt failed"
+        exit 1
+    fi
 }
 
 startdaemon()
 {
-    set -e
     echo -n "Starting $PROGRAM_NAME: "
-    start-stop-daemon --start -x "$EXE_PATH"
-    echo "done"
 
-    [ -z "$CHRT_SCHED_POLICY" ] || setsched
+    if start-stop-daemon --start -x "$EXE_PATH"; then
+        echo "done"
+    else
+        echo "ERROR: start-stop-daemon failed to start"
+        exit 1
+    fi
+
+    if [ -n "$CHRT_SCHED_POLICY" -a -n "$CHRT_SCHED_PRIOR" ]; then
+        setsched
+    fi
 }
 
 stopdaemon()
 {
-    set -e
     echo -n "Stopping $PROGRAM_NAME: "
-    start-stop-daemon --stop --retry 30 -x "$EXE_PATH"
-    echo "done"
+
+    if start-stop-daemon --stop --retry 30 -x "$EXE_PATH"; then
+        echo "done"
+    else
+        echo "ERROR: start-stop-daemon failed to stop"
+        exit 1
+    fi
 }
 
 case "$1" in
