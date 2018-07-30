@@ -847,3 +847,8 @@ RDEPENDS_${PN} += "\
 	nirtcfg-tests \
 	sysconfig-settings \
 "
+
+# meta-qt5
+RDEPENDS_${PN} += "\
+	qtvirtualkeyboard \
+"
