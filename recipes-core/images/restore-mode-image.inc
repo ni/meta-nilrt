@@ -27,6 +27,4 @@ install_payload_append_xilinx-zynqhf(){
 
 ROOTFS_POSTPROCESS_COMMAND += "install_payload;"
 
-BAD_RECOMMENDATIONS += "busybox-syslog"
-
 require nilrt-image-common.inc
