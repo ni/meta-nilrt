@@ -147,6 +147,7 @@ RRECOMMENDS_${PN}_x64 += "\
 	kernel-module-e1000e \
 	kernel-module-hid-microsoft \
 	kernel-module-i40e \
+	kernel-module-i8042 \
 	kernel-module-i915 \
 	kernel-module-igb \
 	kernel-module-intel_agp \
