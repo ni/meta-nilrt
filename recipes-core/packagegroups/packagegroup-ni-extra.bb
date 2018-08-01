@@ -657,6 +657,11 @@ RDEPENDS_${PN} += "\
 	sthttpd \
 "
 
+# meta-openembedded/meta-gnome
+RDEPENDS_${PN} += "\
+	florence \
+"
+
 # meta-nilrt/recipes-devtools
 RDEPENDS_${PN} += " \
 	debootstrap \
