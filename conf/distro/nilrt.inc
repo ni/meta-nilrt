@@ -74,6 +74,8 @@ QTDEMOS = "quicky fotowall"
 
 GCCVERSION = "7.3%"
 
+OPKGBUILDCMD = "opkg-build"
+
 EFI_PROVIDER = "grub-efi"
 
 DISTRO_FEATURES_BACKFILL_CONSIDERED_arm = "gobject-introspection-data"
