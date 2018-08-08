@@ -10,6 +10,8 @@ RDEPENDS_${PN} += " bash "
 
 S = "${WORKDIR}"
 
+PACKAGES = "${PN}"
+
 do_install() {
         install -d ${D}${base_sbindir}/
 	sed -e "s#NEXT_FEED_URI=\"\"#NEXT_FEED_URI=\"${NILRT_FEEDS_URI}/${NILRT_RELEASE_NAME}\"#" \
