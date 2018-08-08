@@ -105,7 +105,7 @@ migrate_target()
 		return 1
 	    fi
             mv /boot/grub.cfg /boot/grub_old.cfg
-            cp /boot/.oldNILinuxRT/grub-migrate.cfg /boot/grub.cfg
+            cp /boot/.oldNILinuxRT/grub_migrate.cfg /boot/grub.cfg
             reboot
         elif [[ $ARCH =~ "arm" ]]; then
 	    replace_arm_opkg_migration_feed
