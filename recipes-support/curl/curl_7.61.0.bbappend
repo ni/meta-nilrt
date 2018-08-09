@@ -1,4 +1,4 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/files:"
+FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
 SRC_URI += " \
         file://0001-Updated-Curl_wait_ms-for-VxWorks.patch \
