@@ -1,28 +1,23 @@
-From 473cd8cbd7dd5806284f69539589b6e76398a56f Mon Sep 17 00:00:00 2001
+From 2e25592d08707b353d2b72889d389ba469e607f5 Mon Sep 17 00:00:00 2001
 From: Haris Okanovic <haris.okanovic@ni.com>
 Date: Wed, 30 Jul 2014 13:17:54 -0500
-Subject: [PATCH] Modified include/curl/curlbuild.h.dist for NI's VxWorks
- distribution
-
-Added VxWorks case to GCC entry.
+Subject: [PATCH] curl/system.h: add NI's VxWorks case to GCC entry
 
 The only difference between the NI VxWorks case and x86 is CURL_FORMAT_OFF_T,
 which is "%ld" because sizeof(off_t) is 4 bytes which is equal to sizeof(long).
 See: //user/hokanovi/hTestComponent/1.0/source/test_types.cpp
 
-NOTE: File include/curl/curlbuild.h.dist defines various type properties
-for compiler/CPU combinations that don't support Autoconf.
-
 Upstream-Status: Inappropriate [configuration]
+
 ---
- include/curl/system.h | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ include/curl/system.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
 diff --git a/include/curl/system.h b/include/curl/system.h
-index eac4cfeb6..d78bc5a00 100644
+index a54fd58..9f0465e 100644
 --- a/include/curl/system.h
 +++ b/include/curl/system.h
-@@ -366,6 +366,15 @@
+@@ -384,6 +384,14 @@
  #    define CURL_FORMAT_CURL_OFF_TU    "lu"
  #    define CURL_SUFFIX_CURL_OFF_T     L
  #    define CURL_SUFFIX_CURL_OFF_TU    UL
@@ -32,12 +27,8 @@ index eac4cfeb6..d78bc5a00 100644
 +#    define CURL_FORMAT_CURL_OFF_T     "lld"
 +#    define CURL_FORMAT_CURL_OFF_TU    "llu"
 +#    define CURL_FORMAT_OFF_T          "%ld"
-+#    define CURL_SIZEOF_CURL_OFF_T     8
 +#    define CURL_SUFFIX_CURL_OFF_T     LL
 +#    define CURL_SUFFIX_CURL_OFF_TU    ULL
  #  endif
  #  define CURL_TYPEOF_CURL_SOCKLEN_T socklen_t
  #  define CURL_PULL_SYS_TYPES_H      1
--- 
-2.17.1
-

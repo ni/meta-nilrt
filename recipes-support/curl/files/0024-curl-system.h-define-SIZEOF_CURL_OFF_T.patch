@@ -1,0 +1,32 @@
+From e908a47851f50daad5c51c6f0f7a6e27749d9e99 Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+Date: Thu, 9 Aug 2018 14:15:23 +0300
+Subject: [PATCH] curl/system.h: define CURL_SIZEOF_CURL_OFF_T
+
+This value is detected via the autotools or cmake build logic, but we
+don't use those in nibuild (we wrote our own build logic independent of
+upstream to support systems where it's impossible to run autotools or
+cmake). The value is aways 8 for all platforms.
+
+This patch is the last remnant from the nibuild curlbuild.h.$(MACHINE)
+files (curl upstream removed curlbuild.h in https://github.com/curl/curl/pull/1383).
+
+Upstream-Status: Inappropriate [configuration]
+
+Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+---
+ include/curl/system.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/include/curl/system.h b/include/curl/system.h
+index 9f0465e..8ceceb6 100644
+--- a/include/curl/system.h
++++ b/include/curl/system.h
+@@ -412,6 +412,7 @@
+ #define CURL_PULL_SYS_POLL_H
+ #endif
+ 
++#define SIZEOF_CURL_OFF_T 8
+ 
+ /* CURL_PULL_WS2TCPIP_H is defined above when inclusion of header file  */
+ /* ws2tcpip.h is required here to properly make type definitions below. */
