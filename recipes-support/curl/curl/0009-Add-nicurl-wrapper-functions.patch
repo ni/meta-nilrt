@@ -1,4 +1,4 @@
-From 3405f9268c6cbdd75bdae4e060d267601d02580b Mon Sep 17 00:00:00 2001
+From ffb5658aa75c72ea0dbd211ca99de727bb2716ab Mon Sep 17 00:00:00 2001
 From: Jonathan David <jonathan.david@ni.com>
 Date: Tue, 15 Mar 2016 13:26:34 -0500
 Subject: [PATCH] Add nicurl wrapper functions
@@ -14,19 +14,36 @@ These functions are called by older NI components, and exist as
 a means to keep previous code running.
 
 Upstream-Status: Inappropriate [NI specific changes]
+
 ---
- lib/easy.c     | 11 +++++++++++
+ lib/easy.c     | 21 +++++++++++++++++++++
  lib/formdata.c | 12 ++++++++++++
  lib/multi.c    | 11 +++++++++++
- lib/setopt.c   | 10 ++++++++++
  lib/share.c    | 11 +++++++++++
- 5 files changed, 55 insertions(+)
+ 4 files changed, 55 insertions(+)
 
 diff --git a/lib/easy.c b/lib/easy.c
-index 6b914353d..47b85f40d 100644
+index 32de192..1a1fc5c 100644
 --- a/lib/easy.c
 +++ b/lib/easy.c
-@@ -857,6 +857,17 @@ CURLcode curl_easy_getinfo(struct Curl_easy *data, CURLINFO info, ...)
+@@ -376,6 +376,16 @@ struct Curl_easy *curl_easy_init(void)
+   return data;
+ }
+ 
++#ifdef ENABLE_NICURL_API
++CURL_EXTERN CURLcode nicurl_easy_setopt(CURL *curl, CURLoption tag, va_list arg)
++{
++  CURLcode result;
++  result = Curl_vsetopt(curl, tag, arg);
++  va_end(arg);
++  return result;
++}
++#endif
++
+ #ifdef CURLDEBUG
+ 
+ struct socketmonitor {
+@@ -855,6 +865,17 @@ CURLcode curl_easy_getinfo(struct Curl_easy *data, CURLINFO info, ...)
    return result;
  }
  
@@ -45,10 +62,10 @@ index 6b914353d..47b85f40d 100644
  {
    CURLcode result = CURLE_OK;
 diff --git a/lib/formdata.c b/lib/formdata.c
-index f91241052..d73cd1fe2 100644
+index f3fec88..45e2ed2 100644
 --- a/lib/formdata.c
 +++ b/lib/formdata.c
-@@ -704,6 +704,18 @@ CURLFORMcode curl_formadd(struct curl_httppost **httppost,
+@@ -711,6 +711,18 @@ CURLFORMcode curl_formadd(struct curl_httppost **httppost,
    return result;
  }
  
@@ -68,10 +85,10 @@ index f91241052..d73cd1fe2 100644
   * curl_formget()
   * Serialize a curl_httppost struct.
 diff --git a/lib/multi.c b/lib/multi.c
-index f85284695..abed7a4bb 100644
+index 7c4334b..d8d12cb 100644
 --- a/lib/multi.c
 +++ b/lib/multi.c
-@@ -2719,6 +2719,17 @@ CURLMcode curl_multi_setopt(struct Curl_multi *multi,
+@@ -2764,6 +2764,17 @@ CURLMcode curl_multi_setopt(struct Curl_multi *multi,
    return res;
  }
  
@@ -89,29 +106,11 @@ index f85284695..abed7a4bb 100644
  /* we define curl_multi_socket() in the public multi.h header */
  #undef curl_multi_socket
  
-diff --git a/lib/setopt.c b/lib/setopt.c
-index af53ee3ef..84799a178 100644
---- a/lib/setopt.c
-+++ b/lib/setopt.c
-@@ -2595,3 +2595,13 @@ CURLcode curl_easy_setopt(struct Curl_easy *data, CURLoption tag, ...)
-   va_end(arg);
-   return result;
- }
-+
-+#ifdef ENABLE_NICURL_API
-+CURL_EXTERN CURLcode nicurl_easy_setopt(CURL *curl, CURLoption tag, va_list arg)
-+{
-+  CURLcode result;
-+  result = Curl_vsetopt(curl, tag, arg);
-+  va_end(arg);
-+  return result;
-+}
-+#endif
 diff --git a/lib/share.c b/lib/share.c
-index 870b191fc..109fcaecf 100644
+index 79e1f12..64687ad 100644
 --- a/lib/share.c
 +++ b/lib/share.c
-@@ -172,6 +172,17 @@ curl_share_setopt(struct Curl_share *share, CURLSHoption option, ...)
+@@ -187,6 +187,17 @@ curl_share_setopt(struct Curl_share *share, CURLSHoption option, ...)
    return res;
  }
  
@@ -129,6 +128,3 @@ index 870b191fc..109fcaecf 100644
  CURLSHcode
  curl_share_cleanup(struct Curl_share *share)
  {
--- 
-2.17.1
-
