@@ -6,6 +6,6 @@ IMAGE_INSTALL = "\
 	packagegroup-ni-wifi \
 	"
 
-BAD_RECOMMENDATIONS += "shared-mine-info"
+BAD_RECOMMENDATIONS += "shared-mime-info"
 
 require niconsole-image.inc
