@@ -32,7 +32,6 @@ IMAGE_INSTALL_append_n310 = " \
 "
 
 IMAGE_INSTALL_NODEPS_append_x64 = " \
-    ni-atca \
     ni-pxiplatformservices \
     ni-sync \
     ni-p2p \
