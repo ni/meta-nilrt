@@ -26,6 +26,7 @@ PACKAGECONFIG = "tcp"
 
 RDEPENDS_${PN}-minion_append += "\
     python-avahi \
+    python-iso8601 \
     python-pyinotify \
     python-pyroute2 \
     python-pika \
