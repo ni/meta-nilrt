@@ -51,12 +51,9 @@ NILRT_NXG_PACKAGES = "\
 	lsb \
 	modutils-initscripts \
 	ni-utils \
-	python3-futures \
 	rtctl \
 	salt-minion \
 	connman \
-	python3-pyiface \
-	python3-configparser \
 	${@bb.utils.contains('TARGET_ARCH', 'arm', \
 		'${NILRT_NXG_ARM_PACKAGES}', \
 		'${NILRT_NXG_x64_PACKAGES}', d)} \

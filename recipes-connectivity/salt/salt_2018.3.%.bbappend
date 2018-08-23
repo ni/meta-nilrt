@@ -40,9 +40,11 @@ RDEPENDS_${PN}-minion_append_armv7a += "\
 RDEPENDS_${PN}-common_append += " \
     python3-difflib \
     python3-distutils \
+    python3-configparser \
     python3-misc \
     python3-multiprocessing \
     python3-profile \
+    python3-pyiface \
     python3-resource \
     python3-terminal \
     python3-unixadmin \
