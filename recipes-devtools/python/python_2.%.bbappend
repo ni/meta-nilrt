@@ -1,1 +1,0 @@
-DEBIAN_NOAUTONAME_lib${BPN}2 = "1"
