@@ -9,7 +9,6 @@ PACKAGE_INSTALL = "${ROOTFS_BOOTSTRAP_INSTALL} \
 
 DEPENDS += "init-restore-mode"
 DEPENDS_xilinx-zynqhf += "zynq-bootscripts zynq-itb"
-DEPENDS_x64 += "wic-tools"
 
 do_rootfs[depends] += "${FACTORY_IMAGE}:do_image_complete"
 
