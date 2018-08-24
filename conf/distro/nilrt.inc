@@ -78,6 +78,8 @@ OPKGBUILDCMD = "opkg-build"
 
 EFI_PROVIDER = "grub-efi"
 
+INCLUDE_PYCS = "0"
+
 DISTRO_FEATURES_BACKFILL_CONSIDERED_arm = "gobject-introspection-data"
 
 # touchsreen calibration doesn't work with xf86-input-libinput, only with xf86-input-edev
