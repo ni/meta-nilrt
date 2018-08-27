@@ -86,7 +86,7 @@ RDEPENDS_${PN} += "\
 	ofono \
 	ppp \
 	ppp-dialin \
-	python-salttesting \
+	python3-salttesting \
 	resolvconf \
 	salt \
 "
