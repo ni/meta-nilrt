@@ -40,7 +40,7 @@ remove_kernel() {
 # TODO: remove once OE-core decides to symlink python3 as /usr/bin/python instead of 2.
 symlink_python() {
 	if [ -f ${IMAGE_ROOTFS}/${bindir}/python3 ]; then
-		ln -s ${bindir}/python3 ${IMAGE_ROOTFS}/${bindir}/python
+		ln -sf ${bindir}/python3 ${IMAGE_ROOTFS}/${bindir}/python
 	fi
 }
 
