@@ -63,12 +63,6 @@ DEPENDS_append_armv7a += "dtc-native"
 
 RDEPENDS_kernel-dev += "bash binutils gcc gcc-symlinks"
 
-#create uImage for armv7a targets
-KERNEL_IMAGETYPE_armv7a = "uImage"
-UBOOT_LOADADDRESS ?= "0x8000"
-UBOOT_ENTRYPOINT ?= "${UBOOT_LOADADDRESS}"
-KERNEL_EXTRA_ARGS_armv7a += "LOADADDR=0x8000"
-
 # Install headers and build objects for kernel versioning into
 # /lib/modules/${KERNEL_VERSION}/build for inclusion in kernel-dev.
 do_install_append() {

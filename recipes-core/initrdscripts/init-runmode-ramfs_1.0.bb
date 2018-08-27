@@ -15,6 +15,8 @@ RDEPENDS_${PN} += "\
 	util-linux-mount \
 	nilrtdiskcrypt-open \
 	nilrtdiskcrypt-reseal \
+	kernel-module-tpm-tis \
+	kernel-module-dm-crypt \
 "
 
 do_install() {

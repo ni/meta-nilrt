@@ -133,8 +133,6 @@ RDEPENDS_${PN} = "\
 		'${NILRT_PACKAGES}', d)} \
 "
 
-# for older NILRT these will automatically be removed because of the
-# PACKAGE_REMOVE = kernel-* rule in niconsole-image.inc
 # TODO: We need to clean up this list and remove non-essentials, move
 # them to individual recipes or to linux-nilrt as runtime dependencies
 RRECOMMENDS_${PN}_x64 += "\

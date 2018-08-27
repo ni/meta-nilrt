@@ -32,4 +32,10 @@ symlink_python() {
 	fi
 }
 
+move_kernel_append_arm() {
+	for f in ${DEPLOY_DIR_IMAGE}/ni-*.dtb; do
+		install -m 0644 "$f" "${IMAGE_ROOTFS}/${CUSTOM_KERNEL_PATH}/$(basename $f)"
+	done
+}
+
 require nilrt-image-common.inc
