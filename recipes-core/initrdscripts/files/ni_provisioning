@@ -24,7 +24,10 @@ early_setup
 # Source default answer file to prompt user for all questions
 source_default_answer_file
 
-if [[ $restore == "provision" ]]; then
+if [[ $restore == "provision-safe" ]]; then
+    source /ni_provisioning.safemode
+    REBOOT_REQUIRED=1
+elif [[ $restore == "provision" ]]; then
     printf "\nNI Linux Real-Time Recovery.\n"
 
     # source user's answer file, if present

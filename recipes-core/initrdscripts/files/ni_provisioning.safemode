@@ -323,14 +323,7 @@ echo "Installing safemode to: $TARGET_DISK using $BOOT_STYLE boot style."
 
 echo 6 > /proc/sys/kernel/printk
 
-if [[ $restore == "backward-migrate" ]]; then
-    SOURCE_DIR=/boot/.oldNILinuxRT
-else
-    #find and mount USB key
-    mkdir -p $USB_MOUNTPOINT
-    MOUNT_ERROR=`mount -L NIRECOVERY $USB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
-    SOURCE_DIR=$USB_MOUNTPOINT
-fi
+SOURCE_DIR=/boot/.oldNILinuxRT
 
 print_info "Partitioning $TARGET_DISK..."
 PART1_LABEL=nigrub
