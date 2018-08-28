@@ -10,8 +10,6 @@ DEPENDS += "shadow-native pseudo-native niacctbase"
 
 RDEPENDS_${PN}-hostname += "niacctbase"
 
-group = "${LVRT_GROUP}"
-
 # preserve existing behavior when installing base package
 RDEPENDS_${PN}_class-target += "\
 	${PN}-hostname \
@@ -23,7 +21,7 @@ RDEPENDS_${PN}_class-target += "\
 
 pkg_postinst_${PN}-hostname () {
 	chmod 4550 $D${base_bindir}/hostname.${BPN}
-	chown 0:${group} $D${base_bindir}/hostname.${BPN}
+	chown 0:${LVRT_GROUP} $D${base_bindir}/hostname.${BPN}
 
 	update-alternatives --install ${base_bindir}/hostname hostname hostname.${BPN} 100
 }

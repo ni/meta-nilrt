@@ -7,9 +7,7 @@ S = "${WORKDIR}"
 DEPENDS = "shadow-native pseudo-native niacctbase"
 RDEPENDS_${PN} = "bash niacctbase xfce4-settings xfce4-session xfce4-panel"
 
-user = "${LVRT_USER}"
-group = "${LVRT_GROUP}"
-homedir = "/home/${user}"
+homedir = "/home/${LVRT_USER}"
 confdir = "${homedir}/.config"
 backgrounddir = "/usr/share/backgrounds/xfce"
 
@@ -111,5 +109,5 @@ do_install () {
 	   ln -sf /usr/local/natinst/bin/showpanel ${D}/usr/local/bin/showpanel
 	   ln -sf /usr/local/natinst/bin/hidepanel ${D}/usr/local/bin/hidepanel
 
-	   chown -R ${user}:${group} ${D}${homedir}
+	   chown -R ${LVRT_USER}:${LVRT_GROUP} ${D}${homedir}
 }

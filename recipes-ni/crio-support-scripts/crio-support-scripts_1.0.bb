@@ -12,14 +12,12 @@ SRC_URI_append_x64 = "file://nisetfpgaautoload \
 
 S = "${WORKDIR}"
 
-group = "${LVRT_GROUP}"
-
 do_install () {
      install -d ${D}${sysconfdir}/init.d/
      if [ "${TARGET_ARCH}" = "x86_64" ]; then
           install -m 0755   ${S}/nisetfpgaautoload    ${D}${sysconfdir}/init.d
           install -m 0550   ${S}/nisetconsoleout      ${D}${sysconfdir}/init.d
-          chown 0:${group} ${D}${sysconfdir}/init.d/nisetconsoleout
+          chown 0:${LVRT_GROUP} ${D}${sysconfdir}/init.d/nisetconsoleout
 
           update-rc.d -r ${D} nisetfpgaautoload start 81 S . stop 3 0 6 .
           update-rc.d -r ${D} nisetconsoleout start 15 S . stop 85 0 6 .

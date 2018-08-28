@@ -19,8 +19,6 @@ DEPENDS += "shadow-native pseudo-native niacctbase"
 
 RDEPENDS_${PN} += "grub-editenv niacctbase bash"
 
-group = "${LVRT_GROUP}"
-
 S = "${WORKDIR}"
 
 do_install () {
@@ -30,7 +28,7 @@ do_install () {
 	install -m 0550   ${WORKDIR}/fw_printenv         ${D}${base_sbindir}
 	sed -i -e 's,@FW_PRINTENV_DIR@,${datadir}/fw_printenv,g' ${D}${base_sbindir}/fw_printenv
 
-	chown 0:${group} ${D}${base_sbindir}/fw_printenv
+	chown 0:${LVRT_GROUP} ${D}${base_sbindir}/fw_printenv
 	ln -fs fw_printenv ${D}${base_sbindir}/fw_setenv
 
 	install -m 0444   ${WORKDIR}/EFI_NI_vars         ${D}${datadir}/fw_printenv

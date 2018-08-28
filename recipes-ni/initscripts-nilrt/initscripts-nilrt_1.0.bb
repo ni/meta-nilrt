@@ -42,12 +42,10 @@ SRC_URI_append_x64 = "file://nidisablecstates \
 
 S = "${WORKDIR}"
 
-group = "${LVRT_GROUP}"
-
 do_install () {
      install -d ${D}${sysconfdir}/init.d/
      install -m 0550   ${S}/nisetbootmode       ${D}${sysconfdir}/init.d
-     chown 0:${group} ${D}${sysconfdir}/init.d/nisetbootmode
+     chown 0:${LVRT_GROUP} ${D}${sysconfdir}/init.d/nisetbootmode
      install -m 0755    ${WORKDIR}/firewall    ${D}${sysconfdir}/init.d
      install -m 0755   ${WORKDIR}/mountdebugfs         ${D}${sysconfdir}/init.d
      install -m 0755   ${WORKDIR}/nicleanstalelinks         ${D}${sysconfdir}/init.d

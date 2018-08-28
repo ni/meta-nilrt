@@ -19,8 +19,6 @@ RDEPENDS_${PN} += "niacctbase bash"
 
 RDEPENDS_${PN}_append_x64 += "fw-printenv"
 
-group = "${LVRT_GROUP}"
-
 S = "${WORKDIR}"
 
 do_install () {
@@ -31,6 +29,6 @@ do_install () {
 	install -m 0440   ${WORKDIR}/nisetbootmode.functions         ${D}${libdir}
 	install -m 0550   ${WORKDIR}/nisetbootmode         ${D}${bindir}
 
-	chown 0:${group} ${D}${bindir}/status_led
+	chown 0:${LVRT_GROUP} ${D}${bindir}/status_led
 
 }

@@ -19,9 +19,6 @@ do_install[depends] += "niacctbase:do_populate_sysroot"
 
 S = "${WORKDIR}"
 
-user = "${LVRT_USER}"
-group = "${LVRT_GROUP}"
-
 do_install () {
 	# UIXML config (soft dip switches, etc.)
 	install -d -m 0755 ${D}/usr/local/natinst/share/uixml/sysconfig/
@@ -29,7 +26,7 @@ do_install () {
 
 	# Common interface for system settings (soft dip switches, etc.)
 	install -d -m 0775 ${D}${localstatedir}/local/natinst/systemsettings/
-	chown ${user}:${group} ${D}${localstatedir}/local/natinst/systemsettings/
+	chown ${LVRT_USER}:${LVRT_GROUP} ${D}${localstatedir}/local/natinst/systemsettings/
 	install -m 0644 ${WORKDIR}/systemsettings/* ${D}${localstatedir}/local/natinst/systemsettings/
 
 	install -d -m 0755 ${D}${sysconfdir}/natinst/

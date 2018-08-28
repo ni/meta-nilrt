@@ -4,11 +4,9 @@ DEPENDS_class-target += "shadow-native pseudo-native niacctbase"
 
 RDEPENDS_${PN}-hwclock_append += "niacctbase"
 
-group = "${LVRT_GROUP}"
-
 pkg_postinst_${PN}-hwclock () {
 	chmod 4550 $D${base_sbindir}/hwclock.${BPN}
-	chown 0:${group} $D${base_sbindir}/hwclock.${BPN}
+	chown 0:${LVRT_GROUP} $D${base_sbindir}/hwclock.${BPN}
 	update-alternatives --install ${base_sbindir}/hwclock hwclock ${base_sbindir}/hwclock.${BPN} 80
 }
 

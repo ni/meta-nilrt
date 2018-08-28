@@ -8,9 +8,7 @@ SRC_URI += "file://mimeapps.list"
 
 FILES_${PN} += "${localdir}/share/applications/mimeapps.list"
 
-user = "${LVRT_USER}"
-group = "${LVRT_GROUP}"
-homedir = "/home/${user}"
+homedir = "/home/${LVRT_USER}"
 localdir = "${homedir}/.local"
 
 do_install_append () {
@@ -18,5 +16,5 @@ do_install_append () {
 
 	install -m 0644 ${WORKDIR}/mimeapps.list ${D}${localdir}/share/applications/
 
-	chown -R ${user}:${group} ${D}${homedir}
+	chown -R ${LVRT_USER}:${LVRT_GROUP} ${D}${homedir}
 }
