@@ -25,31 +25,15 @@ early_setup
 source_default_answer_file
 
 if [[ $restore == "provision" ]]; then
-    echo
-    echo "NI Linux Real-Time Recovery."
-    echo
+    printf "\nNI Linux Real-Time Recovery.\n"
 
     # source user's answer file, if present
     source_answer_file
     echo
 
-    if [ "$(dmidecode | grep -c "DMI type 160")" -eq 0 ]; then
-        print_warning "This target is not supported!"
-        echo
-
-        prompt_user "Do you want to continue? y/N" "^(y|n)$" "n" PROVISION_UNSUPPORTED_TARGET
-        if [[ $PROVISION_UNSUPPORTED_TARGET != "y" ]]; then
-            cleanup_and_exit 0
-        fi
-    fi
-    echo
-
     if [[ "$PROVISION_PART_NILRT_ID" = "auto" ]]; then
-        echo "The boot style is $BOOT_STYLE"
-        echo
-
-        echo "Continuing will partition the disk, format, and install minimal image to the target."
-        echo
+        printf "The boot style is $BOOT_STYLE\n"
+        printf "Continuing will partition the disk, format, and install minimal image to the target.\n"
 
         prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" PROVISION_REPARTITION_TARGET
         if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
@@ -83,11 +67,9 @@ if [[ $restore == "provision" ]]; then
             die "Partition with "$PROVISION_PART_NILRT_ID" not found."
         fi
 
-        echo "The boot style is $BOOT_STYLE"
-        echo
+        printf "The boot style is $BOOT_STYLE\n"
 
-        echo "Continuing will format the specified partition and install minimal image to the target."
-        echo
+        printf "Continuing will format the specified partition and install minimal image to the target.\n"
 
         prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" PROVISION_REPARTITION_TARGET
         if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
@@ -107,11 +89,8 @@ elif [[ $restore == "auto-restore" ]]; then
     PROVISION_REBOOT_METHOD="reboot"
     restore_minimal_image
 else
-    echo
-    echo "NI Linux Real-Time Restore."
-    echo
-    echo "Continuing will format the nilrt partition and will install minimal image."
-    echo
+    printf "\nNI Linux Real-Time Restore.\n"
+    printf "Continuing will format the nilrt partition and will install minimal image.\n"
 
     prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" PROVISION_RESTORE_MINIMAL_IMAGE
     if [[ $PROVISION_RESTORE_MINIMAL_IMAGE == "y" ]]; then
