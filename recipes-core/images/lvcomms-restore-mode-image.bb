@@ -6,5 +6,6 @@ FACTORY_IMAGE = "lvcomms-nilrt-image"
 # a minimum of 4GB of RAM, and OE advises this value to be less than half of
 # available RAM.
 INITRAMFS_MAXSIZE = "524288"
+IMAGE_FSTYPES_append_x64 = " wic"
 
 require restore-mode-image.inc
