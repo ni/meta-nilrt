@@ -37,6 +37,8 @@ RDEPENDS_${PN}_append_xilinx-zynqhf = "\
     u-boot-fw-utils     \
     "
 
-# important: don't change this to RDEPENDS, we don't want to include these in
-# all restore-mode packages, we just want to ensure they get built
+DEPENDS += "linux-nilrt"
+
+# important: don't change this to RDEPENDS, we don't want to include safemode-image
+# in all restore-mode packages, we just want to ensure it gets built
 DEPENDS_x64 += "safemode-image"
