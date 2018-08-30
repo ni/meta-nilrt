@@ -1,7 +1,6 @@
 #!/bin/bash
 #this file contains the functions needed by the provisioning tool
 
-REBOOT_REQUIRED=0
 ANSWER_FILE_DISK_MOUNTPOINT=/var/volatile/answerFileDisk
 USB_MOUNTPOINT=/var/volatile/usbrtdeploy
 NILRT_MOUNTPOINT=/var/volatile/nilrt
@@ -16,14 +15,36 @@ NIRESTORE_LABEL=nirestore
 NILRT_LABEL=nilrt
 OLDER_NILRT_NIBOOTFS_LABEL=nibootfs
 LOG_LEVEL=7
-
+RED='\e[0;31m'
+NC='\e[0m'
+YELLOW='\e[1;33m'
+GREEN='\e[0;32m'
+ASK_BEFORE_REBOOT=0
 ARCH=`uname -m`
+VERBOSE_ARGS=${VERBOSE_ARGS:-"-q"}
+MKFS_ARGS=${MKFS_ARGS:-"$VERBOSE_ARGS -F"}
+verbose_mode=${verbose_mode:-0}
 
-if $(grep -qF ni_silent_provision /proc/cmdline); then
+if [ $verbose_mode -eq 0 ]; then
     do_silent() { "$@" &>/dev/null; };
 else
     do_silent() { "$@"; }
 fi
+
+umount_partition()
+{
+    if [ ! -z "`mount | grep $1`" ]; then
+        umount $1 &>/dev/null
+    fi
+}
+
+umount_partitions()
+{
+    for PART in `ls -1 ${TARGET_DISK}* | tail -n +2`
+    do
+        umount_partition $PART
+    done
+}
 
 cleanup_and_exit()
 {
@@ -32,27 +53,24 @@ cleanup_and_exit()
 
     sync
 
-    umount "$ANSWER_FILE_DISK_MOUNTPOINT" 2>/dev/null
-    umount -a -t vfat,ext4,ubifs,iso9660
-
     if [ "$ARCH" = "armv7l" ]; then
         #set the bootmode to default
         echo -n 00 >  /sys/bus/i2c/devices/0-0040/scratch_hardreset
     fi
 
-    if (( $1 == 0  && $REBOOT_REQUIRED == 1 )); then
+    if (( $1 == 0  && $ASK_BEFORE_REBOOT == 1 )); then
         echo "Unmounting all file systems:"
-        umount -v -a -r  # procfs is not unmounted
+        do_silent umount -a -r -O devtmpfs,vfat,ext4 # sysfs, procfs and rootfs aren't unmounted
         echo u > /proc/sysrq-trigger
         sync
 
-        if [[ "${PROVISION_REBOOT_METHOD,,}" == "reboot" ]]; then
+        if [[ "${PROVISION_REBOOT_METHOD}" == "reboot" ]]; then
             echo "Rebooting"
             reboot -f
             sleep 1
             echo b > /proc/sysrq-trigger
             sleep 1
-        elif [[ "${PROVISION_REBOOT_METHOD,,}" == "poweroff" ]]; then
+        elif [[ "${PROVISION_REBOOT_METHOD}" == "poweroff" ]]; then
             echo "Powering off"
             poweroff -f
             sleep 1
@@ -68,8 +86,8 @@ cleanup_and_exit()
 
 die()
 {
-    printf "\n***Error: %s\n" "$1"
-    printf "PROVISIONING FAILED!"
+    printf "${RED}\n***Error: %s\n" "$1"
+    printf "PROVISIONING FAILED!${NC}"
     cleanup_and_exit 1
 }
 
@@ -187,24 +205,98 @@ elif [ "$ARCH" = "x86_64" ]; then
 
     show_help()
     {
-cat <<EOF
-    Usage: $0 [-h] [-t DEVICE]
-    Options
-        -h : Show help.
-        -t DEVICE : DEVICE is the device name for the disk to update. (e.g /dev/sda)
-        If DEVICE is not specificed, the first non-removable block device
-        that is not the recovery tool is used.
-EOF
+        >&3 echo -e "\nUsage: $0 [-hav] [-t DEVICE]\n"
+        >&3 echo -e "Options\n"
+        >&3 echo "   -h : Show help."
+        >&3 echo "   -a : Ask at every error if continue. Default is N, so at the first error abort."
+        >&3 echo "   -v : Verbose mode."
+        >&3 echo "   -t DEVICE : DEVICE is the device name for the disk to update. (e.g /dev/sda)"
+        >&3 echo "               If DEVICE is not specificed, the first non-removable block device"
+        >&3 echo "               that is not the recovery tool is used."
+        >&3 echo "   -r y|n : Force use of initramfs style boot for runmode (compatible 2018 and later)."
+        >&3 echo "            Also enables bootflag.d directory for bootmode selection. Determined"
+        >&3 echo "            automatically when unspecified."
+        >&3 echo "   -c y|n : Initial value of the console out enable flag."
+        >&3 echo "   -b SECONDS : Initial value of bootdelay -- how long (seconds) to show boot menu."
+    }
+
+    # For a given block device (represented by sysfs path $1 and block device path
+    # $2), return zero if suitable for provisioning.
+    check_block_device () {
+        local path=$1 block=$2
+
+        if ! (( $? == 0 )); then
+            (( verbose_mode )) && echo "SKIPPED $path_abbrev: udevadm failed" >&2
+            return 1
+        fi
+
+        # Skip zero-size devices. This catches unattached loop*.
+        if ! (( $(<$path/size) > 0 )); then
+            (( verbose_mode )) && echo "SKIPPED $path_abbrev: size==0" >&2
+            return 1
+        fi
+
+        # Skip removable devices; we're only interested in internal disks. This
+        # catches USBs and CDs.
+        if ! (( $(<$path/removable) == 0 )); then
+            (( verbose_mode )) && echo "SKIPPED $path_abbrev: removable!=0" >&2
+            return 1
+        fi
+
+        # Skip read-only devices. This catches mmcblk*boot*, but *not*
+        # CDs, unless a read-only CD is present in the drive.
+        if ! (( $(<$path/ro) == 0 )); then
+            (( verbose_mode )) && echo "SKIPPED $path_abbrev: ro!=0" >&2
+            return 1
+        fi
+
+        # Skip purely virtual devices. This catches zram* and loop* (again).
+        if ! [[ -d $path/device ]]; then
+            (( verbose_mode )) && echo "SKIPPED $path_abbrev: no device/" >&2
+            return 1
+        fi
+
+        # $path/device/block must exist. This catches mmcblk*boot* (again).
+        if ! [[ -d $path/device/block/ ]]; then
+            (( verbose_mode )) && echo "SKIPPED $path_abbrev: no device/block/" >&2
+            return 1
+        fi
+
+        # Skip the recovery partition itself. Scan all partitions that might be present
+        # at/underneath the given block device.
+        for p in ${block}*; do
+            local label=`lsblk $p -n -o LABEL 2>/dev/null`
+            if [[ "$label" == "NIRECOVERY" ]]; then
+                (( verbose_mode )) && echo "SKIPPED $path_abbrev: contains NIRECOVERY" >&2
+                return 1
+            fi
+        done
+
+        return 0
     }
 
     find_target_block_device()
     {
-        lsblk -inpo KNAME,TYPE,RM | while read KNAME TYPE RM; do
-            if [[ $TYPE == "disk" && $RM == "0" ]]; then
-                echo $KNAME
-                break;
+        local selected_block=
+        for path in /sys/block/*; do
+            path_abbrev=${path##/sys/block/}
+            local block=$(udevadm info -r --query=name --path=$path)
+            check_block_device $path $block || continue
+
+            # Looks good. Select the first device we see.
+            if [[ $selected_block ]]; then
+                (( verbose_mode )) && echo "SKIPPED block device $path_abbrev" >&2
+            else
+                selected_block=$block
+                (( verbose_mode )) && echo "SELECTED block device $path_abbrev" >&2
             fi
         done
+        if [[ $selected_block ]]; then
+            echo "$selected_block"
+        else
+            echo "ERROR: No block device found" >&2
+            return 1
+        fi
     }
 
     restore_minimal_image()
@@ -249,23 +341,23 @@ EOF
 
     provision_target()
     {
-	if [[ $restore == "backward-migrate" ]]; then
-	    source /ni_provisioning.safemode
-	    REBOOT_REQUIRED=1
-	    return
-	elif [ $restore == "migrate" ]; then
-	    mkdir -p $TEMP_MOUNTPOINT
-	    mkdir -p $BOOTFS_MOUNTPOINT
-	    older_nilrt_nibootfs_path=`lsblk -rpn $TARGET_DISK -o NAME,LABEL | grep " $OLDER_NILRT_NIBOOTFS_LABEL"'$' | tail -1 | cut -d' ' -f1`
-	    do_silent echo "Mounting $older_nilrt_nibootfs_path $OLDER_NILRT_NIBOOTFS_LABEL partition..."
-	    mount $older_nilrt_nibootfs_path $TEMP_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
-	    cp -r $TEMP_MOUNTPOINT/.newNILinuxRT/* $BOOTFS_MOUNTPOINT/
-	    umount $TEMP_MOUNTPOINT || die "Failed to umount $TEMP_MOUNTPOINT"
-	    SOURCE_DIR=$BOOTFS_MOUNTPOINT
-	elif [ "$1" = "usb" ]; then
-	    mkdir -p $USB_MOUNTPOINT
-	    mount -o ro -L NIRECOVERY $USB_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
-	    SOURCE_DIR=$USB_MOUNTPOINT
+        if [[ $restore == "backward-migrate" ]]; then
+            source /ni_provisioning.safemode
+            REBOOT_REQUIRED=1
+            return
+        elif [ $restore == "migrate" ]; then
+            mkdir -p $TEMP_MOUNTPOINT
+            mkdir -p $BOOTFS_MOUNTPOINT
+            older_nilrt_nibootfs_path=`lsblk -rpn $TARGET_DISK -o NAME,LABEL | grep " $OLDER_NILRT_NIBOOTFS_LABEL"'$' | tail -1 | cut -d' ' -f1`
+            do_silent echo "Mounting $older_nilrt_nibootfs_path $OLDER_NILRT_NIBOOTFS_LABEL partition..."
+            mount $older_nilrt_nibootfs_path $TEMP_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
+            cp -r $TEMP_MOUNTPOINT/.newNILinuxRT/* $BOOTFS_MOUNTPOINT/
+            umount $TEMP_MOUNTPOINT || die "Failed to umount $TEMP_MOUNTPOINT"
+            SOURCE_DIR=$BOOTFS_MOUNTPOINT
+        elif [ "$1" = "usb" ]; then
+            mkdir -p $USB_MOUNTPOINT
+            mount -o ro -L NIRECOVERY $USB_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
+            SOURCE_DIR=$USB_MOUNTPOINT
         fi
 
         echo "Installing restore to: $TARGET_DISK using $BOOT_STYLE boot style."
@@ -287,18 +379,18 @@ EOF
         cp -r $SOURCE_DIR/EFI/BOOT/* $EFI_GRUB_TARGET_DIR/
 
         if [[ $BOOT_STYLE == "efi" ]]; then
-	    echo "Configuring EFI grub2..."
-	    for ENTRY in `efibootmgr | grep "LabVIEW RT"| egrep -o '[0-9A-F]{4}' || true`
-	    do
-		EFIMGR=`efibootmgr -b $ENTRY -B 2>&1` || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
-	    done
-	    do_silent efibootmgr -c -d ${TARGET_DISK} -p 1 -L 'LabVIEW RT' -l '\efi\boot\bootx64.efi'
+        echo "Configuring EFI grub2..."
+        for ENTRY in `efibootmgr | grep "LabVIEW RT"| egrep -o '[0-9A-F]{4}' || true`
+        do
+        EFIMGR=`efibootmgr -b $ENTRY -B 2>&1` || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
+        done
+        do_silent efibootmgr -c -d ${TARGET_DISK} -p 1 -L 'LabVIEW RT' -l '\efi\boot\bootx64.efi'
         else
-	    echo "Configuring legacy grub2..."
-	    LEGACY_GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/boot/grub
-	    parted -s ${TARGET_DISK} set 1 boot on
-	    grub-install --recheck --root-directory=$GRUB_MOUNTPOINT $TARGET_DISK
-	    cp /grub.cfg ${LEGACY_GRUB_TARGET_DIR}/grub.cfg
+        echo "Configuring legacy grub2..."
+        LEGACY_GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/boot/grub
+        parted -s ${TARGET_DISK} set 1 boot on
+        grub-install --recheck --root-directory=$GRUB_MOUNTPOINT $TARGET_DISK
+        cp /grub.cfg ${LEGACY_GRUB_TARGET_DIR}/grub.cfg
         fi
 
         echo "Installing kernel and ramdisk..."
@@ -322,7 +414,7 @@ EOF
         umount $RESTORE_MOUNTPOINT || die "Failed to umount $RESTORE_MOUNTPOINT"
         umount $GRUB_MOUNTPOINT || die "Failed to umount $GRUB_MOUNTPOINT"
         if [ "$1" = "usb" ]; then
-	    umount $USB_MOUNTPOINT || die "Failed to umount $USB_MOUNTPOINT"
+        umount $USB_MOUNTPOINT || die "Failed to umount $USB_MOUNTPOINT"
         fi
 
         echo ""
@@ -333,9 +425,16 @@ fi
 
 #common functions for both architectures with little differences
 
+print_verbose()
+{
+    if [[ $verbose_mode -eq 1 ]]; then
+        echo $@
+    fi
+}
+
 print_warning()
 {
-    printf "\n***Warning: %s\n" "$1"
+    print_verbose "${YELLOW}\n***Warning: %s\n${NC}" "$1"
 }
 
 install_default_error_handler()
@@ -352,47 +451,82 @@ handle_err()
 early_setup()
 {
     install_default_error_handler
+
+    exec 3>&1
+    exec 4>&2
+
     LOG_LEVEL=`cut -f1 /proc/sys/kernel/printk`
-    echo 6 > /proc/sys/kernel/printk
 
-    if [ "$ARCH" = "x86_64" ]; then
-        OPTIND=1
+    OPTIND=1
 
-        while getopts "ht:" opt; do
-            case "$opt" in
-                h)  show_help
-                    exit 1
-                    ;;
-                t)  TARGET_DISK=$OPTARG
-                    ;;
-                *)  show_help
-                    exit 1
-                    ;;
-            esac
-        done
-
-        shift $((OPTIND-1))
-
-        [ "$1" = "--" ] && shift
-
-        if [[ -z $TARGET_DISK ]]; then
-            TARGET_DISK=`find_target_block_device`
-            if [[ -z $TARGET_DISK ]]; then
-                die "No target device found for installation."
-            fi
-        else
-            if [[ ! -e $TARGET_DISK ]]; then
-                echo "Error: DEVICE $TARGET_DISK does not exist."
-                show_help
+    while getopts "havt:r:c:b:" opt; do
+        case "$opt" in
+            h)  show_help
                 exit 1
-            fi
-        fi
+                ;;
+            a)  ask_at_every_error="y"
+                ;;
+            v)  verbose_mode=1
+                >&3 echo "Verbose mode..."
+                ;;
+            t)  TARGET_DISK="$OPTARG"
+                ;;
+            r)  if [ "$OPTARG" == "y" -o "$OPTARG" == "Y" ]; then
+                    use_ramfs=true
+                elif [ "$OPTARG" == "n" -o "$OPTARG" == "N" ]; then
+                    use_ramfs=false
+                else
+                    die "Must specify '-r y' or '-r n'"
+                fi
+                ;;
+            c)  if [ "$OPTARG" == "y" -o "$OPTARG" == "Y" ]; then
+                    grubenv_consoleoutenable="True"
+                elif [ "$OPTARG" == "n" -o "$OPTARG" == "N" ]; then
+                    grubenv_consoleoutenable="False"
+                else
+                    die "Must specify '-c y' or '-c n'"
+                fi
+                ;;
+            b)  grubenv_bootdelay="$OPTARG"
+                ;;
+            *)  show_help
+                exit 1
+                ;;
+        esac
+    done
 
-        if [[ -d "/sys/firmware/efi" ]]; then
-            BOOT_STYLE="efi"
-        else
-            BOOT_STYLE="legacy"
+    shift $((OPTIND-1))
+
+    [ "$1" = "--" ] && shift
+
+    if [[ $verbose_mode -eq 1 ]]; then
+        VERBOSE_ARGS="-v"
+        MKFS_ARGS=$VERBOSE_ARGS
+    fi
+
+    if [[ -z $TARGET_DISK ]]; then
+        TARGET_DISK=`find_target_block_device`
+        if [[ -z TARGET_DISK ]]; then
+            die "No target device found for installation."
         fi
+    else
+        if [[ ! -e $TARGET_DISK ]]; then
+        >&4 echo -e ${red}"Error: DEVICE $TARGET_DISK does not exist."${NC}
+            show_help
+            exit 1
+        fi
+    fi
+
+    # separate partition number from block device names ending in a digit
+    PART_SEPARATOR=''
+    if [[ "${TARGET_DISK: -1}" =~ [0-9] ]]; then
+        PART_SEPARATOR='p'
+    fi
+
+    if [[ -d "/sys/firmware/efi" ]]; then
+        BOOT_STYLE="efi"
+    else
+        BOOT_STYLE="legacy"
     fi
 }
 

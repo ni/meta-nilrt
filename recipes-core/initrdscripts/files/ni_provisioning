@@ -19,14 +19,25 @@ else
     exit 1
 fi
 
-early_setup
+early_setup "$@"
 
 # Source default answer file to prompt user for all questions
 source_default_answer_file
 
 if [[ $restore == "provision-safe" ]]; then
+    printf "\nNI Linux Real-Time Recovery.\n\n"
+    printf "The boot style is ${RED}$(echo $BOOT_STYLE | tr a-z A-Z)${NC}\n\n"
+    printf "Continuing will partition the disk, format, and install safemode to the target.\n\n"
+
+    prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" PROVISION_REPARTITION_TARGET
+
+    if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
+        source /ni_provisioning.safemode
+        ASK_BEFORE_REBOOT=1
+    fi
+elif [[ $restore == "backward-migrate" ]]; then
+    PROVISION_REPARTITION_TARGET="y"
     source /ni_provisioning.safemode
-    REBOOT_REQUIRED=1
 elif [[ $restore == "provision" ]]; then
     printf "\nNI Linux Real-Time Recovery.\n"
 
@@ -85,7 +96,7 @@ elif [[ $restore == "provision" ]]; then
         fi
     fi
 
-elif [[ $restore == "migrate" || $restore == "backward-migrate" ]]; then
+elif [[ $restore == "migrate" ]]; then
     PROVISION_REBOOT_METHOD="reboot"
     provision_target onboard "$restore"
 elif [[ $restore == "auto-restore" ]]; then
@@ -101,7 +112,7 @@ else
     fi
 fi
 
-if [[ "$REBOOT_REQUIRED" -ne 0 ]]; then
+if [[ "$ASK_BEFORE_REBOOT" -ne 0 ]]; then
     prompt_user "Please eject the installation media and restart the system (Reboot, poweroff, shell)" "^(reboot|poweroff|shell)$" "reboot" PROVISION_REBOOT_METHOD
 fi
 
