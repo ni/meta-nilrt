@@ -1,0 +1,104 @@
+#!/bin/sh
+
+# This is meant to be sourced from scriptfiles, no shebang
+DMIDECODE=/usr/sbin/dmidecode
+
+get_target_id()
+{
+# Try the new NI SMBIOS v0.4 type 150 location first
+    local tid="`$DMIDECODE -t 150 -qu | sed -n 3p | awk '{printf "0x%s%s\n",$8,$7}'`"
+# If this fails, fall back to type 11
+    if [ -z "$tid" ]; then
+        tid="`$DMIDECODE -t 11 | grep -oE "TargetID:.*" | awk -F: '{print $2}'| sed 's/^\(0x\)*/0x/'`"
+    fi
+    echo $tid
+    [ -n "$tid" ] || return 1
+}
+
+get_target_name()
+{
+    local prod=`sed 's/^[ \t]*NI[ \t]*//' /sys/class/dmi/id/product_name`
+    echo $prod
+    [ -n "$prod" ] || return 1
+}
+
+get_target_class()
+{
+# First, try table type 11 (since we know that type 1 exists and may include
+# bogus info in Family
+    local class=`$DMIDECODE -t 11 | grep -E "String *[0-9]+: *DeviceClass" | sed 's/^[ \t]*String[ \t:0-9]*DeviceClass:[ \t]*//'`
+    if [ -n "$class" ]; then
+        echo $class
+        return 0
+    fi
+# If the class was not found in 11, return the value in the Family: field in 1
+    class=`$DMIDECODE -t 1 | grep "Family:" | awk '{print $2}'`
+    echo $class
+    return 0
+}
+
+get_usbdev_vid()
+{
+    local vid="`$DMIDECODE -t 155 -qu | sed -n 3p | awk '{printf "0x%s%s\n",$6,$5}'`"
+    echo $vid
+    [ -n "$vid" ] || return 1
+}
+
+get_usbdev_pid()
+{
+    local pid="`$DMIDECODE -t 155 -qu | sed -n 3p | awk '{printf "0x%s%s\n",$8,$7}'`"
+    echo $pid
+    [ -n "$pid" ] || return 1
+}
+
+get_usbdev_mac()
+{
+    local mac="`$DMIDECODE -t 155 | awk '/Strings:/,/^$/ {print}' | grep -Eo "([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}"`"
+    echo $mac
+    [ -n "$mac" ] || return 1
+}
+
+get_serial_number()
+{
+    local sn="`$DMIDECODE -t 1 | grep "Serial Number:" | awk '{print $NF}'`"
+    echo $sn
+    [ -n "$sn" ] || return 1
+}
+
+is_usbdev_target()
+{
+    return $([ -n "`$DMIDECODE -t 155 -qu`" ])
+}
+
+get_bootmode_reg()
+{
+    local bmreg="`$DMIDECODE -t 160 -qu | sed -n 3p | awk '{printf "%s\n",$7}'`"
+    echo $bmreg
+    [ -n "$bmreg" ] || return 1
+}
+
+get_ipreset()
+{
+    ((`get_bootmode_reg`&4))
+}
+
+get_forced_safemode()
+{
+    ((`get_bootmode_reg`&2))
+}
+
+is_ni_device()
+{
+    if grep -q "National Instruments" /sys/class/dmi/id/sys_vendor; then
+        return 0
+    fi
+    if [ "$(dd if=/dev/port bs=1 count=1 skip=512 status=none 2> /dev/null | od -An -tx1 -N1 | tr -d ' ')" = "e5" ]; then
+        return 0
+    fi
+    return 1
+}
+
+is_ni_bios()
+{
+    return `$DMIDECODE -t 0 |grep -i vendor |grep -q "National Instruments"`
+}

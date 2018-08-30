@@ -29,6 +29,7 @@ RDEPENDS_${PN}_append_x64 = "\
     grub-editenv        \
     eudev               \
     kernel-module-atkbd \
+    ni-smbios-helper    \
     "
 
 RDEPENDS_${PN}_append_xilinx-zynqhf = "\
@@ -41,4 +42,10 @@ DEPENDS += "linux-nilrt"
 
 # important: don't change this to RDEPENDS, we don't want to include safemode-image
 # in all restore-mode packages, we just want to ensure it gets built
+RRECOMMENDS_${PN}_x64 = "\
+    kernel-module-tpm-tis \
+"
+
+# important: don't change this to RDEPENDS, we don't want to include these in
+# all restore-mode packages, we just want to ensure they get built
 DEPENDS_x64 += "safemode-image"

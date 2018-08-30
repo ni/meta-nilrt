@@ -44,6 +44,7 @@ NILRT_x64_PACKAGES = "\
 	e2fsprogs-mke2fs \
 	phc2sys \
 	nilrtdiskcrypt \
+	ni-smbios-helper \
 "
 
 NILRT_NXG_PACKAGES = "\
