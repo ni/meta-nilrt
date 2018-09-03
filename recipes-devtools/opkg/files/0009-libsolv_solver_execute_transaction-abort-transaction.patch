@@ -1,4 +1,4 @@
-From d5fdd3bad3f20fc406b3ba69121201d84d2b8ed9 Mon Sep 17 00:00:00 2001
+From 50dd72329fc1268ca6e0808f906aee7d2dd7efcc Mon Sep 17 00:00:00 2001
 From: Alejandro del Castillo <alejandro.delcastillo@ni.com>
 Date: Fri, 31 Aug 2018 17:25:44 +0300
 Subject: [PATCH] libsolv_solver_execute_transaction: abort transaction on
@@ -11,14 +11,14 @@ internal solver behavior.
 
 Signed-off-by: Alejandro del Castillo <alejandro.delcastillo@ni.com>
 ---
- libopkg/solvers/libsolv/opkg_solver_libsolv.c | 21 ++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ libopkg/solvers/libsolv/opkg_solver_libsolv.c | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
 diff --git a/libopkg/solvers/libsolv/opkg_solver_libsolv.c b/libopkg/solvers/libsolv/opkg_solver_libsolv.c
-index 0593e9d..5a04682 100644
+index d261b40..0a4832d 100644
 --- a/libopkg/solvers/libsolv/opkg_solver_libsolv.c
 +++ b/libopkg/solvers/libsolv/opkg_solver_libsolv.c
-@@ -894,14 +894,20 @@ static int libsolv_solver_execute_transaction(libsolv_solver_t *libsolv_solver)
+@@ -819,6 +819,10 @@ static int libsolv_solver_execute_transaction(libsolv_solver_t *libsolv_solver)
              switch (typeId) {
              case SOLVER_TRANSACTION_ERASE:
                  ret = opkg_remove_pkg(pkg);
@@ -27,24 +27,12 @@ index 0593e9d..5a04682 100644
 +                    goto CLEANUP;
 +                }
                  break;
-             case SOLVER_TRANSACTION_OBSOLETES:
-                 /* Replaces operations are expressed in two steps: the first one is a SOLVER_TRANSACTION_OBSOLETES, with the name of
-                  * the replacer package. The second one is a SOLVER_TRANSACTION_IGNORE, with the name of the replacee */
-                 obs = pkgs->pkgs[i + 1];
-                 ret = opkg_remove_pkg(obs);
--                if (ret)
--                    break;
-+                if (ret) {
-+                    err = -1;
-+                    goto CLEANUP;
-+                }
              case SOLVER_TRANSACTION_DOWNGRADE:
              case SOLVER_TRANSACTION_REINSTALL:
-             case SOLVER_TRANSACTION_INSTALL:
-@@ -923,6 +929,10 @@ static int libsolv_solver_execute_transaction(libsolv_solver_t *libsolv_solver)
+@@ -841,6 +845,10 @@ static int libsolv_solver_execute_transaction(libsolv_solver_t *libsolv_solver)
                                   pkg->name, pkg->version, pkg->dest->name);
                  }
-                 ret = opkg_install_pkg(pkg);
+                 ret = opkg_install_pkg(pkg, 0);
 +                if (ret) {
 +                    err = -1;
 +                    goto CLEANUP;
@@ -52,10 +40,10 @@ index 0593e9d..5a04682 100644
                  break;
              case SOLVER_TRANSACTION_UPGRADE:
                  old = pkg_hash_fetch_installed_by_name(pkg->name);
-@@ -951,14 +961,15 @@ static int libsolv_solver_execute_transaction(libsolv_solver_t *libsolv_solver)
+@@ -871,14 +879,15 @@ static int libsolv_solver_execute_transaction(libsolv_solver_t *libsolv_solver)
                  }
  
-                 ret = opkg_install_pkg(pkg);
+                 ret = opkg_install_pkg(pkg, 1);
 +                if (ret) {
 +                    err = -1;
 +                    goto CLEANUP;
