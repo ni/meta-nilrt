@@ -13,7 +13,8 @@ SRC_URI += " \
             file://0006-buffer-overrun-fix.patch \
             file://0007-libsolv_solver_transaction_preamble-add-arch-informa.patch \
             file://0008-populate_installed_repo-add-Essential-field-support.patch \
-           "
+            file://0009-libsolv_solver_execute_transaction-abort-transaction.patch \
+"
 
 SRC_URI_append_armv7a = " \
             file://arm-kernel-arch.conf \
