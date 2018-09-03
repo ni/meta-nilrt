@@ -430,7 +430,7 @@ source_answer_file()
     fi
 
     mkdir -p "$ANSWER_FILE_DISK_MOUNTPOINT"
-    for devNode in `lsblk -rpn -o NAME,TYPE,RM | grep 'part 1$' | cut -d' ' -f1 || true`; do
+    for devNode in `lsblk -rpn -o NAME,TYPE,RM | grep -E 'part|rom 1$' | cut -d' ' -f1 || true`; do
         devNodeInfo="`lsblk -n -o 'FSTYPE,SERIAL,UUID,LABEL' "$devNode" | tr -s ' '`"
         mount -o ro "$devNode"  "$ANSWER_FILE_DISK_MOUNTPOINT"
         if check_answer_file    "$ANSWER_FILE_DISK_MOUNTPOINT/ni_provisioning.answers"; then
