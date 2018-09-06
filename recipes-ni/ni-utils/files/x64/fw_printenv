@@ -1,6 +1,7 @@
 #!/bin/bash
 
-VAR_MAPPING_DIR=@FW_PRINTENV_DIR@
+. /usr/share/nisysinfo/smbios_helper
+. /usr/share/nisysinfo/efi_helper
 
 print_help(){
 cat <<EOF
@@ -56,7 +57,7 @@ show_variable_grub(){
 
 readonly_grub_variable()
 {
-	grub_readonly_vars_file=$VAR_MAPPING_DIR/GRUB_NI_readonly_vars
+	grub_readonly_vars_file=/boot/.safe/GRUB_NI_readonly_vars
 	if [ ! -f  $grub_readonly_vars_file ]; then
 		#GRUB_NI read-only vars file does not exist
 		return 1
@@ -65,121 +66,58 @@ readonly_grub_variable()
 	return $?
 }
 
-get_ethernet_MAC_address()
-{
-	devaddr="00000000"
-
-	#Iterate through all adapters to find the onboard NIC address of
-	#a PXIe-8135 (0x1502) or PXIe-8840 dual core (0x153a). If not found, do not return a unique serial number.
-	for devpath in /sys/class/net/*; do
-		devvendorid="$(cat $devpath/device/vendor 2>/dev/null)" || continue
-		devdeviceid="$(cat $devpath/device/device 2>/dev/null)" || continue
-
-		if [[ "$devvendorid" = "0x8086" ]] && ( [[ "$devdeviceid" = "0x1502" ]] || [[ "$devdeviceid" = "0x153a" ]] ); then
-			devaddr="$(cat $devpath/address)"
-			break
-		fi
-	done
-
-	echo "$devaddr"
-	return 0
-}
+declare -A smbios_funcs=(
+["DeviceCode"]=get_target_id
+["DeviceDesc"]=get_target_name
+["TargetClass"]=get_target_class
+["serial#"]=get_serial_number)
 
 show_variable_smbios(){
-	smbios_file=$VAR_MAPPING_DIR/SMBIOS_NI_vars
-	if [ ! -f  $smbios_file ]; then
-		#SMBIOS vars file does not exist
-		return 1
-	fi
-	set -o pipefail
-	while IFS=';' read -r key head name prefix
-	do
-		value=${prefix}$(/usr/sbin/dmidecode | sed -n "/$head/,/^$/p" | grep -- "$name" | awk -F "$name" '{print $2}')
-		ret=$?
-
-		#Set 'PXI' target type for unknown targets
-		if [ "$key" = "TargetClass" -a $ret -ne 0 ] ; then
-			value=PXI
-			ret=0
-		fi
-
-		#Set PXIe-8135 target code for unknown targets
-		if [ "$key" = "DeviceCode" -a $ret -ne 0 ] ; then
-			value=${prefix}75F4
-			ret=0
-		fi
-
-		# Some BIOSs report a DeviceCode with a '0x' prefix. Some do not.
-		# Those that do end up with a second '0x' that needs to be stripped.
-		if [ "$key" = "DeviceCode" ] ; then
-			value=${value/#0x0x/0x}
-		fi
-
-		#If DeviceDesc cannot be read, or if DeviceDesc does not match
-		#the NI SMBIOS Specification requirement of the product name
-		#starting with "NI ", then consider the target unknown and
-		#emulate the PXIe-8135.
-		if [ "$key" = "DeviceDesc" ]; then
-			if [ $ret -ne 0 -o "${value:0:3}" != "NI " ]; then
-				value="NI PXIe-8135 Embedded Controller"
-				ret=0
-			fi
-		fi
-
-		#Set serial number using PXIe-8135 eth0 MAC address if available
-		if [ "$key" = "serial#" -a "$value" = "Not Applicable" ] ; then
-			value=$(get_ethernet_MAC_address | tr -d ":\n" | tail -c8)
-			ret=0
-		fi
-
-		if [ $# -eq 0 -a $ret -eq 0 ] ; then
-			#show each variable
-			echo "$key=$value"
-		elif [ "$1" = "$key" -a $ret -eq 0 ] ; then
-			#value was found
-			return 0
-		fi
-		value=""
-	done < $smbios_file
+	# We show all variables when no args passed
 	if [ $# -eq 0 ]; then
+		if is_ni_bios || is_ni_device; then
+			for var in ${!smbios_funcs[@]}; do
+				echo ${var}=`${smbios_funcs[${var}]}`
+			done
+		fi
+		# else, return nothing and exit successfully
 		return 0
-	else
-		return 1
 	fi
+	# Otherwise, return the value that was requested only on NI targets
+	if is_ni_bios || is_ni_device; then
+		if [ "${smbios_funcs[$1]}" ]; then
+			value=`${smbios_funcs[$1]}`
+			return $?
+		fi
+	fi
+	return 1
 }
+
+declare -A efi_funcs=(
+["UEFIConsoleOut"]=get_set_console_out
+["IsNILinuxRTBoot"]=get_set_nilrt_boot)
 
 show_variable_efi(){
-	efi_file=$VAR_MAPPING_DIR/EFI_NI_vars
-	if [ ! -f  $efi_file ]; then
-		#EFI vars file does not exist
-		return 1
-	fi
-	while IFS=';' read -r key name offset
-	do
-		value=$(efivar -n="$name" -d 2>/dev/null)
-		ret=$?
-		if [ $ret -eq 0 ]; then
-			#if EFI var is greater than 1 byte, save all bytes to an array
-			#in case we need to update the original EFI var later
-			arr_value=($value)
-			value=${arr_value[$offset]}
-			if [ $# -eq 0 ] ; then
-				#show each variable
-				echo "$key=$value"
-			elif [ "$1" = "$key" ] ; then
-				#pass $value to caller
-				return 0
-			fi
-		fi
-		value=""
-	done < $efi_file
+	# We show all variables when no args passed
 	if [ $# -eq 0 ]; then
-		return 0
-	else
-		return 1
-	fi
-}
+		for var in ${!efi_funcs[@]}; do
+			local key=${var}
+			local val=`${efi_funcs[${var}]}`
 
+			if [ -n "$val" ]; then
+				echo $key=$val
+			fi
+		done
+		# else, return nothing and exit successfully
+		return 0
+	fi
+	# Otherwise, return the value that was requested only on NI targets
+	if [ "${efi_funcs[$1]}" ]; then
+		${efi_funcs[$1]} >/dev/null
+		return $?
+	fi
+	return 1
+}
 
 #wraps together smbios, efi and grub variable query
 show_variable(){
@@ -190,7 +128,7 @@ show_variable(){
 	else
 		value=""
 		#check for single variable
-		if show_variable_smbios $1 || show_variable_efi  $1 || show_variable_grub $1; then
+		if show_variable_smbios $1 || show_variable_efi $1 || show_variable_grub $1; then
 			(( n_opt )) || printf '%s=' "$var_name"
 			printf '%s\n' "$value"
 			return 0
@@ -202,25 +140,24 @@ show_variable(){
 }
 
 add_rem_vars(){
-	#SMBIOS - are read only variables
 	value=""
-	if show_variable_smbios "$var_name"; then
-		echo "Can't overwrite" "\"$var_name\"" >&2
-		exit 1
+
+	#SMBIOS - are read only variables
+	if is_ni_bios || is_ni_device; then
+		if show_variable_smbios "$var_name"; then
+			echo "Can't overwrite" "\"$var_name\"" >&2
+			exit 1
+		fi
 	fi
 
 	#EFI
-	name=''
-	if show_variable_efi "$var_name"; then
-		#recognized ni efi variable
-		#update value of interest and rewrite efi variable
-		arr_value[$offset]=$new_value
-		#currently efivar only writes updated values read from a file
-		EFI_VAL_TMP=/tmp/efi_val.$$
-		printf '\\x%02x' ${arr_value[@]} | xargs -0 echo -e -n >$EFI_VAL_TMP
-		efivar -n="$name" -w -f=$EFI_VAL_TMP
-		rm $EFI_VAL_TMP
-		return
+	if [ "${efi_funcs[$var_name]}" ]; then
+		if [ -n "$new_value" ]; then
+			${efi_funcs[$var_name]} $new_value
+		else
+			echo "Can't delete" "\"$var_name\"" >&2
+			exit 1
+		fi
 	fi
 
 	#Grub

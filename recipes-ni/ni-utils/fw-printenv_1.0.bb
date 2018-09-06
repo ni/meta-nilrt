@@ -17,7 +17,7 @@ FILES_${PN} += "${datadir}/fw_printenv/*"
 
 DEPENDS += "shadow-native pseudo-native niacctbase"
 
-RDEPENDS_${PN} += "grub-editenv niacctbase bash"
+RDEPENDS_${PN} += "ni-smbios-helper grub-editenv niacctbase bash"
 
 S = "${WORKDIR}"
 
