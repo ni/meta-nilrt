@@ -24,6 +24,7 @@ ALL_DISTRO_x64_PACKAGES = "\
 	linux-firmware-radeon \
 	dmidecode \
 	efivar \
+	fw-printenv \
 "
 
 NILRT_NXG_ARM_PACKAGES = "\
@@ -44,7 +45,6 @@ NILRT_x64_PACKAGES = "\
 	e2fsprogs-mke2fs \
 	phc2sys \
 	nilrtdiskcrypt \
-	ni-smbios-helper \
 "
 
 NILRT_NXG_PACKAGES = "\
