@@ -31,6 +31,23 @@ else
     do_silent() { "$@"; }
 fi
 
+ask_for_continue()
+{
+    type=${1:-"Recovery"}
+    variable=${2:-"PROVISION_REPARTITION_TARGET"}
+
+    printf "\nNI Linux Real-Time $type.\n\n"
+    printf "The boot style is ${RED}$(echo $BOOT_STYLE | tr a-z A-Z)${NC}\n\n"
+    printf "Continuing will partition the disk, format, and install safemode to the target.\n\n"
+
+    prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" $variable
+}
+
+provision_sucessfull()
+{
+    echo -e ${GREEN}"PROVISIONING SUCCESSFUL!"${NC} 1>&3 2>&4
+}
+
 umount_partition()
 {
     if [ ! -z "`mount | grep $1`" ]; then
@@ -86,8 +103,7 @@ cleanup_and_exit()
 
 die()
 {
-    printf "${RED}\n***Error: %s\n" "$1"
-    printf "PROVISIONING FAILED!${NC}"
+    echo -e "${RED}\n***Error: $1\nPROVISIONING FAILED!${NC}"
     cleanup_and_exit 1
 }
 
@@ -116,11 +132,11 @@ if [ "$ARCH" = "armv7l" ]; then
         cp $NIRESTORE_MOUNTPOINT/.restore/ni-*.dtb $NILRT_MOUNTPOINT/boot/
         cp /payload/linux_next_runmode.itb $NIRESTORE_MOUNTPOINT/linux_runmode.itb
         sync
-        umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
-        umount $NIRESTORE_MOUNTPOINT || die "Failed to umount $NIRESTORE_MOUNTPOINT"
+        do_silent umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
+        do_silent umount $NIRESTORE_MOUNTPOINT || die "Failed to umount $NIRESTORE_MOUNTPOINT"
         echo "Minimal image deployed."
         ASK_BEFORE_REBOOT=1
-        echo "PROVISIONING SUCCESSFUL!"
+        provision_sucessfull
     }
 
     provision_target()
@@ -188,16 +204,16 @@ if [ "$ARCH" = "armv7l" ]; then
             echo "done."
 
             sync
-            umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
-            umount $NIRESTORE_MOUNTPOINT || die "Failed to umount $NIRESTORE_MOUNTPOINT"
-            umount $NICONFIG_MOUNTPOINT || die "Failed to umount $NICONFIG_MOUNTPOINT"
+            do_silent umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
+            do_silent umount $NIRESTORE_MOUNTPOINT || die "Failed to umount $NIRESTORE_MOUNTPOINT"
+            do_silent umount $NICONFIG_MOUNTPOINT || die "Failed to umount $NICONFIG_MOUNTPOINT"
 
             printf "Formatting ubi1:rootfs... "
             format_ubi_volume root 0 rootfs
             echo "done."
 
             ASK_BEFORE_REBOOT=1
-            echo "PROVISIONING SUCCESSFUL!"
+            provision_sucessfull
         fi
     }
 
@@ -350,9 +366,9 @@ elif [ "$ARCH" = "x86_64" ]; then
             mkdir -p $BOOTFS_MOUNTPOINT
             older_nilrt_nibootfs_path=`lsblk -rpn $TARGET_DISK -o NAME,LABEL | grep " $OLDER_NILRT_NIBOOTFS_LABEL"'$' | tail -1 | cut -d' ' -f1`
             do_silent echo "Mounting $older_nilrt_nibootfs_path $OLDER_NILRT_NIBOOTFS_LABEL partition..."
-            mount $older_nilrt_nibootfs_path $TEMP_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
+            do_silent mount $older_nilrt_nibootfs_path $TEMP_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
             cp -r $TEMP_MOUNTPOINT/.newNILinuxRT/* $BOOTFS_MOUNTPOINT/
-            umount $TEMP_MOUNTPOINT || die "Failed to umount $TEMP_MOUNTPOINT"
+            do_silent umount $TEMP_MOUNTPOINT || die "Failed to umount $TEMP_MOUNTPOINT"
             SOURCE_DIR=$BOOTFS_MOUNTPOINT
         elif [ "$1" = "usb" ]; then
             mkdir -p $USB_MOUNTPOINT
@@ -417,8 +433,7 @@ elif [ "$ARCH" = "x86_64" ]; then
         umount $USB_MOUNTPOINT || die "Failed to umount $USB_MOUNTPOINT"
         fi
 
-        echo ""
-        echo "PROVISIONING SUCCESSFUL!"
+        provision_sucessfull
         ASK_BEFORE_REBOOT=1
     }
 fi
@@ -428,13 +443,13 @@ fi
 print_verbose()
 {
     if [[ $verbose_mode -eq 1 ]]; then
-        echo $@
+        echo -e $@
     fi
 }
 
 print_warning()
 {
-    print_verbose "${YELLOW}\n***Warning: %s\n${NC}" "$1"
+    print_verbose "${YELLOW}\n***Warning: $1\n${NC}"
 }
 
 install_default_error_handler()
@@ -554,11 +569,11 @@ source_default_answer_file()
 
 source_answer_file()
 {
-    echo "Searching for answer files:"
+    print_verbose "Searching for answer files:"
 
     # first check for embedded answer file on the boot disk
     if check_answer_file "/ni_provisioning.answers"; then
-        echo "Using embedded answer file at /ni_provisioning.answers"
+        print_verbose "Using embedded answer file at /ni_provisioning.answers"
         source "/ni_provisioning.answers"
         return
     fi
@@ -568,17 +583,17 @@ source_answer_file()
         devNodeInfo="`lsblk -n -o 'FSTYPE,SERIAL,UUID,LABEL' "$devNode" | tr -s ' '`"
         mount -o ro "$devNode"  "$ANSWER_FILE_DISK_MOUNTPOINT"
         if check_answer_file    "$ANSWER_FILE_DISK_MOUNTPOINT/ni_provisioning.answers"; then
-            echo "Using ni_provisioning.answers on $devNode ($devNodeInfo)"
+            print_verbose "Using ni_provisioning.answers on $devNode ($devNodeInfo)"
             source              "$ANSWER_FILE_DISK_MOUNTPOINT/ni_provisioning.answers"
             return
         else
             umount              "$ANSWER_FILE_DISK_MOUNTPOINT"
-            echo "Skipped $devNode ($devNodeInfo)"
+            print_verbose "Skipped $devNode ($devNodeInfo)"
             # and keep going
         fi
     done
 
-    echo "No answer file found; using default configuration"
+    print_verbose "No answer file found; using default configuration"
 }
 
 prompt_user()

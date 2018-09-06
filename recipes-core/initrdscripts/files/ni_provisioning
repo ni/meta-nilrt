@@ -25,11 +25,7 @@ early_setup "$@"
 source_default_answer_file
 
 if [[ $restore == "provision-safe" ]]; then
-    printf "\nNI Linux Real-Time Recovery.\n\n"
-    printf "The boot style is ${RED}$(echo $BOOT_STYLE | tr a-z A-Z)${NC}\n\n"
-    printf "Continuing will partition the disk, format, and install safemode to the target.\n\n"
-
-    prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" PROVISION_REPARTITION_TARGET
+    ask_for_continue
 
     if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
         source /ni_provisioning.safemode
@@ -41,17 +37,13 @@ elif [[ $restore == "backward-migrate" ]]; then
     PROVISION_REBOOT_METHOD="reboot"
     source /ni_provisioning.safemode
 elif [[ $restore == "provision" ]]; then
-    printf "\nNI Linux Real-Time Recovery.\n"
-
     # source user's answer file, if present
     source_answer_file
     echo
 
     if [[ "$PROVISION_PART_NILRT_ID" = "auto" ]]; then
-        printf "The boot style is $BOOT_STYLE\n"
-        printf "Continuing will partition the disk, format, and install minimal image to the target.\n"
+        ask_for_continue
 
-        prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" PROVISION_REPARTITION_TARGET
         if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
             provision_target usb
         fi
@@ -83,11 +75,7 @@ elif [[ $restore == "provision" ]]; then
             die "Partition with "$PROVISION_PART_NILRT_ID" not found."
         fi
 
-        printf "The boot style is $BOOT_STYLE\n"
-
-        printf "Continuing will format the specified partition and install minimal image to the target.\n"
-
-        prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" PROVISION_REPARTITION_TARGET
+        ask_for_continue
         if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
             if [[ "$column" = "UUID" ]]; then
                 uuid="$nilrt_id"
@@ -105,10 +93,7 @@ elif [[ $restore == "auto-restore" ]]; then
     PROVISION_REBOOT_METHOD="reboot"
     restore_minimal_image
 else
-    printf "\nNI Linux Real-Time Restore.\n"
-    printf "Continuing will format the nilrt partition and will install minimal image.\n"
-
-    prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" PROVISION_RESTORE_MINIMAL_IMAGE
+    ask_for_continue "Restore" "PROVISION_RESTORE_MINIMAL_IMAGE"
     if [[ $PROVISION_RESTORE_MINIMAL_IMAGE == "y" ]]; then
         restore_minimal_image
     fi
