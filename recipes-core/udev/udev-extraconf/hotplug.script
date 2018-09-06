@@ -28,8 +28,19 @@ if [ "$SUBSYSTEM" == "net" ]; then
       fi
       netif_set_device up ${interface}
     fi
+  elif [ "$ACTION" == change ]; then
+    # Specifically for the case of holding off cold-boot interfaces until after hostname is set
+    if [ ! -e /var/run/ifplugd.${interface}.pid ]; then
+      netif_set_device down ${interface}
+      /etc/init.d/busybox-ifplugd start $interface
+      if [ "x${DEVTYPE}" == "xwlan" ]; then
+        setup_wireless ${interface}
+        /usr/sbin/wpa_supplicant -Dnl80211 -i ${interface} -c /etc/natinst/share/wpa_supplicant.conf -u -B
+      fi
+      netif_set_device up ${interface}
+    fi
   elif [ "$ACTION" == remove ]; then
-    if [ -e /var/volatile/run/ifplugd.${interface}.pid ]; then
+    if [ -e /var/run/ifplugd.${interface}.pid ]; then
       /etc/init.d/busybox-ifplugd stop $interface
       if [ "x${DEVTYPE}" == "xwlan" ]; then
         /usr/sbin/wpa_cli -i${interface} terminate
