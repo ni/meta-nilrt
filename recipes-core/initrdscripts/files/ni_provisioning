@@ -33,9 +33,9 @@ if [[ $restore == "provision-safe" ]]; then
     fi
 elif [[ $restore == "backward-migrate" ]]; then
     PROVISION_REPARTITION_TARGET="y"
+    source /ni_provisioning.safemode
     ASK_BEFORE_REBOOT=1
     PROVISION_REBOOT_METHOD="reboot"
-    source /ni_provisioning.safemode
 elif [[ $restore == "provision" ]]; then
     # source user's answer file, if present
     source_answer_file
