@@ -25,7 +25,6 @@ PACKAGECONFIG = "tcp"
 
 RDEPENDS_${PN}-minion_append += "\
     python3-avahi \
-    python3-iso8601 \
     python3-pyinotify \
     python3-pyroute2 \
     python3-pika \
@@ -37,10 +36,14 @@ RDEPENDS_${PN}-minion_append_armv7a += "\
     ${@oe.utils.conditional('DISTRO', 'nilrt', 'u-boot-mkimage', '', d)} \
 "
 
+# these dependencies should NOT be added to the salt bb recipe as they're added
+# here in the bbappend for the NIFeeds ni-skyline packages. In the future these
+# will be removed and skyline packages made to depend on them directly.
 RDEPENDS_${PN}-common_append += " \
+    python3-configparser \
+    python3-dateutil \
     python3-difflib \
     python3-distutils \
-    python3-configparser \
     python3-misc \
     python3-multiprocessing \
     python3-profile \
