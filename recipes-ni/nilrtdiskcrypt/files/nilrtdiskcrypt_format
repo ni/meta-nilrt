@@ -74,6 +74,7 @@ for ksNumb in $unsealedKeySlotNumbers $sealedKeySlotNumbers; do
     nvrelease_ifdefined "$ksHandle"
 done
 
+create_user_storage_key_ifmissing
 create_sealed_disk_key "$sealingPCRSet"
 
 status "Format devices"

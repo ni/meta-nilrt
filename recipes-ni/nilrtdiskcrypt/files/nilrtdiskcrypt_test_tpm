@@ -6,6 +6,8 @@ source "/usr/lib/nilrtdiskcrypt.common"
 status "TEST: Init"
 take_lock
 cd_to_empty
+init_work_dir
+create_user_storage_key_ifmissing
 
 status "TEST: Release key slots"
 init_work_dir

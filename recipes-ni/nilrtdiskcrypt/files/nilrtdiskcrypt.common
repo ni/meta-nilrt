@@ -53,6 +53,7 @@ LOCK_TIMEOUT="300"  # 300 seconds = 5 minutes
 
 TPM_ALG_SHA256="0x000B"
 TPM_ALG_KEYEDHASH="0x0008"
+TPM_KEY_ALG_RSA="0x0001"
 TPM_RH_OWNER="0x40000001"
 
 #TPM_PLATFORM_STORAGE_KEY_HANDLE="0x81800000"
@@ -160,6 +161,31 @@ function check_tpm_caps () {
             error "TPM does NOT have algorithm=$algorithm"
         fi
     done
+}
+
+function check_user_storage_key () {
+    status "Check TPM_USER_STORAGE_KEY_HANDLE=$TPM_USER_STORAGE_KEY_HANDLE with TPM_ALG_SHA256 and TPM_KEY_ALG_RSA exists"
+    tpm2_listpersistent --halg "$TPM_ALG_SHA256" --kalg "$TPM_KEY_ALG_RSA" | grep -q ":$TPM_USER_STORAGE_KEY_HANDLE "
+}
+
+function create_user_storage_key_ifmissing () {
+    if check_user_storage_key; then
+        status "Already has TPM_USER_STORAGE_KEY_HANDLE=$TPM_USER_STORAGE_KEY_HANDLE"
+    else
+        status "Create new persistent key at user_storage_key.context"
+        do_silently tpm2_createprimary \
+            --auth "o" \
+            --halg "$TPM_ALG_SHA256" \
+            --kalg "$TPM_KEY_ALG_RSA" \
+            --aes-key-size 256 \
+            --context "$WORK_DIR/user_storage_key.context"
+
+        status "Persist user_storage_key.context as TPM_USER_STORAGE_KEY_HANDLE=$TPM_USER_STORAGE_KEY_HANDLE"
+        do_silently tpm2_evictcontrol \
+            --auth "o" \
+            --context "$WORK_DIR/user_storage_key.context" \
+            --persistent "$TPM_USER_STORAGE_KEY_HANDLE"
+    fi
 }
 
 function read_attestation_public_key () {
@@ -286,6 +312,8 @@ function create_disk_key () {
 }
 
 function seal_key () {
+    check_user_storage_key || error "Invalid user storage key"
+
     status "Create key.pub and key.priv (sealed TPM2 objects) from key"
     do_silently tpm2_create \
         --parent "$TPM_USER_STORAGE_KEY_HANDLE" \
@@ -300,6 +328,8 @@ function seal_key () {
 
 function unseal_key () {
     local sealingPCRSet="$1"
+
+    check_user_storage_key || error "Invalid user storage key"
 
     status "Load key.pub and key.priv to loaded-key.handle"
     do_silently tpm2_load \
