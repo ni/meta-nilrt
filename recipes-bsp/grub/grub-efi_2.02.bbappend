@@ -9,17 +9,13 @@ GRUB_NILRT_IMAGE = "grubx64.efi"
 PACKAGES =+ "${PN}-nilrt"
 PROVIDES =+ "${PN}-nilrt"
 
-# we build our own 'grub-efi-nilrt' with a non-standard name & path under /boot/grubx64.efi
-# in the rootfs because we expect to chainload it from the 'normal OE-built' grub-efi under
-# the standard UEFI path /EFI/BOOT/ on the bootfs partition.
-# We can't modify this to be standard compliant or directly use the 'normal OE-built' grub-efi
-# because our customers also chainload the distro depending on the existing path :(
+# we package 'grub-efi-nilrt' with a non-standard name & path under /boot/grubx64.efi
+# in the rootfs because we expect to chainload it from the 'normal OE-built' grub-efi
+# which is installed under the standard UEFI path /EFI/BOOT/ on the bootfs partition.
+# We can't modify this because our customers also chainload the distro depending on
+# the existing path from their own bootloader config (they dual boot with Windows).
 do_install_append_class-target() {
-    install -d ${D}/boot/
-
-    grub-mkimage -p /boot/ -O ${GRUB_TARGET}-efi -d ./grub-core/ \
-                 -o ${D}/boot/${GRUB_NILRT_IMAGE} ${GRUB_BUILDIN}
-
+    cp ${D}/boot/EFI/BOOT/${GRUB_IMAGE} ${D}/boot/${GRUB_NILRT_IMAGE}
     install -m 0644 ${WORKDIR}/grub.cfg ${D}/boot/
 }
 
