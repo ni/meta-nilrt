@@ -33,7 +33,7 @@ NILRT_NXG_ARM_PACKAGES = "\
 "
 
 NILRT_NXG_x64_PACKAGES = "\
-	grub-efi-nilrt \
+	grub-efi-rootfs-chainloaded \
 "
 
 NILRT_ARM_PACKAGES = "\
