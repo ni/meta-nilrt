@@ -277,9 +277,9 @@ install_grub()
 
     print_info "Installing grub.cfg..."
 
-    cp $SOURCE_DIR/safemode_files/grub.cfg $GRUB_TARGET_DIR/grub.cfg
+    cp $SOURCE_DIR/grub.cfg $GRUB_TARGET_DIR/grub.cfg
     mkdir -p $GRUB_TARGET_DIR/fonts
-    cp $SOURCE_DIR/safemode_files/fonts/unicode.pf2 $GRUB_TARGET_DIR/fonts/
+    cp $SOURCE_DIR/fonts/unicode.pf2 $GRUB_TARGET_DIR/fonts/
     print_done
 }
 
@@ -294,7 +294,7 @@ install_safemode()
 
     safemode_files=(bzImage ramdisk.gz bootimage.ini bootimage.cfg)
     for safemode_file in ${safemode_files[@]}; do
-        cp $SOURCE_DIR/safemode_files/$safemode_file $BOOTFS_MOUNTPOINT/.safe
+        cp $SOURCE_DIR/$safemode_file $BOOTFS_MOUNTPOINT/.safe
     done
 
     print_done
@@ -327,15 +327,15 @@ install_grubenv()
     touch $BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars
     if is_ni_device ; then
         NI_TARGET="true"
-        cp $SOURCE_DIR/safemode_files/grubenv $BOOTFS_MOUNTPOINT/grub
-        cp $SOURCE_DIR/safemode_files/SMBIOS_NI_vars $BOOTFS_MOUNTPOINT/.safe
+        cp $SOURCE_DIR/grubenv $BOOTFS_MOUNTPOINT/grub
+        cp $SOURCE_DIR/SMBIOS_NI_vars $BOOTFS_MOUNTPOINT/.safe
         if [[ "$BOOT_STYLE" == "efi" ]]; then
-            cp $SOURCE_DIR/safemode_files/EFI_NI_vars $BOOTFS_MOUNTPOINT/.safe
+            cp $SOURCE_DIR/EFI_NI_vars $BOOTFS_MOUNTPOINT/.safe
             add_USB_gadget_args_to_grubenv
             override_primaryport_grubenv
         fi
     else
-        cp $SOURCE_DIR/safemode_files/grubenv_non_ni_target $BOOTFS_MOUNTPOINT/grub/grubenv
+        cp $SOURCE_DIR/grubenv_non_ni_target $BOOTFS_MOUNTPOINT/grub/grubenv
     fi
 
     set_serial_port
@@ -462,7 +462,7 @@ check_for_tpm_chip
 echo "Installing safemode to: $TARGET_DISK using $BOOT_STYLE boot style."
 echo 6 > /proc/sys/kernel/printk
 
-SOURCE_DIR=/boot/.oldNILinuxRT
+SOURCE_DIR=/payload
 
 print_info "Disabling automount..."
 disable_automount
