@@ -39,6 +39,7 @@ SRC_URI = " \
     file://nilrtdiskcrypt_canopen \
     file://nilrtdiskcrypt_reseal \
     file://nilrtdiskcrypt_unseal \
+    file://nilrtdiskcrypt_dictionarylockout \
     file://nilrtdiskcrypt_disableunseal \
     file://nilrtdiskcrypt_close \
     file://nilrtdiskcrypt_format \
@@ -60,6 +61,7 @@ do_install () {
     install -m 0755 ${S}/nilrtdiskcrypt_canopen ${D}${sbindir}/
     install -m 0755 ${S}/nilrtdiskcrypt_reseal ${D}${sbindir}/
     install -m 0755 ${S}/nilrtdiskcrypt_unseal ${D}${sbindir}/
+    install -m 0755 ${S}/nilrtdiskcrypt_dictionarylockout ${D}${sbindir}/
     install -m 0755 ${S}/nilrtdiskcrypt_disableunseal ${D}${sbindir}/
     install -m 0755 ${S}/nilrtdiskcrypt_close ${D}${sbindir}/
     install -m 0755 ${S}/nilrtdiskcrypt_format ${D}${sbindir}/
