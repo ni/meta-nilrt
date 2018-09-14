@@ -1,6 +1,6 @@
 DEFAULT_PREFERENCE = "1"
 
-SRC_URI = "${NILRT_GIT}/tpm2-tools.git;branch=nilrt/18.0"
+SRC_URI = "${NILRT_GIT}/tpm2-tools.git;branch=nilrt/18.1"
 
 S = "${WORKDIR}/git"
 
