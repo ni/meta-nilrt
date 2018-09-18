@@ -19,7 +19,7 @@ GROUPADD_PARAM_${PN} = " --system ${LVRT_GROUP}; \
 USERADD_WEBSERVICES = "-m -N -g ${LVRT_GROUP} -G niwscerts,plugdev,adm,tty -c 'Web services user' webserv"
 
 # add parameter -m if you want home directories created with default files (.profile, .bashrc)
-USERADD_PARAM_${PN} = " -m -N -g ${LVRT_GROUP} -G niwscerts,plugdev,tty -c 'LabVIEW user' ${LVRT_USER}; \
+USERADD_PARAM_${PN} = " -m -N -g ${LVRT_GROUP} -G network,niwscerts,plugdev,tty -c 'LabVIEW user' ${LVRT_USER}; \
 		-N -g openvpn -G network -c 'OpenVPN' -r openvpn; \
 		${@oe.utils.conditional('DISTRO', 'nilrt-nxg', '', d.getVar('USERADD_WEBSERVICES', True), d)}"
 
