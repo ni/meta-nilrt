@@ -168,7 +168,7 @@ EOF
 
 set_serial_port()
 {
-    if [ -f /sys/class/tty/ttyS0/type -a `cat /sys/class/tty/ttyS0/type` -ne 0 ]; then
+    if [ -d /sys/class/tty/ttyS0 ] && [ -f /sys/class/tty/ttyS0/type ] && [ `cat /sys/class/tty/ttyS0/type` -ne 0 ]; then
         echo "set serial_port="`cat /sys/class/tty/ttyS0/port` >> $GRUB_MOUNTPOINT/grubvar_readonly
     fi
 }
