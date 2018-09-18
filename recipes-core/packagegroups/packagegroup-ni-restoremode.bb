@@ -45,7 +45,3 @@ DEPENDS += "linux-nilrt"
 RRECOMMENDS_${PN}_x64 = "\
     kernel-module-tpm-tis \
 "
-
-# important: don't change this to RDEPENDS, we don't want to include these in
-# all restore-mode packages, we just want to ensure they get built
-DEPENDS_x64 += "safemode-image"
