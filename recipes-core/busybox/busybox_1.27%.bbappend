@@ -23,10 +23,8 @@ DEPENDS =+ " libselinux"
 FILES_${PN}-ifplugd = "${sysconfdir}/init.d/busybox-ifplugd ${sysconfdir}/ifplugd/ifplugd.action"
 FILES_${PN}-acpid = "${sysconfdir}/init.d/busybox-acpid ${sysconfdir}/acpid.conf ${sysconfdir}/acpi ${sysconfdir}/acpi/poweroff.sh"
 
-INITSCRIPT_PACKAGES =+ " ${PN}-ifplugd ${PN}-acpid"
+INITSCRIPT_PACKAGES =+ " ${PN}-acpid"
 
-INITSCRIPT_NAME_${PN}-ifplugd = "busybox-ifplugd"
-INITSCRIPT_PARAMS_${PN}-ifplugd = "start 20 2 3 4 5 . stop 20 0 1 6 ."
 INITSCRIPT_NAME_${PN}-acpid = "busybox-acpid"
 INITSCRIPT_PARAMS_${PN}-acpid = "start 20 2 3 4 5 . stop 20 0 1 6 ."
 
