@@ -36,6 +36,7 @@ RDEPENDS_${PN}-common = " \
     python-misc \
     python-multiprocessing \
     python-profile \
+    python-pyiface \
     python-pyyaml \
     python-resource \
     python-terminal \
