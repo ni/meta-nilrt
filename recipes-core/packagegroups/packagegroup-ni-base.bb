@@ -17,6 +17,7 @@ MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS ?= ""
 
 ALL_DISTRO_ARM_PACKAGES = "\
 	mtd-utils \
+	u-boot-fw-utils \
 "
 
 ALL_DISTRO_x64_PACKAGES = "\
@@ -28,7 +29,6 @@ ALL_DISTRO_x64_PACKAGES = "\
 "
 
 NILRT_NXG_ARM_PACKAGES = "\
-	u-boot-fw-utils \
 	kernel-devicetree \
 "
 
