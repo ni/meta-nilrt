@@ -43,6 +43,8 @@ VIRTUAL-RUNTIME_base-utils-hwclock = "util-linux-hwclock"
 
 VIRTUAL-RUNTIME_initscripts = "initscripts"
 
+VIRTUAL-RUNTIME_init_manager = "sysvinit"
+
 # For qemu images
 VIRTUAL-RUNTIME_keymaps = ""
 
