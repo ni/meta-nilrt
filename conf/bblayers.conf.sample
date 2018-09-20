@@ -30,6 +30,7 @@ BBLAYERS ?= " \
     ${TOPDIR}/../sources/meta-measured \
     ${TOPDIR}/../sources/meta-qt5 \
     ${TOPDIR}/../sources/meta-qt5-extra \
+    ${TOPDIR}/../sources/meta-ivi/meta-ivi \
     "
 
 BBLAYERS_NON_REMOVABLE ?= " \
