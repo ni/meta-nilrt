@@ -853,3 +853,16 @@ RDEPENDS_${PN} += "\
 RDEPENDS_${PN} += "\
 	qtvirtualkeyboard \
 "
+
+# meta-ivi
+RDEPENDS_${PN} += "\
+	common-api-c++ \
+	common-api-c++-dbus \
+	common-api-c++-someip \
+	dlt-daemon \
+	ecryptfs-utils \
+	keyutils \
+	liboil \
+	persistence-common-object \
+	vsomeip \
+"
