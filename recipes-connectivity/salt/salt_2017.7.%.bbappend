@@ -28,6 +28,7 @@ RDEPENDS_${PN}-minion = "python ${PN}-common (= ${EXTENDPKGV}) python-msgpack py
 RDEPENDS_${PN}-common = " \
     lsb \
     python \
+	python-configparser \
     python-difflib \
     python-distutils \
     python-futures \
@@ -38,6 +39,7 @@ RDEPENDS_${PN}-common = " \
     python-profile \
     python-pyiface \
     python-pyyaml \
+	python-requests \
     python-resource \
     python-terminal \
     python-tornado (>= 4.2.1) \
