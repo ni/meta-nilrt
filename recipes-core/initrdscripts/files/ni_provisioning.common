@@ -273,7 +273,7 @@ elif [ "$ARCH" = "x86_64" ]; then
         fi
 
         # $path/device/block must exist. This catches mmcblk*boot* (again).
-        if ! [[ -d $path/device/block/ ]]; then
+        if ! ( [[ -d $path/device/block/ ]] || [[ -d $path/device/${path##*/} ]] ); then
             (( verbose_mode )) && echo "SKIPPED $path_abbrev: no device/block/" >&2
             return 1
         fi
@@ -516,7 +516,7 @@ early_setup()
 
     if [[ $verbose_mode -eq 1 ]]; then
         VERBOSE_ARGS="-v"
-        MKFS_ARGS=$VERBOSE_ARGS
+        MKFS_ARGS="$VERBOSE_ARGS -F"
     fi
 
     if [[ -z $TARGET_DISK ]]; then
