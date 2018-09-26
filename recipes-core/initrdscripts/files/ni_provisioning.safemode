@@ -265,13 +265,11 @@ install_grub()
     else
         print_info "Configuring legacy grub2..."
         GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/boot/grub
-        cd $SOURCE_DIR/grub2-legacy
         #grub tools expect /lib64 instead of /lib
         ln -sf /lib /lib64
         # set ${TARGET_DISK}1 boot flag on
         parted -s ${TARGET_DISK} set 1 boot on
-        ./grub-install --recheck -d ./grub-core --grub-probe=./grub-probe --grub-setup=./grub-bios-setup --root-directory=$GRUB_MOUNTPOINT $TARGET_DISK
-        cd $OLDPWD
+        grub-install --recheck --root-directory=$GRUB_MOUNTPOINT $TARGET_DISK
     fi
     print_done
 
