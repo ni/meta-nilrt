@@ -1,0 +1,120 @@
+From 84f5707726a1ad58142f3e9965f48ccfc3d74c23 Mon Sep 17 00:00:00 2001
+From: Bill Pittman <bill.pittman@ni.com>
+Date: Fri, 21 Sep 2018 07:57:12 -0500
+Subject: [PATCH 1/2] Implement ficom instruction for amd64
+
+This should fix #103594 for amd64 previous commit
+was for x86 only.
+
+Signed-off-by: Bill Pittman <bill.pittman@ni.com>
+---
+ VEX/priv/guest_amd64_toIR.c | 79 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 78 insertions(+), 1 deletion(-)
+
+diff --git a/VEX/priv/guest_amd64_toIR.c b/VEX/priv/guest_amd64_toIR.c
+index f462030..2df3aab 100644
+--- a/VEX/priv/guest_amd64_toIR.c
++++ b/VEX/priv/guest_amd64_toIR.c
+@@ -6204,6 +6204,43 @@ ULong dis_FPU ( /*OUT*/Bool* decode_ok,
+                fop = Iop_MulF64;
+                goto do_fop_m32;
+ 
++            case 2: /* FICOM m32int */
++               DIP("ficoms %s\n", dis_buf);
++               /* This forces C1 to zero, which isn't right. */
++               /* The AMD documentation suggests that forcing C1 to
++                  zero is correct (Eliot Moss) */
++               put_C3210(
++                   unop( Iop_32Uto64,
++                       binop( Iop_And32,
++                              binop(Iop_Shl32,
++                                    binop(Iop_CmpF64,
++                                          get_ST(0),
++                                          unop(Iop_I32StoF64,
++                                               loadLE(Ity_I32,mkexpr(addr)))),
++                                    mkU8(8)),
++                              mkU32(0x4500)
++                   )));
++               break;
++
++            case 3: /* FICOMP m32int */
++               /* The AMD documentation suggests that forcing C1 to
++                  zero is correct (Eliot Moss) */
++               DIP("ficomps %s\n", dis_buf);
++               /* This forces C1 to zero, which isn't right. */
++               put_C3210(
++                   unop( Iop_32Uto64,
++                       binop( Iop_And32,
++                              binop(Iop_Shl32,
++                                    binop(Iop_CmpF64,
++                                          get_ST(0),
++                                          unop(Iop_I32StoF64,
++                                               loadLE(Ity_I32,mkexpr(addr)))),
++                                    mkU8(8)),
++                              mkU32(0x4500)
++                   )));
++               fp_pop();
++               break;
++
+             case 4: /* FISUB m32int */ /* ST(0) -= m32int */
+                DIP("fisubl %s\n", dis_buf);
+                fop = Iop_SubF64;
+@@ -6245,7 +6282,7 @@ ULong dis_FPU ( /*OUT*/Bool* decode_ok,
+             default:
+                vex_printf("unhandled opc_aux = 0x%2x\n",
+                           (UInt)gregLO3ofRM(modrm));
+-               vex_printf("first_opcode == 0xDA\n");
++               vex_printf("second_opcode == 0xDA\n");
+                goto decode_fail;
+          }
+ 
+@@ -6888,6 +6925,46 @@ ULong dis_FPU ( /*OUT*/Bool* decode_ok,
+                fop = Iop_MulF64;
+                goto do_fop_m16;
+ 
++            case 2: /* FICOM m16int */
++               DIP("ficoms %s\n", dis_buf);
++               /* This forces C1 to zero, which isn't right. */
++               /* The AMD documentation suggests that forcing C1 to
++                  zero is correct (Eliot Moss) */
++               put_C3210(
++                   unop( Iop_32Uto64,
++                       binop( Iop_And32,
++                              binop(Iop_Shl32,
++                                    binop(Iop_CmpF64,
++                                          get_ST(0),
++                                          unop(Iop_I32StoF64,
++                                            unop(Iop_16Sto32,
++                                               loadLE(Ity_I16,mkexpr(addr))))),
++                                    mkU8(8)),
++                              mkU32(0x4500)
++                   )));
++               break;
++
++            case 3: /* FICOMP m16int */
++               /* The AMD documentation suggests that forcing C1 to
++                  zero is correct (Eliot Moss) */
++               DIP("ficomps %s\n", dis_buf);
++               /* This forces C1 to zero, which isn't right. */
++               put_C3210(
++                   unop( Iop_32Uto64,
++                       binop( Iop_And32,
++                              binop(Iop_Shl32,
++                                    binop(Iop_CmpF64,
++                                          get_ST(0),
++                                          unop(Iop_I32StoF64,
++                                            unop(Iop_16Sto32,
++                                               loadLE(Ity_I16,mkexpr(addr))))),
++                                    mkU8(8)),
++                              mkU32(0x4500)
++                   )));
++               fp_pop();
++               break;
++
++
+             case 4: /* FISUB m16int */ /* ST(0) -= m16int */
+                DIP("fisubw %s\n", dis_buf);
+                fop = Iop_SubF64;
+-- 
+2.7.4
+

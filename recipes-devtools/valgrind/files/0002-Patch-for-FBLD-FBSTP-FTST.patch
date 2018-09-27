@@ -1,0 +1,227 @@
+From 79226c8a5a6417f0a7455952d8e2ffd8da7fa425 Mon Sep 17 00:00:00 2001
+From: Bill Pittman <bill.pittman@ni.com>
+Date: Wed, 26 Sep 2018 12:59:35 -0500
+Subject: [PATCH 2/2] Patch for FBLD/FBSTP/FTST
+
+Pulled from a third party patch set that was
+not upstreamed.
+
+Signed-off-by: Bill Pittman <bill.pittman@ni.com>
+---
+ VEX/priv/guest_amd64_defs.h    |  3 ++
+ VEX/priv/guest_amd64_helpers.c | 63 ++++++++++++++++++++++++++++++
+ VEX/priv/guest_amd64_toIR.c    | 87 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 153 insertions(+)
+
+diff --git a/VEX/priv/guest_amd64_defs.h b/VEX/priv/guest_amd64_defs.h
+index 88593e6..523c8fb 100644
+--- a/VEX/priv/guest_amd64_defs.h
++++ b/VEX/priv/guest_amd64_defs.h
+@@ -160,8 +160,11 @@ extern ULong amd64g_calculate_pdep  ( ULong, ULong );
+ 
+ /* --- DIRTY HELPERS --- */
+ 
++extern ULong amd64g_dirtyhelper_loadBCDF80le ( ULong/*addr*/ );
++extern ULong amd64g_dirtyhelper_loadSign ( ULong /*addr*/ );
+ extern ULong amd64g_dirtyhelper_loadF80le  ( Addr/*addr*/ );
+ 
++extern void  amd64g_dirtyhelper_storeBCDF80le ( ULong/*addr*/, Long/*signed*/ );
+ extern void  amd64g_dirtyhelper_storeF80le ( Addr/*addr*/, ULong/*data*/ );
+ 
+ extern void  amd64g_dirtyhelper_CPUID_baseline ( VexGuestAMD64State* st );
+diff --git a/VEX/priv/guest_amd64_helpers.c b/VEX/priv/guest_amd64_helpers.c
+index a53419a..b195970 100644
+--- a/VEX/priv/guest_amd64_helpers.c
++++ b/VEX/priv/guest_amd64_helpers.c
+@@ -2415,6 +2415,43 @@ void amd64g_dirtyhelper_FINIT ( VexGuestAMD64State* gst )
+    gst->guest_FC3210  = 0;
+ }
+ 
++/* DIRTY HELPER (reads guest memory) */
++ULong amd64g_dirtyhelper_loadSign ( ULong addrU )
++{
++    UChar* addr = (UChar*)addrU;
++    UChar byte = addr [9] & 0x80;
++    ULong result;
++    if (byte != 0)
++    {
++        result = -1;
++    }
++    else
++    {
++        result = 1;
++    }
++    return result;
++}
++
++/* DIRTY HELPER (reads guest memory) */
++ULong amd64g_dirtyhelper_loadBCDF80le ( ULong addrU )
++{
++    Long accumulator = 0;
++    Long multiplier = 1;
++    int i;
++    UChar* addr = (UChar*) addrU;
++    for (i = 0; i < 9; ++i)
++    {
++        UChar byte = addr [i];
++        UChar lower = byte & 0x0f;
++        accumulator += lower * multiplier;
++        multiplier *= 10;
++        UChar upper = byte >> 4;
++        accumulator += upper * multiplier;
++        multiplier *= 10;
++    }
++    return accumulator;
++}
++
+ 
+ /* CALLED FROM GENERATED CODE */
+ /* DIRTY HELPER (reads guest memory) */
+@@ -2425,6 +2462,32 @@ ULong amd64g_dirtyhelper_loadF80le ( Addr addrU )
+    return f64;
+ }
+ 
++/* DIRTY HELPER (writes guest memory) */
++void amd64g_dirtyhelper_storeBCDF80le ( ULong addrU, Long i64)
++{
++    ULong u64 = i64 < 0 ? 0 - i64 : i64;
++    ULong accumulator = u64;
++    UChar* addr = (UChar*)addrU;
++    int i;
++    for (i = 0; i < 9; ++i)
++    {
++        UChar lower = accumulator % 10;
++        accumulator /= 10;
++        UChar upper = accumulator % 10;
++        accumulator /= 10;
++        UChar byte = (upper << 4) | lower;
++        addr[i] = byte;
++    }
++    if (i64 != u64)
++    {
++        addr[9] = 0x80;
++    }
++    else
++    {
++        addr[9] = 0x00;
++    }
++}
++
+ /* CALLED FROM GENERATED CODE */
+ /* DIRTY HELPER (writes guest memory) */
+ void amd64g_dirtyhelper_storeF80le ( Addr addrU, ULong f64 )
+diff --git a/VEX/priv/guest_amd64_toIR.c b/VEX/priv/guest_amd64_toIR.c
+index 2df3aab..7db829c 100644
+--- a/VEX/priv/guest_amd64_toIR.c
++++ b/VEX/priv/guest_amd64_toIR.c
+@@ -5883,6 +5883,19 @@ ULong dis_FPU ( /*OUT*/Bool* decode_ok,
+                put_ST_UNCHECKED(0, unop(Iop_AbsF64, get_ST(0)));
+                break;
+ 
++             case 0xE4:/* FTST */
++               DIP("ftst\n");
++               /* This forces C1 to zero, which isn't right. */
++               put_C3210(
++                   unop(Iop_32Uto64,
++                   binop( Iop_And32,
++                          binop(Iop_Shl32,
++                                binop(Iop_CmpF64, get_ST(0), IRExpr_Const (IRConst_F64 (0.0)) ),
++                                mkU8(8)),
++                          mkU32(0x4500)
++                   )));
++               break;
++
+             case 0xE5: { /* FXAM */
+                /* This is an interesting one.  It examines %st(0),
+                   regardless of whether the tag says it's empty or not.
+@@ -7107,6 +7120,54 @@ ULong dis_FPU ( /*OUT*/Bool* decode_ok,
+                fp_pop();
+                break;
+ 
++            case 4: { /* FBLD Load Binary Coded Decimal */
++               DIP("fbld %s\n", dis_buf);
++               IRTemp   val  = newTemp(Ity_I64);
++               IRTemp   val2  = newTemp(Ity_I64);
++               IRExpr** args = mkIRExprVec_1 ( mkexpr(addr) );
++
++               IRDirty* d = unsafeIRDirty_1_N (
++                               val,
++                               0/*regparms*/,
++                               "amd64g_dirtyhelper_loadBCDF80le",
++                               &amd64g_dirtyhelper_loadBCDF80le,
++                               args
++                            );
++               /* declare that we're reading memory */
++               d->mFx   = Ifx_Read;
++               d->mAddr = mkexpr(addr);
++               d->mSize = 10;
++
++               IRExpr** args2 = mkIRExprVec_1 ( mkexpr(addr) );
++
++               IRDirty* d2 = unsafeIRDirty_1_N (
++                               val2,
++                               0/*regparms*/,
++                               "amd64g_dirtyhelper_loadSign",
++                               &amd64g_dirtyhelper_loadSign,
++                               args2
++                            );
++               /* declare that we're reading memory */
++               d2->mFx   = Ifx_Read;
++               d2->mAddr = mkexpr(addr);
++               d2->mSize = 10;
++
++               /* execute the dirty call, dumping the result in val. */
++               stmt( IRStmt_Dirty(d) );
++               stmt( IRStmt_Dirty(d2) );
++               fp_push();
++               put_ST(0, triop(Iop_MulF64,
++                 get_roundingmode(),
++                 binop(Iop_I64StoF64,
++                   get_roundingmode(),
++                   mkexpr(val)),
++                 binop(Iop_I64StoF64,
++                   get_roundingmode(),
++                   mkexpr(val2))));
++
++               break;
++            }
++
+             case 5: /* FILD m64 */
+                DIP("fildll %s\n", dis_buf);
+                fp_push();
+@@ -7115,6 +7176,32 @@ ULong dis_FPU ( /*OUT*/Bool* decode_ok,
+                                loadLE(Ity_I64, mkexpr(addr))));
+                break;
+ 
++             case 6: { /* FBSTP */
++               IRExpr** args
++                  = mkIRExprVec_2( mkexpr(addr),
++                                   binop(Iop_F64toI64S,
++                                         get_roundingmode(),
++                                         get_ST(0)));
++
++               IRDirty* d = unsafeIRDirty_0_N (
++                               0/*regparms*/,
++                               "amd64g_dirtyhelper_storeBCDF80le",
++                               &amd64g_dirtyhelper_storeBCDF80le,
++                               args
++                            );
++               /* declare we're writing memory */
++               d->mFx   = Ifx_Write;
++               d->mAddr = mkexpr(addr);
++               d->mSize = 10;
++
++               /* execute the dirty call. */
++               stmt( IRStmt_Dirty(d) );
++               fp_pop();
++
++               DIP("fstpt\n %s", dis_buf);
++               break;
++            }
++
+             case 7: /* FISTP m64 */
+                DIP("fistpll %s\n", dis_buf);
+                storeLE( mkexpr(addr), 
+-- 
+2.7.4
+
