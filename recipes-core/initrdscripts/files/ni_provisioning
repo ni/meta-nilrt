@@ -3,7 +3,7 @@
 INVALID_NILRT_ID_MSG="Invalid value for PROVISION_PART_NILRT_ID. Use UUID=<value> or PARTUUID=<value> or auto."
 
 # verify required tools are installed
-for toolName in poweroff reboot mount umount sync ls rm ln mkdir cp echo printf dirname basename find grep egrep tar bzip2 bunzip2 lsblk cut; do
+for toolName in poweroff reboot mount umount sync ls rm ln mkdir cp echo printf dirname basename find grep egrep tar bzip2 bunzip2 lsblk cut date sleep; do
     if ! type "$toolName" >/dev/null; then
         printf "\n***Error: Missing $toolName\n"
         printf "PROVISIONING FAILED!"
