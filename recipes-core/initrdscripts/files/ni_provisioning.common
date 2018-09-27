@@ -11,6 +11,8 @@ GRUB_MOUNTPOINT=/var/volatile/nigrub
 BOOTFS_MOUNTPOINT=/var/volatile/nibootfs
 ROOTFS_MOUNTPOINT=/var/volatile/nirootfs
 TEMP_MOUNTPOINT=/var/volatile/temp_dir
+TARGET_DISK=""
+TARGET_DISK_SEARCH_TIME=30
 NIGRUB_LABEL=nigrub
 NIRESTORE_LABEL=nirestore
 NILRT_LABEL=nilrt
@@ -347,6 +349,14 @@ handle_err()
     die "$1:$2 (fn=$3): Unexpected status code $4, while running command: '$TMP_EVAL'"
 }
 
+get_time_delta()
+{
+    local offset="$1"
+    local timestamp=$(date +%s)
+    timestamp=$(( $timestamp - $offset ))
+    echo "$timestamp"
+}
+
 early_setup()
 {
     install_default_error_handler
@@ -374,9 +384,18 @@ early_setup()
         [ "$1" = "--" ] && shift
 
         if [[ -z $TARGET_DISK ]]; then
-            TARGET_DISK=`find_target_block_device`
+            local search_begin="`get_time_delta 0`"
+            while [ "`get_time_delta "$search_begin"`" -le "$TARGET_DISK_SEARCH_TIME" ]; do
+                TARGET_DISK="`find_target_block_device`" || TARGET_DISK=""
+                if [[ -z $TARGET_DISK ]]; then
+                    sleep 1
+                else
+                    break
+                fi
+            done
+
             if [[ -z $TARGET_DISK ]]; then
-                die "No target device found for installation."
+                die "No target device found for installation after $TARGET_DISK_SEARCH_TIME seconds."
             fi
         else
             if [[ ! -e $TARGET_DISK ]]; then
