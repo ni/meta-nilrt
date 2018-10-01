@@ -199,11 +199,6 @@ check_for_tpm_chip()
 
 partitioning_disk()
 {
-    print_info "Clearing TARGET_DISK=$TARGET_DISK..."
-    do_silent dd if="/dev/zero" of="$TARGET_DISK" bs=1048576 count=1 || die "Failed to zero first 1MB of disk"
-    sync
-    print_done
-
     print_info "Partitioning TARGET_DISK=$TARGET_DISK (PART_STYLE=$PART_STYLE)..."
     PARTED_ERROR=`parted -s $TARGET_DISK mklabel $PART_STYLE 2>&1` || die "$PARTED_ERROR"
     PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART1_NAME 1MB 16MB 2>&1` || die "$PARTED_ERROR"
