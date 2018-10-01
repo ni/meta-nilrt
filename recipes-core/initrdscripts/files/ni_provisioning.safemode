@@ -1,14 +1,6 @@
 #!/bin/bash
 set -e
 
-if [ -e /ni_provisioning.common ]; then
-    source /ni_provisioning.common
-else
-    printf "\n***Error: File ni_provisioning.common not found!\n"
-    printf "PROVISIONING FAILED!"
-    exit 1
-fi
-
 ask_at_every_error="N"
 use_ramfs=""
 grubenv_consoleoutenable=""
