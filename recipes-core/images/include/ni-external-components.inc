@@ -1,7 +1,7 @@
 IMAGE_INSTALL_NODEPS_append = " \
-	ni-sysmgmt-salt-minion-support \
+	${@bb.utils.contains('DISTRO', 'nilrt-nxg', 'ni-sysmgmt-salt-minion-support', '', d)} \
 "
 
 IMAGE_INSTALL_NODEPS_append_x64 = " \
-	nisdmon \
+	${@bb.utils.contains('DISTRO', 'nilrt-nxg', 'nisdmon', '', d)} \
 "
