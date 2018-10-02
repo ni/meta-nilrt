@@ -1,7 +1,7 @@
 /dts-v1/;
 
 / {
-	description = "LV Comms";
+	description = "Redirect u-boot safemode bootflow to NXG boot.scr";
 	version = "2.0";
 	#address-cells = <1>;
 
@@ -9,7 +9,7 @@
 
 		bootscript@1 {
 			description = "Booting safemode";
-			data = /incbin/("./bootscript-next-safemode.txt");
+			data = /incbin/("./nxg_redirect_safemode_boot.txt");
 			type = "script";
 			arch = "arm";
 			compression = "none";

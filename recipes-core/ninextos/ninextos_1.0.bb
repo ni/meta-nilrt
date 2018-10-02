@@ -22,8 +22,8 @@ do_install_append_xilinx-zynqhf() {
     install -d ${D}/boot
     install -d ${D}/.newNILinuxRT/.safe
     install -d ${D}/.newNILinuxRT/.restore/dtbs
-    install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/linux_fw_migrate.itb ${D}/.newNILinuxRT/
-    install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/linux_next_safemode.itb ${D}/.newNILinuxRT/.safe/
+    install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/forwards_migrate.itb ${D}/.newNILinuxRT/
+    install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/nxg_redirect_safemode_boot.itb ${D}/.newNILinuxRT/.safe/
     for f in ${DEPLOY_DIR_IMAGE}/uImage-ni-*.dtb; do
         dtb_name=`echo $f | awk -F"[-.]" '{print $(NF-1)}'`
         install -m 0644 $f ${D}/.newNILinuxRT/.restore/dtbs/ni-0x$dtb_name.dtb

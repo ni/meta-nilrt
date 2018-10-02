@@ -21,7 +21,7 @@ install_payload_append_xilinx-zynqhf(){
 	install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/boot.scr  ${IMAGE_ROOTFS}/payload/
 	install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/default.scr  ${IMAGE_ROOTFS}/payload/
 	install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/safemode.scr  ${IMAGE_ROOTFS}/payload/
-	install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/linux_next_runmode.itb ${IMAGE_ROOTFS}/payload/
+	install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/nxg_redirect_runmode_boot.itb ${IMAGE_ROOTFS}/payload/
 }
 
 ROOTFS_POSTPROCESS_COMMAND += "install_payload;"

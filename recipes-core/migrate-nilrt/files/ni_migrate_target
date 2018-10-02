@@ -82,13 +82,13 @@ migrate_target()
 		    echo "ERROR: Could not install ninextos"
 		    return 1
 		fi
-		cp .newNILinuxRT/linux_fw_migrate.itb /boot/linux_runmode.itb
+		cp .newNILinuxRT/forwards_migrate.itb /boot/linux_runmode.itb
 	    else
 		if ! opkg install ninextos; then
 		    echo "ERROR: Could not install ninextos"
 		    return 1
 		fi
-		cp /.newNILinuxRT/linux_fw_migrate.itb /boot/linux_runmode.itb
+		cp /.newNILinuxRT/forwards_migrate.itb /boot/linux_runmode.itb
 	    fi
 	    # disable force safemode
 	    nirtcfg -s section=systemsettings,token='SafeMode.enabled',value='False'
@@ -121,7 +121,7 @@ migrate_target()
 		    echo "ERROR: Could not install zynq-safemode-cfg-$DEVICE_CODE"
 		    return 1
 		fi
-		cp /boot/.oldNILinuxRT/bw-migrate.scr /boot/default.scr
+		cp /boot/.oldNILinuxRT/backwards_migrate.scr /boot/default.scr
 		reboot
 	    else
 		echo "ERROR: Backwards migration is not supported for device '$DEVICE_CODE', it is only available for $NILRT_ARM_MIGRATION_SUPPORTED_DEVICES"

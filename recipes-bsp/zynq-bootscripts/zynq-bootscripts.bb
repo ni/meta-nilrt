@@ -17,7 +17,7 @@ do_compile() {
 	mkimage -T script -C none -n 'Default Bootscript' -d default_bootscript default.scr
 	mkimage -T script -C none -n 'Safemode Bootscript' -d safemode_bootscript safemode.scr
 	mkimage -T script -C none -n 'Restore Mode Bootscript' -d restore_bootscript restore.scr
-	mkimage -T script -C none -n 'BW Migration Bootscript' -d bw_migrate_bootscript bw-migrate.scr
+	mkimage -T script -C none -n 'BW Migration Bootscript' -d bw_migrate_bootscript backwards_migrate.scr
 }
 
 do_install() {
@@ -26,7 +26,7 @@ do_install() {
 	install -m 0644 default.scr ${D}/boot/default.scr
 	install -m 0644 safemode.scr ${D}/boot/safemode.scr
 	install -m 0644 restore.scr ${D}/boot/restore.scr
-	install -m 0644 bw-migrate.scr ${D}/boot/bw-migrate.scr
+	install -m 0644 backwards_migrate.scr ${D}/boot/backwards_migrate.scr
 }
 
 SYSROOT_PREPROCESS_FUNCS += "bootscript_preprocess"
@@ -37,7 +37,7 @@ bootscript_preprocess () {
 	install -m 0644 ${D}/boot/default.scr ${SYSROOT_DESTDIR}/boot
 	install -m 0644 ${D}/boot/safemode.scr ${SYSROOT_DESTDIR}/boot
 	install -m 0644 ${D}/boot/restore.scr ${SYSROOT_DESTDIR}/boot
-	install -m 0644 ${D}/boot/bw-migrate.scr ${SYSROOT_DESTDIR}/boot
+	install -m 0644 ${D}/boot/backwards_migrate.scr ${SYSROOT_DESTDIR}/boot
 }
 
 FILES_${PN} = "/boot/*"
