@@ -30,8 +30,8 @@ INHIBIT_PACKAGE_DEBUG_SPLIT="1"
 # link against the gcc provided runtime
 do_kernel_configme[depends] += "libgcc:do_populate_sysroot"
 
-NI_RELEASE_VERSION = "18.1"
-LINUX_VERSION = "4.9"
+NI_RELEASE_VERSION = "master"
+LINUX_VERSION = "4.14"
 
 KBRANCH = "nilrt/${NI_RELEASE_VERSION}/${LINUX_VERSION}"
 
@@ -56,6 +56,8 @@ module_conf_i915 = "options i915 enable_rc6=0 enable_dc=0"
 
 #create dtb-s fromt dts files for armv7a targets
 DEPENDS_append += "rsync-native"
+
+DEPENDS_append_x64 += "elfutils-native"
 
 DEPENDS_append_armv7a += "dtc-native"
 
