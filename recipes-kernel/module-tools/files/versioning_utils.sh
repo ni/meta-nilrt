@@ -1,7 +1,9 @@
 ULNTools=/usr/local/natinst/tools
 
-HEADER_SQFS=module-versioning-image.squashfs
-HEADER_MNTPNT=/var/volatile/tmp/headers
+TOOLS_SQFS=tools-squashfs-image.squashfs
+TOOLS_MNTPNT=/var/volatile/tmp/tools
+
+BINUTILS_FILES=( addr2line ar as c++filt elfedit gprof ld ld.bfd nm objcopy objdump ranlib readelf size strings strip )
 
 # Private-ish functions, don't call these unless you know what you are doing
 function mount_proc
@@ -35,19 +37,19 @@ function create_loopdevs
 	[ -b /dev/loop0 ] || { for dn in `seq 0 7`; do mknod -m660 /dev/loop$dn b 7 $dn; done }
 }
 
-function mount_headers
+function mount_tools
 {
 	mount_proc
-	[ -z "`mount | grep ${HEADER_SQFS}`" ] || return 0
-	mkdir -p ${HEADER_MNTPNT}
+	[ -z "`mount | grep ${TOOLS_SQFS}`" ] || return 0
+	mkdir -p ${TOOLS_MNTPNT}
 	create_loopdevs
-	squashfs_mount ${ULNTools}/${HEADER_SQFS} ${HEADER_MNTPNT}
+	squashfs_mount ${ULNTools}/${TOOLS_SQFS} ${TOOLS_MNTPNT}
 }
 
-function umount_headers
+function umount_tools
 {
-	[ -z "`mount | grep ${HEADER_SQFS}`" ] && return 0
-	squashfs_umount ${HEADER_MNTPNT}
+	[ -z "`mount | grep ${TOOLS_SQFS}`" ] && return 0
+	squashfs_umount ${TOOLS_MNTPNT}
 }
 
 function fix_dev_fd
@@ -58,28 +60,54 @@ function fix_dev_fd
 	[ -e /dev/stdout ] || ln -s /dev/fd/1 /dev/stdout
 }
 
+function fixup_binutils_symlinks
+{
+	gcc_name=$(readlink ${TOOLS_MNTPNT}/usr/bin/gcc)
+	gcc_name=${gcc_name##*/}
+	binutils_prefix=${gcc_name%%-gcc}
+
+	for binutils_file in "${BINUTILS_FILES[@]}"
+	do
+		update-alternatives --install /usr/bin/${binutils_file} ${binutils_file} ${TOOLS_MNTPNT}/usr/bin/${binutils_prefix}-${binutils_file} 100
+	done
+}
+
+function remove_binutils_symlinks
+{
+	gcc_name=$(readlink ${TOOLS_MNTPNT}/usr/bin/gcc)
+	gcc_name=${gcc_name##*/}
+	binutils_prefix=${gcc_name%%-gcc}
+
+	for binutils_file in "${BINUTILS_FILES[@]}"
+	do
+		update-alternatives --remove ${binutils_file} ${TOOLS_MNTPNT}/usr/bin/${binutils_prefix}-${binutils_file}
+	done
+}
+
 function setup_versioning_env
 {
-	mount_headers && \
+	mount_tools && \
 	mount_sysfs && \
-	fix_dev_fd #&& \
+	fix_dev_fd && \
+	fixup_binutils_symlinks
 }
 
 function cleanup_versioning_env
 {
 	depmod $(kernel_version) && \
-	umount_headers
+	umount_tools && \
+	remove_binutils_symlinks
 }
 
 function versioning_call
 {
-	NO_INSTALL_UTIL=1 KERNELHEADERS=${HEADER_MNTPNT}/kernel "$@"
+	LD_LIBRARY_PATH=${TOOLS_MNTPNT}/lib:${TOOLS_MNTPNT}/usr/lib PATH=${PATH}:${TOOLS_MNTPNT}/usr/bin NO_INSTALL_UTIL=1 KERNELHEADERS=${TOOLS_MNTPNT}/kernel CFLAGS=--sysroot=${TOOLS_MNTPNT} "$@"
 }
 
 function kernel_version
 {
-	mount_headers || return
-	[ -e ${ULNTools}/kernel_version ] || ( find ${HEADER_MNTPNT}/kernel/include -name "utsrelease.h" -exec sed 's/^.*"\(.*\)".*$/\1/' {} \; > ${ULNTools}/kernel_version )
+	mount_tools || return
+	[ -e ${ULNTools}/kernel_version ] || ( find ${TOOLS_MNTPNT}/kernel/include -name "utsrelease.h" -exec sed 's/^.*"\(.*\)".*$/\1/' {} \; > ${ULNTools}/kernel_version )
 	cat ${ULNTools}/kernel_version
 }
 
