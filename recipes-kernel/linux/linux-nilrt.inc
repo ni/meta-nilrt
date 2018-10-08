@@ -36,7 +36,10 @@ LINUX_VERSION = "4.14"
 KBRANCH = "nilrt/${NI_RELEASE_VERSION}/${LINUX_VERSION}"
 
 GIT_KERNEL_REPO = "linux.git"
-SRC_URI = "${NILRT_GIT}/${GIT_KERNEL_REPO};protocol=git;nocheckout=1;branch=${KBRANCH}"
+SRC_URI = "\
+	${NILRT_GIT}/${GIT_KERNEL_REPO};protocol=git;nocheckout=1;branch=${KBRANCH} \
+	file://export-kernel-headers.sh \
+"
 SRCREV="${AUTOREV}"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 
@@ -44,7 +47,6 @@ PV = "${LINUX_VERSION}+git${SRCPV}"
 KERNEL_VERSION_SANITY_SKIP="1"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/${KBUILD_FRAGMENTS_LOCATION}:"
-
 KBUILD_DEFCONFIG_x64 = "nati_x86_64_defconfig"
 KBUILD_DEFCONFIG_armv7a = "nati_zynq_defconfig"
 KCONFIG_MODE="--alldefconfig"
@@ -62,6 +64,10 @@ DEPENDS_append_x64 += "elfutils-native"
 DEPENDS_append_armv7a += "dtc-native"
 
 RDEPENDS_kernel-dev += "bash binutils gcc gcc-symlinks"
+
+PACKAGES += "${PN}-module-versioning-headers"
+
+FILES_${PN}-module-versioning-headers = "/kernel"
 
 # Install headers and build objects for kernel versioning into
 # /lib/modules/${KERNEL_VERSION}/build for inclusion in kernel-dev.
@@ -124,6 +130,9 @@ do_install_append() {
 	for f in $(find $kerneldevdir -name .gitignore); do
 		rm $f;
 	done
+
+	install -d ${D}/kernel
+	${WORKDIR}/export-kernel-headers.sh ${S} ${KBUILD_OUTPUT} ${D}/kernel ${ARCH}
 }
 
 do_tag_kernel_build() {

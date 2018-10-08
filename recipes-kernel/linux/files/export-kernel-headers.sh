@@ -33,3 +33,7 @@ cp -a "$OBJDIR"/include/* "$OUTDIR"/include
 cp "$OBJDIR"/.config "$OUTDIR"/.config
 touch -r "$OUTDIR"/Makefile "$OUTDIR"/include/linux/version.h
 touch -r "$OUTDIR"/.config "$OUTDIR"/include/linux/autoconf.h
+cp "$OBJDIR"/Module.symvers "$OUTDIR"/
+
+find "$OUTDIR" -exec chrpath -d {} \;
+chown -R 0:0 "$OUTDIR"
