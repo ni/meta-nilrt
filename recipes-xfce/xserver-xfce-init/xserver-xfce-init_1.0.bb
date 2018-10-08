@@ -8,6 +8,7 @@ SRC_URI = "file://xserver-xfce \
            file://gplv2-license.patch \
            file://xserver-xfce.service \
            file://xserver-xfce.conf \
+           file://xserver-logrotate.conf \
 "
 
 S = "${WORKDIR}"
@@ -30,6 +31,8 @@ do_install() {
         install -m 0644 xserver-xfce.conf ${D}${sysconfdir}/default/xserver-xfce
         install -m 0644 ${WORKDIR}/xserver-xfce.service ${D}${systemd_unitdir}/system
     fi
+    install -d ${D}${sysconfdir}/logrotate.d
+    install -m 0644 xserver-logrotate.conf ${D}${sysconfdir}/logrotate.d/xserver.conf
 }
 
 # Get util-linux for su
