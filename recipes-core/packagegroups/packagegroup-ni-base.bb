@@ -68,6 +68,7 @@ NILRT_PACKAGES = "\
 	libstdc++ \
 	logrotate \
 	niwatchdogpet \
+	ni-module-versioning-tools \
 	openvpn \
 	pigz \
 	usbutils \
