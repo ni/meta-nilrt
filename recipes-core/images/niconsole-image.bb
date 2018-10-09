@@ -11,5 +11,7 @@ IMAGE_INSTALL = "\
 # for backward compatibility
 CUSTOM_KERNEL_PATH = "/boot/tmp/runmode/"
 
+ROOTFS_POSTPROCESS_COMMAND += "install_module_versioning_squashfs;"
+
 require niconsole-image.inc
 require include/licenses.inc

@@ -22,7 +22,7 @@ install_initramfs() {
 		${IMAGE_ROOTFS}${CUSTOM_KERNEL_PATH}/runmode_initramfs.gz
 }
 
-ROOTFS_POSTPROCESS_COMMAND += "install_initramfs;"
+ROOTFS_POSTPROCESS_COMMAND += "install_initramfs; install_module_versioning_squashfs;"
 
 require niconsole-image.inc
 require include/licenses.inc
