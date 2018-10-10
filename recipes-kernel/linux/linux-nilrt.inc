@@ -70,69 +70,16 @@ PACKAGES += "${PN}-module-versioning-headers"
 FILES_${PN}-module-versioning-headers = "/kernel"
 
 # Install headers and build objects for kernel versioning into
-# /lib/modules/${KERNEL_VERSION}/build for inclusion in kernel-dev.
 do_install_append() {
-	kerneldevdir=${D}${base_libdir}/modules/${KERNEL_VERSION}/build
-	install -d $kerneldevdir
+	export CROSS_COMPILE=${CROSS_COMPILE} ARCH=${ARCH} KBUILD_OUTPUT=${KBUILD_OUTPUT}
 
-	cd ${S}
+	# for NXG NILRT install under /lib/modules/ to be included in kernel-dev pkg
+	${WORKDIR}/export-kernel-headers.sh ${S} ${D}${base_libdir}/modules/${KERNEL_VERSION}/build
 
-	# Copy Makefile, Kconfig files
-	rsync -avm \
-	--chown=0:0 \
-	--include="/arch/${ARCH}/" \
-	--exclude="/arch/*/" \
-	--exclude="/Documentation/" \
-	--exclude="/scripts/" \
-	--include="*/" \
-	--include="Makefile*" \
-	--include="Kconfig*" \
-	--exclude="*" \
-	. $kerneldevdir
-
-	# Copy headers
-	rsync -avm \
-	--chown=0:0 \
-	--include="*/" \
-	--include="/arch/${ARCH}/include/**" \
-	--include="/arch/${ARCH}/mach-zynq/include/**" \
-	--include="/include/**" \
-	--include="/scripts/**" \
-	--exclude="*" \
-	. $kerneldevdir
-
-	cd ${KBUILD_OUTPUT}
-
-	# Copy generated headers and build objects
-	rsync -avm \
-	--chown=0:0 \
-	--include="*/" \
-	--exclude="*.o"  \
-	--exclude=".debug" \
-	--exclude=".*.cmd" \
-	--include="/arch/${ARCH}/include/generated/**" \
-	--include="/include/**" \
-	--exclude="/scripts/mod/${CROSS_COMPILE}modpost" \
-	--include="/scripts/**${CROSS_COMPILE}*" \
-	--include="/scripts/**.h" \
-	--include=".config" \
-	--include="Module.symvers" \
-	--exclude="*" \
-	. $kerneldevdir
-
-	# Strip cross compile prefix from target-specific binaries
-	for u in recordmcount fixdep genksyms; do
-		find $kerneldevdir/scripts -name "${CROSS_COMPILE}$u" -printf %h | \
-		xargs -n 1 -I '{}' mv -f '{}'"/${CROSS_COMPILE}$u" '{}'"/$u"
-	done
-
-	# Remove VC-specific files
-	for f in $(find $kerneldevdir -name .gitignore); do
-		rm $f;
-	done
-
-	install -d ${D}/kernel
-	${WORKDIR}/export-kernel-headers.sh ${S} ${KBUILD_OUTPUT} ${D}/kernel ${ARCH}
+	# for older NILRT install under /kernel for inclusion in squashfs for backwards
+	# compatibility with non-standard Linux installs (non-dkms). This should go away
+	# and older NILRT should be migrated to kernel-dev + dkms in the future.
+	${WORKDIR}/export-kernel-headers.sh ${S} ${D}/kernel
 }
 
 do_tag_kernel_build() {

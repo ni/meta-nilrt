@@ -1,39 +1,69 @@
 #!/bin/bash -e
-# This script largely borrowed from rpmspec for the fedora kernel packages (specifically the -devel section)
+
 fail() { echo "$@"; exit 1; }
 
-SOURCEDIR=`cd $1; pwd`
-OBJDIR=`cd $2; pwd`
-mkdir -p "$3"
-OUTDIR=`cd $3; pwd`
-ARCH=$4
+SOURCEDIR="$1"
+OUTDIR="$2"
 
-[ -d "$SOURCEDIR" -a -d "$OBJDIR" ] || fail "Usage $0 <kernel source dir> <kernel obj dir> <header export dir>"
+[ -d "$SOURCEDIR" -a "$#" -eq 2 ] || \
+    fail "Usage $0 <kernel source dir> <header export dir>"
 
-[ -e "$SOURCEDIR"/Makefile -a -e "$SOURCEDIR"/Kconfig ] || fail "Must run from within kernel tree."
+[ -e "$SOURCEDIR"/Makefile -a -e "$SOURCEDIR"/Kconfig ] || \
+	fail "Must run from within kernel tree."
 
-# Needed for copies that use --parents
+mkdir -p "$OUTDIR"
+
 cd "$SOURCEDIR"
-cp --parents $(find . -type f -name "Makefile*" -o -name "Kconfig*") "$OUTDIR"
-rm -rf "$OUTDIR"/{Documentation,scripts,include}
-cp -a "$SOURCEDIR"/scripts "$OUTDIR"
-cp -a "$OBJDIR"/scripts/* "$OUTDIR"/scripts
-rm -f "$OUTDIR"/scripts/*.o "$OUTDIR"/scripts/.*.cmd
-rm -f "$OUTDIR"/scripts/*/*.o "$OUTDIR"/scripts/*/.*.cmd
-rm -rf "$OUTDIR"/.pc
 
-cp -a --parents arch/"$ARCH"/include "$OUTDIR"
-cp -a "$OBJDIR"/arch/"$ARCH"/include/generated "$OUTDIR"/arch/"$ARCH"/include
-if [ -d arch/"$ARCH"/mach-zynq/include ]
-then
-	cp -a --parents arch/"$ARCH"/mach-zynq/include "$OUTDIR"
-fi
-cp -a "$SOURCEDIR"/include "$OUTDIR"/include
-cp -a "$OBJDIR"/include/* "$OUTDIR"/include
-cp "$OBJDIR"/.config "$OUTDIR"/.config
-touch -r "$OUTDIR"/Makefile "$OUTDIR"/include/linux/version.h
-touch -r "$OUTDIR"/.config "$OUTDIR"/include/linux/autoconf.h
-cp "$OBJDIR"/Module.symvers "$OUTDIR"/
+# Copy Makefile, Kconfig files
+rsync -avm \
+      --chown=0:0 \
+      --include="/arch/${ARCH}/" \
+      --exclude="/arch/*/" \
+      --exclude="/Documentation/" \
+      --exclude="/scripts/" \
+      --include="*/" \
+      --include="Makefile*" \
+      --include="Kconfig*" \
+      --exclude="*" \
+      . "$OUTDIR"
 
-find "$OUTDIR" -exec chrpath -d {} \;
+# Copy headers
+rsync -avm \
+      --chown=0:0 \
+      --include="*/" \
+      --include="/arch/${ARCH}/include/**" \
+      --include="/arch/${ARCH}/mach-zynq/include/**" \
+      --include="/include/**" \
+      --include="/scripts/**" \
+      --exclude="*" \
+      . "$OUTDIR"
+
+cd "${KBUILD_OUTPUT}"
+
+# Copy generated headers and build objects
+rsync -avm \
+      --chown=0:0 \
+      --include="*/" \
+      --exclude="*.o"  \
+      --exclude=".debug" \
+      --exclude=".*.cmd" \
+      --include="/arch/${ARCH}/include/generated/**" \
+      --include="/include/**" \
+      --include="/scripts/**${CROSS_COMPILE}*" \
+      --include="/scripts/**.h" \
+      --include=".config" \
+      --include="Module.symvers" \
+      --exclude="*" \
+      . "$OUTDIR"
+
+# Strip cross compile prefix from target-specific binaries
+for u in recordmcount fixdep genksyms modpost; do
+    find "$OUTDIR/scripts" -name "${CROSS_COMPILE}$u" -printf %h | \
+	xargs -n 1 -I '{}' mv -f '{}'"/${CROSS_COMPILE}$u" '{}'"/$u"
+done
+
+# Remove VC-specific files
+find "$OUTDIR" -name .gitignore -delete
+
 chown -R 0:0 "$OUTDIR"
