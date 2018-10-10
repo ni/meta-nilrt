@@ -43,14 +43,33 @@ show_console() {
         echo " ------------------------------------------------------"
         echo ""
 
-        bash -i
+        /bin/bash -i
 
         sleep 1
     done
 }
 
 
+start_serial_console()
+{
+    while true;do
+        if [[ -c /dev/ttyS0 ]];then
+            /usr/bin/setsid /sbin/agetty 115200 ttyS0 --login-options "-p -- \u"
+        fi
+
+        sleep 1
+    done
+}
+
 early_setup
+
+# Set hostname
+echo "recovery" | tee /etc/hostname > /proc/sys/kernel/hostname
+
+# Change root pwd to / where ni_provisioning is located
+echo "cd /" >> /home/root/.profile
+
+start_serial_console &
 
 # Arch-specific set-up
 if [[ $ARCH == "x86_64" ]]; then
