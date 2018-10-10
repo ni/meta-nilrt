@@ -7,7 +7,8 @@ SRC_URI =+ " \
             file://acpid.conf \
             file://acpid_poweroff.sh \
             file://acpid-logrotate.conf \
-	    file://zcip-allow-action-script-to-reject-chosen-IP.patch"
+	    	file://zcip-allow-action-script-to-reject-chosen-IP.patch \
+			file://login-utilities.cfg"
 
 SRC_URI_append_x64 = "file://enable_ar_create_fragment.cfg"
 

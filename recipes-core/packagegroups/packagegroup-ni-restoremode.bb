@@ -18,6 +18,7 @@ RDEPENDS_${PN} += "\
     parted              \
     tar                 \
     util-linux          \
+    util-linux-agetty   \
     "
 
 RDEPENDS_${PN}_append_x64 = "\
