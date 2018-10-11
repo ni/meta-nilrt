@@ -194,7 +194,8 @@ format_ubi_partition()
 }
 
 # format_ubi_volume() - erases the ubi/mtd partition referenced by a
-#			   partition label input argument
+#			   partition label input argument and rewrites an empty
+#			   ubifs file system
 # usage: format_ubi_volume "partition_label" "volume_number" "volume_label"
 format_ubi_volume()
 {
@@ -225,6 +226,11 @@ format_ubi_volume()
 	if [ $current_name != $3 ]; then
 		ubirename /dev/ubi${ubidev} $current_name $3
 	fi
+
+	# Create an empty ubifs (write version 4) so that kernel doesn't
+	# make a newer version of ubifs on mount. Linux 4.14 makes ubifs v5
+	# on empty volumes. Previous versions of Linux make ubifs v4.
+	mkfs.ubifs /dev/ubi${ubidev}_$2
 }
 
 # mount_ubi_volume() - mounts an ubi volume
