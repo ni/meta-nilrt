@@ -369,7 +369,7 @@ install_grubenv()
         grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "consoleoutenable=$grubenv_consoleoutenable"
     fi
 
-    # Set the bootdelay to show the boot menu on PXI controllers
+    # Set quietbootdelay to show the boot menu on PXI controllers
     #
     # The reasoning behind this is that, for NI Linux RT support, Controller
     # Software (the BIOS team) wants to keep the business logic out of
@@ -379,7 +379,7 @@ install_grubenv()
     # handled in BIOS).
 
     if [ "`get_target_class`" == "PXI" ]; then
-        grubenv_bootdelay=${grubenv_bootdelay:-3}
+        grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "quietbootdelay=3"
     fi
 
     # If an initial value for bootdelay was specified, write it to grubenv
