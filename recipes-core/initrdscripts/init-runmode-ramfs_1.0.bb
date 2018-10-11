@@ -6,7 +6,8 @@ SRC_URI = "\
 	file://init-runmode-ramfs.sh	\
 "
 
-DEPENDS = "bash busybox util-linux nilrtdiskcrypt"
+DEPENDS = "bash busybox util-linux nilrtdiskcrypt ${PREFERRED_PROVIDER_virtual/kernel}"
+
 RDEPENDS_${PN} += "\
 	bash \
 	busybox \
