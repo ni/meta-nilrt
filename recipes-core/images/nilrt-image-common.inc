@@ -10,12 +10,7 @@ IMAGE_PREPROCESS_COMMAND += "rootfs_update_timestamp;"
 
 ROOTFS_POSTPROCESS_COMMAND += "\
 	${@oe.utils.conditional('DISTRO', 'nilrt-nxg', '', 'move_kernel;', d)} \
-	remove_unused_feeds; \
 "
-
-remove_unused_feeds() {
-	rm -f ${IMAGE_ROOTFS}/var/lib/opkg/lists/*
-}
 
 # on older NILRT distro flavors the kernel is installed in non-standard paths
 # for backwards compatibility
