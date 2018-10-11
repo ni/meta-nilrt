@@ -108,7 +108,7 @@ handle_err()
 
 check_all_used_binaries()
 {
-    commands=(dmidecode e2label hexdump lsblk mkfs.ext4 mkfs.vfat parted sed sfdisk sgdisk udevadm modprobe dd)
+    commands=(awk dmidecode e2label hexdump lsblk mkfs.ext4 mkfs.vfat parted sed sfdisk sgdisk udevadm modprobe dd)
     for ind_command in ${commands[@]}; do
         one_command=`command -v ${ind_command}`
         if [[ -z $one_command ]]; then
