@@ -7,15 +7,7 @@ S = "${WORKDIR}"
 SRC_URI += "file://versioning_utils.sh \
 "
 
-RDEPENDS_${PN} = "\
-	squashfs-tools \
-	gcc \
-	gcc-symlinks \
-	make \
-	binutils \
-	libgcc-dev \
-	ncurses \
-"
+RDEPENDS_${PN} = "bash"
 
 FILES_${PN} = "/usr/local/natinst/tools/versioning_utils.sh \
 "
