@@ -7,6 +7,8 @@ PACKAGE_INSTALL = "${ROOTFS_BOOTSTRAP_INSTALL} \
                    packagegroup-ni-restoremode \
 "
 
+IMAGE_FEATURES += "empty-root-password"
+
 DEPENDS += "init-restore-mode"
 DEPENDS_xilinx-zynqhf += "zynq-bootscripts zynq-itb"
 
