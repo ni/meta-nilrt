@@ -3,7 +3,7 @@ IMAGE_FEATURES = ""
 IMAGE_LINGUAS = ""
 FEED_URIS = ""
 
-IMAGE_FSTYPES_append += "squashfs"
+IMAGE_FSTYPES = "squashfs tar.bz2"
 
 BAD_RECOMMENDATIONS += "shared-mime-info gawk coreutils bison"
 
