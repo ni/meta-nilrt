@@ -15,7 +15,10 @@ PROVIDES =+ "grub-efi-rootfs-chainloaded"
 GRUB_CHAINLOADED_IMAGE = "grubx64.efi"
 
 do_install_append_class-target() {
-    cp ${D}/boot/EFI/BOOT/${GRUB_IMAGE} ${D}/boot/${GRUB_CHAINLOADED_IMAGE}
+    # need to compile custom grub image because of the non-standard /boot/ prefix
+    grub-mkimage -p /boot/ -O ${GRUB_TARGET}-efi -d ./grub-core/ \
+        -o ${D}/boot/${GRUB_CHAINLOADED_IMAGE} ${GRUB_BUILDIN}
+
     install -m 0644 ${WORKDIR}/grub.cfg ${D}/boot/
 }
 
