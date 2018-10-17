@@ -33,12 +33,21 @@ else
     do_silent() { "$@"; }
 fi
 
+get_image_info()
+{
+    TOKEN=$1
+
+    grep -Po "(?<=${TOKEN}=).*" /payload/imageinfo
+}
+
 ask_for_continue()
 {
     type=${1:-"Recovery"}
     variable=${2:-"PROVISION_REPARTITION_TARGET"}
 
-    printf "\nNI Linux Real-Time $type.\n\n"
+    BUILD_IDENTIFIER=$(get_image_info BUILD_IDENTIFIER)
+
+    printf "\nNI Linux Real-Time $type $BUILD_IDENTIFIER. \n\n"
     printf "The boot style is ${RED}$(echo $BOOT_STYLE | tr a-z A-Z)${NC}\n\n"
     printf "Continuing will partition the disk, format, and install safemode to the target.\n\n"
 

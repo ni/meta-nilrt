@@ -388,6 +388,17 @@ install_grubenv()
     fi
 }
 
+set_versions()
+{
+    BUILD_IDENTIFIER=$(get_image_info BUILD_IDENTIFIER)
+    GRUB_IDENTIFIER=$(get_image_info GRUB_VERSION)
+
+    echo "set ni_grub_version=${GRUB_IDENTIFIER}" > $BOOTFS_MOUNTPOINT/grub/grub-ni-version
+    echo "set ni_recoverytool_version=${BUILD_IDENTIFIER}" > $BOOTFS_MOUNTPOINT/grub/recoverytool-ni-version
+
+    chmod 444 $BOOTFS_MOUNTPOINT/grub/grub-ni-version $BOOTFS_MOUNTPOINT/grub/recoverytool-ni-version
+}
+
 set_config_perms()
 {
     # mount config partition and set proper ownership/permissions
@@ -461,6 +472,7 @@ install_grub
 install_safemode
 install_bootmode_file
 install_grubenv
+set_versions
 
 set_config_perms
 
