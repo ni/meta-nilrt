@@ -2,7 +2,6 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/grub:"
 
 PV = "2.02+git${SRCPV}"
 SRCREV = "${AUTOREV}"
-GRUB_BRANCH = "nilrt/19.0"
 
 SRC_URI = "\
         git://git.natinst.com/grub.git;branch=${GRUB_BRANCH} \
