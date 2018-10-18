@@ -1,5 +1,8 @@
 ULNTools=/usr/local/natinst/tools
 
+HEADER_SQFS=module-versioning-image.squashfs
+HEADER_MNTPNT=/var/volatile/tmp/headers
+
 TOOLS_SQFS=tools-squashfs-image.squashfs
 TOOLS_MNTPNT=/var/volatile/tmp/tools
 
@@ -25,16 +28,18 @@ function squashfs_mount
 	mount -t squashfs ${sfs} ${mp}
 }
 
-function squashfs_umount
-{
-	[ -d "$1" ] || return
-	local mp=${1}
-	umount ${mp}
-}
-
 function create_loopdevs
 {
 	[ -b /dev/loop0 ] || { for dn in `seq 0 7`; do mknod -m660 /dev/loop$dn b 7 $dn; done }
+}
+
+function mount_headers
+{
+	mount_proc
+	[ -z "`mount | grep ${HEADER_SQFS}`" ] || return 0
+	mkdir -p ${HEADER_MNTPNT}
+	create_loopdevs
+	squashfs_mount ${ULNTools}/${HEADER_SQFS} ${HEADER_MNTPNT}
 }
 
 function mount_tools
@@ -44,12 +49,6 @@ function mount_tools
 	mkdir -p ${TOOLS_MNTPNT}
 	create_loopdevs
 	squashfs_mount ${ULNTools}/${TOOLS_SQFS} ${TOOLS_MNTPNT}
-}
-
-function umount_tools
-{
-	[ -z "`mount | grep ${TOOLS_SQFS}`" ] && return 0
-	squashfs_umount ${TOOLS_MNTPNT}
 }
 
 function fix_dev_fd
@@ -86,6 +85,7 @@ function remove_binutils_symlinks
 
 function setup_versioning_env
 {
+	mount_headers && \
 	mount_tools && \
 	mount_sysfs && \
 	fix_dev_fd && \
@@ -95,19 +95,18 @@ function setup_versioning_env
 function cleanup_versioning_env
 {
 	depmod $(kernel_version) && \
-	umount_tools && \
 	remove_binutils_symlinks
 }
 
 function versioning_call
 {
-	LD_LIBRARY_PATH=${TOOLS_MNTPNT}/lib:${TOOLS_MNTPNT}/usr/lib PATH=${PATH}:${TOOLS_MNTPNT}/usr/bin NO_INSTALL_UTIL=1 KERNELHEADERS=${TOOLS_MNTPNT}/kernel CFLAGS=--sysroot=${TOOLS_MNTPNT} "$@"
+	LD_LIBRARY_PATH=${TOOLS_MNTPNT}/lib:${TOOLS_MNTPNT}/usr/lib PATH=${PATH}:${TOOLS_MNTPNT}/usr/bin NO_INSTALL_UTIL=1 KERNELHEADERS=${HEADER_MNTPNT}/kernel CFLAGS=--sysroot=${TOOLS_MNTPNT} "$@"
 }
 
 function kernel_version
 {
-	mount_tools || return
-	[ -e ${ULNTools}/kernel_version ] || ( find ${TOOLS_MNTPNT}/kernel/include -name "utsrelease.h" -exec sed 's/^.*"\(.*\)".*$/\1/' {} \; > ${ULNTools}/kernel_version )
+	mount_headers || return
+	[ -e ${ULNTools}/kernel_version ] || ( find ${HEADER_MNTPNT}/kernel/include -name "utsrelease.h" -exec sed 's/^.*"\(.*\)".*$/\1/' {} \; > ${ULNTools}/kernel_version )
 	cat ${ULNTools}/kernel_version
 }
 
