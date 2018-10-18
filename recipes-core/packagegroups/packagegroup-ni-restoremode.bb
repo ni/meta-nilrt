@@ -19,6 +19,7 @@ RDEPENDS_${PN} += "\
     grep                \
     init-restore-mode   \
     kmod                \
+    nilrtdiskcrypt      \
     parted              \
     procps              \
     sed                 \
