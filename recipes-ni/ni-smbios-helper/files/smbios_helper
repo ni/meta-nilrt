@@ -60,7 +60,16 @@ get_usbdev_mac()
 
 get_serial_number()
 {
-    local sn="`$DMIDECODE -t 1 | grep "Serial Number:" | awk '{print $NF}'`"
+    local sn="`$DMIDECODE -t 1 | grep "Serial Number:"`"
+
+    # Filter out invalid sn strings like "Not Applicable" and "Not Specified"
+    if echo "$sn" | egrep -q "Serial Number: Not "; then
+        sn=""
+    fi
+
+    # Cut last word
+    sn="`echo "$sn" | awk '{print $NF}'`"
+
     echo $sn
     [ -n "$sn" ] || return 1
 }
