@@ -165,7 +165,7 @@ RRECOMMENDS_${PN}_x64 += "\
 	kernel-module-virtio-net \
 "
 
-RRECOMMENDS_${PN}_xilinx_zynqhf += "\
+RRECOMMENDS_${PN}_armv7a += "\
 	kernel-module-g-ether \
 	kernel-module-u-ether \
 	kernel-module-ci-hdrc \
