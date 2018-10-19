@@ -175,4 +175,5 @@ RRECOMMENDS_${PN}_xilinx_zynqhf += "\
 	kernel-module-wlcore \
 	kernel-module-mac80211 \
 	kernel-module-cfg80211 \
+	kernel-module-squashfs \
 "
