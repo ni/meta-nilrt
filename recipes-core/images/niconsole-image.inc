@@ -23,6 +23,7 @@ do_image_build_test() {
 
 ROOTFS_POSTPROCESS_COMMAND += "\
 	symlink_python; \
+	${@oe.utils.conditional('DISTRO', 'nilrt-nxg', '', 'install_dtbs;', d)} \
 "
 
 # TODO: remove once OE-core decides to symlink python3 as /usr/bin/python instead of 2.
@@ -32,10 +33,12 @@ symlink_python() {
 	fi
 }
 
-move_kernel_append_arm() {
-	for f in ${DEPLOY_DIR_IMAGE}/ni-*.dtb; do
-		install -m 0644 "$f" "${IMAGE_ROOTFS}/${CUSTOM_KERNEL_PATH}/$(basename $f)"
-	done
+install_dtbs() {
+	if [ "${ARCH}" == "arm" ]; then
+		for f in ${DEPLOY_DIR_IMAGE}/ni-*.dtb; do
+			install -m 0644 "$f" "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/$(basename $f)"
+		done
+	fi
 }
 
 # older NILRT modules are versioned using two squashfs images, one with headers,

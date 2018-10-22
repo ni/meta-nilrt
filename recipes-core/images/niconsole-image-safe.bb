@@ -6,10 +6,6 @@ IMAGE_INSTALL = "\
 	packagegroup-ni-wifi \
 	"
 
-# on older NILRT distro flavors the kernel is installed in non-standard paths
-# for backward compatibility
-CUSTOM_KERNEL_PATH = "/boot/.safe/"
-
 BAD_RECOMMENDATIONS += "shared-mime-info"
 
 ROOTFS_POSTPROCESS_COMMAND += "\

@@ -84,6 +84,14 @@ do_install_append() {
 	# compatibility with non-standard Linux installs (non-dkms). This should go away
 	# and older NILRT should be migrated to kernel-dev + dkms in the future.
 	${WORKDIR}/export-kernel-headers.sh ${S} ${D}/kernel
+
+	# on older NILRT, the kernel is not symlinked for backwards compatibility
+	if [ "${DISTRO}" != nilrt-nxg ]; then
+		for type in ${KERNEL_IMAGETYPES} ; do
+			mv ${D}/${KERNEL_IMAGEDEST}/${type}-${KERNEL_VERSION} \
+				${D}/${KERNEL_IMAGEDEST}/${type}
+		done
+	fi
 }
 
 do_tag_kernel_build() {
