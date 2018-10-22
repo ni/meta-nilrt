@@ -14,5 +14,4 @@ RDEPENDS_{PN} += "niacctbase"
 # others permissions. In the future migrate to sudo and remove the setuid?
 do_install_append() {
     chown 0:network ${D}${base_sbindir}/ip.iproute2
-    chmod 4750 ${D}${base_sbindir}/ip.iproute2
 }
