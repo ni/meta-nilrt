@@ -88,7 +88,7 @@ cleanup_and_exit()
 
     if (( $1 == 0  && $ASK_BEFORE_REBOOT == 1 )); then
         echo "Unmounting all file systems:"
-        do_silent umount -a -r -t devtmpfs,vfat,ext4 # sysfs, procfs and rootfs aren't unmounted
+        do_silent umount -a -r -t devtmpfs,vfat,ext4,iso9660 # sysfs, procfs and rootfs aren't unmounted
         echo u > /proc/sysrq-trigger
         sync
 

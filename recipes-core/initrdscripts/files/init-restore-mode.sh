@@ -3,6 +3,8 @@
 ARCH=`uname -m`
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
+NIRECOVERY_MOUNTPOINT=/mnt/NIRECOVERY
+MOUNT_NIRECOVERY_USB_TIME=10
 
 early_setup() {
     mkdir -p /proc
@@ -11,6 +13,16 @@ early_setup() {
     mount -t proc proc /proc
     mount -t sysfs sysfs /sys
     mount -t devtmpfs none /dev
+
+    COUNT=0
+    while [ $COUNT -le "$MOUNT_NIRECOVERY_USB_TIME" ]; do
+        mount_nirecovery_usb
+        if mountpoint -q $NIRECOVERY_MOUNTPOINT; then
+            break
+        fi
+        COUNT=$(expr $COUNT + 1)
+        sleep 1
+    done
 }
 
 # Removes the /boot/bootmode file that may force
@@ -62,6 +74,16 @@ start_serial_console() {
     fi
 }
 
+mount_nirecovery_usb()
+{
+    if ! mountpoint -q $NIRECOVERY_MOUNTPOINT; then
+        if [ ! -d $NIRECOVERY_MOUNTPOINT ]; then
+            mkdir -p $NIRECOVERY_MOUNTPOINT
+        fi
+        mount -o ro,sync,relatime -L NIRECOVERY $NIRECOVERY_MOUNTPOINT &> /dev/null
+    fi
+}
+
 early_setup
 
 # Set hostname
@@ -81,9 +103,6 @@ if [[ $ARCH == "x86_64" ]]; then
 fi
 
 if [[ $ARCH =~ ^(x86_64|armv7l)$ ]]; then
-    #TODO: Find another solution to make sure all bring up messages
-    # are printed before starting the provisioning script
-    sleep 2
     /ni_provisioning
 else
     echo ""
