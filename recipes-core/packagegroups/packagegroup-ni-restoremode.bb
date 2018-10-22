@@ -11,6 +11,7 @@ RDEPENDS_${PN} += "\
     bzip2               \
     coreutils           \
     dosfstools          \
+    e2fsprogs           \
     e2fsprogs-mke2fs    \
     e2fsprogs-tune2fs   \
     findutils           \
