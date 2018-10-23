@@ -134,31 +134,55 @@ RDEPENDS_${PN} = "\
 		'${NILRT_PACKAGES}', d)} \
 "
 
-# TODO: We need to clean up this list and remove non-essentials, move
-# them to individual recipes or to linux-nilrt as runtime dependencies
 RRECOMMENDS_${PN}_x64 += "\
+	kernel-module-ablk-helper \
+	kernel-module-aesni-intel \
+	kernel-module-agpart \
 	kernel-module-atkbd \
+	kernel-module-backlight \
+	kernel-module-button \
 	kernel-module-coretemp \
+	kernel-module-drm \
+	kernel-module-drm-kms-helper \
+	kernel-module-dwc3 \
+	kernel-module-dwc3-pci \
 	kernel-module-e100 \
 	kernel-module-e1000 \
 	kernel-module-e1000e \
+	kernel-module-fb-sys-fops \
+	kernel-module-g-ether \
+	kernel-module-glue-helper \
+	kernel-module-u-ether \
 	kernel-module-hid-microsoft \
+	kernel-module-i2c-algo-bit \
+	kernel-module-i2c-i801 \
+	kernel-module-i2c-smbus \
 	kernel-module-i40e \
 	kernel-module-i8042 \
 	kernel-module-i915 \
 	kernel-module-igb \
 	kernel-module-intel_agp \
 	kernel-module-ipv6 \
+	kernel-module-mfd-core \
 	kernel-module-nic7018-wdt \
 	kernel-module-leds-nic78bx \
+	kernel-module-libcomposite \
 	kernel-module-ixgbe \
 	kernel-module-psmouse \
 	kernel-module-squashfs \
+	kernel-module-syscopyarea \
+	kernel-module-sysfillrect \
+	kernel-module-sysimgblt \
 	kernel-module-tg3 \
+	kernel-module-tpm \
 	kernel-module-tpm-tis \
+	kernel-module-tpm-tis-core \
 	kernel-module-tulip \
+	kernel-module-udc-core \
 	kernel-module-usbtouchscreen \
+	kernel-module-usb-f-eem \
 	kernel-module-wacom \
+	kernel-module-video \
 	kernel-module-virtio-balloon \
 	kernel-module-virtio-blk \
 	kernel-module-virtio-console \
@@ -176,4 +200,9 @@ RRECOMMENDS_${PN}_armv7a += "\
 	kernel-module-mac80211 \
 	kernel-module-cfg80211 \
 	kernel-module-squashfs \
+	kernel-module-fuse \
+	kernel-module-ipv6 \
+	kernel-module-libcomposite \
+	kernel-module-usb-f-eem \
+	kernel-module-usb-storage \
 "
