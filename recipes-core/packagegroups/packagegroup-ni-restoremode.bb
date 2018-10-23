@@ -19,7 +19,6 @@ RDEPENDS_${PN} += "\
     grep                \
     init-restore-mode   \
     kmod                \
-    nilrtdiskcrypt      \
     parted              \
     procps              \
     sed                 \
@@ -39,6 +38,7 @@ RDEPENDS_${PN}_append_x64 = "\
     grub-editenv        \
     eudev               \
     ni-smbios-helper    \
+    nilrtdiskcrypt      \
     "
 
 RDEPENDS_${PN}_append_xilinx-zynqhf = "\
