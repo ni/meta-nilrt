@@ -142,6 +142,7 @@ RRECOMMENDS_${PN}_x64 += "\
 	kernel-module-backlight \
 	kernel-module-button \
 	kernel-module-coretemp \
+	kernel-module-crypto-simd \
 	kernel-module-drm \
 	kernel-module-drm-kms-helper \
 	kernel-module-dwc3 \
@@ -167,8 +168,10 @@ RRECOMMENDS_${PN}_x64 += "\
 	kernel-module-nic7018-wdt \
 	kernel-module-leds-nic78bx \
 	kernel-module-libcomposite \
+	kernel-module-lpc-ich \
 	kernel-module-ixgbe \
 	kernel-module-psmouse \
+	kernel-module-radeon \
 	kernel-module-squashfs \
 	kernel-module-syscopyarea \
 	kernel-module-sysfillrect \
@@ -177,6 +180,7 @@ RRECOMMENDS_${PN}_x64 += "\
 	kernel-module-tpm \
 	kernel-module-tpm-tis \
 	kernel-module-tpm-tis-core \
+	kernel-module-ttm \
 	kernel-module-tulip \
 	kernel-module-udc-core \
 	kernel-module-usbtouchscreen \
