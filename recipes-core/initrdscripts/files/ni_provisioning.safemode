@@ -3,8 +3,8 @@ set -e
 
 ask_at_every_error="N"
 use_ramfs=""
-grubenv_consoleoutenable=""
-grubenv_bootdelay=""
+grubenv_consoleoutenable=${grubenv_consoleoutenable:-""}
+grubenv_bootdelay=${grubenv_bootdelay:-""}
 
 PART1_LABEL=nigrub
 PART2_LABEL=nibootfs
