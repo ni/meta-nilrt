@@ -56,6 +56,10 @@ KCONFIG_MODE="--alldefconfig"
 KERNEL_MODULE_PROBECONF += "i915"
 module_conf_i915 = "options i915 enable_rc6=0 enable_dc=0"
 
+# radeon video driver module options to disable (broken) dynamic power management
+KERNEL_MODULE_PROBECONF += "radeon"
+module_conf_radeon = "options radeon dpm=0"
+
 #create dtb-s fromt dts files for armv7a targets
 DEPENDS_append += "rsync-native"
 
