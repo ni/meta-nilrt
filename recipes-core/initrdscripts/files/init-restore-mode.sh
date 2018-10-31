@@ -43,22 +43,23 @@ show_console() {
         echo " ------------------------------------------------------"
         echo ""
 
-        /bin/bash -i
+        /usr/bin/setsid /sbin/getty 38400 console --noclear -a root --login-options "-p -- \u"
 
         sleep 1
     done
 }
 
+start_serial_console() {
+    SERIAL_TTY="ttyS0"
+    if [ -c /dev/${SERIAL_TTY} ]; then
+        if [ $(cat /sys/devices/virtual/tty/console/active) != "${SERIAL_TTY}" ]; then
+            while true; do
+                /usr/bin/setsid /sbin/getty 115200 ${SERIAL_TTY} --noclear -a root --login-options "-p -- \u"
 
-start_serial_console()
-{
-    while true;do
-        if [[ -c /dev/ttyS0 ]];then
-            /usr/bin/setsid /sbin/agetty 115200 ttyS0 --login-options "-p -- \u"
+                sleep 1
+            done
         fi
-
-        sleep 1
-    done
+    fi
 }
 
 early_setup
