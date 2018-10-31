@@ -171,6 +171,7 @@ RRECOMMENDS_${PN}_x64 += "\
 	kernel-module-lpc-ich \
 	kernel-module-ixgbe \
 	kernel-module-psmouse \
+	kernel-module-phy-generic \
 	kernel-module-radeon \
 	kernel-module-squashfs \
 	kernel-module-syscopyarea \
@@ -185,6 +186,7 @@ RRECOMMENDS_${PN}_x64 += "\
 	kernel-module-udc-core \
 	kernel-module-usbtouchscreen \
 	kernel-module-usb-f-eem \
+	kernel-module-usb-storage \
 	kernel-module-wacom \
 	kernel-module-video \
 	kernel-module-virtio-balloon \
@@ -207,6 +209,7 @@ RRECOMMENDS_${PN}_armv7a += "\
 	kernel-module-fuse \
 	kernel-module-ipv6 \
 	kernel-module-libcomposite \
+	kernel-module-phy-generic \
 	kernel-module-usb-f-eem \
 	kernel-module-usb-storage \
 "
