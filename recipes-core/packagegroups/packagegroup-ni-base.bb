@@ -138,9 +138,12 @@ RRECOMMENDS_${PN}_x64 += "\
 	kernel-module-ablk-helper \
 	kernel-module-aesni-intel \
 	kernel-module-agpart \
+	kernel-module-ath6kl-core \
+	kernel-module-ath6kl-sdio \
 	kernel-module-atkbd \
 	kernel-module-backlight \
 	kernel-module-button \
+	kernel-module-cfg80211 \
 	kernel-module-coretemp \
 	kernel-module-crypto-simd \
 	kernel-module-drm \
