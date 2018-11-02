@@ -46,10 +46,11 @@ ask_for_continue()
     variable=${2:-"PROVISION_REPARTITION_TARGET"}
 
     BUILD_IDENTIFIER=$(get_image_info BUILD_IDENTIFIER)
+    IMAGE_DISPLAY_NAME=$(get_image_info IMAGE_DISPLAY_NAME)
 
     printf "\nNI Linux Real-Time $type $BUILD_IDENTIFIER. \n\n"
     printf "The boot style is ${RED}$(echo $BOOT_STYLE | tr a-z A-Z)${NC}\n\n"
-    printf "Continuing will partition the disk, format, and install safemode to the target.\n\n"
+    printf "Continuing will partition the disk, format, and install $IMAGE_DISPLAY_NAME to the target.\n\n"
 
     prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" $variable
 }
@@ -135,7 +136,7 @@ if [ "$ARCH" = "armv7l" ]; then
         mkdir -p $NILRT_MOUNTPOINT
         mkdir -p $NIRESTORE_MOUNTPOINT
         MOUNT_ERROR=`mount -t ubifs ubi1:rootfs $NILRT_MOUNTPOINT` || die "$MOUNT_ERROR"
-        echo "Deploying minimal image..."
+        echo "Deploying $IMAGE_DISPLAY_NAME image..."
         # NOTE: `--numeric-owner` option: always use numbers for user/group names (ignore symbolic names)
         TAR_ERROR="`tar -x -j --numeric-owner -f /payload/factory-image.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1`" || die "$TAR_ERROR"
         cp /payload/*.scr $NILRT_MOUNTPOINT/boot/
@@ -146,7 +147,7 @@ if [ "$ARCH" = "armv7l" ]; then
         sync
         do_silent umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
         do_silent umount $NIRESTORE_MOUNTPOINT || die "Failed to umount $NIRESTORE_MOUNTPOINT"
-        echo "Minimal image deployed."
+        echo "Image deployed."
         ASK_BEFORE_REBOOT=1
         provision_sucessfull
     }
@@ -346,7 +347,7 @@ elif [ "$ARCH" = "x86_64" ]; then
         do_silent echo "Mounting $nilrt_path partition..."
         NILRT_ERROR=`mount "$nilrt_path" $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
 
-        echo "Deploying minimal image..."
+        echo "Deploying $IMAGE_DISPLAY_NAME image..."
 
         # NOTE: `--numeric-owner` option: always use numbers for user/group names (ignore symbolic names)
         TAR_ERROR="`tar -x -j --numeric-owner -f /payload/factory-image.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1`" || die "$TAR_ERROR"
@@ -364,7 +365,7 @@ elif [ "$ARCH" = "x86_64" ]; then
         sync
         umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
 
-        echo "Minimal image deployed."
+        echo "Image deployed."
         ASK_BEFORE_REBOOT=1
     }
 
