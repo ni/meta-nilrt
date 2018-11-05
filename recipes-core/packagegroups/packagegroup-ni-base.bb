@@ -97,6 +97,7 @@ RDEPENDS_${PN} = "\
 	iproute2 \
 	iptables \
 	kmod \
+	kernel-modules \
 	libavahi-client \
 	libavahi-common \
 	libavahi-core \
@@ -132,87 +133,4 @@ RDEPENDS_${PN} = "\
 	${@oe.utils.conditional('DISTRO', 'nilrt-nxg', \
 		'${NILRT_NXG_PACKAGES}', \
 		'${NILRT_PACKAGES}', d)} \
-"
-
-RRECOMMENDS_${PN}_x64 += "\
-	kernel-module-ablk-helper \
-	kernel-module-aesni-intel \
-	kernel-module-agpart \
-	kernel-module-ath6kl-core \
-	kernel-module-ath6kl-sdio \
-	kernel-module-atkbd \
-	kernel-module-backlight \
-	kernel-module-button \
-	kernel-module-cfg80211 \
-	kernel-module-coretemp \
-	kernel-module-crypto-simd \
-	kernel-module-drm \
-	kernel-module-drm-kms-helper \
-	kernel-module-dwc3 \
-	kernel-module-dwc3-pci \
-	kernel-module-e100 \
-	kernel-module-e1000 \
-	kernel-module-e1000e \
-	kernel-module-fb-sys-fops \
-	kernel-module-g-ether \
-	kernel-module-glue-helper \
-	kernel-module-u-ether \
-	kernel-module-hid-microsoft \
-	kernel-module-i2c-algo-bit \
-	kernel-module-i2c-i801 \
-	kernel-module-i2c-smbus \
-	kernel-module-i40e \
-	kernel-module-i8042 \
-	kernel-module-i915 \
-	kernel-module-igb \
-	kernel-module-intel_agp \
-	kernel-module-ipv6 \
-	kernel-module-mfd-core \
-	kernel-module-nic7018-wdt \
-	kernel-module-leds-nic78bx \
-	kernel-module-libcomposite \
-	kernel-module-lpc-ich \
-	kernel-module-ixgbe \
-	kernel-module-psmouse \
-	kernel-module-phy-generic \
-	kernel-module-radeon \
-	kernel-module-squashfs \
-	kernel-module-syscopyarea \
-	kernel-module-sysfillrect \
-	kernel-module-sysimgblt \
-	kernel-module-tg3 \
-	kernel-module-tpm \
-	kernel-module-tpm-tis \
-	kernel-module-tpm-tis-core \
-	kernel-module-ttm \
-	kernel-module-tulip \
-	kernel-module-udc-core \
-	kernel-module-usbtouchscreen \
-	kernel-module-usb-f-eem \
-	kernel-module-usb-storage \
-	kernel-module-wacom \
-	kernel-module-video \
-	kernel-module-virtio-balloon \
-	kernel-module-virtio-blk \
-	kernel-module-virtio-console \
-	kernel-module-virtio-net \
-"
-
-RRECOMMENDS_${PN}_armv7a += "\
-	kernel-module-g-ether \
-	kernel-module-u-ether \
-	kernel-module-ci-hdrc \
-	kernel-module-ci-hdrc-usb2 \
-	kernel-module-udc-core \
-	kernel-module-wl12xx \
-	kernel-module-wlcore \
-	kernel-module-mac80211 \
-	kernel-module-cfg80211 \
-	kernel-module-squashfs \
-	kernel-module-fuse \
-	kernel-module-ipv6 \
-	kernel-module-libcomposite \
-	kernel-module-phy-generic \
-	kernel-module-usb-f-eem \
-	kernel-module-usb-storage \
 "
