@@ -12,6 +12,12 @@ IMAGE_FEATURES += "empty-root-password"
 DEPENDS += "init-restore-mode"
 DEPENDS_xilinx-zynqhf += "zynq-bootscripts zynq-itb"
 
+VIRTUAL-RUNTIME_mountpoint = "util-linux-mountpoint"
+PREFERRED_PROVIDER_getopt = "util-linux-getopt"
+VIRTUAL-RUNTIME_getopt = "util-linux-getopt"
+VIRTUAL-RUNTIME_base-utils = "util-linux"
+PREFERRED_PROVIDER_virtual/base-utils="util-linux"
+
 do_rootfs[depends] += "${FACTORY_IMAGE}:do_image_complete"
 
 # If BUILD_IDENTIFIER is not already set in the build environment (common when doing a local dev build)
