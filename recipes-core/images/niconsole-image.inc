@@ -34,7 +34,7 @@ symlink_python() {
 }
 
 install_dtbs() {
-	if [ "${ARCH}" == "arm" ]; then
+	if [ "${ARCH}" = "arm" ]; then
 		for f in ${DEPLOY_DIR_IMAGE}/ni-*.dtb; do
 			install -m 0644 "$f" "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/$(basename $f)"
 		done
