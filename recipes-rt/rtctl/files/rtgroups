@@ -1,0 +1,44 @@
+# rtgroups: kernel task scheduling policy for NI Linux RT (DOC-303197)
+#
+# Applies specified sched_class, priority, and affinity to kernel
+# tasks in accordance with a set of policy files, at "/etc/rtgroups"
+# and "/etc/rtgroups.d/*.rtgroups" .
+#
+# "/etc/rtgroups" is a generic policy maintained by the distribution.
+# "/etc/rtgroups.d/*.rtgroups" files override the generic policy for
+# specific drivers/modules and/or system use cases.
+#
+# When invoked, rtctl iterates over every kernel task and attempts to
+# match it's name to a single policy rule. "/etc/rtgroups" is read first
+# then "/etc/rtgroups.d/*.rtgroups", sourced in alphabetical order. Last
+# rule to match a task's name wins. Task are left unchanged if (a) their
+# names do not match any rule or (b) they are not kernel tasks.
+#
+# rtctld invokes rtctl once during boot and each time a new kernel task
+# is created.
+#
+#
+# Rule format: <groupname>:<sched_class>:<priority>:<affinity>:<nameregex>
+#
+# <groupname> is a name/title for documentation purposes and must start
+# at beginning of line.
+#
+# <sched_class> is a single letter, one of the following:
+#   'f' (fifo)
+#   'b' (batch)
+#   'r' (round-robin)
+#   'o' (other)
+#   '*' (leave task unchanged)
+#
+# <priority> is an integer 0-99. Unused when <sched_class> is '*'.
+#
+# <affinity> is a CPU bitmask. Set to '*' to leave task unchanged.
+#
+# <nameregex> is an awk-style regular expression of kernel task name(s).
+#
+
+# Default policy
+kthreadd:f:25:*:\[kthreadd\]$
+irqthread:f:15:*:\[irq\/.+\]$
+ksoftirqd:f:8:*:\[ksoftirqd\/.+\]$
+
