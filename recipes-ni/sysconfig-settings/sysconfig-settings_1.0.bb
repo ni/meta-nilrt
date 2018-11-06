@@ -13,7 +13,7 @@ FILES_${PN} += "/usr/local/natinst/share/uixml/sysconfig/* \
 "
 
 DEPENDS += "shadow-native pseudo-native niacctbase"
-RDEPENDS_${PN} += "niacctbase"
+RDEPENDS_${PN} += "niacctbase bash"
 
 do_install[depends] += "niacctbase:do_populate_sysroot"
 
