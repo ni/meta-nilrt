@@ -41,7 +41,6 @@ if [[ $restore == "provision-safe" ]]; then
         ASK_BEFORE_REBOOT=1
     fi
 elif [[ $restore == "backward-migrate" ]]; then
-    PROVISION_REPARTITION_TARGET="y"
     source /ni_provisioning.safemode
     ASK_BEFORE_REBOOT=1
     PROVISION_REBOOT_METHOD="reboot"
@@ -91,21 +90,24 @@ elif [[ $restore == "provision" ]]; then
             else
                 uuid=""
             fi
-            restore_minimal_image "$nilrt_path" "$uuid" "$PROVISION_PART_NILRT_LABEL"
+            restore_runmode_image "$nilrt_path" "$uuid" "$PROVISION_PART_NILRT_LABEL"
         fi
     fi
 
 elif [[ $restore == "migrate" ]]; then
     PROVISION_REBOOT_METHOD="reboot"
-    provision_target onboard "$restore"
+    provision_target onboard
 elif [[ $restore == "auto-restore" ]]; then
     PROVISION_REBOOT_METHOD="reboot"
-    restore_minimal_image
-else
-    ask_for_continue "Restore" "PROVISION_RESTORE_MINIMAL_IMAGE"
-    if [[ $PROVISION_RESTORE_MINIMAL_IMAGE == "y" ]]; then
-        restore_minimal_image
+    restore_runmode_image
+elif [[ $restore == "restore" ]]; then
+    CONFIRM_RESTORE_RUNMODE_IMAGE="?"
+    ask_for_continue "Restore" "CONFIRM_RESTORE_RUNMODE_IMAGE"
+    if [[ $CONFIRM_RESTORE_RUNMODE_IMAGE == "y" ]]; then
+        restore_runmode_image
     fi
+else
+    die "Invalid restore mode."
 fi
 
 if [[ "$ASK_BEFORE_REBOOT" -ne 0 ]] && [[ "${FORCE_PROVISIONING}" -ne 1 ]] ; then

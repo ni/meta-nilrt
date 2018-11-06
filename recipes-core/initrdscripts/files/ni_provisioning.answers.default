@@ -8,11 +8,6 @@
 #  "n" = No, abort to shell
 PROVISION_REPARTITION_TARGET="?"
 
-# (Re)apply minimal image to target's runmode partition
-#  "y" = Yes, continue
-#  "n" = No, abort to shell
-PROVISION_RESTORE_MINIMAL_IMAGE="?"
-
 # Reboot, power off, or drop to shell after provisioning
 #  "reboot" = Reboot the target
 #  "poweroff" = Power off the target

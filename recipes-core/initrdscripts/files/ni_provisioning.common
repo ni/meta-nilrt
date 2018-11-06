@@ -4,8 +4,6 @@
 ANSWER_FILE_DISK_MOUNTPOINT=/var/volatile/answerFileDisk
 USB_MOUNTPOINT=/var/volatile/usbrtdeploy
 NILRT_MOUNTPOINT=/var/volatile/nilrt
-NIRESTORE_MOUNTPOINT=/var/volatile/nirestore
-NICONFIG_MOUNTPOINT=/var/volatile/niconfig
 GRUB_MOUNTPOINT=/var/volatile/nigrub
 BOOTFS_MOUNTPOINT=/var/volatile/nibootfs
 ROOTFS_MOUNTPOINT=/var/volatile/nirootfs
@@ -67,7 +65,7 @@ ask_for_continue()
     fi
 }
 
-provision_sucessfull()
+provision_successfull()
 {
     do_silent mount
     echo -e ${GREEN}"PROVISIONING SUCCESSFUL!"${NC} 1>&3 2>&4
@@ -133,107 +131,7 @@ fi
 
 if [ "$ARCH" = "armv7l" ]; then
 
-    restore_minimal_image()
-    {
-        echo "Formatting ubi1:rootfs..."
-        format_ubi_volume root 0 rootfs
-        echo "Done"
-        mkdir -p $NILRT_MOUNTPOINT
-        mkdir -p $NIRESTORE_MOUNTPOINT
-        MOUNT_ERROR=`mount -t ubifs ubi1:rootfs $NILRT_MOUNTPOINT` || die "$MOUNT_ERROR"
-        echo "Deploying $IMAGE_DISPLAY_NAME image..."
-        # NOTE: `--numeric-owner` option: always use numbers for user/group names (ignore symbolic names)
-        TAR_ERROR="`tar -x -j --numeric-owner -f /payload/factory-image.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1`" || die "$TAR_ERROR"
-        cp /payload/*.scr $NILRT_MOUNTPOINT/boot/
-        ln -sf $NILRT_MOUNTPOINT/boot/uImage-* /boot/uImage
-        MOUNT_ERROR=`mount -t ubifs ubi0:bootfs $NIRESTORE_MOUNTPOINT` || die "$MOUNT_ERROR"
-        cp $NIRESTORE_MOUNTPOINT/.restore/ni-*.dtb $NILRT_MOUNTPOINT/boot/
-        cp /payload/nxg_redirect_runmode_boot.itb $NIRESTORE_MOUNTPOINT/linux_runmode.itb
-        sync
-        do_silent umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
-        do_silent umount $NIRESTORE_MOUNTPOINT || die "Failed to umount $NIRESTORE_MOUNTPOINT"
-        echo "Image deployed."
-        ASK_BEFORE_REBOOT=1
-        provision_sucessfull
-    }
-
-    provision_target()
-    {
-        mkdir -p $NILRT_MOUNTPOINT
-        mkdir -p $NIRESTORE_MOUNTPOINT
-        mkdir -p $NICONFIG_MOUNTPOINT
-        mkdir -p $TEMP_MOUNTPOINT
-
-        MOUNT_ERROR=`mount -t ubifs ubi1:rootfs $NILRT_MOUNTPOINT` || die "$MOUNT_ERROR"
-        MOUNT_ERROR=`mount -t ubifs ubi0:bootfs $NIRESTORE_MOUNTPOINT` || die "$MOUNT_ERROR"
-        MOUNT_ERROR=`mount -t ubifs ubi0:config $NICONFIG_MOUNTPOINT` || die "$MOUNT_ERROR"
-        DEVICE_CODE=`fw_printenv -n DeviceCode`
-
-        if [[ $restore == "migrate" ]]; then
-            #replace the linux_safemode.itb with the fake one
-            cp $NILRT_MOUNTPOINT/.newNILinuxRT/.safe/nxg_redirect_safemode_boot.itb $NIRESTORE_MOUNTPOINT/.safe/linux_safemode.itb
-            #copy all the necessary files for restore-mode
-            mkdir -p $NIRESTORE_MOUNTPOINT/.restore
-            cp $NILRT_MOUNTPOINT/.newNILinuxRT/.restore/dtbs/ni-$DEVICE_CODE.dtb $NIRESTORE_MOUNTPOINT/.restore/ || die "ni-$DEVICE_CODE.dtb file not found!"
-            cp $NILRT_MOUNTPOINT/.newNILinuxRT/.restore/uImage $NIRESTORE_MOUNTPOINT/.restore/ || die "Kernel not found!"
-            cp $NILRT_MOUNTPOINT/.newNILinuxRT/.restore/ramdisk $NIRESTORE_MOUNTPOINT/.restore/ || die "Ramdisk not found!"
-            cp $NILRT_MOUNTPOINT/.newNILinuxRT/.restore/restore.scr $NIRESTORE_MOUNTPOINT/.restore/ || die "Restore script not found!"
-
-            #clear config contents which are unused in newer versions of NILRT
-            rm -rf $NICONFIG_MOUNTPOINT/*
-
-            sync
-            umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
-            umount $NIRESTORE_MOUNTPOINT || die "Failed to umount $NIRESTORE_MOUNTPOINT"
-            umount $NICONFIG_MOUNTPOINT || die "Failed to umount $NICONFIG_MOUNTPOINT"
-
-            restore_minimal_image
-
-        elif [[ $restore == "backward-migrate" ]]; then
-
-            printf "Removing the already installed nilrt... "
-            rm -rf $NIRESTORE_MOUNTPOINT/.safe
-            rm -rf $NIRESTORE_MOUNTPOINT/.restore
-            rm -rf $NIRESTORE_MOUNTPOINT/.defbit
-            rm -f $NIRESTORE_MOUNTPOINT/linux_runmode.itb
-            echo "done."
-
-            printf "Deploying older NILRT version safemode on target... "
-            mkdir -p $NIRESTORE_MOUNTPOINT/.safe
-            mkdir -p $NIRESTORE_MOUNTPOINT/.defbit
-
-            NON_HEX_DEV_CODE=$(echo $DEVICE_CODE | awk '{print substr($0,3)}')
-            DEVCFG_PATH=$NILRT_MOUNTPOINT/$NON_HEX_DEV_CODE
-
-            mkdir -p $DEVCFG_PATH/cfg-contents
-            mkdir -p $DEVCFG_PATH/cfg-contents/bitfiles-contents
-
-            # NOTE: `--no-same-owner` option: extract files as current user (default for ordinary users)
-            tar -x --no-same-owner -f $DEVCFG_PATH/*.cfg -C $DEVCFG_PATH/cfg-contents/ || die "Could not extract cfg from $NILRT_MOUNTPOINT/$NON_HEX_DEV_CODE"
-            tar -x --no-same-owner -f $DEVCFG_PATH/cfg-contents/bitfiles.tgz -C $DEVCFG_PATH/cfg-contents/bitfiles-contents/ || die "Could not extract bitfiles.tgz"
-
-            cp $DEVCFG_PATH/cfg-contents/linux_safemode.itb $NIRESTORE_MOUNTPOINT/.safe/linux_safemode.itb || die "linux_safemode.itb not found"
-
-            if [ -d "$DEVCFG_PATH/cfg-contents/bitfiles-contents/$DEVICE_CODE" ]; then
-                cp $DEVCFG_PATH/cfg-contents/bitfiles-contents/$DEVICE_CODE/default.bit.* $NIRESTORE_MOUNTPOINT/.defbit/
-            else
-                cp $DEVCFG_PATH/cfg-contents/bitfiles-contents/default.bit.* $NIRESTORE_MOUNTPOINT/.defbit/
-            fi
-            echo "done."
-
-            sync
-            do_silent umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
-            do_silent umount $NIRESTORE_MOUNTPOINT || die "Failed to umount $NIRESTORE_MOUNTPOINT"
-            do_silent umount $NICONFIG_MOUNTPOINT || die "Failed to umount $NICONFIG_MOUNTPOINT"
-
-            printf "Formatting ubi1:rootfs... "
-            format_ubi_volume root 0 rootfs
-            echo "done."
-
-            ASK_BEFORE_REBOOT=1
-            provision_sucessfull
-        fi
-    }
+    die "Architecture $ARCH not supported."
 
 elif [ "$ARCH" = "x86_64" ]; then
 
@@ -337,7 +235,7 @@ elif [ "$ARCH" = "x86_64" ]; then
         fi
     }
 
-    restore_minimal_image()
+    restore_runmode_image()
     {
         local nilrt_path="$1" uuid="$2" nilrt_label="$3"
 
@@ -379,11 +277,7 @@ elif [ "$ARCH" = "x86_64" ]; then
 
     provision_target()
     {
-        if [[ $restore == "backward-migrate" ]]; then
-            source /ni_provisioning.safemode
-            ASK_BEFORE_REBOOT=1
-            return
-        elif [ $restore == "migrate" ]; then
+        if [ "$1" == "onboard" ]; then
             mkdir -p $TEMP_MOUNTPOINT
             mkdir -p $BOOTFS_MOUNTPOINT
             older_nilrt_nibootfs_path=`lsblk -rpn $TARGET_DISK -o NAME,LABEL | grep " $OLDER_NILRT_NIBOOTFS_LABEL"'$' | tail -1 | cut -d' ' -f1`
@@ -446,7 +340,7 @@ elif [ "$ARCH" = "x86_64" ]; then
         cp $SOURCE_DIR/initrd $RESTORE_MOUNTPOINT/ramdisk
         sync
 
-        restore_minimal_image
+        restore_runmode_image
 
         sync
         umount $RESTORE_MOUNTPOINT || die "Failed to umount $RESTORE_MOUNTPOINT"
@@ -455,7 +349,7 @@ elif [ "$ARCH" = "x86_64" ]; then
         umount $USB_MOUNTPOINT || die "Failed to umount $USB_MOUNTPOINT"
         fi
 
-        provision_sucessfull
+        provision_successfull
         ASK_BEFORE_REBOOT=1
     }
 fi
