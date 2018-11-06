@@ -15,7 +15,7 @@ test -n "$manufacturer" ||
 
 COMMON_BOOTARGS='console=ttyS0,115200 $mtdparts ubi.mtd=boot-config ubi.mtd=root $othbootargs'
 RESTORE_BOOTARGS="setenv bootargs $COMMON_BOOTARGS ramdisk_size=135168 root=/dev/ram rw"
-DEFAULT_BOOTARGS="setenv bootargs $COMMON_BOOTARGS root=ubi1:rootfs rw rootfstype=ubifs threadsirqs=1 \${usb_gadget_args}"
+DEFAULT_BOOTARGS="setenv bootargs $COMMON_BOOTARGS root=ubi1:rootfs rw rootfstype=ubifs \${usb_gadget_args}"
 BW_MIGRATE_BOOTARGS="setenv bootargs $COMMON_BOOTARGS ramdisk_size=135168 root=/dev/ram rw"
 
 load_restore_boot()
