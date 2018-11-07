@@ -82,20 +82,20 @@ elif [[ $restore == "provision" ]]; then
             else
                 uuid=""
             fi
-            restore_runmode_image "$nilrt_path" "$uuid" "$PROVISION_PART_NILRT_LABEL"
+            restore_minimal_image "$nilrt_path" "$uuid" "$PROVISION_PART_NILRT_LABEL"
         fi
     fi
 
 elif [[ $restore == "migrate" ]]; then
     PROVISION_REBOOT_METHOD="reboot"
-    provision_target onboard
+    provision_target onboard "$restore"
 elif [[ $restore == "auto-restore" ]]; then
     PROVISION_REBOOT_METHOD="reboot"
-    restore_runmode_image
+    restore_minimal_image
 else
-    ask_for_continue "Restore" "PROVISION_RESTORE_RUNMODE_IMAGE"
-    if [[ $PROVISION_RESTORE_RUNMODE_IMAGE == "y" ]]; then
-        restore_runmode_image
+    ask_for_continue "Restore" "PROVISION_RESTORE_MINIMAL_IMAGE"
+    if [[ $PROVISION_RESTORE_MINIMAL_IMAGE == "y" ]]; then
+        restore_minimal_image
     fi
 fi
 
