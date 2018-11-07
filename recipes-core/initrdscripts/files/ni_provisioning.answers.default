@@ -3,11 +3,6 @@
 # Default answer file for NI Linux Real-Time Recovery Tool
 # Sets all options to "?" to cause an interactive user prompt
 
-# Allow provisioning of unsupported hardware (E.g. non-NI) targets
-#  "y" = Yes, continue
-#  "n" = No, abort to shell
-PROVISION_UNSUPPORTED_TARGET="?"
-
 # (Re)partition target's disk
 #  "y" = Yes, continue
 #  "n" = No, abort to shell
