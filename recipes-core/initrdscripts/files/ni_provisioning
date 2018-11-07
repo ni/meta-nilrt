@@ -29,6 +29,7 @@ if [[ $restore == "provision-safe" ]]; then
 
     if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
         source /ni_provisioning.safemode
+        PROVISION_REBOOT_METHOD=${RESTART_OPTION}
         ASK_BEFORE_REBOOT=1
     fi
 elif [[ $restore == "backward-migrate" ]]; then
@@ -99,7 +100,7 @@ else
     fi
 fi
 
-if [[ "$ASK_BEFORE_REBOOT" -ne 0 ]]; then
+if [[ "$ASK_BEFORE_REBOOT" -ne 0 ]] && [[ "${FORCE_PROVISIONING}" -ne 1 ]] ; then
     prompt_user "Please eject the installation media and restart the system (Reboot, poweroff, shell)" "^(reboot|poweroff|shell)$" "reboot" PROVISION_REBOOT_METHOD
 fi
 

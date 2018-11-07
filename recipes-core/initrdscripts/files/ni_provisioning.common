@@ -51,8 +51,11 @@ ask_for_continue()
     printf "\nNI Linux Real-Time $type $BUILD_IDENTIFIER. \n\n"
     printf "The boot style is ${RED}$(echo $BOOT_STYLE | tr a-z A-Z)${NC}\n\n"
     printf "Continuing will partition the disk, format, and install $IMAGE_DISPLAY_NAME to the target.\n\n"
-
-    prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" $variable
+    if [[ "$FORCE_PROVISIONING" -ne 1 ]];then
+        prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" $variable
+    else
+        eval ${variable}="y"
+    fi
 }
 
 provision_sucessfull()
@@ -234,7 +237,7 @@ elif [ "$ARCH" = "x86_64" ]; then
 
     show_help()
     {
-        >&3 echo -e "\nUsage: $0 [-hav] [-t DEVICE]\n"
+        >&3 echo -e "\nUsage: $0 [-hav] [-t DEVICE] [-r y|n] [-c y|n] [-b SECONDS] [-F RESTART_OPTION]\n"
         >&3 echo -e "Options\n"
         >&3 echo "   -h : Show help."
         >&3 echo "   -a : Ask at every error if continue. Default is N, so at the first error abort."
@@ -247,6 +250,9 @@ elif [ "$ARCH" = "x86_64" ]; then
         >&3 echo "            automatically when unspecified."
         >&3 echo "   -c y|n : Initial value of the console out enable flag."
         >&3 echo "   -b SECONDS : Initial value of bootdelay -- how long (seconds) to show boot menu."
+        >&3 echo "   -F RESTART_OPTION : Force provisioning (surpress the promts). RESTART_OPTION specifies"
+        >&3 echo "                       what should be done after a succesful provisioning and can have the"
+        >&3 echo "                       following values: reboot, poweroff or shell."
     }
 
     # For a given block device (represented by sysfs path $1 and block device path
@@ -496,7 +502,7 @@ early_setup()
 
     OPTIND=1
 
-    while getopts "havt:r:c:b:" opt; do
+    while getopts "havt:r:c:b:F:" opt; do
         case "$opt" in
             h)  show_help
                 exit 1
@@ -525,6 +531,13 @@ early_setup()
                 fi
                 ;;
             b)  grubenv_bootdelay="$OPTARG"
+                ;;
+            F)  FORCE_PROVISIONING=1
+                if [ $OPTARG == "reboot" -o  "$OPTARG" == "poweroff" -o "$OPTARG" == "shell" ]; then
+                    RESTART_OPTION="$OPTARG"
+                else
+                    die "RESTART_OPTION can have the following values: reboot, poweroff or shell"
+                fi
                 ;;
             *)  show_help
                 exit 1
