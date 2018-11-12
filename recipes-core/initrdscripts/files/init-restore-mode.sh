@@ -23,6 +23,9 @@ early_setup() {
         COUNT=$(expr $COUNT + 1)
         sleep 1
     done
+
+    # Set hostname
+    echo "recovery" | tee /etc/hostname > /proc/sys/kernel/hostname
 }
 
 # Removes the /boot/bootmode file that may force
@@ -51,7 +54,6 @@ show_console() {
         echo ""
         echo " ------------------------------------------------------"
         echo " -  NI Linux Real-Time Recovery shell                 -"
-        echo " -  To reboot the system execute command 'reboot -f'  -"
         echo " ------------------------------------------------------"
         echo ""
 
@@ -85,12 +87,6 @@ mount_nirecovery_usb()
 }
 
 early_setup
-
-# Set hostname
-echo "recovery" | tee /etc/hostname > /proc/sys/kernel/hostname
-
-# Change root pwd to / where ni_provisioning is located
-echo "cd /" >> /home/root/.profile
 
 start_serial_console &
 

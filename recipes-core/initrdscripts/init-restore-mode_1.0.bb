@@ -4,6 +4,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 SRC_URI = "\
 	file://init-restore-mode.sh \
+	file://00-init-restore-mode.sh \
 	file://ni_provisioning \
 	file://ni_provisioning.common \
 	file://ni_provisioning.answers.default \
@@ -26,6 +27,9 @@ do_install() {
 	install -m 0755 ${WORKDIR}/ni_provisioning ${D}/ni_provisioning
 	install -m 0644 ${WORKDIR}/ni_provisioning.common ${D}/ni_provisioning.common
 	install -m 0644 ${WORKDIR}/ni_provisioning.answers.default ${D}/ni_provisioning.answers.default
+
+	install -d ${D}/${sysconfdir}/profile.d
+	install -m 0644 ${WORKDIR}/00-init-restore-mode.sh ${D}/${sysconfdir}/profile.d/00-init-restore-mode.sh
 }
 
 do_install_append_x64() {
@@ -40,5 +44,5 @@ do_install_append_xilinx-zynqhf() {
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-FILES_${PN} += " /init /ni_provisioning* /disk_config"
+FILES_${PN} += " /init /ni_provisioning* /disk_config /etc/profile.d/00-init-restore-mode.sh"
 FILES_${PN}_append_x64 += " /grub.cfg "
