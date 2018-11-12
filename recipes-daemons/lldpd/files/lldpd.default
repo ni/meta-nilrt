@@ -1,0 +1,2 @@
+# Only use wired network interfaces
+DAEMON_ARGS="-I 'eth*,en*'"
