@@ -25,6 +25,7 @@ PACKAGECONFIG = "tcp"
 
 RDEPENDS_${PN}-minion_append += "\
     python3-avahi \
+    python3-mmap \
     python3-pyinotify \
     python3-pyroute2 \
     python3-pika \
