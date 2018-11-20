@@ -220,6 +220,7 @@ RDEPENDS_${PN} += "\
 # openembedded-core/meta/recipes-kernel
 RDEPENDS_${PN} += "\
 	blktrace \
+	dkms \
 	dtc \
 	kexec-tools \
 	kmod \
