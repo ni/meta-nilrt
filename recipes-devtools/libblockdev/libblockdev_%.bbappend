@@ -1,1 +1,1 @@
-PACKAGECONFIG_remove = "lvm python3 escrow"
+PACKAGECONFIG_remove = "python3 escrow"
