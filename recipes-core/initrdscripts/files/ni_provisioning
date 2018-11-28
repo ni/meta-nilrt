@@ -25,7 +25,13 @@ early_setup "$@"
 source_default_answer_file
 
 if [[ $restore == "provision-safe" ]]; then
-    ask_for_continue
+    # source user's answer file, if present
+    source_answer_file
+    echo
+
+    if [[ "$PROVISION_REPARTITION_TARGET" != "y" ]]; then
+        ask_for_continue
+    fi
 
     if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
         source /ni_provisioning.safemode
