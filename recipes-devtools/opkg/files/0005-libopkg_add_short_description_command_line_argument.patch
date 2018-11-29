@@ -1,0 +1,188 @@
+From: Dan Mondrik <dan.m...@ni.com>
+To: <opkg-...@googlegroups.com>
+CC: Dan Mondrik <dan.m...@ni.com>
+Subject: [PATCH] libopkg: Add --short-description command line argument.
+Date: Wed, 28 Nov 2018 16:26:02 -0600
+
+The commands 'info' and 'status' now support the --short-description flag to
+display only the first line of the Description. This allows client parsing of
+the results to be simpler and faster.
+
+Upstream-Status: Accepted [https://groups.google.com/forum/#!topic/opkg-devel/ola9zgnXcZo]
+Signed-off-by: Dan Mondrik <dan.m...@ni.com>
+---
+ libopkg/opkg_conf.h               |  1 +
+ libopkg/pkg.c                     | 10 +++++++-
+ man/opkg.1.in                     |  3 +++
+ src/opkg.c                        |  6 +++++
+ tests/Makefile                    |  1 +
+ tests/core/42_info_description.py | 40 +++++++++++++++++++++++++++++++
+ tests/opkgcl.py                   |  6 ++---
+ 7 files changed, 63 insertions(+), 4 deletions(-)
+ create mode 100644 tests/core/42_info_description.py
+
+diff --git a/libopkg/opkg_conf.h b/libopkg/opkg_conf.h
+index 01b8dfc..0734067 100644
+--- a/libopkg/opkg_conf.h
++++ b/libopkg/opkg_conf.h
+@@ -121,6 +121,7 @@ typedef struct opkg_conf {
+     int host_cache_dir;
+     int verbose_status_file;
+     int compress_list_files;
++    int short_description;
+ 
+     /* ssl options: used only when opkg is configured with '--enable-curl',
+      * otherwise always NULL or 0.
+diff --git a/libopkg/pkg.c b/libopkg/pkg.c
+index eb4da0f..fbc7458 100644
+--- a/libopkg/pkg.c
++++ b/libopkg/pkg.c
+@@ -632,7 +632,15 @@ static void pkg_formatted_field(FILE * fp, pkg_t * pkg, const char *field, const
+             }
+         } else if (strcasecmp(field, "Description") == 0) {
+             if (pkg->description) {
+-                fprintf(fp, "Description: %s\n", pkg->description);
++                const char* first_line_end = strchr(pkg->description, '\n');
++                if (opkg_config->short_description && first_line_end) {
++                    fprintf(fp, "Description: %.*s\n",
++                            (int)(first_line_end - pkg->description),
++                            pkg->description);
++                }
++                else {
++                    fprintf(fp, "Description: %s\n", pkg->description);
++                }
+             }
+         } else {
+             goto UNKNOWN_FMT_FIELD;
+diff --git a/man/opkg.1.in b/man/opkg.1.in
+index 026fb15..51e3aab 100644
+--- a/man/opkg.1.in
++++ b/man/opkg.1.in
+@@ -143,6 +143,9 @@ conjunction with \fB\--dest\fP
+ \fB\--add-arch <\fIarch\fP>:<\fIprio\fP>\fR
+ Register the package architecture \fIarch\fP with the numeric
+ priority \fIprio\fP. Lower priorities take precedence.
++.TP
++\fB\--short-description
++Display only the first line of the description.
+ .SS FORCE OPTIONS
+ .TP
+ \fB\--force-depends \fR
+diff --git a/src/opkg.c b/src/opkg.c
+index 3bcdc1c..a518f21 100644
+--- a/src/opkg.c
++++ b/src/opkg.c
+@@ -60,6 +60,7 @@ enum {
+     ARGS_OPT_NO_INSTALL_RECOMMENDS,
+     ARGS_OPT_CACHE_DIR,
+     ARGS_OPT_HOST_CACHE_DIR,
++    ARGS_OPT_SHORT_DESCRIPTION,
+     ARGS_OPT_FIELDS_FILTER,
+ };
+ 
+@@ -119,6 +120,7 @@ static struct option long_options[] = {
+     {"cache-dir", 1, 0, ARGS_OPT_CACHE_DIR},
+     {"host-cache-dir", 0, 0, ARGS_OPT_HOST_CACHE_DIR},
+     {"volatile-cache", 0, 0, ARGS_OPT_VOLATILE_CACHE},
++    {"short-description", 0, 0, ARGS_OPT_SHORT_DESCRIPTION},
+     {"fields", 1, 0, ARGS_OPT_FIELDS_FILTER},
+     {"verbosity", 2, 0, 'V'},
+     {"version", 0, 0, 'v'},
+@@ -253,6 +255,9 @@ static int args_parse(int argc, char *argv[])
+         case ARGS_OPT_NO_INSTALL_RECOMMENDS:
+             opkg_config->no_install_recommends = 1;
+             break;
++        case ARGS_OPT_SHORT_DESCRIPTION:
++           opkg_config->short_description = 1;
++           break;
+         case ARGS_OPT_FIELDS_FILTER:
+             opkg_config->fields_filter = xstrdup(optarg);
+             break;
+@@ -341,6 +346,7 @@ static void usage()
+     printf("\t--combine                       Combine upgrade and install operations, this\n");
+     printf("\t                                may be needed to resolve dependency issues.\n");
+     printf("\t                                Only available for the internal solver backend.\n");
++    printf("\t--short-description             Display only the first line of the description.\n");
+     printf("\t--fields <Field1,Field2>        Limit display information to the specified fields\n");
+     printf("\t                                plus the package name. Valid for info and status.\n");
+ 
+diff --git a/tests/Makefile b/tests/Makefile
+index 3d69d18..8e5be08 100644
+--- a/tests/Makefile
++++ b/tests/Makefile
+@@ -41,6 +41,7 @@ REGRESSION_TESTS := core/01_install.py \
+ 		    core/39_distupgrade.py \
+ 		    core/40_arch.py \
+ 		    core/41_info_fields.py \
++		    core/42_info_description.py \
+ 		    regress/issue26.py \
+ 		    regress/issue31.py \
+ 		    regress/issue32.py \
+diff --git a/tests/core/42_info_description.py b/tests/core/42_info_description.py
+new file mode 100644
+index 0000000..9f41a71
+--- /dev/null
++++ b/tests/core/42_info_description.py
+@@ -0,0 +1,40 @@
++#! /usr/bin/env python3
++#
++# Create package 'a(1.0)' with short description only.
++# Create package 'b(1.0)' with a complete multiline description.
++# Check that info command for 'a' always includes the full description.
++# Check that info command for 'b' depends on the short-description flag.
++#
++
++import os
++import opk, cfg, opkgcl
++
++opk.regress_init()
++
++o = opk.OpkGroup()
++o.add(Package="a", Version="1.0", Description="Just Short")
++o.add(Package="b", Version="1.0", Description="Terse\n Verbose description\n across multiple lines")
++o.write_opk()
++o.write_list()
++
++opkgcl.update()
++
++info = opkgcl.info("a")
++if "Just Short" not in info:
++        opk.fail("Package 'a' description should contain 'Just Short'")
++
++info = opkgcl.info("a", flags="--short-description")
++if "Just Short" not in info:
++        opk.fail("Package 'a' description should contain 'Just Short'")
++
++info = opkgcl.info("b")
++if "Terse" not in info:
++        opk.fail("Package 'b' description should contain 'Terse'")
++if "Verbose description\n across multiple lines" not in info:
++        opk.fail("Package 'b' description should contain all lines because short-description was not specified")
++
++info = opkgcl.info("b", flags="--short-description")
++if "Terse" not in info:
++        opk.fail("Package 'b' description should contain 'Terse'")
++if "Verbose description\n across multiple lines" in info:
++        opk.fail("Package 'b' description should contain only the first line because short-description was specified")
+diff --git a/tests/opkgcl.py b/tests/opkgcl.py
+index d199d71..8098ee1 100755
+--- a/tests/opkgcl.py
++++ b/tests/opkgcl.py
+@@ -27,11 +27,11 @@ def upgrade(params=None, flags=""):
+ 	else:
+ 		return opkgcl("--force-postinstall upgrade")[0]
+ 
+-def info(pkg_name, params=None):
++def info(pkg_name, params=None, flags=""):
+ 	if params:
+-		return opkgcl("--fields {} info {}".format(params, pkg_name))[1]
++		return opkgcl("{} --fields {} info {}".format(flags, params, pkg_name))[1]
+ 	else:
+-		return opkgcl("info {}".format(pkg_name))[1]
++		return opkgcl("{} info {}".format(flags, pkg_name))[1]
+ 
+ def distupgrade(params=None, flags=""):
+ 	if params:
+-- 
+2.19.1.windows.1
+
