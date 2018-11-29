@@ -3,6 +3,9 @@
 . /usr/share/nisysinfo/smbios_helper
 . /usr/share/nisysinfo/efi_helper
 
+# Read config file /etc/lsb-release if it exists
+[ -r /etc/lsb-release ] && . /etc/lsb-release
+
 print_help(){
 cat <<EOF
 fw_printenv/fw_setenv, an implementation of the U-Boot environment variable facility in Grub/EFI
@@ -71,6 +74,12 @@ declare -A smbios_funcs=(
 ["DeviceDesc"]=get_target_name
 ["TargetClass"]=get_target_class
 ["serial#"]=get_serial_number)
+
+if [[ "$DISTRIB_ID" == "nilrt-nxg" ]] ; then
+	# nilrt-nxg distributions expect to have the full DeviceDesc while
+	# other distributions expect to have leading "NI " removed.
+	smbios_funcs["DeviceDesc"]=get_NI_target_name
+fi
 
 show_variable_smbios(){
 	# We show all variables when no args passed
