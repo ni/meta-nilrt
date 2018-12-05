@@ -163,6 +163,7 @@ add_rem_vars(){
 	if [ "${efi_funcs[$var_name]}" ]; then
 		if [ -n "$new_value" ]; then
 			${efi_funcs[$var_name]} $new_value
+			return
 		else
 			echo "Can't delete" "\"$var_name\"" >&2
 			exit 1
