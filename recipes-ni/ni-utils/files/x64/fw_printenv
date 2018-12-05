@@ -103,7 +103,7 @@ show_variable_smbios(){
 }
 
 declare -A efi_funcs=(
-["UEFIConsoleOut"]=get_set_console_out
+["BootFirmwareConsoleOutEnable"]=get_set_console_out
 ["IsNILinuxRTBoot"]=get_set_nilrt_boot)
 
 show_variable_efi(){
