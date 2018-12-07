@@ -12,7 +12,7 @@ RDEPENDS_{PN} += "niacctbase"
 inherit update-rc.d
 
 INITSCRIPT_NAME = "vpn"
-INITSCRIPT_PARAMS = "start 42 S . stop 5 0 1 2 6 ."
+INITSCRIPT_PARAMS = "start 42 4 . stop 5 0 1 2 6 ."
 
 do_install_append () {
      install -d ${D}${sysconfdir}/default/volatiles/
