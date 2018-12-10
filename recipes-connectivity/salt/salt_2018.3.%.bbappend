@@ -2,7 +2,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=fb92f464675f6b5df90f540d60237915"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
-SRC_URI = "git://github.com/ni/salt.git;branch=ni/skyline-18.2/2018.3 \
+SRC_URI = "git://github.com/ni/salt.git;branch=ni/skyline-18.5/2018.3 \
            file://set_python_location_hashbang.patch \
            file://minion \
            file://salt-minion \
