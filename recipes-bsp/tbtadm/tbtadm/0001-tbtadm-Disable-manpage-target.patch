@@ -1,0 +1,31 @@
+From 592f65a45a22130dc03b423ecc9eb2d98ff167a2 Mon Sep 17 00:00:00 2001
+From: Kar Hin Ong <kar.hin.ong@ni.com>
+Date: Wed, 28 Nov 2018 00:30:02 -0800
+Subject: [PATCH] tbtadm: Disable manpage target
+
+Disable building the manpage target by hiding
+its source directory from the root cMakeList.txt.
+Disabling it because it requires txt2tags to compile
+and txt2tags is not available in OE layer.
+
+Signed-off-by: Kar Hin Ong <kar.hin.ong@ni.com>
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 52d513b..bddaee8 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -19,7 +19,7 @@ add_subdirectory(common)
+ add_subdirectory(tbtacl)
+ add_subdirectory(tbtxdomain)
+ add_subdirectory(tbtadm)
+-add_subdirectory(docs)
++#add_subdirectory(docs)
+ 
+ configure_file(tests/test-integration-mock.py tests/test-integration-mock.py COPYONLY)
+ configure_file(tests/Dockerfile tests/Dockerfile COPYONLY)
+-- 
+2.7.4
+
