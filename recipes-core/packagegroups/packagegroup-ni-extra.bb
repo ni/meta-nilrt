@@ -259,6 +259,11 @@ RDEPENDS_${PN} += "\
 	tiobench \
 "
 
+
+# meta-openembedded/meta-oe/recipes-benchmark
+RDEPENDS_${PN} += "\
+	tbtadm \
+"
 # meta-openembedded/meta-oe/recipes-connectivity
 RDEPENDS_${PN} += "\
 	gammu \

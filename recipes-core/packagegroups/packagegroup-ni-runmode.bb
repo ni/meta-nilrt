@@ -24,6 +24,7 @@ RDEPENDS_${PN} = "\
 	niwatchdogpet \
 	parted \
 	rtctl \
+	tbtadm \
 	util-linux-sfdisk \
 	vlan \
 	zip \
