@@ -260,7 +260,7 @@ RDEPENDS_${PN} += "\
 "
 
 
-# meta-openembedded/meta-oe/recipes-benchmark
+# meta-openembedded/meta-oe/recipes-bsp
 RDEPENDS_${PN} += "\
 	tbtadm \
 "
