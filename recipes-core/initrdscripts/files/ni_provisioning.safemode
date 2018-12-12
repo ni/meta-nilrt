@@ -487,4 +487,4 @@ trap - ERR
 exec 1>&3
 exec 2>&4
 
-provision_sucessfull
+provision_successfull
