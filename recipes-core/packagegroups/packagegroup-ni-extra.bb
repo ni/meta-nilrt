@@ -367,7 +367,7 @@ RDEPENDS_${PN} += "\
 	rrdtool \
 	rsyslog \
 	smartmontools \
-	canutils \
+	can-utils \
 	tcsh \
 	tipcutils \
 	tmux \
