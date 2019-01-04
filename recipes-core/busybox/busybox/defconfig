@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.27.2
-# Wed Jul  4 17:32:46 2018
+# Fri Jan  4 22:07:05 2019
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -324,7 +324,7 @@ CONFIG_UNAME_OSNAME="GNU/Linux"
 CONFIG_UNIQ=y
 CONFIG_UNLINK=y
 CONFIG_USLEEP=y
-# CONFIG_UUDECODE is not set
+CONFIG_UUDECODE=y
 # CONFIG_BASE64 is not set
 # CONFIG_UUENCODE is not set
 CONFIG_WC=y
