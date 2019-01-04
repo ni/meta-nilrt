@@ -1,0 +1,11 @@
+#!/bin/sh
+# Copyright (c) 2019 National Instruments.
+# All rights reserved.
+
+# On safe-mode only, and on every boot, detect the target and select the net device naming scheme.
+
+class="`/sbin/fw_printenv -n TargetClass`"
+
+# Use persistent names on PXI, not on any other targets
+[ "$class" = "PXI" ] || touch /etc/udev/rules.d/80-net-name-slot.rules
+

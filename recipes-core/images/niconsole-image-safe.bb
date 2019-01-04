@@ -2,6 +2,7 @@ DESCRIPTION = "Safemode image for ethernet based, console only, NI Linux Realtim
 
 IMAGE_INSTALL = "\
 	packagegroup-ni-base \
+	packagegroup-ni-safemode \
 	packagegroup-ni-tzdata \
 	packagegroup-ni-wifi \
 	"
