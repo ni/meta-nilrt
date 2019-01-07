@@ -586,6 +586,7 @@ RDEPENDS_${PN} += "\
 	nuttcp \
 	pimd \
 	smcroute \
+	sshpass \
 	ssmping \
 	strongswan \
 	stunnel \
