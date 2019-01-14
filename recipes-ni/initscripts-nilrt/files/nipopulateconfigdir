@@ -1,0 +1,17 @@
+#!/bin/bash
+# Sources *.sh files under /etc/populateconfig.d/ during early boot to create
+# neccessary NILRT runtime config files, inspired by /etc/profile.
+
+case "$1" in
+start)
+	if [ -d /etc/populateconfig.d ]; then
+		for i in /etc/populateconfig.d/*.sh; do
+			[ -x "$i" ] && "$i"
+		done
+	fi ;;
+stop)
+	exit 0 ;;
+*)
+	echo "Usage: $0 start" >&2
+	exit 1 ;;
+esac

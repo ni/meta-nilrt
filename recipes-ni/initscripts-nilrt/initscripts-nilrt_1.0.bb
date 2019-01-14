@@ -29,6 +29,7 @@ SRC_URI = "file://nisetbootmode \
 	   file://wirelesssetdomain \
 	   file://iso3166-translation.txt \
 	   file://nisetupirqpriority \
+	   file://nipopulateconfigdir \
 	   file://run-ptest \
 "
 
@@ -51,6 +52,7 @@ do_install () {
      install -m 0755   ${WORKDIR}/nicleanstalelinks         ${D}${sysconfdir}/init.d
      install -m 0755   ${WORKDIR}/nicreatecpusets         ${D}${sysconfdir}/init.d
      install -m 0755   ${WORKDIR}/nicreatecpuacctgroups         ${D}${sysconfdir}/init.d
+     install -m 0755   ${WORKDIR}/nipopulateconfigdir         ${D}${sysconfdir}/init.d
      install -m 0755   ${WORKDIR}/nisetupkernelconfig         ${D}${sysconfdir}/init.d
      install -m 0755   ${WORKDIR}/nisetcommitratio         ${D}${sysconfdir}/init.d
      install -m 0755   ${WORKDIR}/wirelesssetdomain         ${D}${sysconfdir}/init.d
@@ -65,6 +67,7 @@ do_install () {
      update-rc.d -r ${D} nicleanstalelinks start 5 S .
      update-rc.d -r ${D} nicreatecpusets start 1 5 .
      update-rc.d -r ${D} nicreatecpuacctgroups start 2 5 .
+     update-rc.d -r ${D} nipopulateconfigdir start 36 S .
      update-rc.d -r ${D} nisetupkernelconfig start 3 5 .
      update-rc.d -r ${D} nisetcommitratio start 99 S .
      update-rc.d -r ${D} wirelesssetdomain start 36 S .
