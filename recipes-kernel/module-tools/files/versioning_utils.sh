@@ -100,7 +100,10 @@ function cleanup_versioning_env
 
 function versioning_call
 {
-	LD_LIBRARY_PATH=${TOOLS_MNTPNT}/lib:${TOOLS_MNTPNT}/usr/lib PATH=${PATH}:${TOOLS_MNTPNT}/usr/bin NO_INSTALL_UTIL=1 KERNELHEADERS=${HEADER_MNTPNT}/kernel CFLAGS=--sysroot=${TOOLS_MNTPNT} "$@"
+	if [ -z "$KERNELHEADERS" ]; then
+		export KERNELHEADERS=${HEADER_MNTPNT}/kernel
+	fi
+	LD_LIBRARY_PATH=${TOOLS_MNTPNT}/lib:${TOOLS_MNTPNT}/usr/lib PATH=${PATH}:${TOOLS_MNTPNT}/usr/bin NO_INSTALL_UTIL=1 CFLAGS=--sysroot=${TOOLS_MNTPNT} "$@"
 }
 
 function kernel_version
