@@ -83,6 +83,7 @@ RDEPENDS_${PN} += "\
 	dhcp-client \
 	dhcp-omshell \
 	libpcap \
+	libfmi \
 	ofono \
 	ppp \
 	ppp-dialin \
