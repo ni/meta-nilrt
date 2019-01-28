@@ -71,3 +71,5 @@ INITSCRIPT_PARAMS_${PN}-minion = "defaults 93 7"
 do_install_ptest_append() {
     install -m 0755 ${WORKDIR}/run-ptest ${D}${PTEST_PATH}
 }
+
+INSANE_SKIP += "file-rdeps"
