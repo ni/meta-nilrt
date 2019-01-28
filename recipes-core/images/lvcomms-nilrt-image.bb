@@ -27,7 +27,6 @@ IMAGE_INSTALL_NODEPS_remove_armv7a = " \
 "
 
 IMAGE_INSTALL_NODEPS_append_x64 = " \
-    ni-atca \
     ni-pxiplatformservices \
     ni-sync \
     ni-p2p \
