@@ -18,6 +18,8 @@ EXTRA_OECMAKE = "\
 	-DFMILIB_INSTALL_PREFIX=${prefix} \
 "
 
+RDEPENDS_${PN}-dev = ""
+
 FILES_${PN}-doc += "/usr/doc"
 
 INSANE_SKIP_${PN}-dev = "dev-elf"
