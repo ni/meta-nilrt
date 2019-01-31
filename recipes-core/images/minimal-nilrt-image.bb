@@ -2,8 +2,6 @@ DESCRIPTION = "Minimal image for NI Linux Real-Time x64 and ARM targets"
 LICENSE = "MIT"
 
 IMAGE_INSTALL = "\
-	packagegroup-ni-base \
-	packagegroup-ni-tzdata \
 	dkms \
 	"
 

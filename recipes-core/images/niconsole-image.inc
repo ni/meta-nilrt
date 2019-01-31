@@ -12,6 +12,11 @@ IMAGE_FEATURES += "package-management"
 # Grant some space for package installs after boot
 IMAGE_ROOTFS_EXTRA_SPACE = "500000"
 
+IMAGE_INSTALL += "\
+	packagegroup-ni-base \
+	packagegroup-ni-tzdata \
+"
+
 addtask image_build_test before do_rootfs
 
 # We always want package-management support in this image, fail if not enabled

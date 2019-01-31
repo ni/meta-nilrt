@@ -1,8 +1,6 @@
 DESCRIPTION = "Runmode image for ethernet-based NI Linux Real-Time targets running XFCE (DKMS)."
 
 IMAGE_INSTALL = "\
-	packagegroup-ni-base \
-	packagegroup-ni-tzdata \
 	packagegroup-ni-runmode \
 	packagegroup-ni-wifi \
 	packagegroup-ni-xfce \
