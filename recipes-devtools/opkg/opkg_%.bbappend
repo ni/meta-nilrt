@@ -5,6 +5,7 @@ inherit ptest
 SRC_URI += " \
             file://opkg.conf \
             file://run-ptest \
+            file://0001-libsolv_solver_init-make-no-install-recommends-case-.patch \
 "
 
 SRC_URI_append_armv7a = " \

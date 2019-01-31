@@ -1,0 +1,45 @@
+Upstream-Status: Accepted
+
+From 579e17c3849617953a785a9d2f235be0966e267d Mon Sep 17 00:00:00 2001
+From: Alejandro del Castillo <alejandro.delcastillo@ni.com>
+Date: Thu, 31 Jan 2019 13:41:16 -0600
+Subject: [PATCH] libsolv_solver_init: make --no-install-recommends case
+ consistent
+
+Currently, the --no-install-recommends case doesn't set the flag
+SOLVER_FLAG_INSTALL_ALSO_UPDATES, which causes inconsitent behavior
+between installs with/without the flag. To be consistent, always set the
+flag.
+
+Signed-off-by: Alejandro del Castillo <alejandro.delcastillo@ni.com>
+---
+ libopkg/solvers/libsolv/opkg_solver_libsolv.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/libopkg/solvers/libsolv/opkg_solver_libsolv.c b/libopkg/solvers/libsolv/opkg_solver_libsolv.c
+index bc76090..c80fe45 100644
+--- a/libopkg/solvers/libsolv/opkg_solver_libsolv.c
++++ b/libopkg/solvers/libsolv/opkg_solver_libsolv.c
+@@ -672,6 +672,10 @@ static int libsolv_solver_init(libsolv_solver_t *libsolv_solver)
+     /* create the solver with the solver pool */
+     libsolv_solver->solver = solver_create(libsolv_solver->pool);
+ 
++    /* allow upgrades of installed packages during install */
++    solver_set_flag(libsolv_solver->solver,
++                    SOLVER_FLAG_INSTALL_ALSO_UPDATES, 1);
++
+     /* set libsolv solver flags to match behavoir of opkg options */
+     if (opkg_config->force_removal_of_dependent_packages)
+         solver_set_flag(libsolv_solver->solver,
+@@ -685,8 +689,6 @@ static int libsolv_solver_init(libsolv_solver_t *libsolv_solver)
+     } else {
+          solver_set_flag(libsolv_solver->solver,
+                         SOLVER_FLAG_STRONG_RECOMMENDS, 1);
+-         solver_set_flag(libsolv_solver->solver,
+-                        SOLVER_FLAG_INSTALL_ALSO_UPDATES, 1);
+     }
+     if (!opkg_config->prefer_arch_to_version) {
+         solver_set_flag(libsolv_solver->solver,
+-- 
+2.20.1
+
