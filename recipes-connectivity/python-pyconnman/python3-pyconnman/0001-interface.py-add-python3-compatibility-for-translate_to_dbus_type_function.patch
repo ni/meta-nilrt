@@ -1,0 +1,29 @@
+From b9a4c519a4d9270c15ee8b865972c5d71ea20a60 Mon Sep 17 00:00:00 2001
+From: Ovidiu-Adrian Vancea <ovidiu.vancea@ni.com>
+Date: Thu, 31 Jan 2019 12:11:28 +0000
+Subject: [PATCH] interface.py: add python3 compatibility for
+ translate_to_dbus_type function
+
+UnicodeType is missing in python3 since verifying if it's instance of str
+matches unicode strings.
+
+Upstream-Status: Pending
+Signed-off-by: Ovidiu-Adrian Vancea <ovidiu.vancea@ni.com>
+---
+ pyconnman/interface.py | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/pyconnman/interface.py b/pyconnman/interface.py
+index d540c81..b1dcd27 100644
+--- a/pyconnman/interface.py
++++ b/pyconnman/interface.py
+@@ -17,8 +17,7 @@ def translate_to_dbus_type(typeof, value):
+     :return: 'value' converted to type 'typeof'
+     :rtype: typeof
+     """
+-    if ((isinstance(value, types.UnicodeType) or
+-         isinstance(value, str)) and typeof is not dbus.String):
++    if (isinstance(value, str) and typeof is not dbus.String):
+         # FIXME: This is potentially dangerous since it evaluates
+         # a string in-situ
+         return typeof(eval(value))
