@@ -12,23 +12,17 @@ DESCRIPTION = " \
 IMAGE_INSTALL_NODEPS += " \
     lvrt \
     ni-datacomms-lvinterface \
-    nitaglv \
     ni-nwstreams \
-    ni-flexrio \
-    ni-service-locator \
-    ni-usrp-rio \
-    mt \
-"
-
-IMAGE_INSTALL_NODEPS_remove_armv7a = " \
-    ni-flexrio \
-    ni-usrp-rio \
-    mt \
+    nisvcloc \
+    nitaglv \
 "
 
 IMAGE_INSTALL_NODEPS_append_x64 = " \
+    mt \
+    ni-flexrio \
+    ni-p2p \
     ni-pxiplatformservices \
     ni-sync \
-    ni-p2p \
+    ni-usrp-rio \
     ni-watchdog \
 "
