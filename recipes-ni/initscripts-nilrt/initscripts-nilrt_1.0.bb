@@ -97,6 +97,18 @@ do_install () {
      fi
 }
 
+pkg_postinst_${PN} () {
+    if [ -n "$D" ]; then
+        # Error in off-line install so this will run on the real target where we can query the target class
+        exit 1
+    else
+        class="`/sbin/fw_printenv -n TargetClass`"
+
+        # Use persistent names on PXI, not on any other targets
+        [ "$class" = "PXI" ] || touch /etc/udev/rules.d/80-net-name-slot.rules
+    fi
+}
+
 do_install_append_x64 () {
      install -m 0755   ${WORKDIR}/nidisablecstates      ${D}${sysconfdir}/init.d
      update-rc.d -r ${D} nidisablecstates start 2 3 4 5 S .
