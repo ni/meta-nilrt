@@ -6,7 +6,7 @@ SRCREV = "${AUTOREV}"
 GRUB_BRANCH = "nilrt/17.0"
 
 SRC_URI = "\
-        git://git.natinst.com/grub.git;branch=${GRUB_BRANCH} \
+        ${NILRT_GIT}/grub.git;branch=${GRUB_BRANCH} \
         file://grub.cfg \
         file://cfg \
 "
