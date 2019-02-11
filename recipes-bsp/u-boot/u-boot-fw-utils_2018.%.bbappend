@@ -18,6 +18,7 @@ SRC_URI_append = " \
         file://0002-gcc5-use-gcc-inline-version-instead-c99.patch \
         file://0003-gcc5-include-io.h-needs-inline-def-from-compiler-gcc.h.patch \
         file://fix-build-error-under-gcc6.patch \
+        file://fix-build-error-under-gcc7.patch \
 "
 
 SRCREV = "${AUTOREV}"
