@@ -1,0 +1,32 @@
+From 098a67350dd2deedf0e459f7befc74d5982efeef Mon Sep 17 00:00:00 2001
+From: Alejandro del Castillo <alejandro.delcastillo@ni.com>
+Date: Tue, 12 Feb 2019 14:39:29 -0600
+Subject: [PATCH 2/2] libsolv_solver_execute_transaction: propagate download
+ error
+
+Signed-off-by: Alejandro del Castillo <alejandro.delcastillo@ni.com>
+
+Upstream-Status: Submitted
+---
+ libopkg/solvers/libsolv/opkg_solver_libsolv.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/libopkg/solvers/libsolv/opkg_solver_libsolv.c b/libopkg/solvers/libsolv/opkg_solver_libsolv.c
+index 403e07b..9548578 100644
+--- a/libopkg/solvers/libsolv/opkg_solver_libsolv.c
++++ b/libopkg/solvers/libsolv/opkg_solver_libsolv.c
+@@ -897,8 +897,10 @@ static int libsolv_solver_execute_transaction(libsolv_solver_t *libsolv_solver)
+     } else {
+         pkg_t *pkg;
+ 
+-        if (libsolv_solver_transaction_preamble(libsolv_solver, pkgs, transaction, 0))
++        if (libsolv_solver_transaction_preamble(libsolv_solver, pkgs, transaction, 0)) {
++            err = -1;
+             goto CLEANUP;
++        }
+ 
+         for (i = 0; i < transaction->steps.count; i++) {
+             Id stepId = transaction->steps.elements[i];
+-- 
+2.20.1
+
