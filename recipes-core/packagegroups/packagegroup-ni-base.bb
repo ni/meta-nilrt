@@ -37,6 +37,7 @@ NILRT_NXG_x64_PACKAGES = "\
 "
 
 NILRT_ARM_PACKAGES = "\
+	jitterentropy-rngd \
 	mtd-utils-ubifs \
 "
 
