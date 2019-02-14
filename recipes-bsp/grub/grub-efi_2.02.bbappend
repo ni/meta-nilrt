@@ -21,11 +21,15 @@ do_install_append_class-target() {
         -o ${D}/boot/${GRUB_CHAINLOADED_IMAGE} ${GRUB_BUILDIN}
 
     install -m 0644 ${WORKDIR}/grub.cfg ${D}/boot/
+
+    install -m 0744 -d ${D}/boot/grub.d
+    install -m 0644 ${WORKDIR}/grub.d/* ${D}/boot/grub.d/
 }
 
 FILES_grub-efi-rootfs-chainloaded = "\
     /boot/${GRUB_CHAINLOADED_IMAGE} \
     /boot/grub.cfg \
+    /boot/grub.d/* \
 "
 
 # Downstream NI-branch code quality is not yet ready to build with -Werror

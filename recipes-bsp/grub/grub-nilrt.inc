@@ -4,9 +4,10 @@ PV = "2.02+git${SRCPV}"
 SRCREV = "${AUTOREV}"
 
 SRC_URI = "\
-        ${NILRT_GIT}/grub.git;branch=${GRUB_BRANCH} \
-        file://grub.cfg \
-        file://cfg \
+	${NILRT_GIT}/grub.git;branch=${GRUB_BRANCH} \
+	file://grub.cfg \
+	file://cfg \
+	file://grub.d \
 "
 
 S = "${WORKDIR}/git"
