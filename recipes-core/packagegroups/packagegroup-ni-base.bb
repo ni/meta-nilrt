@@ -113,6 +113,7 @@ RDEPENDS_${PN} = "\
 	openssh-sftp-server \
 	openssh-ssh \
 	opkg \
+	opkg-keyrings \
 	run-postinsts \
 	start-stop-daemon \
 	sudo \
