@@ -105,7 +105,19 @@ pkg_postinst_${PN} () {
         class="`/sbin/fw_printenv -n TargetClass`"
 
         # Use persistent names on PXI, not on any other targets
-        [ "$class" = "PXI" ] || touch /etc/udev/rules.d/80-net-name-slot.rules
+        if [ "$class" != "PXI" ]; then
+            touch /etc/udev/rules.d/80-net-name-slot.rules
+
+            # Since the network is already brought up on the first boot, reload the network to get the new rules
+            if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'true', 'false', d)}; then
+                /etc/init.d/connman stop
+                /etc/init.d/udev stop
+                modprobe -r igb
+                modprobe igb
+                /etc/init.d/udev start
+                /etc/init.d/connman start
+            fi
+        fi
     fi
 }
 
