@@ -97,6 +97,30 @@ do_install () {
      fi
 }
 
+pkg_postinst_${PN} () {
+    if [ -n "$D" ]; then
+        # Error in off-line install so this will run on the real target where we can query the target class
+        exit 1
+    else
+        class="`/sbin/fw_printenv -n TargetClass`"
+
+        # Use persistent names on PXI, not on any other targets
+        if [ "$class" != "PXI" ]; then
+            touch /etc/udev/rules.d/80-net-name-slot.rules
+
+            # Since the network is already brought up on the first boot, reload the network to get the new rules
+            if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'true', 'false', d)}; then
+                /etc/init.d/connman stop
+                /etc/init.d/udev stop
+                modprobe -r igb
+                modprobe igb
+                /etc/init.d/udev start
+                /etc/init.d/connman start
+            fi
+        fi
+    fi
+}
+
 do_install_append_x64 () {
      install -m 0755   ${WORKDIR}/nidisablecstates      ${D}${sysconfdir}/init.d
      update-rc.d -r ${D} nidisablecstates start 2 3 4 5 S .
