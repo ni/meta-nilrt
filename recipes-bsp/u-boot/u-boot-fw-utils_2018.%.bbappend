@@ -32,5 +32,9 @@ do_compile(){
 }
 
 do_install_append(){
+    install -d ${D}${sysconfdir}
     install -m 0644 ${WORKDIR}/fw_env-${MACHINE}.config ${D}${sysconfdir}/fw_env.config
+    chown 0:${LVRT_GROUP} ${D}${base_sbindir}/fw_printenv
+    chmod 4550 ${D}${base_sbindir}/fw_printenv
+    ln -sf ${base_sbindir}/fw_printenv ${D}${base_sbindir}/fw_setenv
 }
