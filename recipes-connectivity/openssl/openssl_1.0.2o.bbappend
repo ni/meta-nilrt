@@ -7,6 +7,7 @@ SRC_URI += " \
 	file://0001-crypto-ts-Implement-def_time_cb-on-VxWorks.patch \
 	file://0002-ssl-Implement-get_current_time-on-VxWorks.patch \
 	file://0003-crypto-bio-Implement-get_current_time-on-VxWorks.patch \
+	file://0014-crypto-o_time.c-Workaround-gmtime_r-bug-on-VxWorks.patch \
 "
 
 # Patches for NI Phar Lap ETS in NIBuild
