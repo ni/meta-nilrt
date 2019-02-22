@@ -1,0 +1,31 @@
+From e33cbfc0c983fda5c4efa13444efb8584dde7d2b Mon Sep 17 00:00:00 2001
+From: Alejandro del Castillo <alejandro.delcastillo@ni.com>
+Date: Fri, 22 Feb 2019 11:35:04 -0600
+Subject: [PATCH] opkg-key: add keys even if creation date is in the future
+
+Targets without a hwclock may fail during key population. Add flag to
+tell gpg to ignore future creation date errors.
+
+Signed-off-by: Alejandro del Castillo <alejandro.delcastillo@ni.com>
+
+Upstream-Status: Inappropiate
+---
+ utils/opkg-key | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/utils/opkg-key b/utils/opkg-key
+index 8550ea9..7212255 100755
+--- a/utils/opkg-key
++++ b/utils/opkg-key
+@@ -96,7 +96,7 @@ case "$command" in
+     populate)
+         for f in $ROOT/usr/share/opkg/keyrings/*.gpg; do
+             echo "Importing keys from '`basename $f`'..."
+-            $GPG --quiet --batch --import "$f"
++            $GPG --quiet --batch --ignore-time-conflict --import "$f"
+         done
+         echo "OK"
+         ;;
+-- 
+2.20.1
+
