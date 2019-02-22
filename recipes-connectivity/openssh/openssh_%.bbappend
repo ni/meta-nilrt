@@ -14,8 +14,16 @@ do_install_append () {
     # customize sshd_config
     sed -e 's|^[#[:space:]]*Banner.*|Banner /etc/issue.net|' \
 	-e 's|^[#[:space:]]*UseDNS.*|UseDNS no|' \
-	-e 's|^[#[:space:]]*PasswordAuthentication.*|PasswordAuthentication no|' \
+	-e 's|^[#[:space:]]*PasswordAuthentication .*|PasswordAuthentication no|' \
 	-e 's|^[#[:space:]]*PermitRootLogin.*|PermitRootLogin yes|' \
 	-e 's|^[#[:space:]]*ChallengeResponseAuthentication.*|ChallengeResponseAuthentication yes|' \
+	-e '/.*HostKey.*/d' \
 		-i ${D}${sysconfdir}/ssh/sshd_config
+
+	echo                                                       >>${D}${sysconfdir}/ssh/sshd_config
+	echo "# HostKeys for protocol version 2"                   >>${D}${sysconfdir}/ssh/sshd_config
+	echo "HostKey /etc/natinst/share/ssh/ssh_host_rsa_key"     >>${D}${sysconfdir}/ssh/sshd_config
+	echo "HostKey /etc/natinst/share/ssh/ssh_host_dsa_key"     >>${D}${sysconfdir}/ssh/sshd_config
+	echo "HostKey /etc/natinst/share/ssh/ssh_host_ecdsa_key"   >>${D}${sysconfdir}/ssh/sshd_config
+	echo "HostKey /etc/natinst/share/ssh/ssh_host_ed25519_key" >>${D}${sysconfdir}/ssh/sshd_config
 }
