@@ -1,5 +1,6 @@
 #!/bin/sh
 
+./test_kernel_security.sh
 ./test_kernel_modules.sh
 ./test_kernel_cache_info.sh
 ./test_kernel_mcopy.sh

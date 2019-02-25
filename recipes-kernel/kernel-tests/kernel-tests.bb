@@ -2,7 +2,7 @@ SUMMARY = "Linux kernel-specific tests"
 HOMEPAGE = "https://kernel.org"
 SECTION = "tests"
 LICENSE = "GPLv2 & GPLv2+"
-LIC_FILES_CHKSUM = "file://run-ptest;md5=1a02bb3ae5f2d2e1b4f28fd2dd01694d"
+LIC_FILES_CHKSUM = "file://run-ptest;md5=0c0d48c031233bf837da6482d67473ae"
 
 inherit ptest
 
@@ -20,12 +20,14 @@ SRC_URI += "\
     file://required_kernel_modules.arm \
     file://required_kernel_modules.x64 \
     file://ptest-format.sh \
+    file://security-mitigations.txt \
     file://test_kernel_mcopy.sh \
     file://test_kernel_mcopy_functionality.c \
     file://test_kernel_mcopy_freed_memory.c \
     file://test_kernel_cache_info.sh \
     file://test_kernel_cap_support.sh \
     file://test_kernel_modules.sh \
+    file://test_kernel_security.sh \
     file://test_exe_cap_support.c \
     file://test_proc_cap_support.c \
     file://cap_support_exe_to_test.c \
@@ -54,12 +56,14 @@ do_compile_ptest_append() {
 do_install_ptest_append() {
     cp ${WORKDIR}/run-ptest ${D}${PTEST_PATH}
     cp ${WORKDIR}/ptest-format.sh ${D}${PTEST_PATH}
+    cp ${WORKDIR}/security-mitigations.txt ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_mcopy.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_mcopy_functionality ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_mcopy_freed_memory ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_cache_info.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_cap_support.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_modules.sh ${D}${PTEST_PATH}
+    cp ${WORKDIR}/test_kernel_security.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_exe_cap_support ${D}${PTEST_PATH}
     cp ${WORKDIR}/cap_support_exe_to_test ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_proc_cap_support ${D}${PTEST_PATH}

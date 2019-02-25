@@ -1,0 +1,15 @@
+# Device,Codes    vulnerability   cmdline_arg     vuln_assert_string
+# CG VMs (device code 7735)
+*       l1tf                l1tf=off                            "Mitigation: PTE Inversion"
+*       meltdown            pti=off                             Vulnerable
+*       spec_store_bypass   spec_store_bypass_disable=on        Vulnerable
+*       spectre_v1          ""                                  "Mitigation: __user pointer sanitization"
+*       spectre_v2          spectre_v2=off                      "Vulnerable, STIBP: disabled"
+
+# cRIO 9030
+0x7755  l1tf                l1tf=off                            "Not affected"
+0x7755  spec_store_bypass   spec_store_bypass_disable=on        "Not affected"
+
+# PXI
+0x77E1  spec_store_bypass   spec_store_bypass_disable=on        "Mitigation: Speculative Store Bypass disabled"
+0x77E1  spectre_v2          spectre_v2=off                      "Vulnerable, IBPB: disabled, STIBP: disabled"
