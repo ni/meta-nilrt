@@ -23,6 +23,7 @@ SRC_URI += " \
         file://0022-config-win32.h-Disable-Win32-crypto-API-on-Phar-Lap-.patch \
         file://0023-Decorate-API-functions-on-Windows-with-__cdecl.patch \
         file://0024-curl-system.h-define-SIZEOF_CURL_OFF_T.patch \
+        file://0025-global_init-restore-CURL_GLOBAL_SSL-option.patch \
 "
 
 SELECTED_OPTIMIZATION += "-Wno-deprecated-declarations"
