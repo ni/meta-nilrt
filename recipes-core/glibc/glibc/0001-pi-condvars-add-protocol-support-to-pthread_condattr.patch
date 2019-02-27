@@ -1,6 +1,6 @@
-From a21dcbec1dd15041ab7c7fb035c6e3fc11e60e2a Mon Sep 17 00:00:00 2001
+From 19fb5852337cb748c6445c2ee10ee92b186d0aee Mon Sep 17 00:00:00 2001
 From: Gratian Crisan <gratian.crisan@ni.com>
-Date: Mon, 16 Sep 2013 14:18:59 -0500
+Date: Tue, 26 Feb 2019 11:59:02 -0600
 Subject: [PATCH 1/5] pi-condvars: add protocol support to pthread_condattr_t
 
 When using a PTHREAD_PRIO_INHERIT mutex with a condvar, the pthread_cond*
@@ -25,49 +25,53 @@ Signed-off-by: Gratian Crisan <gratian.crisan@ni.com>
 Signed-off-by: Darren Hart <dvhart@linux.intel.com>
 <Ported to glibc 2.23 by Ioan-Adrian Ratiu>
 Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+<Fix for __ASSUME_FUTEX_LOCK_PI removal by Gratian Crisan>
+Signed-off-by: Gratian Crisan <gratian.crisan@ni.com>
 ---
- manual/threads.texi                                | 40 ++++++++++++++
- nptl/Makefile                                      |  2 +
- nptl/Versions                                      |  5 ++
- nptl/pthread_cond_broadcast.c                      |  7 +--
- nptl/pthread_cond_destroy.c                        |  9 ++--
- nptl/pthread_cond_init.c                           | 22 +++++++-
- nptl/pthread_cond_signal.c                         |  7 +--
- nptl/pthread_cond_timedwait.c                      | 15 +++---
- nptl/pthread_cond_wait.c                           | 16 +++---
- nptl/pthread_condattr_getclock.c                   |  5 +-
- nptl/pthread_condattr_getprotocol_np.c             | 28 ++++++++++
- nptl/pthread_condattr_getpshared.c                 |  3 +-
- nptl/pthread_condattr_setclock.c                   |  6 +--
- nptl/pthread_condattr_setprotocol_np.c             | 36 +++++++++++++
- nptl/pthread_condattr_setpshared.c                 |  3 +-
- nptl/sysdeps/pthread/cond-lock.h                   | 58 ++++++++++++++++++++
- nptl/sysdeps/unix/sysv/linux/lowlevelpilock.c      | 61 ++++++++++++++++++++++
- sysdeps/nptl/internaltypes.h                       | 30 ++++++++---
- sysdeps/nptl/pthread.h                             | 14 +++++
- sysdeps/unix/sysv/linux/aarch64/libpthread.abilist |  3 ++
- sysdeps/unix/sysv/linux/alpha/libpthread.abilist   |  3 ++
- sysdeps/unix/sysv/linux/arm/libpthread.abilist     |  3 ++
- sysdeps/unix/sysv/linux/i386/libpthread.abilist    |  3 ++
- sysdeps/unix/sysv/linux/ia64/libpthread.abilist    |  3 ++
- .../sysv/linux/m68k/coldfire/libpthread.abilist    |  3 ++
- .../unix/sysv/linux/m68k/m680x0/libpthread.abilist |  3 ++
- .../unix/sysv/linux/microblaze/libpthread.abilist  |  3 ++
- .../unix/sysv/linux/mips/mips32/libpthread.abilist |  3 ++
- .../unix/sysv/linux/mips/mips64/libpthread.abilist |  3 ++
- .../linux/powerpc/powerpc32/libpthread.abilist     |  3 ++
- .../linux/powerpc/powerpc64/libpthread.abilist     |  3 ++
- .../sysv/linux/s390/s390-32/libpthread.abilist     |  3 ++
- .../sysv/linux/s390/s390-64/libpthread.abilist     |  3 ++
- sysdeps/unix/sysv/linux/sh/libpthread.abilist      |  3 ++
- .../sysv/linux/sparc/sparc32/libpthread.abilist    |  3 ++
- .../sysv/linux/sparc/sparc64/libpthread.abilist    |  3 ++
- .../linux/tile/tilegx/tilegx32/libpthread.abilist  |  3 ++
- .../linux/tile/tilegx/tilegx64/libpthread.abilist  |  3 ++
- .../sysv/linux/tile/tilepro/libpthread.abilist     |  3 ++
- .../unix/sysv/linux/x86_64/64/libpthread.abilist   |  3 ++
- .../unix/sysv/linux/x86_64/x32/libpthread.abilist  |  3 ++
- 41 files changed, 394 insertions(+), 39 deletions(-)
+ manual/threads.texi                           | 40 ++++++++++++
+ nptl/Makefile                                 |  2 +
+ nptl/Versions                                 |  5 ++
+ nptl/pthreadP.h                               | 19 ++++++
+ nptl/pthread_cond_broadcast.c                 |  7 ++-
+ nptl/pthread_cond_destroy.c                   |  9 +--
+ nptl/pthread_cond_init.c                      | 28 ++++++++-
+ nptl/pthread_cond_signal.c                    |  7 ++-
+ nptl/pthread_cond_timedwait.c                 | 15 ++---
+ nptl/pthread_cond_wait.c                      | 16 ++---
+ nptl/pthread_condattr_getclock.c              |  5 +-
+ nptl/pthread_condattr_getprotocol_np.c        | 28 +++++++++
+ nptl/pthread_condattr_getpshared.c            |  3 +-
+ nptl/pthread_condattr_setclock.c              |  6 +-
+ nptl/pthread_condattr_setprotocol_np.c        | 36 +++++++++++
+ nptl/pthread_condattr_setpshared.c            |  3 +-
+ nptl/pthread_mutex_init.c                     | 19 ------
+ nptl/sysdeps/pthread/cond-lock.h              | 49 +++++++++++++++
+ nptl/sysdeps/unix/sysv/linux/lowlevelpilock.c | 61 +++++++++++++++++++
+ sysdeps/nptl/internaltypes.h                  | 30 +++++++--
+ sysdeps/nptl/pthread.h                        | 14 +++++
+ .../sysv/linux/aarch64/libpthread.abilist     |  3 +
+ .../unix/sysv/linux/alpha/libpthread.abilist  |  3 +
+ .../unix/sysv/linux/arm/libpthread.abilist    |  3 +
+ .../unix/sysv/linux/i386/libpthread.abilist   |  3 +
+ .../unix/sysv/linux/ia64/libpthread.abilist   |  3 +
+ .../linux/m68k/coldfire/libpthread.abilist    |  3 +
+ .../sysv/linux/m68k/m680x0/libpthread.abilist |  3 +
+ .../sysv/linux/microblaze/libpthread.abilist  |  3 +
+ .../sysv/linux/mips/mips32/libpthread.abilist |  3 +
+ .../sysv/linux/mips/mips64/libpthread.abilist |  3 +
+ .../powerpc/powerpc32/libpthread.abilist      |  3 +
+ .../powerpc/powerpc64/libpthread.abilist      |  3 +
+ .../linux/s390/s390-32/libpthread.abilist     |  3 +
+ .../linux/s390/s390-64/libpthread.abilist     |  3 +
+ sysdeps/unix/sysv/linux/sh/libpthread.abilist |  3 +
+ .../linux/sparc/sparc32/libpthread.abilist    |  3 +
+ .../linux/sparc/sparc64/libpthread.abilist    |  3 +
+ .../tile/tilegx/tilegx32/libpthread.abilist   |  3 +
+ .../tile/tilegx/tilegx64/libpthread.abilist   |  3 +
+ .../linux/tile/tilepro/libpthread.abilist     |  3 +
+ .../sysv/linux/x86_64/64/libpthread.abilist   |  3 +
+ .../sysv/linux/x86_64/x32/libpthread.abilist  |  3 +
+ 43 files changed, 409 insertions(+), 59 deletions(-)
  create mode 100644 nptl/pthread_condattr_getprotocol_np.c
  create mode 100644 nptl/pthread_condattr_setprotocol_np.c
  create mode 100644 nptl/sysdeps/pthread/cond-lock.h
@@ -132,7 +136,7 @@ index 00cc725f61..3868f82e6e 100644
  @c pthread_atfork
  @c pthread_attr_destroy
 diff --git a/nptl/Makefile b/nptl/Makefile
-index fa925819ca..ef85c23f21 100644
+index 0d8aadebed..85f83b1aa5 100644
 --- a/nptl/Makefile
 +++ b/nptl/Makefile
 @@ -78,6 +78,7 @@ libpthread-routines = nptl-init vars events version pt-interp \
@@ -167,6 +171,43 @@ index 0ae5def464..94a78a8fd4 100644
    GLIBC_PRIVATE {
      __pthread_initialize_minimal;
      __pthread_clock_gettime; __pthread_clock_settime;
+diff --git a/nptl/pthreadP.h b/nptl/pthreadP.h
+index 4edc74b1ef..4cf5e50524 100644
+--- a/nptl/pthreadP.h
++++ b/nptl/pthreadP.h
+@@ -19,6 +19,7 @@
+ #ifndef _PTHREADP_H
+ #define _PTHREADP_H	1
+ 
++#include <assert.h>
+ #include <pthread.h>
+ #include <setjmp.h>
+ #include <stdbool.h>
+@@ -599,6 +600,24 @@ extern void __wait_lookup_done (void) attribute_hidden;
+ # define USE_REQUEUE_PI(mut) 0
+ #endif
+ 
++static bool
++prio_inherit_missing (void)
++{
++#ifdef __NR_futex
++  static int tpi_supported;
++  if (__glibc_unlikely (tpi_supported == 0))
++    {
++      int lock = 0;
++      INTERNAL_SYSCALL_DECL (err);
++      int ret = INTERNAL_SYSCALL (futex, err, 4, &lock, FUTEX_UNLOCK_PI, 0, 0);
++      assert (INTERNAL_SYSCALL_ERROR_P (ret, err));
++      tpi_supported = INTERNAL_SYSCALL_ERRNO (ret, err) == ENOSYS ? -1 : 1;
++    }
++  return __glibc_unlikely (tpi_supported < 0);
++#endif
++  return true;
++}
++
+ /* Returns 0 if POL is a valid scheduling policy.  */
+ static inline int
+ check_sched_policy_attr (int pol)
 diff --git a/nptl/pthread_cond_broadcast.c b/nptl/pthread_cond_broadcast.c
 index 552fd42f60..0bf22fc205 100644
 --- a/nptl/pthread_cond_broadcast.c
@@ -249,10 +290,15 @@ index 1acd8042d8..02bd9e5553 100644
  	  nwaiters = cond->__data.__nwaiters;
  	}
 diff --git a/nptl/pthread_cond_init.c b/nptl/pthread_cond_init.c
-index 9023370278..57171c2c80 100644
+index 9023370278..0b15711deb 100644
 --- a/nptl/pthread_cond_init.c
 +++ b/nptl/pthread_cond_init.c
-@@ -29,9 +29,27 @@ __pthread_cond_init (pthread_cond_t *cond, const pthread_condattr_t *cond_attr)
+@@ -25,13 +25,35 @@ int
+ __pthread_cond_init (pthread_cond_t *cond, const pthread_condattr_t *cond_attr)
+ {
+   struct pthread_condattr *icond_attr = (struct pthread_condattr *) cond_attr;
++  int ret = 0;
+ 
    cond->__data.__lock = LLL_LOCK_INITIALIZER;
    cond->__data.__futex = 0;
    cond->__data.__nwaiters = (icond_attr != NULL
@@ -267,7 +313,10 @@ index 9023370278..57171c2c80 100644
 +	    >> CONDATTR_PROTOCOL_SHIFT)
 +     {
 +     case PTHREAD_PRIO_INHERIT:
-+       cond->__data.__nwaiters |= COND_PRIO_INHERIT << COND_PROTOCOL_SHIFT;
++       if (__glibc_unlikely (prio_inherit_missing ()))
++	  ret = ENOTSUP;
++       else
++	  cond->__data.__nwaiters |= COND_PRIO_INHERIT << COND_PROTOCOL_SHIFT;
 +       break;
 +
 +     case PTHREAD_PRIO_PROTECT:
@@ -282,6 +331,15 @@ index 9023370278..57171c2c80 100644
    cond->__data.__total_seq = 0;
    cond->__data.__wakeup_seq = 0;
    cond->__data.__woken_seq = 0;
+@@ -41,7 +63,7 @@ __pthread_cond_init (pthread_cond_t *cond, const pthread_condattr_t *cond_attr)
+ 
+   LIBC_PROBE (cond_init, 2, cond, cond_attr);
+ 
+-  return 0;
++  return ret;
+ }
+ versioned_symbol (libpthread, __pthread_cond_init,
+ 		  pthread_cond_init, GLIBC_2_3_2);
 diff --git a/nptl/pthread_cond_signal.c b/nptl/pthread_cond_signal.c
 index b3a6d3d2a4..0ab2a7ce9a 100644
 --- a/nptl/pthread_cond_signal.c
@@ -600,12 +658,42 @@ index 408f8237ed..4795d04ce8 100644
  
    return 0;
  }
+diff --git a/nptl/pthread_mutex_init.c b/nptl/pthread_mutex_init.c
+index 6e5acb6112..1a1cf92083 100644
+--- a/nptl/pthread_mutex_init.c
++++ b/nptl/pthread_mutex_init.c
+@@ -32,25 +32,6 @@ static const struct pthread_mutexattr default_mutexattr =
+     .mutexkind = PTHREAD_MUTEX_NORMAL
+   };
+ 
+-
+-static bool
+-prio_inherit_missing (void)
+-{
+-#ifdef __NR_futex
+-  static int tpi_supported;
+-  if (__glibc_unlikely (tpi_supported == 0))
+-    {
+-      int lock = 0;
+-      INTERNAL_SYSCALL_DECL (err);
+-      int ret = INTERNAL_SYSCALL (futex, err, 4, &lock, FUTEX_UNLOCK_PI, 0, 0);
+-      assert (INTERNAL_SYSCALL_ERROR_P (ret, err));
+-      tpi_supported = INTERNAL_SYSCALL_ERRNO (ret, err) == ENOSYS ? -1 : 1;
+-    }
+-  return __glibc_unlikely (tpi_supported < 0);
+-#endif
+-  return true;
+-}
+-
+ int
+ __pthread_mutex_init (pthread_mutex_t *mutex,
+ 		      const pthread_mutexattr_t *mutexattr)
 diff --git a/nptl/sysdeps/pthread/cond-lock.h b/nptl/sysdeps/pthread/cond-lock.h
 new file mode 100644
-index 0000000000..3a273dc0d9
+index 0000000000..c75e7b2e16
 --- /dev/null
 +++ b/nptl/sysdeps/pthread/cond-lock.h
-@@ -0,0 +1,58 @@
+@@ -0,0 +1,49 @@
 +/* Copyright (C) 2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -626,20 +714,11 @@ index 0000000000..3a273dc0d9
 +#ifndef _COND_LOCK_H
 +#define _COND_LOCK_H 1
 +
-+#ifdef __ASSUME_FUTEX_LOCK_PI
 +extern void __lll_pi_lock (int *futex, int private) attribute_hidden;
 +extern void __lll_pi_unlock (int *futex, int private) attribute_hidden;
 +
 +#define lll_pi_lock(futex, private) __lll_pi_lock (&(futex), private)
 +#define lll_pi_unlock(futex, private) __lll_pi_unlock (&(futex), private)
-+#else
-+#define lll_pi_lock(futex, private) lll_lock (futex, private)
-+#define lll_pi_unlock(futex, private) lll_unlock (futex, private)
-+#endif
-+
-+static inline void cond_lock(pthread_cond_t *cond, int pshared);
-+
-+static inline void cond_unlock(pthread_cond_t *cond, int pshared);
 +
 +static inline void
 +cond_lock(pthread_cond_t *cond, int pshared)
@@ -1094,5 +1173,5 @@ index 6cd0fc3487..5c6d6113bc 100644
 +GLIBC_2.24 pthread_condattr_getprotocol_np F
 +GLIBC_2.24 pthread_condattr_setprotocol_np F
 -- 
-2.13.1
+2.20.1
 
