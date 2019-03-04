@@ -18,7 +18,7 @@ SRC_URI_append_armv7a = " \
             file://test_arm_kernel_arch.sh \
 "
 
-PACKAGECONFIG = "libsolv gpg sha256"
+PACKAGECONFIG = "libsolv gpg sha256 curl"
 
 RDEPENDS_${PN}-ptest += "bash"
 
