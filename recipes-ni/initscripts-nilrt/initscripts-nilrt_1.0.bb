@@ -105,7 +105,7 @@ pkg_postinst_${PN} () {
         class="`/sbin/fw_printenv -n TargetClass`"
 
         # Use persistent names on PXI, not on any other targets
-        if [ "$class" != "PXI" ]; then
+        if [ "$class" != "PXI" && "$class" != "USRP Stand-Alone Devices" ] ; then
             touch /etc/udev/rules.d/80-net-name-slot.rules
 
             # Since the network is already brought up on the first boot, reload the network to get the new rules
