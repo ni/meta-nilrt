@@ -102,6 +102,14 @@ pkg_postinst_${PN} () {
         # Error in off-line install so this will run on the real target where we can query the target class
         exit 1
     else
+        # Make sure /boot is mounted so that fw_printenv is usable
+        if /sbin/fw_printenv TargetClass > /dev/null 2>&1; then
+            mountstate=1
+        else
+            mountstate=0
+            mount /boot
+        fi
+
         class="`/sbin/fw_printenv -n TargetClass`"
 
         # Use persistent names on PXI, not on any other targets
@@ -118,6 +126,9 @@ pkg_postinst_${PN} () {
                 /etc/init.d/connman start
             fi
         fi
+
+        # Restore the original state of /boot
+        [ $mountstate == 0 ] && umount /boot
     fi
 }
 
