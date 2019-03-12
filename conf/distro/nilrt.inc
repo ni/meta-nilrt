@@ -89,10 +89,9 @@ DISTRO_FEATURES_BACKFILL_CONSIDERED_arm = "gobject-introspection-data"
 # touchsreen calibration doesn't work with xf86-input-libinput, only with xf86-input-edev
 BAD_RECOMMENDATIONS += "xf86-input-libinput"
 
-# lvm2 is too big and we don't want it installed by default in images, we only need
-# to install libdevmapper, a lvm2 dependency which provides all the tools inside an image
-# (lvm2 is still available via the feeds if required)
-BAD_RECOMMENDATIONS += "lvm2"
+# Do not "--enable-udev_sync" in lvm2/libdevmapper
+LVM2_PACKAGECONFIG_remove_class-target = "udev"
+RRECOMMENDS_libdevmapper_remove_class-target = "lvm2-udevrules"
 
 # these bbappends are constantly stale and since we don't use them
 # mask to avoid the bitbake warning noise
