@@ -145,9 +145,24 @@ function stdin_to_hex () {
 
 function create_meta_data () {
     status "Create new magic and sn files"
+
+    # Magic number to identify key files
     echo "$KEY_MAGIC" >"$WORK_DIR/magic"
-    fw_printenv 'DeviceDesc' | head -1 | cut -d'=' -f2 >"$WORK_DIR/model"
-    fw_printenv 'serial#' | head -1 | cut -d'=' -f2 >"$WORK_DIR/sn"
+
+    # Try to get model and sn from fw_printenv. These are purely for
+    # informational purposes, so we can default to dummy values (0)
+    # when missing.
+    fw_printenv -n 'DeviceDesc' | head -1 >"$WORK_DIR/model" || true
+    if [ ! -s "$WORK_DIR/model" ]; then
+        warn "DeviceDesc missing, defaulting to \"0\""
+        echo "0" >"$WORK_DIR/model"
+    fi
+
+    fw_printenv -n 'serial#' | head -1 >"$WORK_DIR/sn" || true
+    if [ ! -s "$WORK_DIR/sn" ]; then
+        warn "serial# missing, defaulting to \"0\""
+        echo "0" >"$WORK_DIR/sn"
+    fi
 }
 
 function check_tpm_caps () {
