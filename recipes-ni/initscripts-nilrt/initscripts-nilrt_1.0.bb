@@ -128,7 +128,7 @@ pkg_postinst_${PN} () {
         fi
 
         # Restore the original state of /boot
-        [ $mountstate == 0 ] && umount /boot
+        [ $mountstate == 0 ] && umount /boot || true
     fi
 }
 
