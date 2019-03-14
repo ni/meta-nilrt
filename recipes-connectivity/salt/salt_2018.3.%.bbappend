@@ -17,7 +17,7 @@ SRC_URI = "git://github.com/ni/salt.git;branch=ni/master/2018.3 \
            file://run-ptest \
 "
 
-SRCREV = "${AUTOREV}"
+SRCREV = "4f8fe89833e93e9ec5c5bca6198d9ef2d06f0c63"
 PV = "2018.3+git${SRCPV}"
 
 S="${WORKDIR}/git"
