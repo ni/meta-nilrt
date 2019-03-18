@@ -40,7 +40,7 @@ SRC_URI = "\
 	${NILRT_GIT}/${GIT_KERNEL_REPO};protocol=git;nocheckout=1;branch=${KBRANCH} \
 	file://export-kernel-headers.sh \
 "
-SRCREV="${AUTOREV}"
+SRCREV="4a640ec77a56fcc57724c6eaa502116fb2fa483a"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 
 # This checks ${PV} == version from kernel sources which our PV/AUTOREV breaks, so skip it.
