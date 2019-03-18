@@ -21,8 +21,6 @@ SRC_URI_append = " \
         file://fix-build-error-under-gcc7.patch \
 "
 
-SRCREV = "${AUTOREV}"
-
 do_compile(){
     unset LDFLAGS
     unset CFLAGS
