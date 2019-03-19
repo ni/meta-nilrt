@@ -78,8 +78,6 @@ QTDEMOS = "quicky fotowall"
 
 GCCVERSION = "7.3%"
 
-OPKGBUILDCMD = "opkg-build"
-
 EFI_PROVIDER = "grub-efi"
 
 INCLUDE_PYCS = "0"
