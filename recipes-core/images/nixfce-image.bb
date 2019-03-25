@@ -18,9 +18,10 @@ install_initramfs() {
 		${IMAGE_ROOTFS}${CUSTOM_KERNEL_PATH}/runmode_initramfs.gz
 }
 
-ROOTFS_POSTPROCESS_COMMAND += "install_initramfs; install_module_versioning_squashfs;"
+ROOTFS_POSTPROCESS_COMMAND += "install_initramfs"
 
 require niconsole-image.inc
+require nikms-image.inc
 require include/licenses.inc
 
 IMAGE_FEATURES += "x11"

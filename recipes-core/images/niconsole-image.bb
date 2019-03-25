@@ -7,7 +7,6 @@ IMAGE_INSTALL = "\
 	packagegroup-ni-wifi \
 	"
 
-ROOTFS_POSTPROCESS_COMMAND += "install_module_versioning_squashfs;"
-
 require niconsole-image.inc
+require nikms-image.inc
 require include/licenses.inc

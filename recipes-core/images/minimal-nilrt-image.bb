@@ -4,7 +4,8 @@ LICENSE = "MIT"
 IMAGE_INSTALL = "\
 	packagegroup-ni-base \
 	packagegroup-ni-tzdata \
-    "
+	dkms \
+	"
 
 require niconsole-image.inc
 
