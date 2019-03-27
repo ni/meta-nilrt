@@ -37,7 +37,7 @@ KBRANCH = "nilrt/${NI_RELEASE_VERSION}/${LINUX_VERSION}"
 
 GIT_KERNEL_REPO = "linux.git"
 SRC_URI = "${NILRT_GIT}/${GIT_KERNEL_REPO};protocol=git;nocheckout=1;branch=${KBRANCH}"
-SRCREV="${AUTOREV}"
+SRCREV="e726c1648ad6be4afa2dfe6b772fbf1bf2f6d965"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 
 # This checks ${PV} == version from kernel sources which our PV/AUTOREV breaks, so skip it.

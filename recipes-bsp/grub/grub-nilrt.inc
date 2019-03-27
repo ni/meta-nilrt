@@ -1,7 +1,7 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/grub:"
 
 PV = "2.02+git${SRCPV}"
-SRCREV = "${AUTOREV}"
+SRCREV = "7ab9969ce32297c59ec6ca19cf8863affb889d00"
 
 GRUB_BRANCH = "nilrt/17.0"
 
