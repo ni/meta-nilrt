@@ -17,7 +17,7 @@ SRC_URI = "git://github.com/ni/salt.git;branch=ni/skyline-19.0/2018.3 \
            file://run-ptest \
 "
 
-SRCREV = "0f22cda2dc4ed83594684cd64fa5a2823f553239"
+SRCREV = "01496db8858f95cf4591a128def02bdbaba23c4f"
 PV = "2018.3+git${SRCPV}"
 
 S="${WORKDIR}/git"
