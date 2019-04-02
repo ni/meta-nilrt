@@ -25,7 +25,7 @@ RDEPENDS_${PN}-ptest += "bash"
 do_install_append () {
     install -d ${D}${sysconfdir}/opkg
     install -m 0644 ${WORKDIR}/opkg-signing.conf ${D}${sysconfdir}/opkg/
-    install -d ${D}${sysconfdir}/opkg/gpg
+    install -d -m 0700 ${D}${sysconfdir}/opkg/gpg
     install -m 0644 ${WORKDIR}/gpg.conf ${D}${sysconfdir}/opkg/gpg/
 }
 
