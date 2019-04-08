@@ -1,7 +1,7 @@
 # This image uses the NI Kernel Management System instead of DKMS
 
 IMAGE_INSTALL += "\
-	ni-module-versioning-tools.ipk \
+	ni-module-versioning-tools \
 	"
 
 # older NILRT modules are versioned using two squashfs images, one with headers,

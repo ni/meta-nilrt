@@ -6,5 +6,5 @@ IMAGE_INSTALL = "\
 	"
 
 require niconsole-image.inc
-require nikms-image.inc
+require nilrt-nikms.inc
 require include/licenses.inc

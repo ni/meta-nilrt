@@ -7,6 +7,6 @@ IMAGE_INSTALL = "\
 
 require niconsole-image.inc
 require nilrt-xfce.inc
-require nikms-image.inc
+require nilrt-nikms.inc
 require nilrt-initramfs.inc
 require include/licenses.inc
