@@ -12,11 +12,11 @@ do_install_append () {
     fi
 
     # customize sshd_config
-    sed -e 's|^[#[:space:]]*Banner.*|Banner /etc/issue.net|' \
-        -e 's|^[#[:space:]]*UseDNS.*|UseDNS no|' \
+    sed -e 's|^[#[:space:]]*Banner .*|Banner /etc/issue.net|' \
+        -e 's|^[#[:space:]]*UseDNS .*|UseDNS no|' \
         -e 's|^[#[:space:]]*PasswordAuthentication .*|PasswordAuthentication no|' \
-        -e 's|^[#[:space:]]*PermitRootLogin.*|PermitRootLogin yes|' \
-        -e 's|^[#[:space:]]*ChallengeResponseAuthentication.*|ChallengeResponseAuthentication yes|' \
+        -e 's|^[#[:space:]]*PermitRootLogin .*|PermitRootLogin yes|' \
+        -e 's|^[#[:space:]]*ChallengeResponseAuthentication .*|ChallengeResponseAuthentication yes|' \
         -e '/.*HostKey.*/d' \
             -i ${D}${sysconfdir}/ssh/sshd_config
 
