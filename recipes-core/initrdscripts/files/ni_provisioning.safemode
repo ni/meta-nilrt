@@ -399,14 +399,32 @@ set_versions()
     chmod 444 $BOOTFS_MOUNTPOINT/grub/grub-ni-version $BOOTFS_MOUNTPOINT/grub/recoverytool-ni-version
 }
 
-set_config_perms()
+fixup_configfs()
 {
-    # mount config partition and set proper ownership/permissions
     CONFIG_MOUNTPOINT=/var/volatile/configfs
+
     mkdir -p $CONFIG_MOUNTPOINT
     mount -L $PART3_LABEL $CONFIG_MOUNTPOINT
+
+    # Set root dir ownership to lvuser:ni
     chown 500:500 $CONFIG_MOUNTPOINT
     chmod ug=rwx,o=rx $CONFIG_MOUNTPOINT
+
+    # Set hostname, if configured
+    if [ -n "$PROVISION_HOSTNAME" ]; then
+        print_info "Setting hostname=\"$PROVISION_HOSTNAME\" in ni-rt.ini..."
+
+        echo  >$CONFIG_MOUNTPOINT/ni-rt.ini "[systemsettings]"
+        echo >>$CONFIG_MOUNTPOINT/ni-rt.ini "Host_Name=\"$PROVISION_HOSTNAME\""
+
+        # Set ownership to lvuser:ni
+        chown 500:500 $CONFIG_MOUNTPOINT/ni-rt.ini
+        chmod ug=rw,o=r $CONFIG_MOUNTPOINT/ni-rt.ini
+
+        print_done
+    fi
+
+    umount $CONFIG_MOUNTPOINT
 }
 
 sanity_check()
@@ -474,7 +492,7 @@ install_bootmode_file
 install_grubenv
 set_versions
 
-set_config_perms
+fixup_configfs
 
 echo $LOG_LEVEL > /proc/sys/kernel/printk
 sanity_check

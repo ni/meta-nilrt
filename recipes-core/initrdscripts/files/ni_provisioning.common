@@ -258,6 +258,13 @@ elif [ "$ARCH" = "x86_64" ]; then
         # NOTE: `--numeric-owner` option: always use numbers for user/group names (ignore symbolic names)
         TAR_ERROR="`tar -x -j --numeric-owner -f /payload/factory-image.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1`" || die "$TAR_ERROR"
 
+        # Set hostname, if configured
+        if [ -n "$PROVISION_HOSTNAME" ]; then
+            echo "$PROVISION_HOSTNAME" >"$NILRT_MOUNTPOINT/etc/hostname"
+            chown 0:0 "$NILRT_MOUNTPOINT/etc/hostname"
+            chmod u=rw,go=r "$NILRT_MOUNTPOINT/etc/hostname"
+        fi
+
         nilrt_part_uuid=`lsblk -rn $nilrt_path -o PARTUUID`
         if [[ -n "$nilrt_part_uuid" ]]; then
             # grub from nilrt partition needs PARTUUID to boot kernel from same partition

@@ -31,3 +31,7 @@ PROVISION_PART_NILRT_ID="auto"
 # You should always use a value of "nilrt" unless you have a specific use case where you know another value will work correctly.
 # This option only applies if PROVISION_PART_NILRT_ID is set to something other than "auto".
 PROVISION_PART_NILRT_LABEL="nilrt"
+
+# A hostname to configure after provisioning.
+# An empty string means hostname is generated on first boot.
+PROVISION_HOSTNAME=""
