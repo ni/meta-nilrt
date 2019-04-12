@@ -1,6 +1,15 @@
 #! /bin/sh
 
-for test in $(find ./ -name "test*"); do
+OPKG_PATH=$(which opkg)
+
+make OPKG_PATH=$OPKG_PATH run-tests
+if [ $? -ne 0 ]; then
+	echo "FAIL: opkg-ats"
+else
+	echo "PASS: opkg-ats"
+fi
+
+for test in $(find -type f -maxdepth 1 -name "test*"); do
 	./$test
 	if [ $? -ne 0 ]; then
 		echo "FAIL: $test"

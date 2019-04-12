@@ -29,10 +29,6 @@ do_install_append () {
     install -m 0644 ${WORKDIR}/gpg.conf ${D}${sysconfdir}/opkg/gpg/
 }
 
-do_install_ptest() {
-    install -d ${D}${PTEST_PATH}
-}
-
 do_install_append_armv7a () {
     install -d ${D}${sysconfdir}/opkg
     install -m 0644 ${WORKDIR}/arm-kernel-arch.conf ${D}${sysconfdir}/opkg/
