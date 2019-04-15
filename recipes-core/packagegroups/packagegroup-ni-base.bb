@@ -114,6 +114,7 @@ RDEPENDS_${PN} = "\
 	openssh-ssh \
 	opkg \
 	opkg-keyrings \
+	os-release \
 	run-postinsts \
 	start-stop-daemon \
 	sudo \

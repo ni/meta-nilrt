@@ -93,7 +93,6 @@ RDEPENDS_${PN} += "\
 "
 
 RDEPENDS_${PN} += "\
-	os-release \
 	psplash \
 	sysfsutils \
 "
