@@ -4,6 +4,9 @@ LICENSE = "MIT"
 inherit packagegroup
 
 RDEPENDS_${PN} = "\
-	mono mono-helloworld fsharp gtk-sharp mono-basic \
+	fsharp \
+	gtk-sharp \
+	mono \
+	mono-helloworld \
 	mozroot-certdata \
-	"
+"
