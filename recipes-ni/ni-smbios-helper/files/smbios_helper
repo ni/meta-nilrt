@@ -118,3 +118,10 @@ is_ni_bios()
 {
     return `$DMIDECODE -t 0 |grep -i vendor |grep -q "National Instruments"`
 }
+
+get_serial_base_clock()
+{
+    local base_clock="`$DMIDECODE -t 11 | grep -E "UART_INPUT_CLOCK" | sed 's/.*UART_INPUT_CLOCK://'`"
+    echo $base_clock
+    [ -n "$base_clock" ] || return 1
+}
