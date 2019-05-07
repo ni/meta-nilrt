@@ -13,9 +13,9 @@ IMAGE_INSTALL_NODEPS += " \
     lvrt \
     ni-datacomms-lvinterface \
     nitaglv \
-    nisvcloc \
     ni-nwstreams \
     ni-flexrio \
+    ni-service-locator \
     ni-usrp-rio \
     mt \
 "
