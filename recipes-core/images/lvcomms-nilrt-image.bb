@@ -10,11 +10,11 @@ DESCRIPTION = " \
 
 # Append additional software
 IMAGE_INSTALL_NODEPS += " \
-    libninwstreams \
     lvrt \
     ni-datacomms-lvinterface \
     nitaglv \
     nisvcloc \
+    ni-nwstreams \
     ni-flexrio \
     ni-usrp-rio \
     mt \
