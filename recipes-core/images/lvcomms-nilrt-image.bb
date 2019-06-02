@@ -13,7 +13,7 @@ IMAGE_INSTALL_NODEPS += " \
     lvrt \
     ni-datacomms-lvinterface \
     ni-nwstreams \
-    nisvcloc \
+    ni-service-locator \
     nitaglv \
 "
 
