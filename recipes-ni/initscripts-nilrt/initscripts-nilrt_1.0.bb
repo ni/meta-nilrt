@@ -109,10 +109,11 @@ pkg_postinst_${PN} () {
 			mountstate=1
 		else
 			mountstate=0
-			mount /boot
+			mount /boot || mountstate=1
 		fi
 
-		class="`/sbin/fw_printenv -n TargetClass`"
+		# Get target class, may be empty-string on VMs
+		class="`/sbin/fw_printenv -n TargetClass || true`"
 
 		# Use persistent names on PXI, not on any other targets
 		if [ "$class" != "PXI" -a "$class" != "USRP Stand-Alone Devices" ]; then
