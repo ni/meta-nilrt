@@ -1,0 +1,53 @@
+#!/bin/bash
+set -euo pipefail
+
+# close stdin
+exec 0<&-
+
+# redirect stderr to stdout
+exec 2>&1
+
+TEST_NAME="transconf_example_ptest"
+TEST_ARCHIVE_FILE=""
+
+cleanup () {
+    rm -f "$TEST_ARCHIVE_FILE"
+    rm -f /etc/hostname.example
+}
+
+error_exit_handler () {
+    set +e
+    local lineno=$1
+    local msg=$2
+    cleanup
+    echo "ERROR on line $lineno: $msg" 1>&2
+    echo "FAIL: $TEST_NAME"
+    exit 1
+}
+
+trap 'error_exit_handler ${LINENO} "$BASH_COMMAND"' ERR
+
+# NOTE: transconf-example assumed to be installed via package dependency
+[ -f "/etc/transconf/hooks/example_hook" ]
+[ -x "/etc/transconf/hooks/example_hook" ]
+
+rm -f "/etc/hostname.example"
+
+TEST_ARCHIVE_FILE=$(mktemp "/tmp/transconf-ptest-archive-XXXXXXX")
+transconf save "$TEST_ARCHIVE_FILE"
+[ ! -e "/etc/hostname.example" ]
+
+archived_version=$(tar -x -f "$TEST_ARCHIVE_FILE" --to-stdout ./transconf-image/version)
+[ "$archived_version" -gt 0 ]
+
+archived_hostname=$(tar -x -f "$TEST_ARCHIVE_FILE" --to-stdout ./transconf-image/example/hostname)
+[ "$HOSTNAME" == "$archived_hostname" ]
+
+transconf restore "$TEST_ARCHIVE_FILE"
+[ -e "/etc/hostname.example" ]
+diff -q "/etc/hostname" "/etc/hostname.example"
+
+cleanup
+
+echo "PASS: $TEST_NAME"
+exit 0

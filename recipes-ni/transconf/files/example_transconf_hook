@@ -1,0 +1,74 @@
+#!/bin/bash
+set -euo pipefail
+
+# Transconf example hook
+#
+# This script is called from the transconf run-parts directory. The script is
+# expected to donate and extract configuration snippets to/from the transconf
+# configuration archive.
+#
+# The script can expect to run with the following environment:
+#
+# Environment:
+#  TRANSCONF_DEBUG: Set to "1" to enable debug prints
+#  TRANSCONF_SYSROOT: Absolute path to sysroot to be saved/restored
+#  TRANSCONF_IMAGE_DIR: Absolute path to uncompressed archive directory
+#  PWD: A temporary empty directory
+#  stdin closed
+#  umask is 0022
+#  ulimit -c 0 to disable core dumps
+#
+# Functions:
+#  status msg: Prints diagnostic message when transconf is in debug mode
+#  warning msg: Prints warning message
+#  error msg: Prints error message and returns with error
+#
+# Positional arg 1:
+#  "save":    Donate  files from TRANSCONF_SYSROOT into TRANSCONF_IMAGE_DIR
+#  "restore": Restore files from TRANSCONF_IMAGE_DIR to TRANSCONF_SYSROOT
+#
+# NOTE: TRANSCONF_IMAGE_DIR may be shared with other hooks. It is highly
+# recommended to avoid obscurely named files. Consider mixing the hook name
+# into items donated to this directory.
+#
+# The following example donates and restores /etc/hostname. The file is
+# restored as hostname.example to avoid corruption by this sample code.
+#
+# Hook scripts must be installed to /etc/transconf/hooks/ with execute
+# permission using a name consisting of only letters a-z, A-Z, numbers
+# 0-9, underscore (_), and hyphen (-). Misnamed hooks will be ignored.
+
+EXAMPLE_IMAGE_DIR="$TRANSCONF_IMAGE_DIR/example"
+EXAMPLE_MAX_IMAGE_VERSION="1"
+
+command_arg="${1:-}"
+case "$command_arg" in
+
+    "save")
+        status "Creating new example image dir"
+        mkdir "$EXAMPLE_IMAGE_DIR"
+        echo "$EXAMPLE_MAX_IMAGE_VERSION" >"$EXAMPLE_IMAGE_DIR/version"
+
+        status "Saving example hostname"
+        cp "$TRANSCONF_SYSROOT/etc/hostname" "$EXAMPLE_IMAGE_DIR/hostname"
+        ;;
+
+    "restore")
+        if [ -e "$TRANSCONF_IMAGE_DIR" ]; then
+            # Check version compatibility, can migrate if necessary
+            image_version=$(cat "$EXAMPLE_IMAGE_DIR/version")
+            [ "$EXAMPLE_MAX_IMAGE_VERSION" -ge "$image_version" ] || error "Incompatible image version, max supported version is '$EXAMPLE_MAX_IMAGE_VERSION', image version is '$image_version'"
+
+            status "Restoring example hostname"
+            cp "$EXAMPLE_IMAGE_DIR/hostname" "$TRANSCONF_SYSROOT/etc/hostname.example"
+        else
+            status "No example image found, skipping"
+        fi
+        ;;
+
+    *)
+        error "Invalid command $command_arg"
+        ;;
+
+esac
+
