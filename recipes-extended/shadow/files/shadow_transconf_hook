@@ -1,0 +1,72 @@
+#!/bin/bash
+set -euo pipefail
+
+USER_ACCOUNTS_IMAGE_DIR="$TRANSCONF_IMAGE_DIR/user-accounts"
+USER_ACCOUNTS_MAX_IMAGE_VERSION="1"
+
+command_arg="${1:-}"
+case "$command_arg" in
+
+    "save")
+        status "Check password database in sysroot $TRANSCONF_SYSROOT/"
+        pwck --quiet --root "$TRANSCONF_SYSROOT/"
+
+        # Save root's password record if set. Otherwise ignore it to
+        # keep default on restore.
+        root_shadow_record=$(grep "^root:" "$TRANSCONF_SYSROOT/etc/shadow")
+        root_pw_hash=$(echo "$root_shadow_record" | cut -d: -f2)
+        if [ -n "$root_pw_hash" ]; then
+            status "Creating new user-accounts image dir"
+            mkdir "$USER_ACCOUNTS_IMAGE_DIR"
+            echo "$USER_ACCOUNTS_MAX_IMAGE_VERSION" >"$USER_ACCOUNTS_IMAGE_DIR/version"
+
+            status "Saving root shadow record"
+            echo "$root_shadow_record" >"$USER_ACCOUNTS_IMAGE_DIR/shadow_records"
+        else
+            status "Root password not set, skipping"
+        fi
+        ;;
+
+    "restore")
+        if [ -e "$USER_ACCOUNTS_IMAGE_DIR" ]; then
+            # Check version compatibility
+            image_version=$(cat "$USER_ACCOUNTS_IMAGE_DIR/version")
+            [ "$USER_ACCOUNTS_MAX_IMAGE_VERSION" -ge "$image_version" ] || error "Incompatible image version, max supported version is '$USER_ACCOUNTS_MAX_IMAGE_VERSION', image version is '$image_version'"
+
+            # Read shadow in memory
+            new_shadow=$(cat "$TRANSCONF_SYSROOT/etc/shadow")
+
+            # Restore everything in image's shadow_records
+            for shadow_record in $(cat "$USER_ACCOUNTS_IMAGE_DIR/shadow_records"); do
+                username=$(echo "$shadow_record" | cut -d: -f1)
+                echo "$username" | egrep -q '^[a-zA-Z0-9_-]+$' || error "Malformed username=$username in shadow_records"
+
+                # Drop user's line if it exists and prepend shadow_record
+                status "Restoring $username shadow record"
+                new_shadow="$shadow_record"$'\n'"$(echo "$new_shadow" | sed "/^$username:.*$/d")"
+            done
+
+            # Create temp-file with same ownership and permissions
+            rm -f "$TRANSCONF_SYSROOT/etc/shadow.transconf-restore"
+            cp "$TRANSCONF_SYSROOT/etc/shadow" "$TRANSCONF_SYSROOT/etc/shadow.transconf-restore"
+
+            # Save changes
+            chmod u+w "$TRANSCONF_SYSROOT/etc/shadow.transconf-restore"
+            echo "$new_shadow" >"$TRANSCONF_SYSROOT/etc/shadow.transconf-restore"
+            chmod u-w "$TRANSCONF_SYSROOT/etc/shadow.transconf-restore"
+
+            # Replace real shadow file
+            mv "$TRANSCONF_SYSROOT/etc/shadow.transconf-restore" "$TRANSCONF_SYSROOT/etc/shadow"
+
+            status "Check password database in sysroot $TRANSCONF_SYSROOT/"
+            pwck --quiet --root "$TRANSCONF_SYSROOT/"
+        else
+            status "No user-accounts image found, skipping"
+        fi
+        ;;
+
+    *)
+        error "Invalid command $command_arg"
+        ;;
+
+esac
