@@ -12,7 +12,7 @@ DESCRIPTION = " \
 IMAGE_INSTALL_NODEPS += " \
     lvrt \
     ni-datacomms-lvinterface \
-    ni-nwstreams \
+    libninwstreams \
     ni-service-locator \
     nitaglv \
 "
@@ -23,6 +23,6 @@ IMAGE_INSTALL_NODEPS_append_x64 = " \
     ni-p2p \
     ni-pxiplatformservices \
     ni-sync \
-    ni-usrp-rio \
+    niusrprio \
     ni-watchdog \
 "
