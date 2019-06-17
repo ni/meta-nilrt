@@ -1,24 +1,28 @@
-#!/bin/sh
-# Copyright (c) 2012-2013 National Instruments.
+#!/bin/bash
+# Copyright (c) 2019 National Instruments.
 # All rights reserved.
 
 IPTABLES_CONF=/etc/sysconfig/iptables
-[ -f $IPTABLES_CONF ] || exit 0
+IP6TABLES_CONF=/etc/sysconfig/ip6tables
+
+has_errors=false
 
 # The VERBOSE setting in /etc/default/rcS is deliberately ignored: the existence
 # of a firewall or VPN configuration must always be logged to the console.
 
 report_permissions_failure () {
-	files=$1
-	req=$2
+	local files="$1"
+	local req="$2"
+
 	cat >&2 <<EOF
 ERROR: The following files/directories possess incorrect permissions:
 ERROR:
 EOF
 	for f in $files ; do
 		echo -n "ERROR: " >&2
-		ls -ld $f >&2
+		ls -ld "$f" >&2
 	done
+
 	cat >&2 <<EOF
 ERROR:
 ERROR: Ensure that these files/directories are
@@ -28,31 +32,60 @@ ERROR: Because of these permissions issues, the firewall service will not run.
 EOF
 }
 
+# Check that firewall configs are only root writable
 check_permissions () {
-	# iptables.conf must only be writable by root
-	files=`find $IPTABLES_CONF \! \( -user root \( \
+	local config_file="$1"
+
+	local files=$(find "$config_file" \! \( -user root \( \
 		\! -perm +022 -o \
-		-group root \! -perm +002 \) \)`
-	if [ "$files" ] ; then
+		-group root \! -perm +002 \) \))
+
+	if [ -n "$files" ] ; then
+		has_errors=true
 		report_permissions_failure "$files" "only writable by root"
-		exit 1
+		false
 	fi
+}
+
+restore_config_ifexists () {
+	local tool_name="$1"
+	local config_file="$2"
+
+	if [ -f "$config_file" ]; then
+		if check_permissions "$config_file"; then
+			echo -n "Loading $tool_name firewall configuration '$config_file': "
+			$tool_name <"$config_file" && echo "DONE" || has_errors=true
+		fi
+	fi
+}
+
+clear_config () {
+	local tool_name="$1"
+
+	echo -n "Clearing $tool_name firewall configuration: "
+	$tool_name -P INPUT ACCEPT || has_errors=true
+	$tool_name -P FORWARD ACCEPT || has_errors=true
+	$tool_name -P OUTPUT ACCEPT || has_errors=true
+	$tool_name -F && echo "DONE" || has_errors=true
 }
 
 case "$1" in
 	start)
-		check_permissions
-		echo "Loading firewall configuration."
-		iptables-restore < $IPTABLES_CONF
+		restore_config_ifexists "iptables-restore" "$IPTABLES_CONF"
+		restore_config_ifexists "ip6tables-restore" "$IP6TABLES_CONF"
 		;;
+
 	stop)
-		echo "Clearing firewall configuration."
-		iptables -P INPUT ACCEPT
-		iptables -P FORWARD ACCEPT
-		iptables -P OUTPUT ACCEPT
-		iptables -F
+		clear_config "ip6tables"
+		clear_config "iptables"
 		;;
+
 	*)
+		has_errors=true
 		echo "Usage: $0 {start|stop}" >&2
 		;;
 esac
+
+if "$has_errors"; then
+	exit 1
+fi

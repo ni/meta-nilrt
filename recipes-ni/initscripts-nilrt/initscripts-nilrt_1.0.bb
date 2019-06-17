@@ -50,6 +50,17 @@ do_install () {
 	chown 0:${LVRT_GROUP} ${D}${sysconfdir}/init.d/nisetbootmode
 
 	install -m 0755 ${WORKDIR}/firewall              ${D}${sysconfdir}/init.d
+
+	# this logic is only for nilrt and nilrt-xfce, not for nilrt-nxg
+	if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'false', 'true', d)}; then
+		# Substitute configfs paths
+		sed -i 's|^IPTABLES_CONF=.*$|IPTABLES_CONF=/etc/natinst/share/iptables.conf|g' ${D}${sysconfdir}/init.d/firewall
+		sed -i 's|^IP6TABLES_CONF=.*$|IP6TABLES_CONF=/etc/natinst/share/ip6tables.conf|g' ${D}${sysconfdir}/init.d/firewall
+
+		# sanity check: break build if new _CONF vars exist which aren't substituted above
+		! egrep '^[a-zA-Z0-9]*_CONF=.*$' ${D}${sysconfdir}/init.d/firewall | egrep -v '^(IPTABLES_CONF)|(IP6TABLES_CONF)=.*$'
+	fi
+
 	install -m 0755 ${WORKDIR}/mountdebugfs          ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nicleanstalelinks     ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nicreatecpusets       ${D}${sysconfdir}/init.d
