@@ -1,6 +1,6 @@
-From 312937eb03c2b48e92bffd8f6ab88108008c6b6f Mon Sep 17 00:00:00 2001
+From 29f2eeb0d7744840f668dc616f349a9bfbad073b Mon Sep 17 00:00:00 2001
 From: Bill Pittman <bill.pittman@ni.com>
-Date: Mon, 29 Apr 2019 14:15:18 -0500
+Date: Fri, 28 Jun 2019 12:37:23 -0500
 Subject: [PATCH] rauc: Add command line option to skip bundle verification
 
 Conditionally remove bundle verification checks when operating
@@ -8,16 +8,18 @@ on bundles.
 
 Upstream-Status: Pending
 
+Co-authored-by: Haris Okanovic <haris.okanovic@ni.com>
 Signed-off-by: Bill Pittman <bill.pittman@ni.com>
 ---
- include/context.h |  2 ++
- src/bundle.c      |  3 +++
- src/install.c     |  2 +-
- src/main.c        | 27 ++++++++++++++++-----------
- 4 files changed, 22 insertions(+), 12 deletions(-)
+ include/context.h    |  2 ++
+ src/bundle.c         | 78 +++++++++++++++++++++++++-------------------
+ src/install.c        |  2 +-
+ src/main.c           | 27 ++++++++-------
+ src/update_handler.c |  2 +-
+ 5 files changed, 64 insertions(+), 47 deletions(-)
 
 diff --git a/include/context.h b/include/context.h
-index b0bcfba..ba54e81 100644
+index b0bcfba64855806b14bc7a7e1108d7342c124463..ba54e81eaefe34a7f5b26c9571d770bd2dc2f15a 100644
 --- a/include/context.h
 +++ b/include/context.h
 @@ -43,6 +43,8 @@ typedef struct {
@@ -30,21 +32,129 @@ index b0bcfba..ba54e81 100644
  	/* for storing installation runtime informations */
  	RContextInstallationInfo *install_info;
 diff --git a/src/bundle.c b/src/bundle.c
-index 9ca512c..e0fb5a1 100644
+index 9ca512c0ef2512a9e011f638edba762c4f2ff87b..864e8bad283699d039f9b60762283aadc11875d4 100644
 --- a/src/bundle.c
 +++ b/src/bundle.c
-@@ -326,6 +326,9 @@ static gboolean sign_bundle(const gchar *bundlename, GError **error)
+@@ -318,6 +318,8 @@ static gboolean input_stream_read_bytes_all(GInputStream *stream,
+ 	return TRUE;
+ }
+ 
++/* Appends signature to specified bundle file.
++ * Signature format: N bytes followed by uint64(N) */
+ static gboolean sign_bundle(const gchar *bundlename, GError **error)
+ {
+ 	GError *ierror = NULL;
+@@ -326,22 +328,7 @@ static gboolean sign_bundle(const gchar *bundlename, GError **error)
  	g_autoptr(GFileOutputStream) bundlestream = NULL;
  	guint64 offset;
  
-+	if (r_context()->bundle_nosig) 
-+		return TRUE;
+-	g_assert_nonnull(r_context()->certpath);
+-	g_assert_nonnull(r_context()->keypath);
+-
+-	sig = cms_sign_file(bundlename,
+-			r_context()->certpath,
+-			r_context()->keypath,
+-			r_context()->intermediatepaths,
+-			&ierror);
+-	if (sig == NULL) {
+-		g_propagate_prefixed_error(
+-				error,
+-				ierror,
+-				"failed signing bundle: ");
+-		return FALSE;
+-	}
+-
++	/* open file and seek to end */
+ 	bundlefile = g_file_new_for_path(bundlename);
+ 	bundlestream = g_file_append_to(bundlefile, G_FILE_CREATE_NONE, NULL, &ierror);
+ 	if (bundlestream == NULL) {
+@@ -361,17 +348,40 @@ static gboolean sign_bundle(const gchar *bundlename, GError **error)
+ 		return FALSE;
+ 	}
+ 
++	/* get current file size */
+ 	offset = g_seekable_tell((GSeekable *)bundlestream);
+-	if (!output_stream_write_bytes_all((GOutputStream *)bundlestream, sig, NULL, &ierror)) {
+-		g_propagate_prefixed_error(
+-				error,
+-				ierror,
+-				"failed to append signature to bundle: ");
+-		return FALSE;
+-	}
+ 
++	/* append signature bytes, if not disabled */
++	if (!r_context()->bundle_nosig) {
++		g_assert_nonnull(r_context()->certpath);
++		g_assert_nonnull(r_context()->keypath);
 +
- 	g_assert_nonnull(r_context()->certpath);
- 	g_assert_nonnull(r_context()->keypath);
++		sig = cms_sign_file(bundlename,
++				r_context()->certpath,
++				r_context()->keypath,
++				r_context()->intermediatepaths,
++				&ierror);
++		if (sig == NULL) {
++			g_propagate_prefixed_error(
++					error,
++					ierror,
++					"failed signing bundle: ");
++			return FALSE;
++		}
+ 
++		if (!output_stream_write_bytes_all((GOutputStream *)bundlestream, sig, NULL, &ierror)) {
++			g_propagate_prefixed_error(
++					error,
++					ierror,
++					"failed to append signature to bundle: ");
++			return FALSE;
++		}
++	}
++
++	/* get file size size difference */
+ 	offset = g_seekable_tell((GSeekable *)bundlestream) - offset;
++
++	/* append signature size */
+ 	if (!output_stream_write_uint64_all((GOutputStream *)bundlestream, offset, NULL, &ierror)) {
+ 		g_propagate_prefixed_error(
+ 				error,
+@@ -750,7 +760,7 @@ gboolean check_bundle(const gchar *bundlename, RaucBundle **bundle, gboolean ver
+ 		goto out;
+ 	}
+ 
+-	if (sigsize == 0) {
++	if (verify && sigsize == 0) {
+ 		g_set_error(error, R_BUNDLE_ERROR, R_BUNDLE_ERROR_SIGNATURE,
+ 				"Signature size is 0");
+ 		res = FALSE;
+@@ -785,17 +795,17 @@ gboolean check_bundle(const gchar *bundlename, RaucBundle **bundle, gboolean ver
+ 		goto out;
+ 	}
+ 
+-	res = input_stream_read_bytes_all(G_INPUT_STREAM(bundlestream),
+-			&sig, sigsize, NULL, &ierror);
+-	if (!res) {
+-		g_propagate_prefixed_error(
+-				error,
+-				ierror,
+-				"Failed to read signature from bundle: ");
+-		goto out;
+-	}
+-
+ 	if (verify) {
++		res = input_stream_read_bytes_all(G_INPUT_STREAM(bundlestream),
++				&sig, sigsize, NULL, &ierror);
++		if (!res) {
++			g_propagate_prefixed_error(
++					error,
++					ierror,
++					"Failed to read signature from bundle: ");
++			goto out;
++		}
++
+ 		CMS_ContentInfo *cms = NULL;
+ 		X509_STORE *store = NULL;
  
 diff --git a/src/install.c b/src/install.c
-index 6f535f7..3665b49 100644
+index 6f535f7c83c3f01564e9b5fcd4a7f790fb40c185..3665b49c6bedaca6ee53e901cc6a4281a561785c 100644
 --- a/src/install.c
 +++ b/src/install.c
 @@ -1283,7 +1283,7 @@ gboolean do_install_bundle(RaucInstallArgs *args, GError **error)
@@ -57,7 +167,7 @@ index 6f535f7..3665b49 100644
  		g_propagate_error(error, ierror);
  		goto out;
 diff --git a/src/main.c b/src/main.c
-index 5f0ce56..bc1c7fc 100644
+index 5f0ce56ec2be5f1e2ac4137d34d9a53a3df12865..bc1c7fc16672e145d42b00450b9fb04105df9741 100644
 --- a/src/main.c
 +++ b/src/main.c
 @@ -23,7 +23,8 @@ GMainLoop *r_loop = NULL;
@@ -157,3 +267,19 @@ index 5f0ce56..bc1c7fc 100644
  	} else {
  		if (confpath != NULL ||
  		    certpath != NULL ||
+diff --git a/src/update_handler.c b/src/update_handler.c
+index 95ca24b9d7fd57a3dbd4f7f5568c09deae8c1bed..024f5e58b197270f213cee995b2efa03a39a84bf 100644
+--- a/src/update_handler.c
++++ b/src/update_handler.c
+@@ -632,7 +632,7 @@ static gboolean run_slot_hook(const gchar *hook_name, const gchar *hook_cmd, Rau
+ 	}
+ 	g_subprocess_launcher_setenv(launcher, "RAUC_MOUNT_PREFIX", r_context()->config->mount_prefix, TRUE);
+ 
+-	if (r_context()->install_info->mounted_bundle) {
++	if (r_context()->install_info->mounted_bundle && r_context()->install_info->mounted_bundle->verified_chain) {
+ 		gchar **hashes = NULL;
+ 		gchar *string = NULL;
+ 
+-- 
+2.21.0
+
