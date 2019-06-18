@@ -66,7 +66,6 @@ NILRT_NXG_PACKAGES = "\
 NILRT_PACKAGES = "\
 	busybox-ifplugd \
 	glibc-gconv-utf-16 \
-	gptfdisk-sgdisk \
 	init-ifupdown \
 	libstdc++ \
 	logrotate \
@@ -94,6 +93,7 @@ RDEPENDS_${PN} = "\
 	daemonize \
 	dhcp-client \
 	ethtool \
+	gptfdisk-sgdisk \
 	initscripts \
 	initscripts-nilrt \
 	iproute2 \
