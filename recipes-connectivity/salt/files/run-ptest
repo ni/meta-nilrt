@@ -1,6 +1,13 @@
 #!/bin/sh
 
-python /usr/lib/python2.7/site-packages/salt-tests/tests/runtests.py \
+# Kill any salt test processes which may be left around from orphaned test
+# runs.
+killall -q cli_master.py
+killall -q cli_syndic.py
+killall -q cli_minion.py
+killall -q cli_run.py
+
+python /usr/lib/python3.5/site-packages/salt-tests/tests/runtests.py \
     --ptest-out \
     --no-report \
     --transport=tcp \
