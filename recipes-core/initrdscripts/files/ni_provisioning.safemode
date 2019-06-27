@@ -214,7 +214,9 @@ partitioning_disk()
 
     print_info "Assigning EFI System Partition..."
     if [[ "$BOOT_STYLE" == "efi" ]]; then
-        sgdisk --typecode=1:C12A7328-F81F-11D2-BA4B-00A0C93EC93B $TARGET_DISK
+        # Per https://www.freedesktop.org/wiki/Specifications/DiscoverablePartitionsSpec/
+        #  C12A7328-F81F-11D2-BA4B-00A0C93EC93B -- EFI System Partition
+        sgdisk --typecode="1:C12A7328-F81F-11D2-BA4B-00A0C93EC93B" $TARGET_DISK
     else
         sfdisk -c $TARGET_DISK 1 EF
     fi

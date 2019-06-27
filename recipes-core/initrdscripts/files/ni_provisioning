@@ -56,6 +56,9 @@ elif [[ $restore == "provision" ]]; then
             provision_target usb
         fi
     else
+        # TODO
+        die "Not supported yet"
+
         case "$PROVISION_PART_NILRT_ID" in
             LABEL=*)
                 ;;
@@ -97,15 +100,6 @@ elif [[ $restore == "provision" ]]; then
 elif [[ $restore == "migrate" ]]; then
     PROVISION_REBOOT_METHOD="reboot"
     provision_target onboard
-elif [[ $restore == "auto-restore" ]]; then
-    PROVISION_REBOOT_METHOD="reboot"
-    restore_runmode_image
-elif [[ $restore == "restore" ]]; then
-    CONFIRM_RESTORE_RUNMODE_IMAGE="?"
-    ask_for_continue "Restore" "CONFIRM_RESTORE_RUNMODE_IMAGE"
-    if [[ $CONFIRM_RESTORE_RUNMODE_IMAGE == "y" ]]; then
-        restore_runmode_image
-    fi
 else
     die "Invalid restore mode."
 fi

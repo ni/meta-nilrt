@@ -10,7 +10,6 @@ ROOTFS_MOUNTPOINT=/var/volatile/nirootfs
 TEMP_MOUNTPOINT=/var/volatile/temp_dir
 TARGET_DISK=""
 TARGET_DISK_SEARCH_TIME=10
-NIGRUB_LABEL=nigrub
 NIRESTORE_LABEL=nirestore
 NILRT_LABEL=nilrt
 OLDER_NILRT_NIBOOTFS_LABEL=nibootfs
@@ -20,12 +19,12 @@ NC='\e[0m'
 YELLOW='\e[1;33m'
 GREEN='\e[0;32m'
 ASK_BEFORE_REBOOT=0
-ARCH=`uname -m`
+ARCH=$(uname -m)
 VERBOSE_ARGS=${VERBOSE_ARGS:-"-q"}
 MKFS_ARGS=${MKFS_ARGS:-"$VERBOSE_ARGS -F"}
 verbose_mode=${verbose_mode:-0}
 
-if [ $verbose_mode -eq 0 ]; then
+if [ "$verbose_mode" -eq 0 ]; then
     do_silent() { "$@" &>/dev/null; };
 else
     do_silent() { "$@"; }
@@ -237,6 +236,9 @@ elif [ "$ARCH" = "x86_64" ]; then
 
     restore_runmode_image()
     {
+        # TODO
+        die "Not supported yet"
+
         local nilrt_path="$1" uuid="$2" nilrt_label="$3"
 
         NILRT_MOUNTPOINT=/var/volatile/nilrt
@@ -284,77 +286,49 @@ elif [ "$ARCH" = "x86_64" ]; then
 
     provision_target()
     {
-        if [ "$1" == "onboard" ]; then
-            mkdir -p $TEMP_MOUNTPOINT
-            mkdir -p $BOOTFS_MOUNTPOINT
-            older_nilrt_nibootfs_path=`lsblk -rpn $TARGET_DISK -o NAME,LABEL | grep " $OLDER_NILRT_NIBOOTFS_LABEL"'$' | tail -1 | cut -d' ' -f1`
-            do_silent echo "Mounting $older_nilrt_nibootfs_path $OLDER_NILRT_NIBOOTFS_LABEL partition..."
-            do_silent mount $older_nilrt_nibootfs_path $TEMP_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
-            cp -r $TEMP_MOUNTPOINT/.newNILinuxRT/* $BOOTFS_MOUNTPOINT/
-            do_silent umount $TEMP_MOUNTPOINT || die "Failed to umount $TEMP_MOUNTPOINT"
-            SOURCE_DIR=$BOOTFS_MOUNTPOINT
-        elif [ "$1" = "usb" ]; then
-            mkdir -p $USB_MOUNTPOINT
-            mount -o ro -L NIRECOVERY $USB_MOUNTPOINT 2>&1 || die "Couldn't mount NIRECOVERY partition!"
-            SOURCE_DIR=$USB_MOUNTPOINT
-        fi
-
-        echo "Installing restore to: $TARGET_DISK using $BOOT_STYLE boot style."
-
         echo "Partitioning $TARGET_DISK..."
-        do_silent disk_setup $TARGET_DISK
+        do_silent disk_setup "$TARGET_DISK"
 
-        #install grub
-
-        GRUB_MOUNTPOINT=/var/volatile/grub
-        mkdir -p $GRUB_MOUNTPOINT
-        nigrub_path=`lsblk -rpn $TARGET_DISK -o NAME,LABEL | grep " $NIGRUB_LABEL"'$' | tail -1 | cut -d' ' -f1`
-        do_silent echo "Mounting $nigrub_path $NIGRUB_LABEL partition..."
-        MOUNT_ERROR=`mount $nigrub_path $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
-
-        # Always configure for UEFI boot
-        EFI_GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/efi/boot
-        mkdir -p $EFI_GRUB_TARGET_DIR
-        cp -r $SOURCE_DIR/EFI/BOOT/* $EFI_GRUB_TARGET_DIR/
-
-        if [[ $BOOT_STYLE == "efi" ]]; then
         echo "Configuring EFI grub2..."
-        for ENTRY in `efibootmgr | grep "LabVIEW RT"| egrep -o '[0-9A-F]{4}' || true`
+        # Delete existing nibootX entries with "-B" option
+        for ENTRY in $(efibootmgr | egrep -i 'niboot(a|b)' | egrep -o '[0-9A-Fa-f]{4}' || true);
         do
-        EFIMGR=`efibootmgr -b $ENTRY -B 2>&1` || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
+            do_silent echo "Drop entry $ENTRY"
+            EFIMGR=$(efibootmgr -b "$ENTRY" -B 2>&1) || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
         done
-        do_silent efibootmgr -c -d ${TARGET_DISK} -p 1 -L 'LabVIEW RT' -l '\efi\boot\bootx64.efi'
-        else
-        echo "Configuring legacy grub2..."
-        LEGACY_GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/boot/grub
-        parted -s ${TARGET_DISK} set 1 boot on
-        grub-install --recheck --root-directory=$GRUB_MOUNTPOINT $TARGET_DISK
-        cp /grub.cfg ${LEGACY_GRUB_TARGET_DIR}/grub.cfg
-        fi
+        # Add nibootX entries with "-c" option
+        do_silent efibootmgr -c -d "$TARGET_DISK" -p 1 -L 'niboota' -l '\efi\boot\bootx64.efi'
+        do_silent efibootmgr -c -d "$TARGET_DISK" -p 2 -L 'nibootb' -l '\efi\boot\bootx64.efi'
+        # Print verbose configuration after with "-v" option
+        do_silent efibootmgr -v
 
-        echo "Installing kernel and ramdisk..."
+        # XXX No udev in the provisioning tool, find niboota and nibootb partlabels and link as needed by RAUC
+        echo "Finding niboot partitions..."
+        local niboota_device=$(lsblk -rpn "$TARGET_DISK" -o NAME,PARTLABEL | grep " niboota$" | cut -d" " -f1)
+        local nibootb_device=$(lsblk -rpn "$TARGET_DISK" -o NAME,PARTLABEL | grep " nibootb$" | cut -d" " -f1)
+        mkdir -p /dev/disk/by-partlabel
+        ln -sf "$niboota_device" "/dev/disk/by-partlabel/niboota"
+        ln -sf "$nibootb_device" "/dev/disk/by-partlabel/nibootb"
 
-        cp /grub.cfg ${EFI_GRUB_TARGET_DIR}/grub.cfg
+        # Install initial bundles to nibootX partitions
+        echo "Deploying bundles..."
+        local rauc_verbose_opt=""
+        (( verbose_mode )) && rauc_verbose_opt="--debug"
+        # Override niboota to install to nibootb slot, and vice-versa
+        rauc $rauc_verbose_opt --no-signatures --override-boot-slot=niboota install /payload/niboot.raucb 2>&1 || die "RAUC failed to install bundle to nibootb"
+        rauc $rauc_verbose_opt --no-signatures --override-boot-slot=nibootb install /payload/niboot.raucb 2>&1 || die "RAUC failed to install bundle to niboota"
+        # Next mark-good niboota then nibootb to install them at front
+        #  of EFI BootOrder
+        rauc $rauc_verbose_opt --no-signatures --override-boot-slot=niboota status mark-good niboot.1 2>&1 || die "RAUC failed to mark-good niboot.1 (nibootb)"
+        rauc $rauc_verbose_opt --no-signatures --override-boot-slot=niboota status mark-good niboot.0 2>&1 || die "RAUC failed to mark-good niboot.0 (niboota)"
+        # Finally, mark-active niboota to ensure it's EFI BootNext
+        rauc $rauc_verbose_opt --no-signatures --override-boot-slot=niboota status mark-active niboot.0 2>&1 || die "RAUC failed to mark-active niboot.0 (niboota)"
 
-        #install restore kernel and ramdisk
-        RESTORE_MOUNTPOINT=/var/volatile/restore
-        mkdir -p $RESTORE_MOUNTPOINT
-        nirestore_path=`lsblk -rpn $TARGET_DISK -o NAME,LABEL | grep " $NIRESTORE_LABEL"'$' | tail -1 | cut -d' ' -f1`
-        do_silent echo "Mounting $nirestore_path $NIRESTORE_LABEL partition..."
-        RESTORE_ERROR=`mount $nirestore_path $RESTORE_MOUNTPOINT 2>&1` || die "$RESTORE_ERROR"
-
-        cp $SOURCE_DIR/bzImage $RESTORE_MOUNTPOINT/
-        cp $SOURCE_DIR/initrd $RESTORE_MOUNTPOINT/ramdisk
         sync
 
-        restore_runmode_image
-
-        sync
-        umount $RESTORE_MOUNTPOINT || die "Failed to umount $RESTORE_MOUNTPOINT"
-        umount $GRUB_MOUNTPOINT || die "Failed to umount $GRUB_MOUNTPOINT"
-        if [ "$1" = "usb" ]; then
-        umount $USB_MOUNTPOINT || die "Failed to umount $USB_MOUNTPOINT"
-        fi
+        echo "EFI boot configuration:"
+        efibootmgr -v
+        echo "---"
 
         provision_successfull
         ASK_BEFORE_REBOOT=1

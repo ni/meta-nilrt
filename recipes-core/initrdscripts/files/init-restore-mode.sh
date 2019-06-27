@@ -1,8 +1,11 @@
 #!/bin/bash
 
-ARCH=`uname -m`
+ARCH=$(uname -m)
 
-PATH=/sbin:/bin:/usr/sbin:/usr/bin
+export PATH="/sbin:/bin:/usr/sbin:/usr/bin"
+
+umask 0022
+
 NIRECOVERY_MOUNTPOINT=/mnt/NIRECOVERY
 MOUNT_NIRECOVERY_USB_TIME=10
 

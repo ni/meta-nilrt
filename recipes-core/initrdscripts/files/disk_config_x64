@@ -11,33 +11,25 @@ handle_err()
     die "$1:$2 (fn=$3): Unexpected status code $4 while running command: '$TMP_EVAL'"
 }
 
-if [[ -d /sys/firmware/efi ]];then
-    disk_partition()
-    {
-        local disk="$1"
+disk_partition()
+{
+    local disk="$1"
 
-        parted -s "$disk" --align optimal   \
-            mklabel gpt                     \
-            mkpart nigrub         1MB  16MB \
-            mkpart nirestore     16MB 1200MB \
-            mkpart nilrt        1200MB  100%
+    dd if="/dev/zero" of="$disk" bs=1M count=1
 
-        sgdisk --typecode=1:ef00 $disk
-    }
-else
-    disk_partition()
-    {
-        local disk="$1"
+    parted -s "$disk" --align optimal      \
+        mklabel "gpt"                      \
+        mkpart "niboota"       1MB  250MB  \
+        mkpart "nibootb"     250MB  500MB  \
+        mkpart "niuser"      500MB  100%
 
-        parted -s "$disk" --align optimal   \
-            mklabel msdos                   \
-            mkpart primary       1MB  16MB  \
-            mkpart primary      16MB 1200MB  \
-            mkpart primary     1200MB  100%
-
-        sfdisk -c "$disk" 1 EF
-    }
-fi
+    # Per https://www.freedesktop.org/wiki/Specifications/DiscoverablePartitionsSpec/
+    #  C12A7328-F81F-11D2-BA4B-00A0C93EC93B -- EFI System Partition
+    #  4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709 -- Root Partition (x86-64)
+    sgdisk --typecode="1:C12A7328-F81F-11D2-BA4B-00A0C93EC93B" "$disk"
+    sgdisk --typecode="2:C12A7328-F81F-11D2-BA4B-00A0C93EC93B" "$disk"
+    sgdisk --typecode="3:4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709" "$disk"
+}
 
 partition_format()
 {
@@ -47,30 +39,21 @@ partition_format()
     disk_check "$disk"
 
     case "$label" in
-        nigrub)
-            mkfs.vfat -n nigrub "${partitions[0]}"
+        niboota)
+            dd if="/dev/zero" of="${partitions[0]}" bs=1M count=1
+            mkfs.vfat -n "niboota" "${partitions[0]}"
             ;;
-        nirestore)
-            mkfs.ext4 -F -L nirestore "${partitions[1]}"
+        nibootb)
+            dd if="/dev/zero" of="${partitions[1]}" bs=1M count=1
+            mkfs.vfat -n "nibootb" "${partitions[1]}"
             ;;
-        nilrt)
-            mkfs.ext4 -F -L nilrt "${partitions[2]}"
+        niuser)
+            # niuser partition is managed by initramfs
+            dd if="/dev/zero" of="${partitions[2]}" bs=1M count=1
             ;;
         *)
             die "Invalid or unspecified label!"
     esac
-}
-
-existing_nilrt_partition_format()
-{
-    local partition="$1" uuid="$2" label="$3"
-
-    partition_check $partition
-    if [[ -n "$uuid" ]]; then
-        mkfs.ext4 -F -L "$label" -U $uuid $partition
-    else
-        mkfs.ext4 -F -L "$label" $partition
-    fi
 }
 
 partition_check()
@@ -78,15 +61,6 @@ partition_check()
     local partition="$1"
 
     [[ -e "$partition" ]] || die "Invalid or unspecified partition!"
-}
-
-disk_format()
-{
-   local disk="$1"
-
-   partition_format "$disk" nigrub
-   partition_format "$disk" nirestore
-   partition_format "$disk" nilrt
 }
 
 disk_check()
@@ -98,8 +72,13 @@ disk_check()
 
 disk_setup()
 {
-    disk="$1"
+    local disk="$1"
+
     disk_check "$disk"
+
     disk_partition "$disk"
-    disk_format "$disk"
+
+    partition_format "$disk" "niboota"
+    partition_format "$disk" "nibootb"
+    partition_format "$disk" "niuser"
 }

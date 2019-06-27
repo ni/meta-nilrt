@@ -20,7 +20,7 @@ SRC_URI_append_x64 = "\
 	file://grub.cfg	\
 "
 
-RDEPENDS_${PN} += "bash"
+RDEPENDS_${PN} += "bash rauc"
 
 do_install() {
 	install -m 0755 ${WORKDIR}/init-restore-mode.sh ${D}/init
