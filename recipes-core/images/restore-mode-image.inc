@@ -1,7 +1,7 @@
 DESCRIPTION ?= "Tiny initramfs image intended to run restore mode operations"
 LICENSE = "MIT"
 
-FACTORY_IMAGE ?= "minimal-nilrt-image"
+NIBOOT_BUNDLE_IMAGE ?= ""
 
 PACKAGE_INSTALL = "${ROOTFS_BOOTSTRAP_INSTALL} \
                    packagegroup-ni-restoremode \
@@ -18,7 +18,7 @@ VIRTUAL-RUNTIME_getopt = "util-linux-getopt"
 VIRTUAL-RUNTIME_base-utils = "util-linux"
 PREFERRED_PROVIDER_virtual/base-utils="util-linux"
 
-do_rootfs[depends] += "${FACTORY_IMAGE}:do_image_complete"
+do_rootfs[depends] += "${NIBOOT_BUNDLE_IMAGE}:do_deploy"
 
 # If BUILD_IDENTIFIER is not already set in the build environment (common when doing a local dev build)
 # then set a default value that can be used only for display purposes. Setting the default value here
@@ -27,7 +27,7 @@ BUILD_IDENTIFIER ?= "0.0.0"
 
 install_payload () {
 	install -d ${IMAGE_ROOTFS}/payload
-	install -m 0644 ${DEPLOY_DIR_IMAGE}/${FACTORY_IMAGE}-${MACHINE}.tar.bz2  ${IMAGE_ROOTFS}/payload/factory-image.tar.bz2
+	install -m 0644 ${DEPLOY_DIR_IMAGE}/${NIBOOT_BUNDLE_IMAGE}-${MACHINE}.raucb  ${IMAGE_ROOTFS}/payload/niboot.raucb
 	echo "BUILD_IDENTIFIER=${BUILD_IDENTIFIER}" > ${IMAGE_ROOTFS}/payload/imageinfo
 	echo "IMAGE_DISPLAY_NAME=${IMAGE_DISPLAY_NAME}" >> ${IMAGE_ROOTFS}/payload/imageinfo
 }

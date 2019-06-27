@@ -1,5 +1,5 @@
 DESCRIPTION = "Initramfs image intended to install only the lvcomms-nilrt-image"
-FACTORY_IMAGE = "lvcomms-nilrt-image"
+NIBOOT_BUNDLE_IMAGE = "lvcomms-nilrt-bundle"
 IMAGE_DISPLAY_NAME = "lvcomms runmode"
 
 # image.bbclass checks the resulting initramfs size and the default of 128MB 
