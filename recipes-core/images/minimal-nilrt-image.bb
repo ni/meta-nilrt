@@ -7,4 +7,6 @@ IMAGE_INSTALL = "\
 
 require niconsole-image.inc
 
+IMAGE_FSTYPES += "squashfs"
+
 require include/ni-external-components.inc
