@@ -9,7 +9,7 @@ MOUNT="/bin/mount"
 PMOUNT="/usr/bin/pmount"
 UMOUNT="/bin/umount"
 sgdisk_sed="s/^\/dev\/((sd[a-z]+)|(mmcblk[0-9]+)p)([0-9]+)$/sgdisk -i \4 \/dev\/\2\3/"
-efi_guid="C12A7328-F81F-11D2-BA4B-00A0C93EC93B"
+blacklisted_gpt_part_guids_egrep="(C12A7328-F81F-11D2-BA4B-00A0C93EC93B)|(4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709)"
 export PATH="$PATH:/usr/sbin"
 
 [ "$DISABLE_AUTOMOUNT_BLACKLIST" ] || \
@@ -106,7 +106,7 @@ if [ "$ACTION" = "add" ] && [ -n "$DEVNAME" ] && [ -n "$ID_FS_TYPE" ]; then
 		#   partition of that device
 		# - grep the output of sgdisk to see if the partition is of
 		#   type "EFI System" (by GUID) and if so, exit the script
-		`echo $DEVNAME | sed -r -n "$sgdisk_sed"p` | grep -i "$efi_guid" -q && exit 0
+		`echo $DEVNAME | sed -r -n "$sgdisk_sed"p` | egrep -i "$blacklisted_gpt_part_guids_egrep" -q && exit 0
 	fi
 	
 	# If the device isn't mounted at this point, it isn't
