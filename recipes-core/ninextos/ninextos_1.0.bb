@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 SRC_URI_x64 = "file://bootimage.cfg"
 
 DEPENDS_append_x64 += "grub-efi"
-do_install[depends] = "restore-mode-image:do_image_complete linux-nilrt:do_deploy"
+do_install[depends] = "restore-mode-image:do_image_complete ${PREFERRED_PROVIDER_virtual/kernel}:do_deploy"
 
 S = "${WORKDIR}"
 
