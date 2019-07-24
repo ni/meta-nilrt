@@ -1,0 +1,76 @@
+#!/bin/bash
+set -euo pipefail
+readonly SCRIPT_NAME="rauc-mark-good"
+
+# Finalizes first boot into a new NILRT partition
+#  * Migrates old system configuration if present
+#  * Marks the current boot good
+#  * Cleanups up old system overlay if present
+#  * Removes itself from subsequent boots
+
+echo -n "$SCRIPT_NAME:" || true
+
+# close stdin
+exec 0<&-
+
+# suppress stdout and stderr if echo fails, so that subsequent
+#  tools dont error out when prints occur
+if ! echo -n " "; then
+    exec 1>/dev/null
+fi
+if ! echo -n " " 1>&2; then
+    exec 2>&1
+fi
+
+# prints to kernel log and screen
+function error () {
+    echo "ERROR: $*"
+    false
+}
+
+function cleanup() {
+    local retVal="$?"
+
+    set +e
+
+    if [ -e "${NIUSER_TMP_MOUNT:-}" ]; then
+        umount "$NIUSER_TMP_MOUNT"
+        rmdir "$NIUSER_TMP_MOUNT"
+    fi
+
+    exit "$retVal"
+}
+
+trap cleanup EXIT
+
+if [ "${1:-}" != "start" ]; then
+    error "May only run during startup"
+fi
+
+readonly NIUSER_TMP_MOUNT=$(mktemp -d "/var/volatile/niuser-mnt-XXXXXXX")
+mount -o rw,sync,relatime /dev/niboot/niuser "$NIUSER_TMP_MOUNT"
+
+readonly OLD_OVERLAY="$NIUSER_TMP_MOUNT/overlay.old"
+readonly OLD_OVERLAY_TC_IMAGE="$OLD_OVERLAY/upper/etc/niboot/system-config-image.tgz"
+
+if [ -e "$OLD_OVERLAY_TC_IMAGE" ]; then
+    if transconf restore "$OLD_OVERLAY_TC_IMAGE"; then
+        echo -n "Restored config. "
+    else
+        error "Failed to restore OLD_OVERLAY_TC_IMAGE=$OLD_OVERLAY_TC_IMAGE, rebooting" || true
+        reboot
+        false
+    fi
+fi
+
+# Mark the current boot good
+rauc status mark-good >/dev/null
+
+# Delete old overlay to reclaim disk
+rm -Rf "$OLD_OVERLAY"
+
+# Don't run this script again
+rm "/etc/rcS.d/S30$SCRIPT_NAME"
+
+echo "Done"
+
