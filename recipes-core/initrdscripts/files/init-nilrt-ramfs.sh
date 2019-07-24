@@ -85,83 +85,182 @@ function assert_valid_fs_id() {
     echo "$value" | egrep -q '^[a-zA-Z0-9\-]+$' || error "$name: Invalid fs label or UUID"
 }
 
-# Parse kernel cmd line to find nibootX partition's fs label
-niboot_fs_label=$(cat /proc/cmdline | tr " " "\n" | grep "^rauc.slot=" | head -1 | cut -d= -f2)
-niboot_fs_uuid=$(cat /proc/cmdline | tr " " "\n" | grep "^rauc.slot.uuid=" | head -1 | cut -d= -f2)
+function read_config_token() {
+    local filename="$1"
+    local token="$2"
+    local value=""
 
-assert_valid_fs_id "rauc.slot" "$niboot_fs_label"
-assert_valid_fs_id "rauc.slot.uuid" "$niboot_fs_uuid"
+    if [ -e "$filename" ]; then
+        value=$(grep "^$token=" "$filename" | head -1 | cut -d"=" -f2) || value=""
+    fi
+
+    echo "$value"
+}
+
+function read_file() {
+    local filename="$1"
+    local maxsize="$2"
+    local value=""
+
+    if [ -e "$filename" ]; then
+        value=$(head -c "$maxsize" "$filename") || value=""
+    fi
+
+    echo "$value"
+}
+
+function read_sha256sum_file() {
+    read_file "$1" 65
+}
+
+# Parse kernel cmd line to find nibootX partition's fs label
+current_niboot_fs_label=$(cat /proc/cmdline | tr " " "\n" | grep "^rauc.slot=" | head -1 | cut -d= -f2)
+current_niboot_fs_uuid=$(cat /proc/cmdline | tr " " "\n" | grep "^rauc.slot.uuid=" | head -1 | cut -d= -f2)
+
+assert_valid_fs_id "rauc.slot" "$current_niboot_fs_label"
+assert_valid_fs_id "rauc.slot.uuid" "$current_niboot_fs_uuid"
 
 # Find boot dev nodes using a combination of fs label and UUID so that
 #  multiple NILRT installations may co-exist on the same system
-niboot_part_device=$(lsblk -l -n -o NAME,LABEL,UUID | tr -s " " | egrep " $niboot_fs_label $niboot_fs_uuid\$" | head -1 | cut -d" " -f1)
-boot_disk_device=$(lsblk -l -n -o PKNAME "/dev/$niboot_part_device")
+current_niboot_part_device=$(lsblk -l -n -o NAME,LABEL,UUID | tr -s " " | egrep " $current_niboot_fs_label $current_niboot_fs_uuid\$" | head -1 | cut -d" " -f1)
+current_boot_disk_device=$(lsblk -l -n -o PKNAME "/dev/$current_niboot_part_device")
 
-assert_valid_fs_id "boot_disk_device" "$boot_disk_device"
+assert_valid_fs_id "current_boot_disk_device" "$current_boot_disk_device"
 
 # Find niuser partition dev on same disk that we booted
-niuser_part_device=$(lsblk -l -n -o NAME,PKNAME,PARTLABEL | tr -s " " | egrep " $boot_disk_device niuser\$" | head -1 | cut -d" " -f1)
+niboota_part_device=$(lsblk -l -n -o NAME,PKNAME,PARTLABEL | tr -s " " | egrep " $current_boot_disk_device niboota\$" | head -1 | cut -d" " -f1)
+nibootb_part_device=$(lsblk -l -n -o NAME,PKNAME,PARTLABEL | tr -s " " | egrep " $current_boot_disk_device nibootb\$" | head -1 | cut -d" " -f1)
+niuser_part_device=$(lsblk -l -n -o NAME,PKNAME,PARTLABEL | tr -s " " | egrep " $current_boot_disk_device niuser\$" | head -1 | cut -d" " -f1)
 
-status "Booting niboot_fs_label=$niboot_fs_label, niboot_fs_uuid=$niboot_fs_uuid, boot_disk_device=$boot_disk_device, niboot_part_device=$niboot_part_device, niuser_part_device=$niuser_part_device"
+status "Booting current_niboot_fs_label=$current_niboot_fs_label, current_niboot_fs_uuid=$current_niboot_fs_uuid, current_boot_disk_device=$current_boot_disk_device, current_niboot_part_device=$current_niboot_part_device, niuser_part_device=$niuser_part_device"
 
-# Mount nibootX filesystem
-mkdir -p /mnt/niboot 
-mount -o ro,sync,relatime "/dev/$niboot_part_device" /mnt/niboot
+# Populate /dev/niboot with references
+mkdir /dev/niboot
 
-mkdir -p /mnt/niuser
+ln -sf "/dev/$niboota_part_device" /dev/niboot/niboota
+ln -sf "/dev/$nibootb_part_device" /dev/niboot/nibootb
+ln -sf "/dev/$niuser_part_device" /dev/niboot/niuser
 
-if ! mount "/dev/$niuser_part_device" /mnt/niuser; then
-    status "Failed to mount niuser, creating new ext4 niuser file system"
+if   [ "$current_niboot_part_device" == "$niboota_part_device" ]; then
+    ln -sf niboota /dev/niboot/niboot.current
+elif [ "$current_niboot_part_device" == "$nibootb_part_device" ]; then
+    ln -sf nibootb /dev/niboot/niboot.current
+else
+    warn "Unrecognized current_niboot_part_device=$current_niboot_part_device"
+    ln -sf "/dev/$current_niboot_part_device" /dev/niboot/niboot.current
+fi
 
-    status "Running mkfs.ext4 on /dev/$niuser_part_device"
-    mkfs.ext4 -q -F -L "niuser" "/dev/$niuser_part_device"
+# Mount niboot.current
+readonly B_MNT="/mnt/niboot.current"
+mkdir "$B_MNT"
+mount -o ro,sync,relatime "/dev/niboot/niboot.current" "$B_MNT"
 
-    sync
+# Mount niuser
+readonly U_MNT="/mnt/niuser"
+mkdir "$U_MNT"
 
-    # Try again
-    if ! mount "/dev/$niuser_part_device" /mnt/niuser; then
+readonly U_OVERLAY_CFG="$U_MNT/overlay/upper/etc/niboot/init-action.cfg"
+
+function mount_niuser_helper() {
+    mount -o rw,sync,relatime "/dev/niboot/niuser" "$U_MNT"
+}
+
+do_format_niuser=false
+
+if mount_niuser_helper; then
+    if [ "$(read_config_token "$U_OVERLAY_CFG" reformat_niuser)" == "true" ]; then
+        status "init-action.cfg directed reformat of niuser"
+        umount "$U_MNT"
+        do_format_niuser=true
+    fi
+else
+    status "Failed to mount niuser, reformatting"
+    do_format_niuser=true
+fi
+
+if $do_format_niuser; then
+    mkfs.ext4 -q -F -L "niuser" "/dev/niboot/niuser"
+
+    # Try to mount again
+    if ! mount_niuser_helper; then
         error "Failed to mount niuser after re-creating file system"
     fi
 fi
 
-niuser_lower_sha256sum=""
-if [ -e "/mnt/niuser/overlay/lower.sha256sum" ]; then
-    niuser_lower_sha256sum=$(head -c 65 "/mnt/niuser/overlay/lower.sha256sum")
+current_baserootfs_sha256sum=$(sha256sum "$B_MNT/baserootfs.squashfs" | cut -d" " -f1)
+
+do_reset_overlay=false
+
+# First check if we are explicitly directed to reset the overlay
+if [ "$(read_config_token "$U_OVERLAY_CFG" reset_overlay)" == "true" ]; then
+    status "init-action.cfg directed reset of upper file system"
+    do_reset_overlay=true
 else
-    status "No /mnt/niuser/overlay/lower.sha256sum file"
+    # otherwise verify the baserootfs checksum matches
+    current_overlay_sha256sum=$(read_sha256sum_file "$U_MNT/overlay/lower.sha256sum")
+    if [ "$current_overlay_sha256sum" == "$current_baserootfs_sha256sum" ]; then
+        status "Current overlay matches baserootfs"
+    else
+        # Bad current overlay checksum, lets see if we can fall back to old overlay
+        old_overlay_sha256sum=$(read_sha256sum_file "$U_MNT/overlay.old/lower.sha256sum")
+        if [ "$old_overlay_sha256sum" == "$current_baserootfs_sha256sum" ]; then
+            status "Old overlay matches baserootfs, falling back"
+
+            # Remove current overlay if it exists
+            # This is fail safe because the condition that got us here still hold:
+            #  - do_reset_overlay will stay false, that's the default
+            #  - current_overlay_sha256sum will become ""
+            #  - old_overlay_sha256sum will stay the same
+            rm -Rf "$U_MNT/overlay"
+
+            # Promote old overlay to current
+            mv "$U_MNT/overlay.old" "$U_MNT/overlay"
+        else
+            status "Resetting upper file system due to different baserootfs image"
+            do_reset_overlay=true
+        fi
+    fi
 fi
 
-niboot_baserootfs_sha256sum=$(sha256sum "/mnt/niboot/baserootfs.squashfs" | cut -d" " -f1)
+if $do_reset_overlay; then
+    # Demote current overlay to old if it exist, removing any old
+    #  overlay which may be present
+    if [ -e "$U_MNT/overlay" ]; then
+        rm -Rf "$U_MNT/overlay.old"
+        mv "$U_MNT/overlay" "$U_MNT/overlay.old"
+    fi
 
-if [ "$niboot_baserootfs_sha256sum" != "$niuser_lower_sha256sum" ]; then
-    status "Resetting upper file system due to different baserootfs image"
-
-    rm -Rf /mnt/niuser/overlay
-    mkdir  /mnt/niuser/overlay
-
-    echo "$niboot_baserootfs_sha256sum" > "/mnt/niuser/overlay/lower.sha256sum"
+    # Create new overlay with current baserootfs hash
+    # This is done as an atomic operation to facilitate recovery (above)
+    #  after catastrophic failure like power loss
+    rm -Rf "$U_MNT/overlay.new"
+    mkdir "$U_MNT/overlay.new"
+    echo "$current_baserootfs_sha256sum" > "$U_MNT/overlay.new/lower.sha256sum"
+    mv "$U_MNT/overlay.new" "$U_MNT/overlay"
 fi
 
 status "Create mount point for overlay"
-mkdir -p /mnt/niuser/overlay/lower
-mkdir -p /mnt/niuser/overlay/upper
-mkdir -p /mnt/niuser/overlay/work
-mkdir -p /mnt/niuser/overlay/image
+mkdir -p "$U_MNT/overlay/lower"
+mkdir -p "$U_MNT/overlay/upper"
+mkdir -p "$U_MNT/overlay/work"
+mkdir -p "$U_MNT/overlay/image"
 
 status "Mount lower filesystem"
-mount -o ro -t squashfs /mnt/niboot/baserootfs.squashfs /mnt/niuser/overlay/lower
+mount -o ro -t squashfs "$B_MNT/baserootfs.squashfs" "$U_MNT/overlay/lower"
 
-status "Create overlay"
-mount -t overlay -o lowerdir=/mnt/niuser/overlay/lower,upperdir=/mnt/niuser/overlay/upper,workdir=/mnt/niuser/overlay/work overlay /mnt/niuser/overlay/image
+status "Create overlay image"
+mount -t overlay -o lowerdir="$U_MNT/overlay/lower,upperdir=$U_MNT/overlay/upper,workdir=$U_MNT/overlay/work" overlay "$U_MNT/overlay/image"
 
 status "Move boot"
-mount --move /mnt/niboot /mnt/niuser/overlay/image/boot
+mount --move "$B_MNT" "$U_MNT/overlay/image/boot"
 
+# Remove sync option from niuser mount in preparation for toggle
 sync
+mount -o remount,async "$U_MNT"
 
 status "Restore printk_devkmsg=$ORIG_KMSG_CONFIG"
 echo "$ORIG_KMSG_CONFIG" > "/proc/sys/kernel/printk_devkmsg"
 
-status "Running switch_root to /mnt/niuser/overlay/image/"
-exec switch_root /mnt/niuser/overlay/image/ /sbin/init
+status "Running switch_root to $U_MNT/overlay/image/"
+exec switch_root "$U_MNT/overlay/image/" /sbin/init
 
