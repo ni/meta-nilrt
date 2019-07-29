@@ -22,4 +22,5 @@ RDEPENDS_${PN} = "\
 
 RDEPENDS_${PN}_append_x64 = "\
 	${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'packagegroup-ni-xfce', '', d)} \
+	init-nilrt-ramfs \
 "
