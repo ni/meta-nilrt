@@ -5,6 +5,7 @@ SRC_URI += " \
             file://bootmisc_0001_make_hwclock_authoritative.patch \
             file://bootmisc_0002_add_sanity_checks.patch \
             file://urandom.default \
+            file://transconf-hooks \
 "
 
 do_install_append() {
@@ -38,3 +39,8 @@ do_install_append() {
 		sed -i -e "s/echo \"3\"/echo \"5\"/" ${D}/${sysconfdir}/init.d/alignment.sh
 	fi
 }
+
+# ${PN}-transconf
+inherit transconf-hook
+RDEPENDS_${PN}-transconf += "bash"
+TRANSCONF_HOOKS_${PN} = "transconf-hooks/hostname"

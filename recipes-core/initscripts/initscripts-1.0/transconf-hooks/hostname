@@ -1,0 +1,82 @@
+#!/bin/bash
+set -euo pipefail
+
+# Transconf hostname runparts entry
+#
+# The script can expect to run with the following environment:
+#
+# Environment:
+#  TRANSCONF_DEBUG: Set to "1" to enable debug prints
+#  TRANSCONF_SYSROOT: Absolute path to sysroot to be saved/restored
+#  TRANSCONF_IMAGE_DIR: Absolute path to uncompressed archive directory
+#  PWD: A temporary empty directory
+#  stdin closed
+#  umask is 0022
+#  ulimit -c 0 to disable core dumps
+#
+# Functions:
+#  status msg: Prints diagnostic message when transconf is in debug mode
+#  warning msg: Prints warning message
+#  error msg: Prints error message and returns with error
+#
+# Positional arg 1:
+#  "save":    Donate  files from TRANSCONF_SYSROOT into TRANSCONF_IMAGE_DIR
+#  "restore": Restore files from TRANSCONF_IMAGE_DIR to TRANSCONF_SYSROOT
+
+module_name=`basename "$0"`
+module_version=1
+
+module_image_dir="${TRANSCONF_IMAGE_DIR}/${module_name}"
+
+# Apply the hostname (arg 1) to the current system hostname.
+# 1: the new hostname
+function restore_hostname() {
+	if [ -z "$1" ]; then
+		status "New hostname is empty string. Refusing to set hostname"
+	fi
+	dst_hostname="${TRANSCONF_SYSROOT}/etc/hostname"
+
+	echo "$1" >"${dst_hostname}"
+	chmod 0644 "${dst_hostname}"
+	chown 0:0  "${dst_hostname}"
+}
+
+command_arg="${1:-}"
+case "$command_arg" in
+	"save")
+		status "Saving transconf files for module: ${module_name}"
+		mkdir "${module_image_dir}"
+
+		# module version
+		echo "${module_version}" >"${module_image_dir}/version"
+
+		if [ -r "${TRANSCONF_SYSROOT}/etc/hostname" ]; then
+			cat "${TRANSCONF_SYSROOT}/etc/hostname" >"${module_image_dir}/hostname"
+		else
+			error "/etc/hostname not a readable file."
+		fi
+		;;
+
+	"restore")
+		if [ -e "${module_image_dir}" ]; then
+			# Check version compatibility, can migrate if necessary
+			image_version=$(cat "${module_image_dir}/version")
+			[ "$module_version" -ge "$image_version" ] || error "Incompatible image version, max supported version is '$module_version', image version is '$image_version'"
+
+			status "Restoring transconf files for module: ${module_name}"
+
+			mkdir -p "${TRANSCONF_SYSROOT}/etc"
+			# hostname
+			if [ -e "${module_image_dir}/hostname" ]; then
+				restore_hostname "`cat \"${module_image_dir}/hostname\"`"
+			fi
+
+		else
+			status "No example image found, skipping ${module_name}"
+		fi
+		;;
+
+	*)
+		error "Invalid command $command_arg"
+		;;
+esac
