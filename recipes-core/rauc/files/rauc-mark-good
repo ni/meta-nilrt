@@ -8,8 +8,6 @@ readonly SCRIPT_NAME="rauc-mark-good"
 #  * Cleanups up old system overlay if present
 #  * Removes itself from subsequent boots
 
-echo -n "$SCRIPT_NAME:" || true
-
 # close stdin
 exec 0<&-
 
@@ -24,12 +22,18 @@ fi
 
 # prints to kernel log and screen
 function error () {
-    echo "ERROR: $*"
+    echo "$SCRIPT_NAME: ERROR: $*" > /dev/kmsg || true
+    echo "$SCRIPT_NAME: ERROR: $*" || true
     false
 }
 
+function info () {
+    echo "$SCRIPT_NAME: $*" > /dev/kmsg || true
+    echo "$SCRIPT_NAME: $*" || true
+}
+
 function cleanup() {
-    local retVal="$?"
+    local exitCode="$?"
 
     set +e
 
@@ -38,7 +42,11 @@ function cleanup() {
         rmdir "$NIUSER_TMP_MOUNT"
     fi
 
-    exit "$retVal"
+    if [ "$exitCode" != "0" ]; then
+        error "exitCode=$exitCode"
+    fi
+
+    exit "$exitCode"
 }
 
 trap cleanup EXIT
@@ -48,16 +56,23 @@ if [ "${1:-}" != "start" ]; then
 fi
 
 readonly NIUSER_TMP_MOUNT=$(mktemp -d "/var/volatile/niuser-mnt-XXXXXXX")
+chmod 0700 "$NIUSER_TMP_MOUNT"
 mount -o rw,sync,relatime /dev/niboot/niuser "$NIUSER_TMP_MOUNT"
 
 readonly OLD_OVERLAY="$NIUSER_TMP_MOUNT/overlay.old"
-readonly OLD_OVERLAY_TC_IMAGE="$OLD_OVERLAY/upper/etc/niboot/system-config-image.tgz"
+readonly TC_IMAGE="etc/niboot/system-config-image.tgz"
 
-if [ -e "$OLD_OVERLAY_TC_IMAGE" ]; then
-    if transconf restore "$OLD_OVERLAY_TC_IMAGE"; then
-        echo -n "Restored config. "
+if [ -e "$OLD_OVERLAY/upper/$TC_IMAGE" ]; then
+    if transconf restore "$OLD_OVERLAY/upper/$TC_IMAGE"; then
+        mv "$OLD_OVERLAY/upper/$TC_IMAGE" "/$TC_IMAGE.restored"
+        chown 0:0  "/$TC_IMAGE.restored"
+        chmod 0400 "/$TC_IMAGE.restored"
+
+        sync
+
+        info "Restored old system config via transconf"
     else
-        error "Failed to restore OLD_OVERLAY_TC_IMAGE=$OLD_OVERLAY_TC_IMAGE, rebooting" || true
+        error "Failed to restore $OLD_OVERLAY/upper/$TC_IMAGE, rebooting" || true
         reboot
         false
     fi
@@ -72,5 +87,6 @@ rm -Rf "$OLD_OVERLAY"
 # Don't run this script again
 rm "/etc/rcS.d/S30$SCRIPT_NAME"
 
-echo "Done"
-
+# Print message at end so that we have some indication in system log
+# that everything went well
+info "Marked current boot good"
