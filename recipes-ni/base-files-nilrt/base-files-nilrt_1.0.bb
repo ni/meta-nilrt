@@ -33,6 +33,9 @@ ARCH_ABI_EXT="${ABIEXTENSION}${@bb.utils.contains('TUNE_FEATURES','callconventio
 do_install () {
 	install -d -m 0755 ${D}${sysconfdir}/natinst/share/
 
+	# boot loader/init configuration directory
+	install -d -m 0755 ${D}${sysconfdir}/niboot/
+
 	# README's
 	install -m 0644 ${WORKDIR}/README_File_Paths.txt ${D}
 	install -m 0644 ${WORKDIR}/README_File_Transfer.txt ${D}
