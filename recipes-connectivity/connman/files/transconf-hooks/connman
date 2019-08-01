@@ -1,0 +1,114 @@
+#!/bin/bash
+set -euo pipefail
+
+# Transconf Connman Daemon Runparts Entry
+#
+# Saves/Restores:
+#   /var/lib/connman/settings
+#   /var/lib/connman/${service}/settings
+#
+# The script can expect to run with the following environment:
+#
+# Environment:
+#  TRANSCONF_DEBUG: Set to "1" to enable debug prints
+#  TRANSCONF_SYSROOT: Absolute path to sysroot to be saved/restored
+#  TRANSCONF_IMAGE_DIR: Absolute path to uncompressed archive directory
+#  PWD: A temporary empty directory
+#  stdin closed
+#  umask is 0022
+#  ulimit -c 0 to disable core dumps
+#
+# Functions:
+#  status msg: Prints diagnostic message when transconf is in debug mode
+#  warning msg: Prints warning message
+#  error msg: Prints error message and returns with error
+#
+# Positional arg 1:
+#  "save":    Donate  files from TRANSCONF_SYSROOT into TRANSCONF_IMAGE_DIR
+#  "restore": Restore files from TRANSCONF_IMAGE_DIR to TRANSCONF_SYSROOT
+
+module_name=connman
+module_version=1
+
+module_image_dir="${TRANSCONF_IMAGE_DIR}/${module_name}"
+connman_runtime="${TRANSCONF_SYSROOT}/var/lib/connman"
+
+function do_restore() {
+	status "Restoring transconf files for module: ${module_name}"
+	mkdir -p "${connman_runtime}"
+
+	restore_endpoint_settings
+
+	# daemon settings
+	if [ -e "${module_image_dir}/daemon_settings" ]; then
+		status "Restoring daemon settings."
+		cp "${module_image_dir}/daemon_settings" "${connman_runtime}/settings"
+		chmod 0644 "${connman_runtime}/settings"
+	fi
+
+}
+
+function do_save() {
+	status "Saving transconf files for module: ${module_name}"
+	mkdir "${module_image_dir}"
+
+	# module version
+	echo "${module_version}" >"${module_image_dir}/version"
+
+	save_endpoint_settings
+
+	# daemon settings (optional)
+	cp -a "${connman_runtime}/settings" "${module_image_dir}/daemon_settings" \
+		2>/dev/null && status "Saving daemon settings." || true
+}
+
+function restore_endpoint_settings() {
+	if [ ! -d "${module_image_dir}/endpoints" ]; then
+		return
+	fi
+
+	for endpoint_settings in "${module_image_dir}/endpoints"/*; do
+		endpoint=`basename "$endpoint_settings"`
+		status "Restoring endpoing settings: $endpoint"
+		mkdir -p "${connman_runtime}/${endpoint}"
+		cp "${endpoint_settings}" "${connman_runtime}/${endpoint}/settings"
+		chmod 0600 "${connman_runtime}/${endpoint}/settings"
+	done
+}
+
+function save_endpoint_settings() {
+	mkdir "${module_image_dir}/endpoints"
+	for endpoint_settings in `find "${connman_runtime}" -path "${connman_runtime}/*/settings"`; do
+		endpoint=`basename \`dirname "$endpoint_settings"\``
+		status "Saving endpoint settings for: $endpoint"
+		cp -a "${endpoint_settings}" "${module_image_dir}/endpoints/${endpoint}"
+		# Remove the "Config.file" entry from the endpoint settings, if it exsists.
+		# If connman loads an endpoint configuration with "Config.file"
+		# asserted, but there is no matching service config file (as there
+		# probably won't be, because we don't back those up), Connman will
+		# rewrite the entire endpoint config with default values.
+		sed -i 's/^Config\.file\=.*$//' "${module_image_dir}/endpoints/${endpoint}"
+	done
+}
+
+command_arg="${1:-}"
+case "$command_arg" in
+	"save")
+		do_save
+		sync
+		;;
+
+	"restore")
+		if [ -e "${module_image_dir}" ]; then
+			# Check version compatibility, can migrate if necessary
+			image_version=$(cat "${module_image_dir}/version")
+			[ "$module_version" -ge "$image_version" ] || error "Incompatible image version, max supported version is '$module_version', image version is '$image_version'"
+		fi
+
+		do_restore
+		sync
+		;;
+	*)
+		error "Invalid command $command_arg"
+		;;
+esac
