@@ -254,7 +254,7 @@ install_grub()
         # Delete existing NILRT entries with "-B" option
         for ENTRY in $(efibootmgr | egrep -i '(LabVIEW RT)|(niboota)|(nibootb)' | egrep -o '[0-9A-Fa-f]{4}' || true);
         do
-            print_info "Drop entry $ENTRY"
+            print_info " Drop entry $ENTRY."
             EFIMGR=$(efibootmgr -b "$ENTRY" -B 2>&1) || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
         done
         efibootmgr $VERBOSE_ARGS -c -d ${TARGET_DISK} -p 1 -L 'LabVIEW RT' -l '\efi\boot\bootx64.efi'
