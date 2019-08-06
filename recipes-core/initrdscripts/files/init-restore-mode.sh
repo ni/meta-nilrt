@@ -15,6 +15,7 @@ early_setup() {
     mkdir -p /run/lock
     mount -t proc proc /proc
     mount -t sysfs sysfs /sys
+    mount -t efivarfs efivarfs /sys/firmware/efi/efivars
     mount -t devtmpfs none /dev
 
     COUNT=0
