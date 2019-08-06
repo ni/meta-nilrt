@@ -312,15 +312,20 @@ elif [ "$ARCH" = "x86_64" ]; then
 
         # Install initial bundles to nibootX partitions
         echo "Deploying bundles..."
+
         local rauc_verbose_opt=""
         (( verbose_mode )) && rauc_verbose_opt="--debug"
-        # Override niboota to install to nibootb slot, and vice-versa
+
+        # Override niboota to install to nibootb slot
         rauc $rauc_verbose_opt --no-signatures --override-boot-slot=niboota install /payload/niboot.raucb 2>&1 || die "RAUC failed to install bundle to nibootb"
+        # Mark-good nibootb to install them at front of EFI BootOrder
+        rauc $rauc_verbose_opt --no-signatures --override-boot-slot=nibootb status mark-good niboot.1 2>&1 || die "RAUC failed to mark-good niboot.1 (nibootb)"
+
+        # Override nibootb to install to niboota slot
         rauc $rauc_verbose_opt --no-signatures --override-boot-slot=nibootb install /payload/niboot.raucb 2>&1 || die "RAUC failed to install bundle to niboota"
-        # Next mark-good niboota then nibootb to install them at front
-        #  of EFI BootOrder
-        rauc $rauc_verbose_opt --no-signatures --override-boot-slot=niboota status mark-good niboot.1 2>&1 || die "RAUC failed to mark-good niboot.1 (nibootb)"
+        # Mark-good niboota to install them at front of EFI BootOrder
         rauc $rauc_verbose_opt --no-signatures --override-boot-slot=niboota status mark-good niboot.0 2>&1 || die "RAUC failed to mark-good niboot.0 (niboota)"
+
         # Finally, mark-active niboota to ensure it's EFI BootNext
         rauc $rauc_verbose_opt --no-signatures --override-boot-slot=niboota status mark-active niboot.0 2>&1 || die "RAUC failed to mark-active niboot.0 (niboota)"
 
