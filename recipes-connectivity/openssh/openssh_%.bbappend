@@ -1,3 +1,5 @@
+FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+
 do_install_append () {
     # this logic is only for nilrt and nilrt-xfce, not for nilrt-nxg
     if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'false', 'true', d)}; then
@@ -28,3 +30,9 @@ do_install_append () {
         echo "HostKey /etc/natinst/share/ssh/ssh_host_ecdsa_key"   >>${D}${sysconfdir}/ssh/sshd_config
         echo "HostKey /etc/natinst/share/ssh/ssh_host_ed25519_key" >>${D}${sysconfdir}/ssh/sshd_config
 }
+
+# -transconf hook sublpackage
+inherit transconf-hook
+RDEPENDS_${PN}-transconf += "bash"
+SRC_URI =+ "file://transconf-hooks/"
+TRANSCONF_HOOKS_${PN} = "transconf-hooks/sshd"

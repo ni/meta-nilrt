@@ -1,0 +1,116 @@
+#!/bin/bash
+set -euo pipefail
+
+# Transconf SSH Daemon Runparts Entry
+#
+# The script can expect to run with the following environment:
+#
+# Environment:
+#  TRANSCONF_DEBUG: Set to "1" to enable debug prints
+#  TRANSCONF_SYSROOT: Absolute path to sysroot to be saved/restored
+#  TRANSCONF_IMAGE_DIR: Absolute path to uncompressed archive directory
+#  PWD: A temporary empty directory
+#  stdin closed
+#  umask is 0022
+#  ulimit -c 0 to disable core dumps
+#
+# Functions:
+#  status msg: Prints diagnostic message when transconf is in debug mode
+#  warning msg: Prints warning message
+#  error msg: Prints error message and returns with error
+#
+# Positional arg 1:
+#  "save":    Donate  files from TRANSCONF_SYSROOT into TRANSCONF_IMAGE_DIR
+#  "restore": Restore files from TRANSCONF_IMAGE_DIR to TRANSCONF_SYSROOT
+
+module_name=sshd
+module_version=1
+
+module_image_dir="${TRANSCONF_IMAGE_DIR}/${module_name}"
+etc_ssh="${TRANSCONF_SYSROOT}/etc/ssh"
+
+function do_restore() {
+	status "Restoring transconf files for module: ${module_name}"
+	mkdir -p "${etc_ssh}"
+
+	restore_host_keys  # optional
+	restore_root_user_keys  # optional
+}
+
+function do_save() {
+	mkdir "${module_image_dir}"
+
+	# module version
+	echo "${module_version}" >"${module_image_dir}/version"
+
+	save_host_keys  # optional
+	save_root_user_keys  # optional
+}
+
+function get_root_home() {
+	root_home=`egrep '^root:' "${TRANSCONF_SYSROOT}/etc/passwd" 2>/dev/null | cut -d':' -f 6 || echo ""`
+
+	if [ -z "${root_home}" ]; then
+		warning "Could not determine root user home directory. Assuming default."
+		root_home="${TRANSCONF_SYSROOT}/home/root"
+	fi
+
+	status "Using root home: ${root_home}"
+	echo "${root_home}"
+}
+
+function restore_host_keys() {
+	if [ ! -d "${module_image_dir}/host_keys" ]; then
+		return
+	fi
+
+	find "${module_image_dir}/host_keys" -type f \
+		-exec cp -a {} "${etc_ssh}/" \;
+}
+
+function restore_root_user_keys() {
+	if [ ! -e "${module_image_dir}/ssh_root" ]; then
+		return
+	fi
+	local root_home=`get_root_home`
+	mkdir -p "${root_home}"
+	cp -a "${module_image_dir}/ssh_root/." "${root_home}/.ssh"
+	chown -R 0:0 "${root_home}/.ssh"
+	chmod -R 0600 "${root_home}/.ssh"
+	chmod 0700 "${root_home}/.ssh"
+}
+
+function save_host_keys() {
+	mkdir -p "${module_image_dir}/host_keys"
+	find "${etc_ssh}" -name "ssh_host_*_key*" \
+		-exec cp -a {} "${module_image_dir}/host_keys" \;
+}
+
+function save_root_user_keys() {
+	root_home=`get_root_home`
+	if [ -d "${root_home}/.ssh" ]; then
+		cp -a "${root_home}/.ssh/." "${module_image_dir}/ssh_root" && \
+		chmod 0755 "${module_image_dir}/ssh_root"
+	fi
+}
+
+command_arg="${1:-}"
+case "$command_arg" in
+	"save")
+		status "Saving transconf files for module: ${module_name}"
+		do_save
+		;;
+
+	"restore")
+		if [ -e "${module_image_dir}" ]; then
+			# Check version compatibility, can migrate if necessary
+			image_version=$(cat "${module_image_dir}/version")
+			[ "$module_version" -ge "$image_version" ] || error "Incompatible image version, max supported version is '$module_version', image version is '$image_version'"
+		fi
+
+		do_restore
+		;;
+	*)
+		error "Invalid command $command_arg"
+		;;
+esac
