@@ -195,3 +195,9 @@ RDEPENDS_${PN}-tests = "${PN}-common python3-pytest-salt python3-tests python3-i
 FILES_${PN}-tests = "${PYTHON_SITEPACKAGES_DIR}/salt-tests/tests/"
 
 FILES_${PN}-bash-completion = "${sysconfdir}/bash_completion.d/${PN}-common"
+
+# ${PN}-transconf subpackage
+inherit transconf-hook
+SRC_URI =+ "file://transconf-hooks/"
+RDEPENDS_${PN}-transconf += "bash"
+TRANSCONF_HOOKS_${PN} = "transconf-hooks/salt"
