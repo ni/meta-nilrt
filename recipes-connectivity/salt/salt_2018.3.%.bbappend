@@ -73,3 +73,9 @@ do_install_ptest_append() {
 }
 
 INSANE_SKIP += "file-rdeps"
+
+# ${PN}-transconf subpackage
+inherit transconf-hook
+SRC_URI =+ "file://transconf-hooks/"
+RDEPENDS_${PN}-transconf += "bash"
+TRANSCONF_HOOKS_${PN} = "transconf-hooks/salt"
