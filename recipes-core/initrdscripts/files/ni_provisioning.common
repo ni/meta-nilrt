@@ -331,9 +331,27 @@ elif [ "$ARCH" = "x86_64" ]; then
 
         sync
 
+        efi_boot_config=$(efibootmgr -v)
+
         echo "EFI boot configuration:"
-        efibootmgr -v
+        echo "$efi_boot_config"
         echo "---"
+
+        # Post install sanity check: Verify niboota and nibootb are
+        #  first two boot entries and niboota is BootNext
+        echo -n "Check EFI boot configuration: "
+        boot_order=$(echo "$efi_boot_config" | egrep "^BootOrder: [0-9,]+" | cut -d" " -f2)
+        boot_A_numb=$(echo "$boot_order" | cut -d"," -f1)
+        boot_B_numb=$(echo "$boot_order" | cut -d"," -f2)
+        if ! echo "$efi_boot_config" | egrep -q "^Boot${boot_A_numb}.* niboota"$'\t'"+HD\(1,"; then
+            die "niboota is not at Boot${boot_A_numb}, boot_order=$boot_order"
+        fi
+        if ! echo "$efi_boot_config" | egrep -q "^Boot${boot_B_numb}.* nibootb"$'\t'"+HD\(2,"; then
+            die "nibootb is not at Boot${boot_B_numb}, boot_order=$boot_order"
+        fi
+        boot_next=$(echo "$efi_boot_config" | egrep "^BootNext: [0-9]+ *$" | cut -d" " -f2)
+        [ "$boot_next" == "$boot_A_numb" ] || die "BootNext=$boot_next, expecting niboota at $boot_A_numb"
+        echo "OK"
 
         provision_successfull
         ASK_BEFORE_REBOOT=1
