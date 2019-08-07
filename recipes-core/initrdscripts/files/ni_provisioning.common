@@ -106,7 +106,7 @@ cleanup_and_exit()
             echo "Unmounting all file systems"
             # unmounting rootfs kills /ni_provisioning right here,
             # sync and "Dropping to shell" message will be skipped
-            umount -a -r -t norootfs,noproc,nosysfs,nodevtmpfs
+            umount -a -r -t norootfs,noproc,nosysfs,noefivarfs,nodevtmpfs
             sync
 
             echo "Dropping to shell"
