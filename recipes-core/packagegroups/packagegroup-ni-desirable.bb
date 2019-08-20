@@ -23,6 +23,7 @@ RDEPENDS_${PN} += "\
 	elfutils \
 	file \
 	gdb \
+	git \
 	ldd \
 	ltrace \
 	mysql-python \
