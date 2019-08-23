@@ -14,7 +14,7 @@ IMAGE_INSTALL_NODEPS += " \
     ni-datacomms-lvinterface \
     libninwstreams \
     ni-service-locator \
-    nitaglv \
+    ni-varclient-rt \
 "
 
 IMAGE_INSTALL_NODEPS_append_x64 = " \
