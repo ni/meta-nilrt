@@ -377,6 +377,11 @@ install_grubenv()
 
     # Additional grubenv configuration, _NOT_ mirrored in grubenv.bak
 
+    # If the target is a qemu vm, enable consoleout
+    if dmidecode |grep -qi "virtual machine" ; then
+        grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "consoleoutenable=True"
+    fi
+
     # If an initial value for console out was specified, write it to grubenv
     if [ -n "$grubenv_consoleoutenable" ]; then
         grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "consoleoutenable=$grubenv_consoleoutenable"
