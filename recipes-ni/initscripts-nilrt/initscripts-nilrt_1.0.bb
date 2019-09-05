@@ -132,10 +132,21 @@ pkg_postinst_${PN} () {
 
 			# Since the network is already brought up on the first boot, reload the network to get the new rules
 			if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'true', 'false', d)}; then
+
+				NXG_ETHERNET_DRIVERS="igb e1000 virtio-pci"
+				active_drivers=""
+				for driver in $NXG_ETHERNET_DRIVERS; do
+					if `lsmod | grep -q "$driver"`; then
+						active_drivers="$active_drivers $driver"
+					fi
+				done
+
 				/etc/init.d/connman stop
 				/etc/init.d/udev stop
-				modprobe -r igb
-				modprobe igb
+				for mod in $active_drivers; do
+					modprobe -r "$mod"
+					modprobe "$mod"
+				done
 				/etc/init.d/udev start
 				/etc/init.d/connman start
 			fi
