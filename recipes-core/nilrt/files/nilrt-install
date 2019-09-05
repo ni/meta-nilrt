@@ -1,0 +1,4 @@
+#!/bin/bash
+set -e
+
+rauc --no-signatures install /nilrt-bundle-x64.raucb 2>&1
