@@ -4,7 +4,7 @@ require recipes-kernel/linux/linux-yocto.inc
 machine_srcrev="${SRCREV}"
 
 # Set the version for traceability purposes
-LINUX_VERSION_EXTENSION = "$([ -z "${BUILD_IDENTIFIER}" ] || echo '-')${BUILD_IDENTIFIER}"
+LINUX_VERSION_EXTENSION = "$([ -z "${BUILDNAME}" ] || echo '-')${BUILDNAME}"
 
 # Setting EXTRA_OEMAKE to include CFLAGS settings is required as
 # the Kbuild system will clobber CC (which is used by OE for setting
@@ -95,8 +95,8 @@ do_install_append() {
 }
 
 do_tag_kernel_build() {
-	if [ -z "${BUILD_IDENTIFIER}" -o "${ENABLE_BUILD_TAG_PUSH}" != "Yes" ]; then
-		bbnote "Skipping git repo tagging (" $([ -z "${BUILD_IDENTIFIER}" ] && echo "no BUILD_IDENTIFIER defined" || echo "tagging not enabled by ENABLE_BUILD_TAG_PUSH") ")"
+	if [ -z "${BUILDNAME}" -o "${ENABLE_BUILD_TAG_PUSH}" != "Yes" ]; then
+		bbnote "Skipping git repo tagging (" $([ -z "${BUILDNAME}" ] && echo "no BUILDNAME defined" || echo "tagging not enabled by ENABLE_BUILD_TAG_PUSH") ")"
 		return 0
 	fi
 
@@ -110,11 +110,11 @@ do_tag_kernel_build() {
 
 	cd ${S}
 
-	git tag -f ${BUILD_IDENTIFIER} ${machine_branch}
+	git tag -f ${BUILDNAME} ${machine_branch}
 
 # We'll let this fail if the same tag already exists on the server (something's
 # gone terribly wrong or, more likely, a minor oversight.)
-	git push ${pushurl} ${BUILD_IDENTIFIER}
+	git push ${pushurl} ${BUILDNAME}
 }
 
 addtask tag_kernel_build after do_compile before do_install
