@@ -306,9 +306,9 @@ elif [ "$ARCH" = "x86_64" ]; then
         echo "Finding niboot partitions..."
         local niboota_device=$(lsblk -rpn "$TARGET_DISK" -o NAME,PARTLABEL | grep " niboota$" | cut -d" " -f1)
         local nibootb_device=$(lsblk -rpn "$TARGET_DISK" -o NAME,PARTLABEL | grep " nibootb$" | cut -d" " -f1)
-        mkdir -p /dev/disk/by-partlabel
-        ln -sf "$niboota_device" "/dev/disk/by-partlabel/niboota"
-        ln -sf "$nibootb_device" "/dev/disk/by-partlabel/nibootb"
+        mkdir -p /dev/niboot/
+        ln -sf "$niboota_device" "/dev/niboot/niboota"
+        ln -sf "$nibootb_device" "/dev/niboot/nibootb"
 
         # Install initial bundles to nibootX partitions
         echo "Deploying bundles..."
