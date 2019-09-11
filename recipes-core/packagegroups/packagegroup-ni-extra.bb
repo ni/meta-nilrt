@@ -617,7 +617,6 @@ RDEPENDS_${PN} += "\
 	python-matplotlib \
 	python-pyudev \
 	python-pyalsaaudio \
-	python-pip \
 	python-pyusb \
 	python-markupsafe \
 	python-jinja2 \

@@ -27,6 +27,8 @@ RDEPENDS_${PN} += "\
 	ldd \
 	ltrace \
 	mysql-python \
+	python-pip \
+	python3-pip \
 	strace \
 	valgrind \
 "
