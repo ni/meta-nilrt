@@ -297,8 +297,8 @@ elif [ "$ARCH" = "x86_64" ]; then
             EFIMGR=$(efibootmgr -b "$ENTRY" -B 2>&1) || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
         done
         # Add nibootX entries with "-c" option
-        do_silent efibootmgr -c -d "$TARGET_DISK" -p 1 -L 'niboota' -l '\efi\boot\bootx64.efi'
-        do_silent efibootmgr -c -d "$TARGET_DISK" -p 2 -L 'nibootb' -l '\efi\boot\bootx64.efi'
+        do_silent efibootmgr -c -d "$TARGET_DISK" -p 1 -L 'niboota' -l '\efi\nilrt\bootx64.efi'
+        do_silent efibootmgr -c -d "$TARGET_DISK" -p 2 -L 'nibootb' -l '\efi\nilrt\bootx64.efi'
         # Print verbose configuration after with "-v" option
         do_silent efibootmgr -v
 

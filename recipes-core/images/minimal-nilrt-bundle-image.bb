@@ -7,8 +7,8 @@ IMAGE_FSTYPES = "tar.bz2"
 DEPENDS = "grub-efi grub-bootconf ${PREFERRED_PROVIDER_virtual/kernel}"
 
 IMAGE_INSTALL = " \
-	grub-efi \
-	grub-bootconf \
+	grub-efi-nilrt \
+	grub-bootconf-nilrt \
 	kernel-image-bzimage \
 "
 
@@ -46,9 +46,9 @@ bootimg_fixup() {
 	find "${IMAGE_ROOTFS}" -mindepth 1 \
 		-not -path "${IMAGE_ROOTFS}/boot" \
 		-a -not -path "${IMAGE_ROOTFS}/boot/*" \
-		-a -not -path "${IMAGE_ROOTFS}/boot/EFI" \
-		-a -not -path "${IMAGE_ROOTFS}/boot/EFI/BOOT" \
-		-a -not -path "${IMAGE_ROOTFS}/boot/EFI/BOOT/*" \
+		-a -not -path "${IMAGE_ROOTFS}/boot/efi" \
+		-a -not -path "${IMAGE_ROOTFS}/boot/efi/nilrt" \
+		-a -not -path "${IMAGE_ROOTFS}/boot/efi/nilrt/*" \
 		-delete
 
 	# Promote EFI system directory to top so that filesystem looks
