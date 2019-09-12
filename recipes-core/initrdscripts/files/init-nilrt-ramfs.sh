@@ -159,7 +159,9 @@ ln -sf "/dev/$niuser_part_device" /dev/niboot/niuser
 
 if   [ "$current_niboot_part_device" == "$niboota_part_device" ]; then
     ln -sf niboota /dev/niboot/niboot.current
+    ln -sf nibootb /dev/niboot/niboot.other
 elif [ "$current_niboot_part_device" == "$nibootb_part_device" ]; then
+    ln -sf niboota /dev/niboot/niboot.other
     ln -sf nibootb /dev/niboot/niboot.current
 else
     warn "Unrecognized current_niboot_part_device=$current_niboot_part_device"
