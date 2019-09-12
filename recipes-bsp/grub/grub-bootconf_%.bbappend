@@ -5,18 +5,18 @@ SRC_URI += " \
     file://grubenv \
 "
 
-build_efi_cfg() {
-    # Copy grub.cfg to grub-bootconf because do_install from
-    # openembedded-core recipe expects it there.
-    install -m 0644 ${S}/grub.cfg ${WORKDIR}/grub-bootconf
-}
+PACKAGES_prepend = "${PN}-nilrt"
 
-FILES_${PN} += "/boot/grub/grubenv"
-CONFFILES_${PN} += "/boot/grub/grubenv"
+FILES_${PN}-nilrt      += "/boot/efi/nilrt/grub.cfg /boot/grub/grubenv"
+CONFFILES_${PN}-nilrt  += "/boot/efi/nilrt/grub.cfg /boot/grub/grubenv"
 
 do_install_append () {
 
-    # Append empty grubenv
+    # Install NILRT grub.cfg
+    install -d ${D}/boot/efi/nilrt
+    install -m 0644 ${S}/grub.cfg ${D}/boot/efi/nilrt/grub.cfg
+
+    # Install empty grubenv
     install -d "${D}/boot/grub"
     install -m 0644 "${S}/grubenv" "${D}/boot/grub/grubenv"
 }
