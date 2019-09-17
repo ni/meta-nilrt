@@ -585,6 +585,7 @@ RDEPENDS_${PN} += "\
 	yp-tools \
 	nuttcp \
 	pimd \
+	proftpd \
 	smcroute \
 	sshpass \
 	ssmping \
