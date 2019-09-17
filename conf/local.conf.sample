@@ -236,3 +236,9 @@ PACKAGECONFIG_append_pn-nativesdk-qemu = " sdl"
 # track the version of this file when it was generated. This can safely be ignored if
 # this doesn't mean anything to you.
 CONF_VERSION = "1"
+
+# Set a meaningful default BUILDNAME. The bitbake default for the variable is a
+# concatentation of the currrent $DATE and $TIME - which is not very meaningful
+# and can lead to taskhash issues in recipes which are sensitive to it (like
+# os-release.)
+BUILDNAME := "dev-${MACHINE_ARCH}"
