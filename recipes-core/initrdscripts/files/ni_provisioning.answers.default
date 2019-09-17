@@ -8,6 +8,16 @@
 #  "n" = No, abort to shell
 PROVISION_REPARTITION_TARGET="?"
 
+# Specifies how target machine boots the OS
+#  "efi-ab" = Use EFI firmware to select between A and B ESPs via static
+#             BootNNNN entries and BootOrder. Required for NILRT
+#             power-loss safe image updates via RAUC. The default.
+#  "efi-auto" = Automatic EFI boot from an ESP containing boot loader
+#               at /efi/boot/bootx64.efi path. Useful for booting
+#               removable storage and VMs where EFI nvram configuration
+#               cannot persist.
+PROVISION_BOOT_SCHEME="efi-ab"
+
 # Reboot, power off, or drop to shell after provisioning
 #  "reboot" = Reboot the target
 #  "poweroff" = Power off the target

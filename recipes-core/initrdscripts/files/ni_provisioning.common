@@ -289,20 +289,8 @@ elif [ "$ARCH" = "x86_64" ]; then
         echo "Partitioning $TARGET_DISK..."
         do_silent disk_setup "$TARGET_DISK"
 
-        echo "Configuring EFI grub2..."
-        # Delete existing NILRT entries with "-B" option
-        for ENTRY in $(efibootmgr | egrep -i '(LabVIEW RT)|(niboota)|(nibootb)' | egrep -o '[0-9A-Fa-f]{4}' || true);
-        do
-            do_silent echo "Drop entry $ENTRY"
-            EFIMGR=$(efibootmgr -b "$ENTRY" -B 2>&1) || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
-        done
-        # Add nibootX entries with "-c" option
-        do_silent efibootmgr -c -d "$TARGET_DISK" -p 1 -L 'niboota' -l '\efi\nilrt\bootx64.efi'
-        do_silent efibootmgr -c -d "$TARGET_DISK" -p 2 -L 'nibootb' -l '\efi\nilrt\bootx64.efi'
-        # Print verbose configuration after with "-v" option
-        do_silent efibootmgr -v
-
-        # XXX No udev in the provisioning tool, find niboota and nibootb partlabels and link as needed by RAUC
+        # XXX Find niboota and nibootb partlabels on TARGET_DISK and
+        # link as needed by RAUC
         echo "Finding niboot partitions..."
         local niboota_device=$(lsblk -rpn "$TARGET_DISK" -o NAME,PARTLABEL | grep " niboota$" | cut -d" " -f1)
         local nibootb_device=$(lsblk -rpn "$TARGET_DISK" -o NAME,PARTLABEL | grep " nibootb$" | cut -d" " -f1)
@@ -310,48 +298,104 @@ elif [ "$ARCH" = "x86_64" ]; then
         ln -sf "$niboota_device" "/dev/niboot/niboota"
         ln -sf "$nibootb_device" "/dev/niboot/nibootb"
 
-        # Install initial bundles to nibootX partitions
-        echo "Deploying bundles..."
+        local run_rauc="rauc --no-signatures"
+        (( verbose_mode )) && run_rauc="$run_rauc --debug"
 
-        local rauc_verbose_opt=""
-        (( verbose_mode )) && rauc_verbose_opt="--debug"
+        if [ "$PROVISION_BOOT_SCHEME" == "efi-ab" ]; then
+            echo "Configuring EFI for A/B image boot..."
 
-        # Override niboota to install to nibootb slot
-        rauc $rauc_verbose_opt --no-signatures --override-boot-slot=niboota install /payload/niboot.raucb 2>&1 || die "RAUC failed to install bundle to nibootb"
-        # Mark-good nibootb to install them at front of EFI BootOrder
-        rauc $rauc_verbose_opt --no-signatures --override-boot-slot=nibootb status mark-good niboot.1 2>&1 || die "RAUC failed to mark-good niboot.1 (nibootb)"
+            # Delete existing NILRT entries with "-B" option
+            for ENTRY in $(efibootmgr | egrep -i '(LabVIEW RT)|(niboota)|(nibootb)' | egrep -o '[0-9A-Fa-f]{4}' || true);
+            do
+                do_silent echo "Drop entry $ENTRY"
+                EFIMGR=$(efibootmgr -b "$ENTRY" -B 2>&1) || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
+            done
 
-        # Override nibootb to install to niboota slot
-        rauc $rauc_verbose_opt --no-signatures --override-boot-slot=nibootb install /payload/niboot.raucb 2>&1 || die "RAUC failed to install bundle to niboota"
-        # Mark-good niboota to install them at front of EFI BootOrder
-        rauc $rauc_verbose_opt --no-signatures --override-boot-slot=niboota status mark-good niboot.0 2>&1 || die "RAUC failed to mark-good niboot.0 (niboota)"
+            # Add nibootX entries with "-c" option
+            do_silent efibootmgr -c -d "$TARGET_DISK" -p 1 -L 'niboota' -l '\efi\nilrt\bootx64.efi'
+            do_silent efibootmgr -c -d "$TARGET_DISK" -p 2 -L 'nibootb' -l '\efi\nilrt\bootx64.efi'
 
-        # Finally, mark-active niboota to ensure it's EFI BootNext
-        rauc $rauc_verbose_opt --no-signatures --override-boot-slot=niboota status mark-active niboot.0 2>&1 || die "RAUC failed to mark-active niboot.0 (niboota)"
+            echo "Deploying bundles to niboota and nibootb slots..."
 
-        sync
+            # Override niboota to install to nibootb slot
+            $run_rauc --override-boot-slot=niboota install /payload/niboot.raucb 2>&1 || die "RAUC failed to install bundle to nibootb"
+            # Mark-good nibootb to install them at front of EFI BootOrder
+            $run_rauc --override-boot-slot=nibootb status mark-good niboot.1 2>&1 || die "RAUC failed to mark-good niboot.1 (nibootb)"
 
-        efi_boot_config=$(efibootmgr -v)
+            # Override nibootb to install to niboota slot
+            $run_rauc --override-boot-slot=nibootb install /payload/niboot.raucb 2>&1 || die "RAUC failed to install bundle to niboota"
+            # Mark-good niboota to install them at front of EFI BootOrder
+            $run_rauc --override-boot-slot=niboota status mark-good niboot.0 2>&1 || die "RAUC failed to mark-good niboot.0 (niboota)"
 
-        echo "EFI boot configuration:"
-        echo "$efi_boot_config"
-        echo "---"
+            # Finally, mark-active niboota to ensure it's EFI BootNext
+            $run_rauc --override-boot-slot=niboota status mark-active niboot.0 2>&1 || die "RAUC failed to mark-active niboot.0 (niboota)"
 
-        # Post install sanity check: Verify niboota and nibootb are
-        #  first two boot entries and niboota is BootNext
-        echo -n "Check EFI boot configuration: "
-        boot_order=$(echo "$efi_boot_config" | egrep "^BootOrder: [0-9,]+" | cut -d" " -f2)
-        boot_A_numb=$(echo "$boot_order" | cut -d"," -f1)
-        boot_B_numb=$(echo "$boot_order" | cut -d"," -f2)
-        if ! echo "$efi_boot_config" | egrep -q "^Boot${boot_A_numb}.* niboota"$'\t'"+HD\(1,"; then
-            die "niboota is not at Boot${boot_A_numb}, boot_order=$boot_order"
+            sync
+
+            efi_boot_config=$(efibootmgr -v)
+
+            echo "EFI boot configuration:"
+            echo "$efi_boot_config"
+            echo "---"
+
+            # Post install sanity check: Verify niboota and nibootb are
+            #  first two boot entries and niboota is BootNext
+            echo -n "Check EFI boot configuration: "
+
+            boot_order=$(echo "$efi_boot_config" | egrep "^BootOrder: [0-9,]+" | cut -d" " -f2)
+            boot_A_numb=$(echo "$boot_order" | cut -d"," -f1)
+            boot_B_numb=$(echo "$boot_order" | cut -d"," -f2)
+
+            if ! echo "$efi_boot_config" | egrep -q "^Boot${boot_A_numb}.* niboota"$'\t'"+HD\(1,"; then
+                die "niboota is not at Boot${boot_A_numb}, boot_order=$boot_order"
+            fi
+
+            if ! echo "$efi_boot_config" | egrep -q "^Boot${boot_B_numb}.* nibootb"$'\t'"+HD\(2,"; then
+                die "nibootb is not at Boot${boot_B_numb}, boot_order=$boot_order"
+            fi
+
+            boot_next=$(echo "$efi_boot_config" | egrep "^BootNext: [0-9]+ *$" | cut -d" " -f2)
+            [ "$boot_next" == "$boot_A_numb" ] || die "BootNext=$boot_next, expecting niboota at $boot_A_numb"
+
+            echo "OK"
+
+        elif [ "$PROVISION_BOOT_SCHEME" == "efi-auto" ]; then
+            echo "Installing automatic EFI boot loader..."
+
+            mkdir /mnt/efi-auto /mnt/efi-auto/bundle /mnt/efi-auto/niboota
+
+            # Write image to slot 0 (niboota)
+            mount -o ro /payload/niboot.raucb /mnt/efi-auto/bundle
+            mount -o rw /dev/niboot/niboota /mnt/efi-auto/niboota
+
+            local img_written=false
+            for imgname in "minimal-nilrt-bundle-image-x64.tar.bz2" "lvcomms-nilrt-bundle-image-x64.tar.bz2"; do
+                local imgpath="/mnt/efi-auto/bundle/$imgname"
+
+                if [ -e "$imgpath" ]; then
+                    echo "Installing $imgpath"
+                    tar -xf "$imgpath" -C "/mnt/efi-auto/niboota/"
+
+                    img_written=true
+                    break
+                fi
+            done
+            if ! $img_written; then
+                die "Failed to find an image file in bundle"
+            fi
+
+            # Move boot loader image to auto-discoverable /efi/boot/
+            mkdir /mnt/efi-auto/niboota/efi/boot
+            mv /mnt/efi-auto/niboota/efi/nilrt/bootx64.efi /mnt/efi-auto/niboota/efi/boot/bootx64.efi
+
+            umount /mnt/efi-auto/niboota
+            umount /mnt/efi-auto/bundle
+
+            sync
+
+        else
+            die "Invalid PROVISION_BOOT_SCHEME"
         fi
-        if ! echo "$efi_boot_config" | egrep -q "^Boot${boot_B_numb}.* nibootb"$'\t'"+HD\(2,"; then
-            die "nibootb is not at Boot${boot_B_numb}, boot_order=$boot_order"
-        fi
-        boot_next=$(echo "$efi_boot_config" | egrep "^BootNext: [0-9]+ *$" | cut -d" " -f2)
-        [ "$boot_next" == "$boot_A_numb" ] || die "BootNext=$boot_next, expecting niboota at $boot_A_numb"
-        echo "OK"
 
         provision_successfull
         ASK_BEFORE_REBOOT=1
