@@ -1,0 +1,67 @@
+#!/bin/bash
+
+if [ -e /ni_provisioning.common ]; then
+    source /ni_provisioning.common
+else
+    printf "\n***Error: File ni_provisioning.common not found!\n"
+    printf "PROVISIONING FAILED!"
+    exit 1
+fi
+
+die()
+{
+    echo -e "${RED}\n***Error: $1\nEFI Recovery FAILED!${NC}"
+    cleanup_and_exit 1
+}
+
+show_help()
+{
+    >&3 echo -e "\nUsage: $0 [-hv] [-t DEVICE]\n"
+    >&3 echo -e "Options\n"
+    >&3 echo "   -h : Show help."
+    >&3 echo "   -v : Verbose mode."
+    >&3 echo "   -t DEVICE : DEVICE is the device name for the disk to update. (e.g /dev/sda)"
+    >&3 echo "               If DEVICE is not specificed, the first non-removable block device"
+    >&3 echo "               that is not the recovery tool is used."
+}
+
+check_partition()
+{
+    local label=`lsblk ${TARGET_DISK}$1 -n -o LABEL 2>/dev/null`
+    if [[ "$label" != "$2" ]]; then
+        (( verbose_mode )) && die "Expected ${TARGET_DISK}$1 to have disk label $2."
+    fi
+
+    mkdir -p /mnt/partition
+    NILRT_ERROR=`mount -t vfat ${TARGET_DISK}$1 /mnt/partition 2>&1` || die "$NILRT_ERROR"
+    if ! [[ -f /mnt/partition/efi/nilrt/bootx64.efi ]]; then
+       NILRT_ERROR="File not found: /efi/nilrt/bootx64.efi on ${TARGET_DISK}$1"
+    fi
+    umount /mnt/partition
+    rmdir /mnt/partition
+    [ -z $NILRT_ERROR ] || die "$NILRT_ERROR"
+}
+
+early_setup "$@"
+
+# Verify disk labels on selected device
+check_partition 1 niboota
+check_partition 2 nibootb
+
+# Delete any existing entries matching a known spec
+for ENTRY in $(efibootmgr | egrep -i '(LabVIEW RT)|(niboota)|(nibootb)' | egrep -o '[0-9A-Fa-f]{4}' || true);
+do
+    do_silent echo "Drop entry $ENTRY"
+    EFIMGR=$(efibootmgr -b "$ENTRY" -B 2>&1) || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
+done
+
+# Add nibootX entries reversed order so niboota is booted first
+do_silent efibootmgr -c -d "$TARGET_DISK" -p 2 -L 'nibootb' -l '\efi\nilrt\bootx64.efi'
+do_silent efibootmgr -c -d "$TARGET_DISK" -p 1 -L 'niboota' -l '\efi\nilrt\bootx64.efi'
+
+echo "EFI boot configuration:"
+efibootmgr -v
+echo "---"
+
+echo -e ${GREEN}"EFI Recovery SUCCESSFUL!"${NC} 1>&3 2>&4
+
