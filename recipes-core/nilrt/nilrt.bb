@@ -5,6 +5,8 @@ LIC_FILES_CHKSUM = "file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384
 BUNDLE = "nilrt-bundle"
 DEPENDS = "${BUNDLE} safemode-image"
 RDEPENDS_${PN} += "bash rauc"
+ALLOW_EMPTY_${PN}-dbg = "0"
+ALLOW_EMPTY_${PN}-dev = "0"
 
 SRC_URI += "\
     file://${PN}-install \
