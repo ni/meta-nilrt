@@ -221,6 +221,10 @@ partitioning_disk()
         sfdisk -c $TARGET_DISK 1 EF
     fi
     print_done
+
+    print_info "Probing partitions of TARGET_DISK=$TARGET_DISK ..."
+    partprobe -s "$TARGET_DISK"
+    print_done
 }
 
 create_filesystems()

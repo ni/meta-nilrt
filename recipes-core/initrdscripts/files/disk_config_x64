@@ -29,6 +29,8 @@ disk_partition()
     sgdisk --typecode="1:C12A7328-F81F-11D2-BA4B-00A0C93EC93B" "$disk"
     sgdisk --typecode="2:C12A7328-F81F-11D2-BA4B-00A0C93EC93B" "$disk"
     sgdisk --typecode="3:4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709" "$disk"
+
+    partprobe -s "$disk"
 }
 
 partition_format()
