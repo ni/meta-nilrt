@@ -97,6 +97,22 @@ function read_config_token() {
     echo "$value"
 }
 
+function drop_config_token() {
+    local filename="$1"
+    local token="$2"
+
+    if [ ! -e "$filename" ]; then
+        return
+    fi
+
+    rm -f "$filename.new"
+    cp -p "$filename" "$filename.new"
+
+    sed -i "/^""$token""=/d" "$filename.new"
+
+    mv "$filename.new" "$filename"
+}
+
 function read_file() {
     local filename="$1"
     local maxsize="$2"
@@ -239,6 +255,28 @@ if $do_reset_overlay; then
     mv "$U_MNT/overlay.new" "$U_MNT/overlay"
 fi
 
+boot_safemode=false
+
+if [ "$(read_config_token "$U_OVERLAY_CFG" boot_safemode)" == "true" ]; then
+    status "Booting safemode, directed by user config"
+    drop_config_token "$U_OVERLAY_CFG" boot_safemode
+    boot_safemode=true
+fi
+
+for file in /sys/bus/acpi/drivers/nirtfeatures/*/safe_mode; do
+    status=$(read_file "$file" 10)
+    if [ "$status" == "1" ]; then
+        status "Booting safemode, directed by firmware ($file = 1)"
+        boot_safemode=true
+    fi
+done
+
+init_options=""
+
+if $boot_safemode; then
+    init_options="4"
+fi
+
 status "Create mount point for overlay"
 mkdir -p "$U_MNT/overlay/lower"
 mkdir -p "$U_MNT/overlay/upper"
@@ -262,5 +300,5 @@ status "Restore printk_devkmsg=$ORIG_KMSG_CONFIG"
 echo "$ORIG_KMSG_CONFIG" > "/proc/sys/kernel/printk_devkmsg"
 
 status "Running switch_root to $U_MNT/overlay/image/"
-exec switch_root "$U_MNT/overlay/image/" /sbin/init
+exec switch_root "$U_MNT/overlay/image/" /sbin/init $init_options
 
