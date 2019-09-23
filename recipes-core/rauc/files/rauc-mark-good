@@ -32,6 +32,23 @@ function info () {
     echo "$SCRIPT_NAME: $*" || true
 }
 
+if [ "${1:-}" != "start" ]; then
+    error "This boot script can only run with 'start' parameter"
+fi
+
+readonly FIRST_BOOT_MARKER="/var/lib/rauc/first-boot.done"
+if [ -e "$FIRST_BOOT_MARKER" ]; then
+    readonly FIRST_BOOT=false
+else
+    readonly FIRST_BOOT=true
+fi
+
+if efibootmgr | egrep -q '^Boot.* niboot(a|b)( |$)'; then
+    readonly HAS_NIBOOT_EFI=true
+else
+    readonly HAS_NIBOOT_EFI=false
+fi
+
 function cleanup() {
     local exitCode="$?"
 
@@ -42,8 +59,21 @@ function cleanup() {
         rmdir "$NIUSER_TMP_MOUNT"
     fi
 
+    if $FIRST_BOOT; then
+        # Add first-boot marker file
+        echo -n > "$FIRST_BOOT_MARKER"
+        chmod 0444 "$FIRST_BOOT_MARKER"
+        sync
+    fi
+
     if [ "$exitCode" != "0" ]; then
-        error "exitCode=$exitCode"
+        error "exitCode=$exitCode, FIRST_BOOT=$FIRST_BOOT, HAS_NIBOOT_EFI=$HAS_NIBOOT_EFI"
+
+        # Reboot only if running A/B capable EFI
+        if $FIRST_BOOT && $HAS_NIBOOT_EFI; then
+            error "Rebooting due to error on first boot"
+            reboot
+        fi
     fi
 
     exit "$exitCode"
@@ -51,41 +81,42 @@ function cleanup() {
 
 trap cleanup EXIT
 
-if [ "${1:-}" != "start" ]; then
-    error "May only run during startup"
-fi
+# Migrate transconf config on first boot only
+if $FIRST_BOOT; then
+    readonly NIUSER_TMP_MOUNT=$(mktemp -d "/var/volatile/niuser-mnt-XXXXXXX")
+    chmod 0700 "$NIUSER_TMP_MOUNT"
+    mount -o rw,sync,relatime /dev/niboot/niuser "$NIUSER_TMP_MOUNT"
 
-readonly NIUSER_TMP_MOUNT=$(mktemp -d "/var/volatile/niuser-mnt-XXXXXXX")
-chmod 0700 "$NIUSER_TMP_MOUNT"
-mount -o rw,sync,relatime /dev/niboot/niuser "$NIUSER_TMP_MOUNT"
+    readonly OLD_OVERLAY="$NIUSER_TMP_MOUNT/overlay.old"
+    readonly TC_IMAGE="etc/niboot/system-config-image.tgz"
 
-readonly OLD_OVERLAY="$NIUSER_TMP_MOUNT/overlay.old"
-readonly TC_IMAGE="etc/niboot/system-config-image.tgz"
+    if [ -e "$OLD_OVERLAY/upper/$TC_IMAGE" ]; then
+        if transconf restore "$OLD_OVERLAY/upper/$TC_IMAGE"; then
+            mv "$OLD_OVERLAY/upper/$TC_IMAGE" "/$TC_IMAGE.restored"
+            chown 0:0  "/$TC_IMAGE.restored"
+            chmod 0400 "/$TC_IMAGE.restored"
 
-if [ -e "$OLD_OVERLAY/upper/$TC_IMAGE" ]; then
-    if transconf restore "$OLD_OVERLAY/upper/$TC_IMAGE"; then
-        mv "$OLD_OVERLAY/upper/$TC_IMAGE" "/$TC_IMAGE.restored"
-        chown 0:0  "/$TC_IMAGE.restored"
-        chmod 0400 "/$TC_IMAGE.restored"
+            sync
 
-        sync
-
-        info "Restored old system config via transconf"
-    else
-        error "Failed to restore $OLD_OVERLAY/upper/$TC_IMAGE, rebooting" || true
-        reboot
-        false
+            info "Restored old system config via transconf"
+        else
+            error "Failed to restore $OLD_OVERLAY/upper/$TC_IMAGE"
+        fi
     fi
 fi
 
 # Mark the current boot good
-rauc status mark-good >/dev/null
+# Suppress errors when running on non-A/B capable firmware/boot loader
+if $HAS_NIBOOT_EFI; then
+    rauc status mark-good >/dev/null
+else
+    rauc status mark-good >/dev/null || true
+fi
 
-# Delete old overlay to reclaim disk
-rm -Rf "$OLD_OVERLAY"
-
-# Don't run this script again
-rm "/etc/rcS.d/S30$SCRIPT_NAME"
+if $FIRST_BOOT; then
+    # Delete old overlay to reclaim disk
+    rm -Rf "$OLD_OVERLAY"
+fi
 
 # Print message at end so that we have some indication in system log
 # that everything went well
