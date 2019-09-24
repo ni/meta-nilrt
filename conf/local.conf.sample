@@ -42,7 +42,16 @@ DISTRO ?= "nilrt-nxg"
 
 # Clean *most* package work directories
 INHERIT += " rm_work "
-RM_WORK_EXCLUDE += "restore-mode-image lvcomms-restore-mode-image safemode-restore-image niconsole-image niconsole-image-safe"
+RM_WORK_EXCLUDE += " \
+	dist-nilrt-efi-ab \
+	dist-nilrt-efi-ab-gateway \
+	dist-nilrt-grub-gateway \
+	lvcomms-restore-mode-image \
+	niconsole-image \
+	niconsole-image-safe \
+	restore-mode-image \
+	safemode-restore-image \
+"
 
 # Include buildhistory as it is used by toaster as well as generally
 # useful in detecting changes in builds/configurations
