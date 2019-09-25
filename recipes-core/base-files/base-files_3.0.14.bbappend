@@ -30,10 +30,9 @@ do_install_append () {
 	if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'true', 'false', d)}; then
 		# only for newer NILRT
 		install -m 644 ${WORKDIR}/issue.net  ${D}${sysconfdir}
-	else
-		# only for older NILRT
-		install ${WORKDIR}/safemode-ps1.sh ${D}${sysconfdir}/profile.d/
 	fi
+
+	install ${WORKDIR}/safemode-ps1.sh ${D}${sysconfdir}/profile.d/
 
 	install -d ${D}${sysconfdir}/default/volatiles/
 	echo "d root root 0755 /var/volatile/cache none" \
