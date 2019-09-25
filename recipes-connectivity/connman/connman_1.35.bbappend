@@ -14,3 +14,5 @@ inherit transconf-hook
 SRC_URI =+ "file://transconf-hooks/"
 RDEPENDS_${PN}-transconf += "bash"
 TRANSCONF_HOOKS_${PN} = "transconf-hooks/connman"
+
+INITSCRIPT_PARAMS = "start 05 4 5 . stop 22 0 1 2 3 6 ."
