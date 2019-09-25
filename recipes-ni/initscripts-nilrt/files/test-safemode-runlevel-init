@@ -1,0 +1,38 @@
+#!/bin/bash
+set -euo pipefail
+readonly SCRIPT_NAME="test-safemode-runlevel-init"
+
+cleanup () {
+    exitCode="$?"
+
+    set +e
+
+    if [ -e "${TEMP_DIR:-}" ]; then
+        rm -R "$TEMP_DIR"
+    fi
+
+    if [ "$exitCode" == "0" ]; then
+        echo "PASS: $SCRIPT_NAME"
+    else
+        echo "FAIL: $SCRIPT_NAME"
+    fi
+
+    exit "$exitCode"
+}
+
+trap cleanup EXIT
+
+readonly TEMP_DIR=$(mktemp -d "/tmp/$SCRIPT_NAME-XXXXXXX")
+
+for rcn in rc4 rc5; do
+    find "/etc/$rcn.d" -mindepth 1 -exec basename {} \; \
+        | sort | uniq > "$TEMP_DIR/$rcn.list"
+done
+
+diff "$TEMP_DIR/rc4.list" "$TEMP_DIR/rc5.list" >"$TEMP_DIR/rc.diff" 2>&1 || true
+if [ -s "$TEMP_DIR/rc.diff" ]; then
+    echo "rc4 and rc5 should not differ in base image"
+    cat "$TEMP_DIR/rc.diff"
+    false
+fi
+

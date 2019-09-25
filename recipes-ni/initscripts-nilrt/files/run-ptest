@@ -1,5 +1,7 @@
 #!/bin/sh
 
+./test-safemode-runlevel-init
+
 ./test-nisetcommitratio-unit
 ./test-nisetcommitratio-system
 

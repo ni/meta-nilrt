@@ -25,6 +25,7 @@ SRC_URI = "file://nisetbootmode \
            file://test-nisetcommitratio-common.sh \
            file://test-nisetcommitratio-system \
            file://test-nisetcommitratio-unit \
+           file://test-safemode-runlevel-init \
            file://nisetled \
            file://wirelesssetdomain \
            file://iso3166-translation.txt \
@@ -172,6 +173,7 @@ do_install_append_x64 () {
 
 do_install_ptest () {
 	cp ${WORKDIR}/test-nisetcommitratio-* ${D}${PTEST_PATH}/
+	cp ${WORKDIR}/test-safemode-runlevel-init ${D}${PTEST_PATH}/
 }
 
 do_install_ptest_append_x64 () {
