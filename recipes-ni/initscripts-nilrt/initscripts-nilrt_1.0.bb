@@ -78,10 +78,10 @@ do_install () {
 	update-rc.d -r ${D} firewall              start 39 S .
 	update-rc.d -r ${D} mountdebugfs          start 82 S .
 	update-rc.d -r ${D} nicleanstalelinks     start 5  S .
-	update-rc.d -r ${D} nicreatecpusets       start 1  5 .
-	update-rc.d -r ${D} nicreatecpuacctgroups start 2  5 .
+	update-rc.d -r ${D} nicreatecpusets       start 1  4 5 .
+	update-rc.d -r ${D} nicreatecpuacctgroups start 2  4 5 .
 	update-rc.d -r ${D} nipopulateconfigdir   start 36 S .
-	update-rc.d -r ${D} nisetupkernelconfig   start 3  5 .
+	update-rc.d -r ${D} nisetupkernelconfig   start 3  4 5 .
 	update-rc.d -r ${D} nisetcommitratio      start 99 S .
 	update-rc.d -r ${D} wirelesssetdomain     start 36 S .
 
@@ -95,18 +95,18 @@ do_install () {
 	# responsibility for setting IRQ thread priority to RIO nisetupirqpriority
 	# script that sets up kernel config parameters
 	if [ "${TARGET_ARCH}" = "arm" ]; then
-		update-rc.d -r ${D} nisetupirqpriority start 4 5 .
+		update-rc.d -r ${D} nisetupirqpriority start 4 4 5 .
 	else
-		update-rc.d -r ${D} nisetupirqpriority start 30 5 .
+		update-rc.d -r ${D} nisetupirqpriority start 30 4 5 .
 	fi
 
 	# CAR 450019: Remove this code (and associated script) and migrate
 	# responsibility for setting IRQ thread priority to RIO nisetupirqpriority
 	# script that sets up kernel config parameters
 	if [ "${TARGET_ARCH}" = "arm" ]; then
-		update-rc.d -r ${D} nisetupirqpriority start 4 5 .
+		update-rc.d -r ${D} nisetupirqpriority start 4 4 5 .
 	else
-		update-rc.d -r ${D} nisetupirqpriority start 30 5 .
+		update-rc.d -r ${D} nisetupirqpriority start 30 4 5 .
 	fi
 }
 
@@ -161,7 +161,7 @@ do_install_append_x64 () {
 	install -m 0755   ${WORKDIR}/nidisablecstates      ${D}${sysconfdir}/init.d
 	update-rc.d -r ${D} nidisablecstates start 2 3 4 5 S .
 	install -m 0755   ${WORKDIR}/nicheckbiosconfig      ${D}${sysconfdir}/init.d
-	update-rc.d -r ${D} nicheckbiosconfig start 99 5 .
+	update-rc.d -r ${D} nicheckbiosconfig start 99 4 5 .
 
 	install -m 0755   ${WORKDIR}/niopendisks   ${D}${sysconfdir}/init.d
 	update-rc.d -r ${D} niopendisks start 00 S .
