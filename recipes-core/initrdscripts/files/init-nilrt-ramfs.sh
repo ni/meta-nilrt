@@ -277,6 +277,16 @@ if $boot_safemode; then
     init_options="4"
 fi
 
+for file in /sys/bus/acpi/drivers/nirtfeatures/*/ip_reset; do
+    status=$(read_file "$file" 10)
+    if [ "$status" == "1" ]; then
+        status "Reset network configuration, directed by firmware ($file = 1)"
+        if [  -e "$U_MNT/overlay/upper/var/lib/connman/"  ]; then
+            find "$U_MNT/overlay/upper/var/lib/connman/" -mindepth 1 -maxdepth 1 -exec rm -Rf {} \;
+        fi
+    fi
+done
+
 status "Create mount point for overlay"
 mkdir -p "$U_MNT/overlay/lower"
 mkdir -p "$U_MNT/overlay/upper"
