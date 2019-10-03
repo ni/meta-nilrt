@@ -23,17 +23,17 @@ RDEPENDS_${PN}-ptest += " bash "
 do_compile() {
     mkdir -p ${S}/${sysconfdir}/opkg
 
-    # Add normal feeds
-    for feedName in ${NILRT_SUBFEED_NAMES}; do
-        for arch in ${NILRT_SUBFEED_ARCHES}; do
+    # Install source files for OE feeds with TUNEARCH flavors
+    for feedName in ${NILRT_OE_SUBFEED_NAMES}; do
+        for arch in ${NILRT_OE_SUBFEED_ARCHES}; do
             distroFeedUri=`eval 'echo $'"${feedName}_SUBFEED_URI"`
             test -n "${distroFeedUri}"
             echo "src/gz ${feedName}-${arch} ${distroFeedUri}/${arch}" > "${S}/${sysconfdir}/opkg/${feedName}-${arch}-feed.conf"
         done
     done
 
-    # Load up the snowflakes in NILRT_ADDITIONAL_FEED_URIS
-    for feedTuple in ${NILRT_ADDITIONAL_FEED_URIS}; do
+    # Install the source files for NI feeds
+    for feedTuple in ${NILRT_NI_FEED_URIS}; do
         feedName=$(echo $feedTuple | sed 's/^[ \t]*\([^ \t#]*\)[ \t]*##.*$/\1/')
         feedUrl=$(echo $feedTuple | sed 's/^.*##[ \t]*\([^ \t]*\)[ \t]*.*$/\1/')
         echo "src/gz ${feedName} ${feedUrl}" > "${S}/${sysconfdir}/opkg/${feedName}-feed.conf"
