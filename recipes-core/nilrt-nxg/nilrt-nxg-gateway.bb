@@ -21,6 +21,14 @@ do_install_append_x64() {
     install -m 0755 ${DEPLOY_DIR_IMAGE}/restore-mode-image-x64.cpio.gz ${D}/newNILinuxRT/initrd
 }
 
+python do_package_ipk_prepend() {
+    d.setVar('OPKGBUILDCMD', 'opkg-build')
+}
+
+python do_package_ipk_append() {
+    d.setVar('OPKGBUILDCMD', '')
+}
+
 pkg_postinst_${PN}() {
     # If installed in safemode, move the payload to a non-volatile location
     if [ -d /mnt/userfs ]; then
