@@ -198,13 +198,15 @@ elif [ "$ARCH" = "x86_64" ]; then
 
         # Skip the recovery partition itself. Scan all partitions that might be present
         # at/underneath the given block device.
-        for p in ${block}*; do
-            local label=`lsblk $p -n -o LABEL 2>/dev/null`
-            if [[ "$label" == "NIRECOVERY" ]]; then
-                (( verbose_mode )) && echo "SKIPPED $path_abbrev: contains NIRECOVERY" >&2
-                return 1
-            fi
-        done
+        if [[ "$restore" != "migrate" && "$restore" != "backward-migrate" ]] ; then
+            for p in ${block}*; do
+                local label=`lsblk $p -n -o LABEL 2>/dev/null`
+                if [[ "$label" == "NIRECOVERY" ]]; then
+                    (( verbose_mode )) && echo "SKIPPED $path_abbrev: contains NIRECOVERY" >&2
+                    return 1
+                fi
+            done
+        fi
 
         return 0
     }

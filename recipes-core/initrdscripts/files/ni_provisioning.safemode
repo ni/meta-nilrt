@@ -204,6 +204,7 @@ check_for_tpm_chip()
 
 partitioning_disk()
 {
+    umount "$TARGET_DISK"? 2>/dev/null || true
     print_info "Partitioning TARGET_DISK=$TARGET_DISK (PART_STYLE=$PART_STYLE)..."
     PARTED_ERROR=`parted -s $TARGET_DISK mklabel $PART_STYLE 2>&1` || die "$PARTED_ERROR"
     PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART1_NAME 1MB 16MB 2>&1` || die "$PARTED_ERROR"

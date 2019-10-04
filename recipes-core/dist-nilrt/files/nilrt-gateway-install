@@ -1,0 +1,107 @@
+#!/bin/bash
+set -euo pipefail
+
+readonly SCRIPT_NAME="nilrt-install"
+readonly SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
+
+function info() {
+    echo "$SCRIPT_NAME: $*" || true
+}
+
+function cleanup() {
+    local exitCode="$?"
+
+    set +e
+
+    # detach loopback device
+    if [ -n "${LOOPDEV:-}" ] ; then
+        losetup -d "$LOOPDEV"
+    fi
+
+    if [ -e "${GRUB_MOUNT:-}" ]; then
+        umount "$GRUB_MOUNT"
+        rmdir "$GRUB_MOUNT"
+    fi
+
+    # Restore boot partitions to previous states
+    [ ! -z "${EFI_MOUNT_A-}" ] && mount -o remount,ro "$EFI_MOUNT_A"
+    [ ! -z "${EFI_MOUNT_B-}" ] && umount "$EFI_MOUNT_B"
+
+    exit "$exitCode"
+}
+
+trap cleanup EXIT
+
+function die() {
+    echo "Error: $1"
+    exit 1
+}
+
+# Mount the ISO/wic file as a loopback device
+info "Mounting the ISO"
+if [ -f "$SCRIPT_DIR/restore-mode-image-x64.iso" ] ; then
+    losetup -f "$SCRIPT_DIR/restore-mode-image-x64.iso" -P -r
+    LOOPDEV=$(losetup -j "$SCRIPT_DIR/restore-mode-image-x64.iso" |cut -f 1 -d:)
+else
+    losetup -f "$SCRIPT_DIR/safemode-restore-image-x64.iso" -P -r
+    LOOPDEV=$(losetup -j "$SCRIPT_DIR/safemode-restore-image-x64.iso" |cut -f 1 -d:)
+fi
+
+# Identify the 2 partitions in the ISO/wic file
+info "Locating ISO source partitions"
+efipart=$(lsblk -lnpo NAME,LABEL "$LOOPDEV"p? |grep EFIimg |cut -d" " -f 1)
+isopart=$(lsblk -lnpo NAME,LABEL "$LOOPDEV"p? |grep NIRECOVERY |cut -d" " -f 1)
+
+# Locate target partitions by filesystem labels
+info "Locating destination partitions"
+TARGET_EFI=$(lsblk -lnpo NAME,LABEL |grep "nigrub" |cut -d" " -f 1)
+TARGET_OTHER=$(lsblk -lnpo NAME,LABEL |grep "nibootfs" |cut -d" " -f 1)
+
+# If nigrub and nibootfs were not found, then use niboot.current and niboot.other
+[ -z "$TARGET_EFI" ] && TARGET_EFI=/dev/niboot/niboot.current
+[ -z "$TARGET_OTHER" ] && TARGET_OTHER=/dev/niboot/niboot.other
+
+# Verify partitions are all found
+[ -z "$efipart" ] && die "Unable to locate EFIimg partition."
+[ -z "$isopart" ] && die "Unable to locate NIRECOVERY partition."
+[ ! -e "$TARGET_EFI" ] && die "Unable to locate efi partition."
+[ ! -e "$TARGET_OTHER" ] && die "Unable to locate secondary partition."
+
+# Verify the grub.cfg file looks like what this script expects before
+# destructively modifying the partitions.
+readonly GRUB_MOUNT=$(mktemp -d "/var/volatile/grub-XXXXXXX")
+mount -r "$efipart" "$GRUB_MOUNT"
+grep -q "restore=provision-safe" "$GRUB_MOUNT/EFI/BOOT/grub.cfg" || \
+    grep -q "restore=provision" "$GRUB_MOUNT/EFI/BOOT/grub.cfg" || \
+    die "Unable to set auto provisioning mode"
+
+if [ "$TARGET_EFI" == "/dev/niboot/niboot.current" ] ; then
+    # Remount EFI partition as read/write
+    EFI_MOUNT_A="/boot"
+    EFI_MOUNT="$EFI_MOUNT_A"
+    mount -o remount,rw "$TARGET_EFI" "$EFI_MOUNT" || die "Unable to mount EFI partition as read/write"
+else
+    EFI_MOUNT_B=$(mktemp -d "/var/volatile/nigrub-XXXXXXX")
+    EFI_MOUNT="$EFI_MOUNT_B"
+    mount "$TARGET_EFI" "$EFI_MOUNT" || die "Unable to mount EFI partition"
+fi
+
+# -------- Point of no return ---------
+# The target's partitions are being modified for provisioning
+
+# copy EFI image to EFI boot partition
+info "Rewriting EFI partition"
+find "$EFI_MOUNT" -mindepth 1 -maxdepth 1 -exec rm -fr {} \;
+cp -R "$GRUB_MOUNT"/* "$EFI_MOUNT"
+
+# Modify grub.cfg to signify that this is an onboard provisioning operation
+info "Preparing EFI partition for automatic provisioning"
+sed "s/restore=provision-safe/restore=backward-migrate/" -i "$EFI_MOUNT/EFI/BOOT/grub.cfg"
+sed "s/restore=provision/restore=migrate/" -i "$EFI_MOUNT/EFI/BOOT/grub.cfg"
+
+# copy payload/ISO contents to other partition
+info "Rewriting secondary partition"
+umount "$TARGET_OTHER" 2>/dev/null || /bin/true
+dd if="$isopart" of="$TARGET_OTHER" >/dev/null 2>&1
+
+info "Install successful."

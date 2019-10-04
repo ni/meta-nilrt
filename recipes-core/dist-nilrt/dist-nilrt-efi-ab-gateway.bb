@@ -3,25 +3,20 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
 SRC_URI = "\
-    file://efi-ab/bootimage.cfg \
-    file://efi-ab/${PN}-install \
+    file://nilrt-gateway-install \
 "
 
 PV = "${DISTRO_VERSION}"
 RDEPENDS_${PN} += "bash"
-DEPENDS_append_x64 += "grub-efi"
-do_install[depends] = "restore-mode-image:do_image_complete ${PREFERRED_PROVIDER_virtual/kernel}:do_deploy"
 ALLOW_EMPTY_${PN}-dbg = "0"
 ALLOW_EMPTY_${PN}-dev = "0"
+do_install[depends] = "restore-mode-image:do_image_complete"
 
 do_install_append_x64() {
-    install -d ${D}/sbin
-    install -d ${D}/newNILinuxRT/EFI/BOOT
-    install -m 0755 ${WORKDIR}/efi-ab/bootimage.cfg  ${D}/newNILinuxRT/
-    install -m 0755 ${WORKDIR}/efi-ab/${PN}-install  ${D}/sbin/nilrt-install
-    install -m 0755 ${DEPLOY_DIR_IMAGE}/grub-efi-bootx64.efi ${D}/newNILinuxRT/EFI/BOOT/bootx64.efi
-    install -m 0755 ${DEPLOY_DIR_IMAGE}/bzImage ${D}/newNILinuxRT/
-    install -m 0755 ${DEPLOY_DIR_IMAGE}/restore-mode-image-x64.cpio.gz ${D}/newNILinuxRT/initrd
+
+    install -d ${D}/usr/share/nilrt
+    install -m 0755 ${WORKDIR}/nilrt-gateway-install ${D}/usr/share/nilrt/nilrt-install
+    install -m 0755 ${DEPLOY_DIR_IMAGE}/restore-mode-image-${MACHINE}.wic ${D}/usr/share/nilrt/restore-mode-image-${MACHINE}.iso
 }
 
 python do_package_ipk_prepend() {
@@ -32,24 +27,7 @@ python do_package_ipk_append() {
     d.setVar('OPKGBUILDCMD', '')
 }
 
-pkg_postinst_${PN}() {
-    # If installed in safemode, move the payload to a non-volatile location
-    if [ -d /mnt/userfs ]; then
-        rm -fr /mnt/userfs/newNILinuxRT
-        cp -r /newNILinuxRT /mnt/userfs
-
-        mkdir -p /mnt/userfs/sbin
-        cp /sbin/nilrt-install /mnt/userfs/sbin
-    fi
-}
-
-pkg_prerm_${PN}() {
-    # If the package is removed in safemode, perform proper cleanup
-    rm -fr /mnt/userfs/newNILinuxRT
-    rm -fr /mnt/userfs/sbin/nilrt-install
-}
-
 FILES_${PN}_x64 = "\
-    /newNILinuxRT/* \
-    /sbin/nilrt-install \
+    /usr/share/nilrt/restore-mode-image-${MACHINE}.iso \
+    /usr/share/nilrt/nilrt-install \
 "

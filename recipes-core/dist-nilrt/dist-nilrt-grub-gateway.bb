@@ -2,24 +2,21 @@ SUMMARY = "Partition the target with the original safemode partioning scheme"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384361b4de20420"
 
-BUNDLE = "nilrt-bundle"
-DEPENDS = "${BUNDLE} safemode-image"
-RDEPENDS_${PN} += "bash rauc"
 ALLOW_EMPTY_${PN}-dbg = "0"
 ALLOW_EMPTY_${PN}-dev = "0"
 
 SRC_URI += "\
-    file://grub/${PN}-install \
+    file://nilrt-gateway-install \
 "
 
-do_install[depends] = " \
-    ${BUNDLE}:do_deploy \
-"
+DEPENDS = "safemode-image"
+RDEPENDS_${PN} += "bash"
+do_install[depends] = "safemode-restore-image:do_image_complete"
 
 do_install_x64() {
-    install -d ${D}/sbin
-    install -m 0755 ${WORKDIR}/grub/${PN}-install ${D}/sbin/nilrt-install
-    install -m 0755 ${DEPLOY_DIR_IMAGE}/${BUNDLE}-${MACHINE}.raucb ${D}
+    install -d ${D}/usr/share/nilrt
+    install -m 0755 ${WORKDIR}/nilrt-gateway-install ${D}/usr/share/nilrt/nilrt-install
+    install -m 0755 ${DEPLOY_DIR_IMAGE}/safemode-restore-image-${MACHINE}.wic ${D}/usr/share/nilrt/safemode-restore-image-${MACHINE}.iso
 }
 
 python do_package_prepend() {
@@ -39,6 +36,6 @@ python do_package_prepend() {
 }
 
 FILES_${PN} = "\
-    /${BUNDLE}-${MACHINE}.raucb \
-    /sbin/nilrt-install \
+    /usr/share/nilrt/safemode-restore-image-${MACHINE}.iso \
+    /usr/share/nilrt/nilrt-install \
 "

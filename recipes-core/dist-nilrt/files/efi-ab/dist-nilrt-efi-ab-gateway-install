@@ -1,7 +1,0 @@
-#!/bin/bash
-set -e
-
-mv /boot/.safe/bootimage.cfg /boot/.safe/bootimage_old.cfg
-cp /newNILinuxRT/bootimage.cfg /boot/.safe/
-fw_setenv consoleoutenable True
-/etc/init.d/nisetbootmode force-safemode

@@ -1,0 +1,6 @@
+#!/bin/bash
+set -euo pipefail
+
+readonly SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
+
+rauc --no-signatures install "$SCRIPT_DIR/minimal-nilrt-bundle-x64.raucb" 2>&1
