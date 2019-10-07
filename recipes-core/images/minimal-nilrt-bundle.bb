@@ -10,7 +10,7 @@ SRC_URI += " \
     file://nilrt-bundle-hooks.sh \
 "
 
-RAUC_BUNDLE_COMPATIBLE = "nilrt-nxg"
+RAUC_BUNDLE_COMPATIBLE = "nilrt-efi-ab"
 RAUC_BUNDLE_DESCRIPTION = "${DESCRIPTION}"
 RAUC_BUNDLE_VERSION = "${BUILDNAME}"
 RAUC_BUNDLE_BUILD = "${BUILDNAME}"
