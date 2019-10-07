@@ -13,7 +13,6 @@ RDEPENDS_${PN} = "ptest-runner"
 
 # ptest packages
 RDEPENDS_${PN}_append = "\
-    distro-feed-configs-ptest \
     glibc-tests-ptest \
     hwclock-init-ptest \
     kernel-tests-ptest \
@@ -21,4 +20,8 @@ RDEPENDS_${PN}_append = "\
     rt-tests-ptest \
     run-postinsts-ptest \
     salt-ptest \
+"
+
+RDEPENDS_${PN}_append_x64 = "\
+    distro-feed-configs-ptest \
 "
