@@ -6,6 +6,8 @@ PV = "${DISTRO_VERSION}"
 BUNDLE = "minimal-nilrt-bundle"
 DEPENDS = "${BUNDLE}"
 RDEPENDS_${PN} += "bash rauc"
+ALLOW_EMPTY_${PN}-dbg = "0"
+ALLOW_EMPTY_${PN}-dev = "0"
 
 SRC_URI += "\
     file://${PN}-install \

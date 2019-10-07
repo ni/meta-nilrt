@@ -10,6 +10,8 @@ SRC_URI = "\
 RDEPENDS_${PN} += "bash"
 DEPENDS_append_x64 += "grub-efi"
 do_install[depends] = "restore-mode-image:do_image_complete ${PREFERRED_PROVIDER_virtual/kernel}:do_deploy"
+ALLOW_EMPTY_${PN}-dbg = "0"
+ALLOW_EMPTY_${PN}-dev = "0"
 
 do_install_append_x64() {
     install -d ${D}/sbin
