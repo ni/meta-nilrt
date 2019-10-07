@@ -3,8 +3,8 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
 SRC_URI = "\
-    file://bootimage.cfg \
-    file://${PN}-install \
+    file://efi-ab/bootimage.cfg \
+    file://efi-ab/${PN}-install \
 "
 
 RDEPENDS_${PN} += "bash"
@@ -16,8 +16,8 @@ ALLOW_EMPTY_${PN}-dev = "0"
 do_install_append_x64() {
     install -d ${D}/sbin
     install -d ${D}/newNILinuxRT/EFI/BOOT
-    install -m 0755 ${WORKDIR}/bootimage.cfg  ${D}/newNILinuxRT/
-    install -m 0755 ${WORKDIR}/${PN}-install  ${D}/sbin/nilrt-install
+    install -m 0755 ${WORKDIR}/efi-ab/bootimage.cfg  ${D}/newNILinuxRT/
+    install -m 0755 ${WORKDIR}/efi-ab/${PN}-install  ${D}/sbin/nilrt-install
     install -m 0755 ${DEPLOY_DIR_IMAGE}/grub-efi-bootx64.efi ${D}/newNILinuxRT/EFI/BOOT/bootx64.efi
     install -m 0755 ${DEPLOY_DIR_IMAGE}/bzImage ${D}/newNILinuxRT/
     install -m 0755 ${DEPLOY_DIR_IMAGE}/restore-mode-image-x64.cpio.gz ${D}/newNILinuxRT/initrd

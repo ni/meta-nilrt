@@ -11,7 +11,7 @@ IMAGE_INSTALL = "\
 inherit image
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
-SRC_URI = "file://grub_migrate.cfg"
+SRC_URI = "file://grub/grub_migrate.cfg"
 
 DEPENDS = "grub-efi grub-bootconf gzip-native cpio-native"
 
@@ -30,7 +30,7 @@ do_boot_image() {
     mv "${IMAGE_ROOTFS}/boot/efi" "${IMAGE_ROOTFS}/"
 
     # Install grub_migrate.cfg instead of default grub.cfg
-    install -m 0644 ${THISDIR}/files/grub_migrate.cfg ${IMAGE_ROOTFS}/efi/nilrt/grub.cfg
+    install -m 0644 ${THISDIR}/files/grub/grub_migrate.cfg ${IMAGE_ROOTFS}/efi/nilrt/grub.cfg
 
     # image.bbclass installs several files/folders which are not needed on
     # an EFI system partition. Cleanup all non-boot related files.
