@@ -7,6 +7,7 @@ SRC_URI = "\
     file://efi-ab/${PN}-install \
 "
 
+PV = "${DISTRO_VERSION}"
 RDEPENDS_${PN} += "bash"
 DEPENDS_append_x64 += "grub-efi"
 do_install[depends] = "restore-mode-image:do_image_complete ${PREFERRED_PROVIDER_virtual/kernel}:do_deploy"
