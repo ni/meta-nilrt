@@ -22,6 +22,6 @@ RDEPENDS_${PN}_append = "\
     salt-ptest \
 "
 
-RDEPENDS_${PN}_append_x64 = "\
+RDEPENDS_${PN}_append_nilrt-nxg = "\
     distro-feed-configs-ptest \
 "
