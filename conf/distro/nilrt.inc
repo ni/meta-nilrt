@@ -94,6 +94,9 @@ BBMASK += "meta-cloud-services/meta-openstack/recipes-kernel"
 # Base URI to NI Linux RT's Git repository
 NILRT_GIT ?= "git://github.com/ni"
 
+# Creates ``*-lic`` subpackages for all OE recipes if enabled
+LICENSE_CREATE_PACKAGE ?= "1"
+
 
 ## OPKG SOURCE FEEDS ##
 
