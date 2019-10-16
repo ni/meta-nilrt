@@ -12,6 +12,7 @@ python /usr/lib/python3.5/site-packages/salt-tests/tests/runtests.py \
     --no-report \
     --transport=tcp \
     --run-destructive \
+    -n unit.modules.test_opkg \
     -n integration.modules.test_system \
     -n integration.modules.test_timezone \
     -n integration.modules.test_shadow \
