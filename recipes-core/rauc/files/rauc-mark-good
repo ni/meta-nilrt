@@ -122,14 +122,21 @@ if $FIRST_BOOT; then
     # Delete old overlay to reclaim disk
     rm -Rf "$OLD_OVERLAY"
 fi
+
 # After marking the current partition as good, copy it to the other boot partition as a backup
-info "Creating boot partition backup in /dev/niboot/niboot.other partition"
-readonly OTHER_TMP_MOUNT=$(mktemp -d "/var/volatile/other-mnt-XXXXXXX")
-mkfs.vfat -n "$(readlink /dev/niboot/niboot.other)" /dev/niboot/niboot.other
-mount /dev/niboot/niboot.other "$OTHER_TMP_MOUNT"
-rm -fr "$OTHER_TMP_MOUNT/*"
-cp -R /boot/* "$OTHER_TMP_MOUNT"
-rm "$OTHER_TMP_MOUNT/slot.raucs"
+readonly BACKUP_MARKER="/var/lib/rauc/backup.done"
+if [ ! -e "$BACKUP_MARKER" ]; then
+    info "Creating boot partition backup in /dev/niboot/niboot.other partition"
+    readonly OTHER_TMP_MOUNT=$(mktemp -d "/var/volatile/other-mnt-XXXXXXX")
+    mkfs.vfat -n "$(readlink /dev/niboot/niboot.other)" /dev/niboot/niboot.other
+    mount /dev/niboot/niboot.other "$OTHER_TMP_MOUNT"
+    rm -fr "$OTHER_TMP_MOUNT/*"
+    cp -R /boot/* "$OTHER_TMP_MOUNT"
+    rm "$OTHER_TMP_MOUNT/slot.raucs"
+    echo -n > "$BACKUP_MARKER"
+    chmod 0444 "$BACKUP_MARKER"
+    sync
+fi
 
 # Print message at end so that we have some indication in system log
 # that everything went well
