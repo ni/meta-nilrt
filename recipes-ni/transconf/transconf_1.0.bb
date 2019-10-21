@@ -49,8 +49,8 @@ do_install_ptest_append () {
 #  then package an empty "${sysconfdir}/transconf/hooks/" directory.
 #  Workaround in postinst script.
 pkg_postinst_${PN} () {
-    [ -e "${sysconfdir}/transconf" ] || mkdir -m 0755 "${sysconfdir}/transconf"
-    [ -e "${sysconfdir}/transconf/hooks" ] || mkdir -m 0755 "${sysconfdir}/transconf/hooks"
+    [ -e "$D${sysconfdir}/transconf" ] || mkdir -m 0755 "$D${sysconfdir}/transconf"
+    [ -e "$D${sysconfdir}/transconf/hooks" ] || mkdir -m 0755 "$D${sysconfdir}/transconf/hooks"
 }
 
 # XXX Has dependents which are native and/or nativesdk
