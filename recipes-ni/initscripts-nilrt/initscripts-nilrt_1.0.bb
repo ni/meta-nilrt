@@ -111,51 +111,46 @@ do_install () {
 	fi
 }
 
-pkg_postinst_${PN} () {
-	if [ -n "$D" ]; then
-		# Error in off-line install so this will run on the real target where we can query the target class
-		exit 1
+pkg_postinst_ontarget_${PN} () {
+	# Make sure /boot is mounted so that fw_printenv is usable
+	if /sbin/fw_printenv TargetClass > /dev/null 2>&1; then
+		mountstate=1
 	else
-		# Make sure /boot is mounted so that fw_printenv is usable
-		if /sbin/fw_printenv TargetClass > /dev/null 2>&1; then
-			mountstate=1
-		else
-			mountstate=0
-			mount /boot || mountstate=1
-		fi
-
-		# Get target class, may be empty-string on VMs
-		class="`/sbin/fw_printenv -n TargetClass || true`"
-
-		# Use persistent names on PXI, not on any other targets
-		if [ "$class" != "PXI" -a "$class" != "USRP Stand-Alone Devices" ]; then
-			touch /etc/udev/rules.d/80-net-name-slot.rules
-
-			# Since the network is already brought up on the first boot, reload the network to get the new rules
-			if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'true', 'false', d)}; then
-
-				NXG_ETHERNET_DRIVERS="igb e1000 virtio-pci"
-				active_drivers=""
-				for driver in $NXG_ETHERNET_DRIVERS; do
-					if `lsmod | grep -q "$driver"`; then
-						active_drivers="$active_drivers $driver"
-					fi
-				done
-
-				/etc/init.d/connman stop
-				/etc/init.d/udev stop
-				for mod in $active_drivers; do
-					modprobe -r "$mod"
-					modprobe "$mod"
-				done
-				/etc/init.d/udev start
-				/etc/init.d/connman start
-			fi
-		fi
-
-		# Restore the original state of /boot
-		[ $mountstate == 0 ] && umount /boot || true
+		mountstate=0
+		mount /boot || mountstate=1
 	fi
+
+	# Get target class, may be empty-string on VMs
+	class="`/sbin/fw_printenv -n TargetClass || true`"
+
+	# Use persistent names on PXI, not on any other targets
+	if [ "$class" != "PXI" -a "$class" != "USRP Stand-Alone Devices" ]; then
+		touch /etc/udev/rules.d/80-net-name-slot.rules
+
+		# Since the network is already brought up on the first boot, reload the network to get the new rules
+		if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'true', 'false', d)}; then
+
+			NXG_ETHERNET_DRIVERS="igb e1000 virtio-pci"
+			active_drivers=""
+			for driver in $NXG_ETHERNET_DRIVERS; do
+				if `lsmod | grep -q "$driver"`; then
+					active_drivers="$active_drivers $driver"
+				fi
+			done
+
+			/etc/init.d/connman stop
+			/etc/init.d/udev stop
+			for mod in $active_drivers; do
+				modprobe -r "$mod"
+				modprobe "$mod"
+			done
+			/etc/init.d/udev start
+			/etc/init.d/connman start
+		fi
+	fi
+
+	# Restore the original state of /boot
+	[ $mountstate == 0 ] && umount /boot || true
 }
 
 do_install_append_x64 () {
