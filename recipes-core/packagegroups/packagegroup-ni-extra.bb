@@ -435,6 +435,7 @@ RDEPENDS_${PN} += "\
 	lcov \
 	libcap-ng \
 	libftdi \
+	libraw1394 \
 	libutempter \
 	links \
 	lmsensors \
