@@ -107,6 +107,7 @@ RDEPENDS_${PN} = "\
 	libcap-bin\
 	libnss-mdns \
 	libpam \
+	librtpi \
 	lsbinitscripts \
 	netbase \
 	niacctbase \
