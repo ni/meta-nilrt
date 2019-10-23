@@ -39,6 +39,10 @@ install_payload_append_xilinx-zynqhf(){
 	install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/nxg_redirect_runmode_boot.itb ${IMAGE_ROOTFS}/payload/
 }
 
-ROOTFS_POSTPROCESS_COMMAND += "install_payload;"
+symlink_iso () {
+        ln -sf ${DEPLOY_DIR_IMAGE}/${PN}-${MACHINE}.wic ${DEPLOY_DIR_IMAGE}/${PN}-${MACHINE}.iso
+}
+
+ROOTFS_POSTPROCESS_COMMAND += "symlink_iso;install_payload;"
 
 require nilrt-image-common.inc
