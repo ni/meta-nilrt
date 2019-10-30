@@ -4,7 +4,7 @@
 get_set_nilrt_boot()
 {
 	name=7ab3ae28-52bc-36a8-ff3f-5203fa568c2b-NIOSSharedData
-	value=$(efivar -n="$name" -d 2>/dev/null)
+	value=$(efivar -n "$name" -d 2>/dev/null)
 	offset=1
 
 	if [ -n "$value" ]; then
@@ -26,7 +26,7 @@ get_set_nilrt_boot()
 get_set_console_out()
 {
 	name=5eab87db-1326-4901-9085-8c02b802f878-NIUEFIConsoleOut
-	value=$(efivar -n="$name" -d 2>/dev/null)
+	value=$(efivar -n "$name" -d 2>/dev/null)
 	offset=0
 
 	if [ -n "$value" ]; then
@@ -51,7 +51,7 @@ set_efi_variable()
 	#currently efivar only writes updated values read from a file
 	EFI_VAL_TMP=/tmp/efi_val.$$
 	printf '\\x%02x' ${arr_value[@]} | xargs -0 echo -e -n >$EFI_VAL_TMP
-	efivar -n="$name" -w -f=$EFI_VAL_TMP
+	efivar -n "$name" -w -f $EFI_VAL_TMP
 	rm $EFI_VAL_TMP
 	return 0
 }
