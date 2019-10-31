@@ -23,5 +23,4 @@ RDEPENDS_${PN}_append = "\
 "
 
 RDEPENDS_${PN}_append_nilrt-nxg = "\
-    distro-feed-configs-ptest \
 "

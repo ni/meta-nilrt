@@ -49,7 +49,6 @@ NILRT_x64_PACKAGES = "\
 "
 
 NILRT_NXG_PACKAGES = "\
-	distro-feed-configs \
 	lsb \
 	modutils-initscripts \
 	ni-utils \
