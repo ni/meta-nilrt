@@ -5,3 +5,5 @@
 ./kthread_test_priority.sh
 ./irq_test_affinity.sh
 ./irq_test_priority.sh
+./rcu_nocbs_test.sh
+

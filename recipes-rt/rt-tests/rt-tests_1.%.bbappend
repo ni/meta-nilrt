@@ -8,6 +8,7 @@ SRC_URI += "\
     file://kernel_test_preempt_rt_presence.sh \
     file://kernel_test_rt_throttling_disabled.sh \
     file://test_throttling_jitter.c \
+    file://rcu_nocbs_test.sh \
 "
 
 RDEPENDS_${PN}-ptest += "bash"
@@ -27,4 +28,5 @@ do_install_ptest_append() {
     cp ${WORKDIR}/kernel_test_preempt_rt_presence.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/kernel_test_rt_throttling_disabled.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_throttling_jitter ${D}${PTEST_PATH}
+    cp ${WORKDIR}/rcu_nocbs_test.sh ${D}${PTEST_PATH}
 }
