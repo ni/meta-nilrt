@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -eu
 
 readonly SCRIPT_NAME="nilrt-install"
 readonly SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
@@ -24,8 +24,8 @@ function cleanup() {
     fi
 
     # Restore boot partitions to previous states
-    [ ! -z "${EFI_MOUNT_A-}" ] && mount -o remount,ro "$EFI_MOUNT_A"
-    [ ! -z "${EFI_MOUNT_B-}" ] && umount "$EFI_MOUNT_B"
+    [ ! -z "${EFI_MOUNT_A-}" ] && mount -o remount,ro "$EFI_MOUNT_A" &>/dev/null
+    [ ! -z "${EFI_MOUNT_B-}" ] && umount "$EFI_MOUNT_B" &>/dev/null
 
     exit "$exitCode"
 }
