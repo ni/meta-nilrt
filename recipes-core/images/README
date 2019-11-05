@@ -8,7 +8,8 @@ Images:
      | * nilrt-image-common.inc
      |   * niconsole-image-safe.bb          [nilrt safemode]
      |   * niconsole-image.inc
- k   |     * niconsole-image.bb             [nilrt ARM runmode]
+ k   |     * niconsole-image.bb             [nilrt ARM runmode w/ nikms]
+     |     * niconsole-dkms-image.bb        [nilrt ARM runmode w/ dkms]
 ikx  |     * nixfce-image.bb                [nilrt x64 runmode w/ nikms]
 i x  |     * nilrt-dkms-image.bb            [nilrt x64 runmode w/ dkms]
      |     * minimal-nilrt-image.bb         [nilrt-nxg minimal image]
