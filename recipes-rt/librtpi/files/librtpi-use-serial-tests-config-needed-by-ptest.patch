@@ -1,0 +1,31 @@
+From b0029bc612c2b6546115aa69b7c83c2d75ead498 Mon Sep 17 00:00:00 2001
+From: Gratian Crisan <gratian.crisan@ni.com>
+Date: Thu, 31 Oct 2019 16:42:13 -0500
+Subject: [PATCH] librtpi: use serial-tests config needed by ptest
+
+ptest needs buildtest-TESTS and runtest-TESTS targets.
+serial-tests is required to generate those targets.
+
+Upstream-Status: Inappropriate [default automake behavior incompatible with ptest]
+
+Signed-off-by: Gratian Crisan <gratian.crisan@ni.com>
+---
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index bb19f58..5e57b89 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1,7 +1,7 @@
+ # SPDX-License-Identifier: LGPL-2.1-only
+ 
+ AC_INIT([librtpi], [0.0.1], [dvhart@infradead.org])
+-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
++AM_INIT_AUTOMAKE([-Wall -Werror foreign serial-tests])
+ AM_PROG_AR
+ LT_INIT
+ AC_PROG_CC
+-- 
+2.23.0
+

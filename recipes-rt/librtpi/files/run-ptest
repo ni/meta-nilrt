@@ -1,0 +1,4 @@
+#!/bin/sh
+
+make -C tests -k runtest-TESTS
+make -C tests/glibc-tests -k runtest-TESTS
