@@ -49,7 +49,7 @@ fi
 
 # Identify the 2 partitions in the ISO/wic file
 info "Locating ISO source partitions"
-efipart=$(lsblk -lnpo NAME,LABEL "$LOOPDEV"p? |grep NIRECOVERY |cut -d" " -f 1)
+efipart=$(lsblk -lnpo NAME,LABEL "$LOOPDEV"p? |egrep 'NIRECOVERY$' |cut -d" " -f 1)
 isopart=$(lsblk -lnpo NAME,LABEL "$LOOPDEV"p? |grep NIRECOVERY-CD |cut -d" " -f 1)
 
 # Locate target partitions by filesystem labels
