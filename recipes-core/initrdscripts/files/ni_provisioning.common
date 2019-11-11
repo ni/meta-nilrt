@@ -55,7 +55,6 @@ ask_for_continue()
     IMAGE_DISPLAY_NAME=$(get_image_info IMAGE_DISPLAY_NAME)
 
     printf "\nNI Linux Real-Time $type $BUILD_IDENTIFIER. \n\n"
-    printf "The boot style is ${RED}$(echo $BOOT_STYLE | tr a-z A-Z)${NC}\n\n"
     printf "Continuing will partition the disk, format, and install $IMAGE_DISPLAY_NAME to the target.\n\n"
     if [[ "$FORCE_PROVISIONING" -ne 1 ]];then
         prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" $variable
@@ -535,10 +534,8 @@ early_setup()
         PART_SEPARATOR='p'
     fi
 
-    if [[ -d "/sys/firmware/efi" ]]; then
-        BOOT_STYLE="efi"
-    else
-        BOOT_STYLE="legacy"
+    if [[ ! -d "/sys/firmware/efi" ]]; then
+        die "Legacy booting is not supported, please reboot and select UEFI instead."
     fi
 }
 

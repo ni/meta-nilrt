@@ -11,21 +11,12 @@ PART2_LABEL=nibootfs
 PART3_LABEL=niconfig
 PART4_LABEL=nirootfs
 
-# GPT partitions must assign a partition name whereas
-# MSDOS partitions must assign a partition type (e.g. primary)
-if [[ "$BOOT_STYLE" == "efi" ]]; then
-    PART_STYLE=gpt
-    PART1_NAME=$PART1_LABEL
-    PART2_NAME=$PART2_LABEL
-    PART3_NAME=$PART3_LABEL
-    PART4_NAME=$PART4_LABEL
-else
-    PART_STYLE=msdos
-    PART1_NAME=primary
-    PART2_NAME=primary
-    PART3_NAME=primary
-    PART4_NAME=primary
-fi
+# GPT partitions must assign a partition name
+PART_STYLE=gpt
+PART1_NAME=$PART1_LABEL
+PART2_NAME=$PART2_LABEL
+PART3_NAME=$PART3_LABEL
+PART4_NAME=$PART4_LABEL
 
 . /usr/share/nisysinfo/smbios_helper
 
@@ -214,13 +205,9 @@ partitioning_disk()
     print_done
 
     print_info "Assigning EFI System Partition..."
-    if [[ "$BOOT_STYLE" == "efi" ]]; then
-        # Per https://www.freedesktop.org/wiki/Specifications/DiscoverablePartitionsSpec/
-        #  C12A7328-F81F-11D2-BA4B-00A0C93EC93B -- EFI System Partition
-        sgdisk --typecode="1:C12A7328-F81F-11D2-BA4B-00A0C93EC93B" $TARGET_DISK
-    else
-        sfdisk -c $TARGET_DISK 1 EF
-    fi
+    # Per https://www.freedesktop.org/wiki/Specifications/DiscoverablePartitionsSpec/
+    #  C12A7328-F81F-11D2-BA4B-00A0C93EC93B -- EFI System Partition
+    sgdisk --typecode="1:C12A7328-F81F-11D2-BA4B-00A0C93EC93B" $TARGET_DISK
     print_done
 
     print_info "Probing partitions of TARGET_DISK=$TARGET_DISK ..."
@@ -250,28 +237,18 @@ install_grub()
     mkdir $GRUB_MOUNTPOINT -p
     MOUNT_ERROR=`mount -L $PART1_LABEL $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
 
-    if [[ "$BOOT_STYLE" == "efi" ]]; then
-        print_info "Configuring EFI grub2..."
-        GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/efi/boot
-        mkdir -p $GRUB_TARGET_DIR
-        GRUB_TARGET=$(uname -m)
-        cp /boot/EFI/BOOT/bootx64.efi $GRUB_TARGET_DIR
-        # Delete existing NILRT entries with "-B" option
-        for ENTRY in $(efibootmgr | egrep -i '(LabVIEW RT)|(niboota)|(nibootb)' | egrep -o '[0-9A-Fa-f]{4}' || true);
-        do
-            print_info " Drop entry $ENTRY."
-            EFIMGR=$(efibootmgr -b "$ENTRY" -B 2>&1) || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
-        done
-        efibootmgr $VERBOSE_ARGS -c -d ${TARGET_DISK} -p 1 -L 'LabVIEW RT' -l '\efi\boot\bootx64.efi'
-    else
-        print_info "Configuring legacy grub2..."
-        GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/boot/grub
-        #grub tools expect /lib64 instead of /lib
-        ln -sf /lib /lib64
-        # set ${TARGET_DISK}1 boot flag on
-        parted -s ${TARGET_DISK} set 1 boot on
-        grub-install --recheck --root-directory=$GRUB_MOUNTPOINT $TARGET_DISK
-    fi
+    print_info "Configuring EFI grub2..."
+    GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/efi/boot
+    mkdir -p $GRUB_TARGET_DIR
+    GRUB_TARGET=$(uname -m)
+    cp /boot/EFI/BOOT/bootx64.efi $GRUB_TARGET_DIR
+    # Delete existing NILRT entries with "-B" option
+    for ENTRY in $(efibootmgr | egrep -i '(LabVIEW RT)|(niboota)|(nibootb)' | egrep -o '[0-9A-Fa-f]{4}' || true);
+    do
+        print_info " Drop entry $ENTRY."
+        EFIMGR=$(efibootmgr -b "$ENTRY" -B 2>&1) || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
+    done
+    efibootmgr $VERBOSE_ARGS -c -d ${TARGET_DISK} -p 1 -L 'LabVIEW RT' -l '\efi\boot\bootx64.efi'
     print_done
 
     print_info "Installing grub.cfg..."
@@ -328,18 +305,16 @@ install_grubenv()
         NI_TARGET="true"
         cp $SOURCE_DIR/grubenv $BOOTFS_MOUNTPOINT/grub
         cp $SOURCE_DIR/SMBIOS_NI_vars $BOOTFS_MOUNTPOINT/.safe
-        if [[ "$BOOT_STYLE" == "efi" ]]; then
-            cp $SOURCE_DIR/EFI_NI_vars $BOOTFS_MOUNTPOINT/.safe
-            add_USB_gadget_args_to_grubenv
-            override_primaryport_grubenv
-        fi
+        cp $SOURCE_DIR/EFI_NI_vars $BOOTFS_MOUNTPOINT/.safe
+        add_USB_gadget_args_to_grubenv
+        override_primaryport_grubenv
     else
         cp $SOURCE_DIR/grubenv_non_ni_target $BOOTFS_MOUNTPOINT/grub/grubenv
     fi
 
     set_serial_port
 
-    grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "BIOSBootMode=$BOOT_STYLE"
+    grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "BIOSBootMode=efi"
     grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "NITarget=$NI_TARGET"
 
     # If target has a TPM chip, we need to enable an alternate boot flow
@@ -353,19 +328,8 @@ install_grubenv()
         echo "$varname" >> "$BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars"
     done
 
-        # save rootfs UUID for grub to reference
-    if [[ "$BOOT_STYLE" == "efi" ]]; then
-        ROOTUUID=`lsblk ${TARGET_DISK}${PART_SEPARATOR}4 -n -o PARTUUID`
-    else
-        # On msdos partitions, the NT disk signature is accepted as a valid
-        # PARTUUID value. The PARTUUID has the format SSSSSSSS-PP, where
-        # the first field is the "NT disk signature" and the second field is the
-        # partition number.  Both fields use hex representation.
-
-        # Read "NT disk signature" from MBR offset 0x1B8 (440d) and
-        # append rootfs partition number.
-        ROOTUUID=`hexdump -s 440 -n 4 -e '1 4 "%08x" "\n"' ${TARGET_DISK}`-04
-    fi
+    # save rootfs UUID for grub to reference
+    ROOTUUID=`lsblk ${TARGET_DISK}${PART_SEPARATOR}4 -n -o PARTUUID`
     echo set rootuuid=$ROOTUUID >> $GRUB_MOUNTPOINT/grubvar_readonly
 
     # set proper permissions on and backup firmware variable files
@@ -492,7 +456,7 @@ check_all_used_binaries
 load_kernel_modules
 check_for_tpm_chip
 
-echo "Installing safemode to: $TARGET_DISK using $BOOT_STYLE boot style."
+echo "Installing safemode to: $TARGET_DISK."
 echo 6 > /proc/sys/kernel/printk
 
 SOURCE_DIR=/payload
