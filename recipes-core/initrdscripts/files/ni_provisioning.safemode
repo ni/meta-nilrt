@@ -268,10 +268,9 @@ install_safemode()
     BOOTFS_ERROR=`mount -L $PART2_LABEL $BOOTFS_MOUNTPOINT 2>&1` || die "$BOOTFS_ERROR"
     mkdir -p $BOOTFS_MOUNTPOINT/.safe
 
-    safemode_files=(bzImage ramdisk.gz bootimage.ini bootimage.cfg)
-    for safemode_file in ${safemode_files[@]}; do
-        cp $SOURCE_DIR/$safemode_file $BOOTFS_MOUNTPOINT/.safe
-    done
+    cp "$SOURCE_DIR"/*Image       "$BOOTFS_MOUNTPOINT/.safe/"
+    cp "$SOURCE_DIR"/ramdisk.*    "$BOOTFS_MOUNTPOINT/.safe/"
+    cp "$SOURCE_DIR"/bootimage.*  "$BOOTFS_MOUNTPOINT/.safe/"
 
     print_done
 }
