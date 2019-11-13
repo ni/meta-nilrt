@@ -8,4 +8,7 @@ IMAGE_LINGUAS ??= ""
 
 IMAGE_PREPROCESS_COMMAND += "rootfs_update_timestamp;"
 
+# Do not install license subpackages if they are only recommended.
+BAD_RECOMMENDATIONS_pn-${PN} += "*-lic"
+
 inherit core-image
