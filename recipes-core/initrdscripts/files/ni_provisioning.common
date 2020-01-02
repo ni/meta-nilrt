@@ -539,6 +539,32 @@ early_setup()
     fi
 }
 
+function read_file() {
+    local filename="$1"
+    local maxsize="$2"
+    local value=""
+
+    if [ -e "$filename" ]; then
+        value=$(head -c "$maxsize" "$filename") || value=""
+    fi
+
+    echo "$value"
+}
+
+in_recovery_mode()
+{
+    local res=false
+
+    for file in /sys/bus/acpi/drivers/nirtfeatures/*/recovery_mode; do
+        status=$(read_file "$file" 10)
+        if [ "$status" == "1" ]; then
+            res=true
+        fi
+    done
+
+    $res
+}
+
 check_answer_file()
 {
     local filePath="$1"
@@ -608,3 +634,4 @@ prompt_user()
         echo "$question: $var (auto)"
     fi
 }
+
