@@ -1,0 +1,44 @@
+From 475198d0e05085d43dd9b2f6bf7fb1cd3c86a77a Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fran=C3=A7ois=20Agrech?= <f.agrech@gmail.com>
+Date: Sun, 7 Sep 2014 11:48:18 +0200
+Subject: [PATCH 2/2] Merge patch sent by Jonathan David
+
+Changing the layout and typing would cause Florence to crash
+intermittently in the xfce desktop environment. Fixed issue
+with memory leak when new layout is redrawn.
+
+Upstream-Status: Backport [master branch commit deebe3724845]
+
+Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+---
+ src/status.c | 1 +
+ src/view.c   | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/src/status.c b/src/status.c
+index f7527e4..dcfa4cc 100644
+--- a/src/status.c
++++ b/src/status.c
+@@ -633,6 +633,7 @@ void status_reset(struct status *status)
+ 	status->focus=NULL;
+ 	status->pressed=NULL;
+ 	if (status->timer) g_timer_destroy(status->timer);
++	if (status->xkeyboard) xkeyboard_free(status->xkeyboard);
+ 	status->timer=NULL;
+ 	if (status->latched_keys) g_list_free(status->latched_keys);
+ 	if (status->locked_keys) g_list_free(status->locked_keys);
+diff --git a/src/view.c b/src/view.c
+index be5f158..426dc27 100644
+--- a/src/view.c
++++ b/src/view.c
+@@ -890,6 +890,7 @@ void view_update_layout(struct view *view, struct style *style, GSList *keyboard
+ 	START_FUNC
+ 	view->style=style;
+ 	view->keyboards=keyboards;
++	xkeyboard_register_events(view->status->xkeyboard, view_on_keys_changed, (gpointer)view);
+ 	view_update_extensions(NULL, 0, NULL, (gpointer)view);
+ 	END_FUNC
+ }
+-- 
+2.13.2
+

@@ -1,0 +1,110 @@
+From 42f8dbfc66c90375258f9c84d93071a808d6c3d0 Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+Date: Fri, 29 Jul 2016 20:41:23 +0300
+Subject: [PATCH 3/3] florence: fix memory leak issue when changing layouts
+
+Fix a problem where changing layouts caused a new style structure
+to be created every time. Eventually, if minimization was used,
+be amount of memory Florence used would become very large.
+
+Upstream-Status: Not submitted [upstream is dead since 2014]
+
+Signed-off-by: Jonathan David <jonathan.david@ni.com>
+Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+---
+ src/florence.c | 23 +++++++++++++++++------
+ src/status.c   |  1 -
+ 2 files changed, 17 insertions(+), 7 deletions(-)
+
+diff --git a/src/florence.c b/src/florence.c
+index 7edc03b..52dda88 100644
+--- a/src/florence.c
++++ b/src/florence.c
+@@ -384,7 +384,7 @@ GSList *flo_keyboards_load(struct florence *florence, struct layout *layout)
+ 	struct keyboard_globaldata global;
+ 
+ 	global.status=florence->status;
+-	florence->status->xkeyboard=xkeyboard_new();
++	if (!florence->status->xkeyboard) florence->status->xkeyboard=xkeyboard_new();
+ 	global.style=florence->style;
+ 
+ 	/* read the layout file and create the extensions */
+@@ -399,7 +399,6 @@ GSList *flo_keyboards_load(struct florence *florence, struct layout *layout)
+ #endif
+ 	}
+ 
+-	xkeyboard_client_map_free(florence->status->xkeyboard);
+ 	END_FUNC
+ 	return keyboards;
+ }
+@@ -654,7 +653,6 @@ void flo_layout_unload(struct florence *florence)
+ 		keyboard_free(keyboard);
+ 		florence->keyboards=g_slist_delete_link(florence->keyboards, florence->keyboards);
+ 	}
+-	if (florence->style) style_free(florence->style);
+ 	END_FUNC
+ }
+ 
+@@ -681,7 +679,7 @@ void flo_layout_load(struct florence *florence)
+ 	layoutreader_infos_free(infos);
+ 
+ 	/* create the style object */
+-	florence->style=style_new(NULL);
++	if (!florence->style) florence->style=style_new(NULL);
+ 
+ 	/* create the keyboard objects */
+ 	florence->keyboards=flo_keyboards_load(florence, layout);
+@@ -702,6 +700,18 @@ void flo_layout_reload(GConfClient *client, guint xnxn_id, GConfEntry *entry, gp
+ 	END_FUNC
+ }
+ 
++/* reloads the style file */
++void flo_style_reload(GConfClient *client, guint xnxn_id, GConfEntry *entry, gpointer user_data)
++{
++	struct florence *florence=(struct florence *)user_data;
++	status_reset(florence->status);
++	style_free(florence->style);
++	flo_layout_unload(florence);
++	florence->style=style_new(NULL);
++	flo_layout_load(florence);
++	view_update_layout(florence->view, florence->style, florence->keyboards);
++}
++
+ #ifdef ENABLE_AT_SPI
+ /* check if at-spi is enabled in gnome */
+ gboolean flo_check_at_spi(void)
+@@ -798,8 +808,7 @@ struct florence *flo_new(gboolean gnome, const gchar *focus_back, PanelApplet *a
+ #endif
+ 	settings_changecb_register("behaviour/auto_hide", flo_set_auto_hide, florence);
+ 	settings_changecb_register("window/keep_on_top", flo_set_keep_on_top, florence);
+-	/* TODO: just reload the style, no need to reload the whole layout */
+-	settings_changecb_register("layout/style", flo_layout_reload, florence);
++	settings_changecb_register("layout/style", flo_style_reload, florence);
+ 	settings_changecb_register("layout/file", flo_layout_reload, florence);
+ 
+ #if GTK_CHECK_VERSION(2,26,0)
+@@ -830,7 +839,9 @@ void flo_free(struct florence *florence)
+ 	trayicon_free(florence->trayicon);
+ 	florence->trayicon=NULL;
+ #endif
++	xkeyboard_client_map_free(florence->status->xkeyboard);
+ 	flo_layout_unload(florence);
++	if (florence->style) style_free(florence->style);
+ 	if (florence->view) view_free(florence->view);
+ 	florence->view=NULL;
+ 	if (florence->status) status_free(florence->status);
+diff --git a/src/status.c b/src/status.c
+index dcfa4cc..f7527e4 100644
+--- a/src/status.c
++++ b/src/status.c
+@@ -633,7 +633,6 @@ void status_reset(struct status *status)
+ 	status->focus=NULL;
+ 	status->pressed=NULL;
+ 	if (status->timer) g_timer_destroy(status->timer);
+-	if (status->xkeyboard) xkeyboard_free(status->xkeyboard);
+ 	status->timer=NULL;
+ 	if (status->latched_keys) g_list_free(status->latched_keys);
+ 	if (status->locked_keys) g_list_free(status->locked_keys);
+-- 
+2.13.2
+

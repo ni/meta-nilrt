@@ -1,0 +1,31 @@
+From 22a93ee96ce5e815f45863868b0d794125360de6 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fran=C3=A7ois=20Agrech?= <f.agrech@gmail.com>
+Date: Sun, 7 Sep 2014 12:12:22 +0200
+Subject: [PATCH 1/2] Merge patch from Jonathan David
+
+When user presses a key and moves the mouse pointer over another
+key, the pressed key is lifted. Behavior of keyboard is made
+closer to that of a physical keyboard.
+
+Upstream-Status: Backport [master branch commit a3d5dc41faa]
+
+Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+---
+ src/status.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/status.c b/src/status.c
+index 2bbc613..f7527e4 100644
+--- a/src/status.c
++++ b/src/status.c
+@@ -172,6 +172,7 @@ void status_focus_set(struct status *status, struct key *focus)
+ 	status->focus=focus;
+ 	view_update(status->view, old, FALSE);
+ 	view_update(status->view, status->focus, FALSE);
++	if(!status->moving) status_pressed_set(status, NULL);
+ 	END_FUNC
+ }
+ 
+-- 
+2.13.2
+

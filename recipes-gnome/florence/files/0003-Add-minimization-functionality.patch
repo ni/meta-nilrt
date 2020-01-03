@@ -1,0 +1,211 @@
+From 6d6dccfc04d16049c91624df81297ce3bd3c465c Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+Date: Fri, 29 Jul 2016 02:48:19 +0300
+Subject: [PATCH 1/3] Add minimization functionality
+
+Click on the minimize icon to compress the keyboard to a single
+button. The icon can be dragged across the screen and pressed
+again to restore the keyboard to its original layout.
+
+Upstream-Status: Not Submitted [upstream is dead since 2014]
+
+Signed-off-by: Jonathan David <jonathan.david@ni.com>
+Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+---
+ data/florence.schemas.in    | 22 ++++++++++++++++++++--
+ data/layouts/Makefile.am    |  4 ++--
+ data/layouts/mini.xml.in.in | 46 +++++++++++++++++++++++++++++++++++++++++++++
+ src/florence.c              |  2 ++
+ src/key.c                   | 24 +++++++++++++++++++++--
+ src/status.h                |  2 ++
+ 6 files changed, 94 insertions(+), 6 deletions(-)
+ create mode 100644 data/layouts/mini.xml.in.in
+
+diff --git a/data/florence.schemas.in b/data/florence.schemas.in
+index c34f9b6..7885a07 100644
+--- a/data/florence.schemas.in
++++ b/data/florence.schemas.in
+@@ -133,7 +133,16 @@
+ 				<long>Display a notification message at startup explaining the basics.</long>
+ 			</locale>
+ 		</schema>
+-
++		<schema>
++			<key>/schemas/apps/florence/window/mini</key>
++			<owner>florence</owner>
++			<type>bool</type>
++			<default>false</default>
++				<locale name="C">
++				<short>Status of keyboard minimization</short>
++				<long>Contains the visual status of keyboard in regards to minimization.</long>
++			</locale>
++		</schema>
+ 		<schema>
+ 			<key>/schemas/apps/florence/window/xpos</key>
+ 			<applyto>/apps/florence/window/xpos</applyto>
+@@ -355,7 +364,16 @@
+ 				<long>Color of the ramble path drawn in ramble mode.</long>
+ 			</locale>
+ 		</schema>
+-
++		<schema>
++			<key>/schemas/apps/florence/layout/store</key>
++			<owner>florence</owner>
++			<type>string</type>
++			<default></default>
++			<locale name="C">
++				<short>Stored preferred layout</short>
++				<long>The layout file contains the previous layout before minimization</long>
++			</locale>
++		</schema>
+ 		<schema>
+ 			<key>/schemas/apps/florence/layout/file</key>
+ 			<applyto>/apps/florence/layout/file</applyto>
+diff --git a/data/layouts/Makefile.am b/data/layouts/Makefile.am
+index 81ea75a..373f6ad 100644
+--- a/data/layouts/Makefile.am
++++ b/data/layouts/Makefile.am
+@@ -1,11 +1,11 @@
+ 
+ layoutdir=$(datadir)/florence/layouts
+-layout_in_files=florence.xml.in florence-alt.xml.in compact.xml.in compact-alt.xml.in
++layout_in_files=florence.xml.in florence-alt.xml.in compact.xml.in compact-alt.xml.in mini.xml.in
+ layout_DATA=$(layout_in_files:.xml.in=.xml)
+ @INTLTOOL_XML_RULE@
+ $(layout_in_files): $(layout_in_files:.xml.in=.xml.in.in)
+ 	sed -e "s|\@VERSION\@|$(VERSION)|" $(srcdir)/$@.in > $@
+ 
+-EXTRA_DIST = florence.xml.in.in florence-alt.xml.in.in compact.xml.in.in compact-alt.xml.in.in
++EXTRA_DIST = florence.xml.in.in florence-alt.xml.in.in compact.xml.in.in compact-alt.xml.in.in mini.xml.in.in
+ DISTCLEANFILES = $(layout_DATA) $(layout_in_files)
+ 
+diff --git a/data/layouts/mini.xml.in.in b/data/layouts/mini.xml.in.in
+new file mode 100644
+index 0000000..f10fcee
+--- /dev/null
++++ b/data/layouts/mini.xml.in.in
+@@ -0,0 +1,46 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!--
++  Florence - Florence is a simple virtual keyboard for Gnome.
++
++  Copyright (C) 2008, 2009 François Agrech
++
++  This program is free software; you can redistribute it and/or modify
++  it under the terms of the GNU General Public License as published by
++  the Free Software Foundation; either version 2, or (at your option)
++  any later version.
++
++  This program is distributed in the hope that it will be useful,
++  but WITHOUT ANY WARRANTY; without even the implied warranty of
++  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++  GNU General Public License for more details.
++
++  You should have received a copy of the GNU General Public License
++  along with this program; if not, write to the Free Software Foundation,
++  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
++-->
++
++<?xml-stylesheet type="text/xsl" href="florence.xsl"?>
++<layout xmlns="http://florence.sourceforge.net"
++	xmlns:xi="http://www.w3.org/2001/XInclude">
++<informations>
++	<_name>Mini Icon</_name>
++	<author>Jonathan David</author>
++	<date>2014-07-14</date>
++	<florence_version>@VERSION@</florence_version>
++</informations>
++
++<keyboard>
++	<width>3</width>
++	<height>3</height>
++	<key>
++		<action>reduce</action>
++		<modifier>
++			<code>8</code> <!-- alt -->
++			<action>close</action>
++		</modifier>
++		<xpos>1</xpos>
++		<ypos>1</ypos>
++	</key>
++</keyboard>
++</layout>
++
+diff --git a/src/florence.c b/src/florence.c
+index feadefe..1f99dfa 100644
+--- a/src/florence.c
++++ b/src/florence.c
+@@ -571,6 +571,8 @@ gboolean flo_mouse_move_event(GtkWidget *window, GdkEvent *event, gpointer user_
+ 	if (status_get_moving(florence->status)) {
+ 		gtk_window_move(GTK_WINDOW(window), (gint)((GdkEventMotion*)event)->x_root-florence->xpos,
+ 			(gint)((GdkEventMotion*)event)->y_root-florence->ypos);
++		florence->status->x_end = (gint)((GdkEventMotion*)event)->x_root-florence->xpos;
++		florence->status->y_end = (gint)((GdkEventMotion*)event)->x_root-florence->ypos;
+ 	} else {
+ 		/* Remember mouse position for moving */
+ 		florence->xpos=(gint)((GdkEventMotion*)event)->x;
+diff --git a/src/key.c b/src/key.c
+index 72cfb17..72ca0ca 100644
+--- a/src/key.c
++++ b/src/key.c
+@@ -58,6 +58,8 @@ static const gchar *key_actions[] = {
+ 	"unextend"
+ };
+ 
++#define MIN_MOVE_DISTANCE 3
++
+ /* Parse string into key type enumeration */
+ enum key_action_type key_action_type_get(gchar *str)
+ {
+@@ -303,7 +305,10 @@ void key_press(struct key *key, struct status *status)
+ 					case KEY_SMALLER:
+ 					case KEY_CONFIG:
+ 					case KEY_CLOSE:
+-					case KEY_REDUCE:
++					case KEY_REDUCE: status->moving=TRUE;
++						status->x_begin = status->x_end;
++						status->y_begin = status->y_end;
++						break;
+ 					case KEY_SWITCH:
+ 					case KEY_EXTEND:
+ 					case KEY_UNEXTEND:
+@@ -342,7 +347,22 @@ void key_release(struct key *key, struct status *status)
+ 				action=(struct key_action *)mod->data;
+ 				switch (action->type) {
+ 					case KEY_CLOSE: gtk_main_quit(); break;
+-					case KEY_REDUCE: view_hide(status->view); break;
++					case KEY_REDUCE: status->moving=FALSE;
++						if (abs(status->x_begin-status->x_end) <= MIN_MOVE_DISTANCE &&
++							abs(status->y_begin-status->y_end) <= MIN_MOVE_DISTANCE) {
++							if(!settings_get_bool("window/mini")) {
++								gchar *path;
++								settings_string_set("layout/store", settings_get_string("layout/file"));
++								path=g_strdup_printf(DATADIR "/layouts/mini.xml");
++								settings_string_set("layout/file", path);
++								g_free(path);
++								settings_bool_set("window/mini", TRUE);
++							} else {
++								settings_string_set("layout/file", settings_get_string("layout/store"));
++								settings_bool_set("window/mini", FALSE);
++							}
++						}
++						break;
+ 					case KEY_CONFIG: settings(); break;
+ 					case KEY_MOVE: status_set_moving(status, FALSE); break;
+ 					case KEY_BIGGER: settings_double_set("window/scalex",
+diff --git a/src/status.h b/src/status.h
+index fd7a7a4..3c0dbae 100644
+--- a/src/status.h
++++ b/src/status.h
+@@ -86,6 +86,8 @@ struct status {
+ #endif
+ 	struct xkeyboard *xkeyboard; /* data from xkb */
+ 	enum status_input_method input_method; /* selected input method */
++	gint x_begin, y_begin; /* track position of keyboard for minimization feature */
++	gint x_end, y_end;
+ };
+ 
+ #ifdef ENABLE_XRECORD
+-- 
+2.13.2
+
