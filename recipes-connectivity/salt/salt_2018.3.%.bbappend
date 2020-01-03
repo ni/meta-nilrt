@@ -25,6 +25,8 @@ S="${WORKDIR}/git"
 PACKAGECONFIG = "tcp"
 
 RDEPENDS_${PN}-minion_append += "\
+    python3-aiodns \
+    python3-aiohttp \
     python3-avahi \
     python3-mmap \
     python3-pyinotify \
