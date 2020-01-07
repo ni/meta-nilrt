@@ -154,7 +154,8 @@ set_serial_port()
     if [ -d /sys/class/tty/ttyS0 ] && [ -f /sys/class/tty/ttyS0/type ] && [ `cat /sys/class/tty/ttyS0/type` -ne 0 ]; then
         echo "set serial_port="`cat /sys/class/tty/ttyS0/port` >> $GRUB_MOUNTPOINT/grubvar_readonly
 
-        if local base_clock=$(get_serial_base_clock); then
+        local base_clock
+        if base_clock=$(get_serial_base_clock); then
             echo "set GRUB_SERIAL_BASE_CLOCK=$base_clock" >> $GRUB_MOUNTPOINT/grubvar_readonly
         fi
     fi
