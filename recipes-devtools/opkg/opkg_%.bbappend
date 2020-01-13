@@ -8,7 +8,6 @@ SRC_URI += " \
             file://gpg.conf \
             file://run-ptest \
             file://0001-libsolv_solver_init-make-no-install-recommends-case-.patch \
-            file://0002-libsolv_solver_execute_transaction-propagate-downloa.patch \
             file://0001-opkg-key-add-keys-even-if-creation-date-is-in-the-fu.patch \
 "
 
