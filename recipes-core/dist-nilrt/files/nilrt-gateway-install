@@ -101,7 +101,11 @@ sed "s/restore=provision/restore=migrate/" -i "$EFI_MOUNT/EFI/BOOT/grub.cfg"
 
 # copy payload/ISO contents to other partition
 info "Rewriting secondary partition"
-umount "$TARGET_OTHER" 2>/dev/null || /bin/true
+# unmount target partition even if its mounted at multiple mount points
+mount_cnt=$(findmnt --list "$TARGET_OTHER" |wc -l)
+for ((i=1;i<$mount_cnt;i++)) ; do
+    umount --read-only "$TARGET_OTHER" 2>/dev/null
+done
 dd if="$isopart" of="$TARGET_OTHER" >/dev/null 2>&1
 
 info "Install successful."
