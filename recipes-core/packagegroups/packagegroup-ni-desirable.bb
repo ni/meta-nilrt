@@ -18,17 +18,32 @@ RDEPENDS_${PN}_append_x64 = "\
 "
 
 RDEPENDS_${PN} += "\
+	binutils \
 	cgdb \
 	cifs-utils \
 	elfutils \
 	file \
+	g++ \
+	gcc \
 	gdb \
 	git \
+	htop \
 	ldd \
 	ltrace \
 	mysql-python \
+	ntpdate \
+	openssl-dev \
+	python-modules \
+	python-nose \
 	python-pip \
+	python-psutil \
+	python-setuptools \
+	python3-dev \
+	python3-misc \
 	python3-pip \
+	rsync \
+	sshpass \
 	strace \
 	valgrind \
+	vim \
 "
