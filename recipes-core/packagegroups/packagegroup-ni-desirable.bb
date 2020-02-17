@@ -27,12 +27,16 @@ RDEPENDS_${PN} += "\
 	gcc \
 	gdb \
 	git \
+	gperf \
 	htop \
+	iperf2 \
+	iperf3 \
 	ldd \
 	ltrace \
 	mysql-python \
 	ntpdate \
 	openssl-dev \
+	perf \
 	python-modules \
 	python-nose \
 	python-pip \
