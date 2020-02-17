@@ -30,7 +30,7 @@ INHIBIT_PACKAGE_DEBUG_SPLIT="1"
 # link against the gcc provided runtime
 do_kernel_configme[depends] += "libgcc:do_populate_sysroot"
 
-NI_RELEASE_VERSION = "master"
+NI_RELEASE_VERSION = "20.0"
 LINUX_VERSION = "4.14"
 
 KBRANCH = "nilrt/${NI_RELEASE_VERSION}/${LINUX_VERSION}"
@@ -40,7 +40,7 @@ SRC_URI = "\
 	${NILRT_GIT}/${GIT_KERNEL_REPO};protocol=git;nocheckout=1;branch=${KBRANCH} \
 	file://export-kernel-headers.sh \
 "
-SRCREV="${AUTOREV}"
+SRCREV="785ddf238a3b68326cb9c74a60cf73146ba4cd17"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 
 # This checks ${PV} == version from kernel sources which our PV/AUTOREV breaks, so skip it.
