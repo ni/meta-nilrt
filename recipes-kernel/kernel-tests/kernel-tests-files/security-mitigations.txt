@@ -6,9 +6,9 @@
 *       spectre_v1          ""                                  "Mitigation: usercopy/swapgs barriers and __user pointer sanitization"
 *       spectre_v2          spectre_v2=off                      "Vulnerable, STIBP: disabled"
 
-# cRIO 9030
-0x7755  l1tf                l1tf=off                            "Not affected"
-0x7755  spec_store_bypass   spec_store_bypass_disable=on        "Not affected"
+# cRIO 9033/9030
+0x7735,0x7755  l1tf                l1tf=off                            "Not affected"
+0x7735,0x7755  spec_store_bypass   spec_store_bypass_disable=on        "Not affected"
 
 # PXI
 0x77E1  spec_store_bypass   spec_store_bypass_disable=on        "Mitigation: Speculative Store Bypass disabled"
