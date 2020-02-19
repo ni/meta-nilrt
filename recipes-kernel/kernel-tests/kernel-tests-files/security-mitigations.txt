@@ -3,7 +3,7 @@
 *       l1tf                l1tf=off                            "Mitigation: PTE Inversion"
 *       meltdown            pti=off                             Vulnerable
 *       spec_store_bypass   spec_store_bypass_disable=on        Vulnerable
-*       spectre_v1          ""                                  "Mitigation: __user pointer sanitization"
+*       spectre_v1          ""                                  "Mitigation: usercopy/swapgs barriers and __user pointer sanitization"
 *       spectre_v2          spectre_v2=off                      "Vulnerable, STIBP: disabled"
 
 # cRIO 9030
