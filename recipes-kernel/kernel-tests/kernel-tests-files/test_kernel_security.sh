@@ -149,6 +149,22 @@ function test_mitigations_from_file () {
 	if [ -n "$2" ]; then
 		device_code="${2}"
 		echo "Overwriting device code as:" $device_code
+	else
+		# If this is a VM, then we don't want to use the rules in security_mitigations.txt
+		# corresponding to the device code of the hardware we are simulating. So we
+		# override the device code with some unique value.
+		MAN=$(dmidecode --string system-manufacturer)
+		if [ $? -eq 0 ]; then
+			if [ ! "${MAN}" == "National Instruments" ]; then
+				device_code="0x00VM"
+				echo "INFO: Overwriting device code as: 0x00VM"
+			fi
+		else
+			echo "ERROR: dmidecode call failed."
+			ptest_fail
+			ptest_report
+			return
+		fi
 	fi
 	_read_mitigations_rules_file "${1:-security-mitigations.txt}" "$device_code"
 	# the 'rules' variable now contains an array of rules strings which
