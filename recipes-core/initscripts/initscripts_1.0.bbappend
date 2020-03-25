@@ -32,7 +32,6 @@ do_install_append() {
 	update-rc.d -f -r ${D} banner.sh remove
 	update-rc.d -f -r ${D} checkroot.sh remove
 	update-rc.d -f -r ${D} mountnfs.sh remove
-	update-rc.d -f -r ${D} umountnfs.sh remove
 	update-rc.d -f -r ${D} read-only-rootfs-hook.sh remove
 
 	if [ "${TARGET_ARCH}" = "arm" ]; then
