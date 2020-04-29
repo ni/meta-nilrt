@@ -1,0 +1,47 @@
+#! /bin/bash
+
+# This script determines if the bootflow on the system is one of "u-boot",
+# "grub" or "efi-ab" and prints it in json format with the key "boot-flow"
+
+print_json_bootflow() {
+    local bootflow_value="${1}"
+    echo "{"
+    echo "  \"boot-flow\" : \"$bootflow_value\""
+    echo "}"
+}
+
+check_arm() {
+    local uname_machine=$(uname --machine 2>/dev/null)
+
+    if echo "$uname_machine" | grep -q arm;
+    then
+        print_json_bootflow "u-boot"
+        return 0
+    fi
+    return 1
+}
+
+check_efi_ab_partitions() {
+    local lsblk_data=$(lsblk -lno LABEL,FSTYPE /dev/sda 2>/dev/null)
+
+    if echo "$lsblk_data" | grep -w niboota | grep -wq vfat  &&   \
+       echo "$lsblk_data" | grep -w nibootb | grep -wq vfat       ;
+    then
+           print_json_bootflow "efi-ab"
+           return 0
+    fi
+    return 1
+}
+
+check_grub_partitions() {
+    local lsblk_data=$(lsblk -lno LABEL,FSTYPE /dev/sda 2>/dev/null)
+
+    if echo "$lsblk_data" | grep -w nigrub | grep -wq vfat;
+    then
+           print_json_bootflow "grub"
+           return 0
+    fi
+    return 1
+}
+
+check_arm || check_efi_ab_partitions || check_grub_partitions

@@ -26,6 +26,7 @@ RDEPENDS_${PN} = "\
 	niwatchdogpet \
 	parted \
 	rtctl \
+	systemimageupdateinfo \
 	tbtadm \
 	util-linux-sfdisk \
 	vlan \
