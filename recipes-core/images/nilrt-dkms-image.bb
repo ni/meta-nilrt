@@ -10,3 +10,5 @@ require niconsole-image.inc
 require nilrt-xfce.inc
 require nilrt-initramfs.inc
 require include/licenses.inc
+
+IMAGE_FSTYPES += "squashfs"
