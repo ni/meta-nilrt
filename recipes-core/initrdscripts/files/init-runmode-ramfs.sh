@@ -43,6 +43,35 @@ status "Set printk_devkmsg=on (previous: $ORIG_KMSG_CONFIG)"
 ARCH="`uname -m`"
 status "Running init process on ARCH=$ARCH"
 
+if [ "$ARCH" == "x86_64" ]; then
+    # Root device which is detected asynchronously may not show up
+    #  early, so continously polling for it until it is available
+    #  or 10s timeout.
+    status "Waiting for root device"
+    slumber=10
+    time_started=$SECONDS
+    while true; do
+        rootdevice_list="`lsblk -l -n -o NAME,PARTUUID | tr -s " " | grep " $rootuuid"`"
+
+        if [ -n "$rootdevice_list" ]; then
+            # Found root device
+            status "Root device detected."
+            break
+        fi
+
+        time_elapsed=$((SECONDS - time_started))
+        if [ $time_elapsed -ge $slumber ]; then
+            error "Root device not found. System is unbootable."
+            # Let the system hang while still displaying the message,
+            #  since we have no way to force into safemode.
+            while true; do true; done
+        else
+            # Sleep for 10ms each trial
+            sleep 0.01
+        fi
+    done
+fi
+
 status "Setting next boot to safemode in case booting runmode fails"
 mkdir -p /mnt/boot
 mount -L nibootfs -o rw,sync /mnt/boot
@@ -61,7 +90,6 @@ if [ "$ARCH" == "x86_64" ]; then
 
     bootdevice=""
 
-    rootdevice_list="`lsblk -l -n -o NAME,PARTUUID | tr -s " " | grep " $rootuuid"`"
     rootdevice_count="`echo "$rootdevice_list" | wc -l`"
     rootdevice="/dev/`echo "$rootdevice_list" | head -1 | cut -d" " -f1`"
     case "$rootdevice_count" in

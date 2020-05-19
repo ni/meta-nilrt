@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# Any failure at any line of this script will cause the script to
+#  exit with error, this will then leads to a kernel panic
+#  because it's the init script
 set -euo pipefail
 
 # close stdin
@@ -136,9 +140,32 @@ current_niboot_fs_uuid=$(cat /proc/cmdline | tr " " "\n" | grep "^rauc.slot.uuid
 assert_valid_fs_id "rauc.slot" "$current_niboot_fs_label"
 assert_valid_fs_id "rauc.slot.uuid" "$current_niboot_fs_uuid"
 
-# Find boot dev nodes using a combination of fs label and UUID so that
-#  multiple NILRT installations may co-exist on the same system
-current_niboot_part_device=$(lsblk -l -n -o NAME,LABEL,UUID | tr -s " " | egrep " $current_niboot_fs_label $current_niboot_fs_uuid\$" | head -1 | cut -d" " -f1)
+# Root device which is detected asynchronously may not show up
+#  early, so continously polling for it until it is available
+#  or 10s timeout.
+status "Waiting for root device"
+slumber=10
+time_started=$SECONDS
+while true; do
+    # Find boot dev nodes using a combination of fs label and UUID so that
+    #  multiple NILRT installations may co-exist on the same system
+    current_niboot_part_device=$(lsblk -l -n -o NAME,LABEL,UUID | tr -s " " | egrep " $current_niboot_fs_label $current_niboot_fs_uuid\$" | head -1 | cut -d" " -f1) || true
+
+    if [ -n "$current_niboot_part_device" ]; then
+        # Found root device
+        status "Root device detected."
+        break
+    fi
+
+    time_elapsed=$((SECONDS - time_started))
+    if [ $time_elapsed -ge $slumber ]; then
+        error "Root device not found. System is unbootable."
+    else
+        # Sleep for 10ms each trial
+        sleep 0.01
+    fi
+done
+
 current_boot_disk_device=$(lsblk -l -n -o PKNAME "/dev/$current_niboot_part_device")
 
 assert_valid_fs_id "current_boot_disk_device" "$current_boot_disk_device"
