@@ -94,31 +94,6 @@ do_install_append() {
 	fi
 }
 
-do_tag_kernel_build() {
-	if [ -z "${BUILDNAME}" -o "${ENABLE_BUILD_TAG_PUSH}" != "Yes" ]; then
-		bbnote "Skipping git repo tagging (" $([ -z "${BUILDNAME}" ] && echo "no BUILDNAME defined" || echo "tagging not enabled by ENABLE_BUILD_TAG_PUSH") ")"
-		return 0
-	fi
-
-	machine_branch="${@ get_machine_branch(d, "${KBRANCH}" )}"
-	pushurl="${NILRT_RW_GIT_URI}:${GIT_KERNEL_REPO}"
-	sshurl="${pushurl%:*}"
-
-	if [ -z "${sshurl}" -o -z "${machine_branch}" ]; then
-		bbfatal "Issue with push URL \"${pushurl}\" or branch \"${machine_branch}\""
-	fi
-
-	cd ${S}
-
-	git tag -f ${BUILDNAME} ${machine_branch}
-
-# We'll let this fail if the same tag already exists on the server (something's
-# gone terribly wrong or, more likely, a minor oversight.)
-	git push ${pushurl} ${BUILDNAME}
-}
-
-addtask tag_kernel_build after do_compile before do_install
-
 pkg_postinst_ontarget_kernel-dev () {
 	cd /lib/modules/${KERNEL_VERSION}/build/scripts/mod
 	mv ${HOST_PREFIX}elfconfig.h elfconfig.h
