@@ -1,6 +1,6 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
-DEPENDS_class-target += "shadow-native pseudo-native"
+DEPENDS_append_class-target += "shadow-native pseudo-native"
 
 RDEPENDS_${PN}-hwclock_append += "niacctbase"
 
