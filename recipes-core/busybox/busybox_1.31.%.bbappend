@@ -10,7 +10,7 @@ SRC_URI =+ " \
 	    	file://zcip-allow-action-script-to-reject-chosen-IP.patch \
 			file://login-utilities.cfg"
 
-SRC_URI_append_x64 = "file://enable_ar_create_fragment.cfg"
+SRC_URI_append_x64 += "file://enable_ar_create_fragment.cfg"
 
 # we're using syslog-ng, don't build busybox syslog (avoids build warnings)
 SRC_URI_remove += "file://syslog.cfg"
