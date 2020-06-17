@@ -93,6 +93,7 @@ RDEPENDS_${PN} = "\
 	curl \
 	daemonize \
 	dhcp-client \
+	dpkg-start-stop \
 	ethtool \
 	gptfdisk-sgdisk \
 	initscripts \
@@ -119,7 +120,6 @@ RDEPENDS_${PN} = "\
 	opkg-keyrings \
 	os-release \
 	run-postinsts \
-	start-stop-daemon \
 	sudo \
 	syslog-ng \
 	sysvinit \
