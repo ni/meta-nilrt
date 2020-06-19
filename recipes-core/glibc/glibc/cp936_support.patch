@@ -1,8 +1,19 @@
+From a78510f2e89476bd1405ff6ded58c45e65790db9 Mon Sep 17 00:00:00 2001
+From: Ben Shelton <ben.shelton@ni.com>
+Date: Fri, 19 Jun 2020 14:15:16 -0500
+
+---
+ iconv/skeleton.c   |     4 +
+ iconvdata/Makefile |     2 +-
+ iconvdata/cp936.c  | 13495 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 13500 insertions(+), 1 deletion(-)
+ create mode 100644 iconvdata/cp936.c
+
 diff --git a/iconv/skeleton.c b/iconv/skeleton.c
-index a15f8b1..10b1ca3 100644
+index 1dc642e2fc..4c46b079db 100644
 --- a/iconv/skeleton.c
 +++ b/iconv/skeleton.c
-@@ -163,6 +163,10 @@
+@@ -168,6 +168,10 @@
  # endif
  #endif
  
@@ -14,7 +25,7 @@ index a15f8b1..10b1ca3 100644
  #ifndef MAX_NEEDED_FROM
  # define MAX_NEEDED_FROM	MIN_NEEDED_FROM
 diff --git a/iconvdata/Makefile b/iconvdata/Makefile
-index 357530b..1e2df51 100644
+index c83962f351..0015fde589 100644
 --- a/iconvdata/Makefile
 +++ b/iconvdata/Makefile
 @@ -61,7 +61,7 @@ modules	:= ISO8859-1 ISO8859-2 ISO8859-3 ISO8859-4 ISO8859-5		 \
@@ -24,11 +35,11 @@ index 357530b..1e2df51 100644
 -	   CP770 CP771 CP772 CP773 CP774
 +	   CP770 CP771 CP772 CP773 CP774 CP936
  
- modules.so := $(addsuffix .so, $(modules))
- 
+ # If lazy binding is disabled, use BIND_NOW for the gconv modules.
+ ifeq ($(bind-now),yes)
 diff --git a/iconvdata/cp936.c b/iconvdata/cp936.c
 new file mode 100644
-index 0000000..7eb6c4a
+index 0000000000..7eb6c4ac90
 --- /dev/null
 +++ b/iconvdata/cp936.c
 @@ -0,0 +1,13495 @@

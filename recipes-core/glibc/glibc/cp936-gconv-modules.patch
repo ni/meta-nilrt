@@ -1,6 +1,16 @@
---- a/iconvdata/gconv-modules	2017-01-26 15:13:45.735807553 -0600
-+++ b/iconvdata/gconv-modules	2017-01-26 15:18:04.593091167 -0600
-@@ -1136,12 +1136,15 @@
+From a33deff1b9fc055aa9cfc6b1569cb218742637d2 Mon Sep 17 00:00:00 2001
+From: Bill Pittman <bill.pittman@ni.com>
+Date: Fri, 19 Jun 2020 14:15:16 -0500
+
+---
+ iconvdata/gconv-modules | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/iconvdata/gconv-modules b/iconvdata/gconv-modules
+index 16d09eb98d..a1279c8719 100644
+--- a/iconvdata/gconv-modules
++++ b/iconvdata/gconv-modules
+@@ -1143,12 +1143,15 @@ module	BIG5//			EUC-CN//		GBBIG5		1
  
  #	from			to			module		cost
  alias	GB13000//		GBK//
