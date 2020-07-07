@@ -32,6 +32,7 @@ SRC_URI = "file://nisetbootmode \
            file://nisetupirqpriority \
            file://nipopulateconfigdir \
            file://run-ptest \
+           file://cleanvarcache \
 "
 
 SRC_URI_append_x64 = "file://nidisablecstates \
@@ -70,6 +71,7 @@ do_install () {
 	install -m 0755 ${WORKDIR}/nisetupkernelconfig   ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nisetcommitratio      ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/wirelesssetdomain     ${D}${sysconfdir}/init.d
+	install -m 0755 ${WORKDIR}/cleanvarcache         ${D}${sysconfdir}/init.d
 	install -m 0755 ${S}/nisetupirqpriority          ${D}${sysconfdir}/init.d
 
 	install -d ${D}${sysconfdir}/natinst
@@ -85,6 +87,7 @@ do_install () {
 	update-rc.d -r ${D} nisetupkernelconfig   start 3  4 5 .
 	update-rc.d -r ${D} nisetcommitratio      start 99 S .
 	update-rc.d -r ${D} wirelesssetdomain     start 36 S .
+	update-rc.d -r ${D} cleanvarcache         start 38 0 6 S .
 
 	# only for nilrt-nxg, on older nilrt it's installed via p4
 	if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'true', 'false', d)}; then
