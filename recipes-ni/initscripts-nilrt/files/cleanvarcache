@@ -1,0 +1,8 @@
+#!/bin/sh
+
+CACHE_DIR=/var/cache
+
+if [ -d $CACHE_DIR ]; then
+	echo Cleaning up the /var/cache directory
+	rm -rf $CACHE_DIR
+fi
