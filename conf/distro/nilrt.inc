@@ -4,9 +4,6 @@ TARGET_VENDOR = "-nilrt"
 
 GRUB_BRANCH = "nilrt/19.0"
 
-# Inherit the default LIBC features superset from OE-core
-DISTRO_FEATURES += "${DISTRO_FEATURES_LIBC}"
-
 # Common features enabled on all NILRT flavours
 DISTRO_FEATURES += "\
         argp \
