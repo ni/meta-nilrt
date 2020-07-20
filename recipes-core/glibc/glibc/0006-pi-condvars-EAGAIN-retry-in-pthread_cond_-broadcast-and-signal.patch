@@ -14,16 +14,31 @@ https://elixir.bootlin.com/linux/v4.9.47/source/kernel/futex.c#L1788
 Adds retry loop when lll_futex_cmp_requeue_pi() returns EAGAIN.
 
 Signed-off-by: Haris Okanovic <haris.okanovic@ni.com>
+[gratian: update the futex value when retrying EAGAIN on broadcast]
+Signed-off-by: Gratian Crisan <gratian.crisan@ni.com>
 ---
- nptl/pthread_cond_broadcast.c | 12 +++++++++---
+ nptl/pthread_cond_broadcast.c | 19 +++++++++++++++----
  nptl/pthread_cond_signal.c    | 35 +++++++++++++++++++++--------------
- 2 files changed, 30 insertions(+), 17 deletions(-)
+ 2 files changed, 36 insertions(+), 18 deletions(-)
 
 diff --git a/nptl/pthread_cond_broadcast.c b/nptl/pthread_cond_broadcast.c
-index 0bf22fc205..f4ef651c2a 100644
+index 0bf22fc..7c0a852 100644
 --- a/nptl/pthread_cond_broadcast.c
 +++ b/nptl/pthread_cond_broadcast.c
-@@ -65,10 +65,16 @@ __pthread_cond_broadcast (pthread_cond_t *cond)
+@@ -42,10 +42,11 @@ __pthread_cond_broadcast (pthread_cond_t *cond)
+   /* Are there any waiters to be woken?  */
+   if (cond->__data.__total_seq > cond->__data.__wakeup_seq)
+     {
++again:
+       /* Yes.  Mark them all as woken.  */
+       cond->__data.__wakeup_seq = cond->__data.__total_seq;
+       cond->__data.__woken_seq = cond->__data.__total_seq;
+-      cond->__data.__futex = (unsigned int) cond->__data.__total_seq * 2;
++      ++cond->__data.__futex;
+       int futex_val = cond->__data.__futex;
+       /* Signal that a broadcast happened.  */
+       ++cond->__data.__broadcast_seq;
+@@ -65,10 +66,20 @@ __pthread_cond_broadcast (pthread_cond_t *cond)
       && defined __ASSUME_REQUEUE_PI)
        if (USE_REQUEUE_PI (mut))
  	{
@@ -31,15 +46,19 @@ index 0bf22fc205..f4ef651c2a 100644
 -					&mut->__data.__lock, futex_val,
 -					LLL_PRIVATE) == 0)
 +	  long int futex_err;
-+	  do {
-+	    futex_err = lll_futex_cmp_requeue_pi (&cond->__data.__futex, 1, INT_MAX,
-+						  &mut->__data.__lock, futex_val,
-+						  LLL_PRIVATE);
-+	  } while (__glibc_unlikely (futex_err == -EAGAIN));
 +
-+	  if (__glibc_likely (futex_err == 0)) {
++	  futex_err = lll_futex_cmp_requeue_pi (&cond->__data.__futex, 1, INT_MAX,
++						&mut->__data.__lock, futex_val,
++						LLL_PRIVATE);
++
++	  if (__glibc_likely (futex_err == 0))
  	    return 0;
-+	  }
++
++	  if (__glibc_unlikely (futex_err == -EAGAIN))
++            {
++	      cond_lock (cond, pshared);
++	      goto again;
++	    }
  	}
        else
  #endif
