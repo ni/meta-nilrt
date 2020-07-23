@@ -1,6 +1,6 @@
 DESCRIPTION = "NILRT linux kernel debug build"
 
-require linux-nilrt.inc
+require linux-nilrt-current.inc
 
 SRC_URI += "\
 	file://debug.cfg \
