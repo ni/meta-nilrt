@@ -30,12 +30,6 @@ INHIBIT_PACKAGE_DEBUG_SPLIT="1"
 # link against the gcc provided runtime
 do_kernel_configme[depends] += "libgcc:do_populate_sysroot"
 
-NI_RELEASE_VERSION = "master"
-LINUX_VERSION = "4.14"
-
-KBRANCH = "nilrt/${NI_RELEASE_VERSION}/${LINUX_VERSION}"
-
-GIT_KERNEL_REPO = "linux.git"
 SRC_URI = "\
 	${NILRT_GIT}/${GIT_KERNEL_REPO};protocol=git;nocheckout=1;branch=${KBRANCH} \
 	file://export-kernel-headers.sh \
