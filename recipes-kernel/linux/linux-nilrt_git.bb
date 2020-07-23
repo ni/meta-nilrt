@@ -1,6 +1,6 @@
 DESCRIPTION = "Linux kernel based on nilrt branch"
 
-require linux-nilrt.inc
+require linux-nilrt-current.inc
 
 # Subfolder of the same name will be added to FILESEXTRAPATHS and also
 # used for nilrt-specific config fragment manipulation during build.
