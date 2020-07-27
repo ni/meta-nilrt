@@ -49,7 +49,6 @@ NILRT_x64_PACKAGES = "\
 "
 
 NILRT_NXG_PACKAGES = "\
-	lsb \
 	modutils-initscripts \
 	ni-utils \
 	rauc \

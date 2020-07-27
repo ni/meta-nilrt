@@ -9,7 +9,6 @@ inherit packagegroup
 RDEPENDS_${PN}_append_x64 = "\
 	${@bb.utils.contains('DISTRO_FEATURES', 'x11', '\
 		packagegroup-self-hosted \
-		packagegroup-core-lsb \
 		packagegroup-xfce-extended \
 		packagegroup-ni-mono-extra \
 		consolekit \
