@@ -60,8 +60,6 @@ create_sdk_files_append() {
     bbnote "Target Sysroot: Remove escaping symlinks"
     rm -Rf "${SDK_OUTPUT}/${SDKTARGETSYSROOT}/etc/mtab"
     rm -Rf "${SDK_OUTPUT}/${SDKTARGETSYSROOT}/var/lock"
-    rm -Rf "${SDK_OUTPUT}/${SDKTARGETSYSROOT}/usr/lib/lsb/install_initd"
-    rm -Rf "${SDK_OUTPUT}/${SDKTARGETSYSROOT}/usr/lib/lsb/remove_initd"
 
     bbnote "Target Sysroot: Remove unneeded ca-certificates"
     rm -Rf "${SDK_OUTPUT}/${SDKTARGETSYSROOT}/etc/ssl/certs"
