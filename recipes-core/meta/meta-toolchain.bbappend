@@ -7,8 +7,6 @@ create_sdk_files_append() {
     rm -f "${SDK_OUTPUT}/${SDKPATH}/sysroots/${SDK_SYS}/etc/ld.so.cache"
     rm -f "${SDK_OUTPUT}/${SDKTARGETSYSROOT}/etc/mtab"
     rm -f "${SDK_OUTPUT}/${SDKTARGETSYSROOT}/var/lock"
-    rm -f "${SDK_OUTPUT}/${SDKTARGETSYSROOT}/usr/lib/lsb/install_initd"
-    rm -f "${SDK_OUTPUT}/${SDKTARGETSYSROOT}/usr/lib/lsb/remove_initd"
 }
 
 # Error if SDK sysroots contain broken symlinks
