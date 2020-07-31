@@ -14,9 +14,9 @@ DEPENDS += "bash coreutils tpm2-tools openssl cryptsetup"
 PACKAGES =+ "${PN}-common ${PN}-open ${PN}-reseal"
 
 RDEPENDS_${PN}-common += "bash coreutils-shred coreutils-timeout tpm2-tools cryptsetup"
-RDEPENDS_${PN}-open += "${PN}-common"
-RDEPENDS_${PN}-reseal += "${PN}-common"
-RDEPENDS_${PN} += "${PN}-common ${PN}-open ${PN}-reseal openssl"
+RDEPENDS_${PN}-open += "${PN}-common bash"
+RDEPENDS_${PN}-reseal += "${PN}-common bash"
+RDEPENDS_${PN} += "${PN}-common ${PN}-open ${PN}-reseal openssl bash"
 
 FILES_${PN}-common = "${libdir}/nilrtdiskcrypt.common"
 FILES_${PN}-open = " \
@@ -27,7 +27,7 @@ FILES_${PN}-open = " \
 "
 FILES_${PN}-reseal = "${sbindir}/nilrtdiskcrypt_reseal"
 
-RDEPENDS_${PN}-ptest += "${PN}"
+RDEPENDS_${PN}-ptest += "${PN} bash"
 FILES_${PN}-ptest += "${PTEST_PATH}"
 
 S = "${WORKDIR}"
