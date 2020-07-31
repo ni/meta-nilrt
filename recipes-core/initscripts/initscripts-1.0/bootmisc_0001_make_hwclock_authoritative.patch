@@ -1,6 +1,6 @@
 --- a/bootmisc.sh
 +++ b/bootmisc.sh
-@@ -60,10 +60,14 @@ fi
+@@ -63,10 +63,14 @@
  #
  # This is as good a place as any for a sanity check
  #
@@ -16,6 +16,6 @@
 +
 +# Otherwise, if the timestamp is more recent than the current time, use the
 +# timestamp instead.
- if test -e /etc/timestamp
+ if test -e "$TIMESTAMP_FILE"
  then
  	SYSTEMDATE=`date -u +%4Y%2m%2d%2H%2M%2S`
