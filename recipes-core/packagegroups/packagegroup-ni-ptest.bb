@@ -15,7 +15,6 @@ RDEPENDS_${PN} += "packagegroup-ni-ptest-smoke"
 
 # other supported ptest packages
 RDEPENDS_${PN}_append = "\
-    salt-ptest \
 "
 
 RDEPENDS_${PN}_append_nilrt-nxg = "\
