@@ -7,7 +7,6 @@ RDEPENDS_${PN} = " \
 	connman-transconf \
 	initscripts-transconf \
 	openssh-transconf \
-	salt-transconf \
 	shadow-transconf \
 	transconf \
 "
