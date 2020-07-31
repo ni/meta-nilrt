@@ -20,7 +20,6 @@ RDEPENDS_${PN} = "\
 	glibc-gconv-cp936 \
 	glibc-gconv-iso8859-1 \
 	iproute2-tc \
-	libfmi-dev \
 	librtpi \
 	lldpd \
 	niwatchdogpet \
