@@ -74,5 +74,5 @@ do_install () {
 	install -m 0644 ${WORKDIR}/sysctl.conf ${D}${sysconfdir}/
 
 	# add machine-info and allow System Web Server to modify it
-	install -m 0664 -g ni ${WORKDIR}/machine-info ${D}${sysconfdir}/
+	install -m 0664 -g ${LVRT_GROUP} ${WORKDIR}/machine-info ${D}${sysconfdir}/
 }
