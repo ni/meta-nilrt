@@ -13,6 +13,7 @@ SRC_URI = "file://README_File_Paths.txt \
 	   file://ulimit.sh \
 	   file://nisetlocale.sh \
 	   file://sysctl.conf \
+	   file://machine-info \
 "
 
 # Move main package before ${PN}-doc to make it  pick
@@ -29,6 +30,8 @@ FILES_${PN} += "README_File_Paths.txt \
 S = "${WORKDIR}"
 
 ARCH_ABI_EXT="${ABIEXTENSION}${@bb.utils.contains('TUNE_FEATURES','callconvention-hard','hf','',d)}"
+
+DEPENDS += "niacctbase"
 
 do_install () {
 	install -d -m 0755 ${D}${sysconfdir}/natinst/share/
@@ -69,4 +72,7 @@ do_install () {
 
 	# add sysctl.conf file to adjust system configuration parameters
 	install -m 0644 ${WORKDIR}/sysctl.conf ${D}${sysconfdir}/
+
+	# add machine-info and allow System Web Server to modify it
+	install -m 0664 -g ${LVRT_GROUP} ${WORKDIR}/machine-info ${D}${sysconfdir}/
 }
