@@ -77,9 +77,6 @@ FILES_${PN}-module-versioning-headers = "/kernel"
 do_install_append() {
 	export CROSS_COMPILE=${CROSS_COMPILE} ARCH=${ARCH} KBUILD_OUTPUT=${KBUILD_OUTPUT}
 
-	# for NXG NILRT install under /lib/modules/ to be included in kernel-dev pkg
-	${WORKDIR}/export-kernel-headers.sh ${S} ${D}${base_libdir}/modules/${KERNEL_VERSION}/build
-
 	# for older NILRT install under /kernel for inclusion in squashfs for backwards
 	# compatibility with non-standard Linux installs (non-dkms). This should go away
 	# and older NILRT should be migrated to kernel-dev + dkms in the future.
@@ -92,10 +89,4 @@ do_install_append() {
 				${D}/${KERNEL_IMAGEDEST}/${type}
 		done
 	fi
-}
-
-pkg_postinst_ontarget_kernel-dev () {
-	cd /lib/modules/${KERNEL_VERSION}/build/scripts/mod
-	mv ${HOST_PREFIX}elfconfig.h elfconfig.h
-	gcc -o modpost modpost.h modpost.c file2alias.c sumversion.c
 }
