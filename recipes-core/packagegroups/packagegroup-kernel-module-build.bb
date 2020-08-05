@@ -8,5 +8,6 @@ RDEPENDS_${PN} = "\
 	gcc \
 	gcc-symlinks \
 	kernel-dev \
+	kernel-devsrc \
 	make \
 	"
