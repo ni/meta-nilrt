@@ -14,7 +14,6 @@ RDEPENDS_${PN} += "\
 
 RDEPENDS_${PN}_append_x64 = "\
 	packagegroup-ni-mono-extra \
-	florence \
 "
 
 RDEPENDS_${PN} += "\
@@ -33,15 +32,12 @@ RDEPENDS_${PN} += "\
 	iperf3 \
 	ldd \
 	ltrace \
-	mysql-python \
 	ntpdate \
 	openssl-dev \
-	perf \
-	python-modules \
-	python-nose \
-	python-pip \
-	python-psutil \
-	python-setuptools \
+	python3-nose \
+	python3-pip \
+	python3-psutil \
+	python3-setuptools \
 	python3-dev \
 	python3-misc \
 	python3-pip \
