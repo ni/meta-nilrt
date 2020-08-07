@@ -5,6 +5,7 @@ SRCREV = "832e7862089a7cbc985ae09a17f6827de6c85bf8"
 
 SRC_URI = "\
 	${NILRT_GIT}/grub.git;branch=${GRUB_BRANCH} \
+	file://x86-64-Treat-R_X86_64_PLT32-as-R_X86_64_PC32.patch \
 	file://grub.cfg \
 	file://cfg \
 	file://grub.d \
