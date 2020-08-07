@@ -125,6 +125,7 @@ RDEPENDS_${PN} = "\
 	eudev \
 	udev-extraconf \
 	util-linux-agetty \
+	hwclock-init \
 	util-linux-hwclock \
 	util-linux-mount \
 	util-linux-umount \
