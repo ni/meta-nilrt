@@ -1,0 +1,7 @@
+#!/bin/sh
+
+./test_kernel_cyclictest_idle.sh
+./test_kernel_cyclictest_hackbench.sh
+./test_kernel_cyclictest_fio.sh
+./test_kernel_cyclictest_iperf.sh
+exit 0
