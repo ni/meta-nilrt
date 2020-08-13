@@ -12,7 +12,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=b234ee4d69f5fce4486a80fdaf4a4263"
 
 S = "${WORKDIR}/git"
 SRC_URI = "git://github.com/fedora-sysv/initscripts"
-SRCREV = "6ca701a23c74b245f35750149a22f7d21805a8e0"
+SRCREV = "d2243a0912bbad57b1b413f2c15599341cb2aa76"
 UPSTREAM_CHECK_GITTAGREGEX = "^(?P<pver>\d+(\.\d+)+)"
 
 # Since we are only taking the functions file directly, no need to
