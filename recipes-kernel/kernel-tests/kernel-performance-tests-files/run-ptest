@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ./test_kernel_cyclictest_idle.sh
 ./test_kernel_cyclictest_hackbench.sh

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 source ./run-cyclictest
 
 # measure the system latency with just background noise (i.e. idle system with no explicit load)

@@ -2,7 +2,7 @@ SUMMARY = "Linux kernel-specific performance tests"
 HOMEPAGE = "https://kernel.org"
 SECTION = "tests"
 LICENSE = "GPLv2 & GPLv2+"
-LIC_FILES_CHKSUM = "file://run-ptest;md5=905781abd96c0213c8b5bfa6c0681dd3"
+LIC_FILES_CHKSUM = "file://run-ptest;md5=e6b9dbe04e1c3de85402b8167a279f76"
 
 inherit ptest
 
@@ -11,7 +11,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-files:"
 S = "${WORKDIR}"
 
 DEPENDS = "virtual/kernel"
-RDEPENDS_${PN}-ptest += "bash rt-tests fio iperf3"
+RDEPENDS_${PN}-ptest += "bash rt-tests fio iperf3 fw-printenv"
 
 ALLOW_EMPTY_${PN} = "1"
 
