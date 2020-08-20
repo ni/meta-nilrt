@@ -13,6 +13,7 @@ RDEPENDS_${PN} += "\
 "
 
 RDEPENDS_${PN}_append_x64 = "\
+	packagegroup-ni-next-kernel \
 	packagegroup-ni-mono-extra \
 "
 
