@@ -1,4 +1,0 @@
-UBOOT_BRANCH ?= "nizynq/15.0/v2012.10"
-UBOOT_MACHINE ?= "nicrio9068_config"
-
-SRCREV = "2194b4c9d5ea9684d6c982f2036e15b980bbd3d5"
