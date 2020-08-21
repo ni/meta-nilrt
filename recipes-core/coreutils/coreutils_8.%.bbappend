@@ -11,13 +11,15 @@ DEPENDS += "shadow-native pseudo-native niacctbase"
 RDEPENDS_${PN}-hostname += "niacctbase"
 
 # preserve existing behavior when installing base package
-RDEPENDS_${PN}_class-target += "\
+RDEPENDS_coreutils_class-target += "\
 	${PN}-hostname \
 	${PN}-ls \
 	${PN}-chcon \
 	${PN}-shred \
 	${PN}-timeout \
 "
+
+PRIORITY = "120"
 
 pkg_postinst_${PN}-hostname () {
 	chmod 4550 $D${base_bindir}/hostname.${BPN}
@@ -31,7 +33,7 @@ pkg_prerm_${PN}-hostname () {
 }
 
 pkg_postinst_${PN}-ls () {
-	update-alternatives --install ${base_bindir}/ls ls ls.${BPN} 100
+	update-alternatives --install ${base_bindir}/ls ls ls.${BPN} ${PRIORITY}
 }
 
 pkg_prerm_${PN}-ls () {
@@ -39,7 +41,7 @@ pkg_prerm_${PN}-ls () {
 }
 
 pkg_postinst_${PN}-chcon () {
-	update-alternatives --install ${bindir}/chcon chcon chcon.${BPN} 100
+	update-alternatives --install ${bindir}/chcon chcon chcon.${BPN} ${PRIORITY}
 }
 
 pkg_prerm_${PN}-chcon () {
@@ -47,7 +49,7 @@ pkg_prerm_${PN}-chcon () {
 }
 
 pkg_postinst_${PN}-shred () {
-	update-alternatives --install ${bindir}/shred shred shred.${BPN} 100
+	update-alternatives --install ${bindir}/shred shred shred.${BPN} ${PRIORITY}
 }
 
 pkg_prerm_${PN}-shred () {
@@ -55,7 +57,7 @@ pkg_prerm_${PN}-shred () {
 }
 
 pkg_postinst_${PN}-timeout () {
-	update-alternatives --install ${bindir}/timeout timeout timeout.${BPN} 100
+	update-alternatives --install ${bindir}/timeout timeout timeout.${BPN} ${PRIORITY}
 }
 
 pkg_prerm_${PN}-timeout () {
