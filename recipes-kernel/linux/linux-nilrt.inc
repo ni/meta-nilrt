@@ -108,12 +108,6 @@ pkg_postinst_ontarget_${KERNEL_PACKAGE_NAME}-base_append_x64 () {
 
 	echo "${KERNEL_IMAGETYPE}-${KERNEL_VERSION}" >> kernel-versions
 
-	# on older NILRT, the kernel is not symlinked for backwards compatibility
-	if [ "${DISTRO}" != nilrt-nxg ]; then
-		for type in ${KERNEL_IMAGETYPES} ; do
-			mv ${D}/${KERNEL_IMAGEDEST}/${type}-${KERNEL_VERSION} \
-				${D}/${KERNEL_IMAGEDEST}/${type}
-		done
 	if [ -L "${KERNEL_IMAGETYPE}" -o ! -f "${KERNEL_IMAGETYPE}" ]; then
 		ln -f -s "${KERNEL_IMAGETYPE}-${KERNEL_VERSION}" "${KERNEL_IMAGETYPE}"
 	else
