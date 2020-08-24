@@ -37,9 +37,9 @@ bootimg_fixup() {
 	echo >>"${IMAGE_ROOTFS}/boot/readme.txt" " - baserootfs.squashfs: ${BASEROOTFS_IMAGE}-${MACHINE}.tar.bz2 root file system image"
 
 	# Move /boot/runmode/bzImage to /boot/bzImage
-	mv "${IMAGE_ROOTFS}/boot/runmode/bzImage" "${IMAGE_ROOTFS}/boot/bzImage"
+	mv "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/$(readlink "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/bzImage")" "${IMAGE_ROOTFS}/boot/bzImage"
 	# Remove /boot/runmode
-	rmdir "${IMAGE_ROOTFS}/boot/runmode"
+	rm -rf "${IMAGE_ROOTFS}/boot/runmode"
 
 	# Bitbake insists on installing glibc which is not needed on
 	#  EFI system partition. Cleanup all non-boot related files.
