@@ -78,6 +78,35 @@ do_install_append() {
 	# compatibility with non-standard Linux installs (non-dkms). This should go away
 	# and older NILRT should be migrated to kernel-dev + dkms in the future.
 	${WORKDIR}/export-kernel-headers.sh ${S} ${D}/kernel
+}
+
+pkg_postinst_ontarget_${KERNEL_PACKAGE_NAME}-base_append_x64 () {
+	cd "$D/${KERNEL_IMAGEDEST}"
+
+	if [ -f "${KERNEL_IMAGETYPE}" ]; then
+		if [ -L "${KERNEL_IMAGETYPE}" ]; then
+			# If the current kernel image file (e.g. bzImage) is a symlink check
+			# if the kernel version is stored in the 'kernel-versions' file (for uninstall)
+			kpath=`readlink -f ${KERNEL_IMAGETYPE} 2>/dev/null`
+			if [ -f "$kpath" ]; then
+				kimage=`basename $kpath 2>/dev/null`
+				if ! grep -xqs "$kimage" kernel-versions; then
+					echo "$kimage" >> kernel-versions
+				fi
+			fi
+		else
+			# If we have an actual kernel image file (e.g. bzImage) and it's not
+			# a symlink then it must be the kernel currently booted; rename it
+			# and store its version for uninstall.
+			if mv "${KERNEL_IMAGETYPE}" "${KERNEL_IMAGETYPE}-`uname -r`" 2>/dev/null; then
+				echo "${KERNEL_IMAGETYPE}-`uname -r`" >> kernel-versions
+			else
+				echo "WARNING: could not move existing $D/${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE} file"
+			fi
+		fi
+	fi
+
+	echo "${KERNEL_IMAGETYPE}-${KERNEL_VERSION}" >> kernel-versions
 
 	# on older NILRT, the kernel is not symlinked for backwards compatibility
 	if [ "${DISTRO}" != nilrt-nxg ]; then
@@ -85,8 +114,81 @@ do_install_append() {
 			mv ${D}/${KERNEL_IMAGEDEST}/${type}-${KERNEL_VERSION} \
 				${D}/${KERNEL_IMAGEDEST}/${type}
 		done
+	if [ -L "${KERNEL_IMAGETYPE}" -o ! -f "${KERNEL_IMAGETYPE}" ]; then
+		ln -f -s "${KERNEL_IMAGETYPE}-${KERNEL_VERSION}" "${KERNEL_IMAGETYPE}"
+	else
+		echo "ERROR: $D/${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE} file is not a symbolic link"
+		echo "ERROR: cannot switch to the new kernel image $D/${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE}-${KERNEL_VERSION}"
+		exit 1
 	fi
 }
+
+pkg_prerm_${KERNEL_PACKAGE_NAME}-base_append_x64 () {
+	cd "$D/${KERNEL_IMAGEDEST}"
+
+	# Check that the current kernel image file (e.g. bzImage) is a
+	# symlink and make sure is listed in the 'kernel-versions'
+	# file. This will also create the 'kernel-versions' file if it
+	# doesn't exist.
+	if [ -L "${KERNEL_IMAGETYPE}" ]; then
+		kpath=`readlink -f ${KERNEL_IMAGETYPE} 2>/dev/null`
+		if [ -f "$kpath" ]; then
+			kimage=`basename $kpath 2>/dev/null`
+			if ! grep -xqs "$kimage" kernel-versions; then
+				echo "$kimage" >> kernel-versions
+			fi
+		fi
+	else
+		echo "Error: $D/${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE} is not a symlink."
+		echo "Refusing to uninstall default kernel"
+		exit 1;
+	fi
+
+	# Also make sure the kernel being uninstalled is listed in
+	# 'kernel-versions'. This simplifies error checking later.
+	if ! grep -xqs "${KERNEL_IMAGETYPE}-${KERNEL_VERSION}" kernel-versions; then
+		echo "${KERNEL_IMAGETYPE}-${KERNEL_VERSION}" >> kernel-versions
+	fi
+
+	# Sanity check the kernels listed in 'kernel-versions' are
+        # present on disk.
+	while read line; do
+		if [ -f "$line" ]; then
+			echo "$line"
+		fi
+	done <kernel-versions >kernel-versions.tmp
+	mv -f kernel-versions.tmp kernel-versions
+
+	# Make sure this is not the last kernel available before proceeding.
+	if [ $(wc -l <kernel-versions) -le 1 ]; then
+		echo "Error: Refusing to uninstall last available kernel."
+		exit 1
+	fi
+}
+
+pkg_postrm_${KERNEL_PACKAGE_NAME}-base_append_x64 () {
+	cd "$D/${KERNEL_IMAGEDEST}"
+
+	# Remove kernel name from 'kernel-versions' file. We're
+	# relying on the prerm script for sanity checks (e.g. bzImage
+	# is a symlink we have another kernel to fall back to etc.)
+	while read line; do
+		if [ ! "$line" = "${KERNEL_IMAGETYPE}-${KERNEL_VERSION}" ]; then
+			echo "$line"
+		fi
+	done <kernel-versions >kernel-versions.tmp
+	mv -f kernel-versions.tmp kernel-versions
+
+	# If the symlink points to this kernel; update it.
+	kpath=`readlink -f ${KERNEL_IMAGETYPE} 2>/dev/null`
+	if [ -f "$kpath" ]; then
+		kimage=`basename $kpath 2>/dev/null`
+		if [ "$kimage" = "${KERNEL_IMAGETYPE}-${KERNEL_VERSION}" ]; then
+			ln -f -s `tail -1 kernel-versions` "${KERNEL_IMAGETYPE}"
+		fi
+	fi
+}
+
 
 pkg_postinst_ontarget_kernel-dev () {
 	cd /lib/modules/${KERNEL_VERSION}/build/scripts/mod
