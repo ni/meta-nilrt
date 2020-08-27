@@ -145,10 +145,12 @@ pkg_prerm_${KERNEL_PACKAGE_NAME}-base_append_x64 () {
 	fi
 
 	# Sanity check the kernels listed in 'kernel-versions' are
-        # present on disk.
+	# present on disk.
 	while read line; do
 		if [ -f "$line" ]; then
 			echo "$line"
+		else
+			echo "WARNING: kernel '$line' listed in '$D/${KERNEL_IMAGEDEST}/kernel-versions' not found on disk" 1>&2
 		fi
 	done <kernel-versions >kernel-versions.tmp
 	mv -f kernel-versions.tmp kernel-versions
