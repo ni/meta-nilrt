@@ -2,8 +2,7 @@ DESCRIPTION = "NILRT linux kernel next development build"
 
 require linux-nilrt-next.inc
 
-LINUX_VERSION_EXTENSION = "-next"
-KERNEL_PACKAGE_NAME = "kernel${LINUX_VERSION_EXTENSION}"
+KERNEL_PACKAGE_NAME = "kernel-next"
 
 # Subfolder of the same name will be added to FILESEXTRAPATHS and also
 # used for nilrt-specific config fragment manipulation during build.
