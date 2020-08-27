@@ -11,12 +11,9 @@ IMAGE_PREPROCESS_COMMAND += "rootfs_update_timestamp;"
 # Do not install license subpackages if they are only recommended.
 BAD_RECOMMENDATIONS_pn-${PN} += "*-lic"
 
-ROOTFS_POSTPROCESS_COMMAND += "\
-       ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', '', 'move_kernel;', d)} \
-"
-
-# Older NILRT distro flavors expect the kernel is an actual image file
+# NILRT images expect the default kernel is an actual file
 # (e.g. bzImage) and not a symbolic link; fix it up here.
+ROOTFS_POSTPROCESS_COMMAND += "move_kernel;"
 move_kernel() {
 	for type in ${KERNEL_IMAGETYPES} ; do
 		if [ -L "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/${type}" ]; then
