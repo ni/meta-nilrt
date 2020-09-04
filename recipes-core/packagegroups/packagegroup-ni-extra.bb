@@ -140,15 +140,15 @@ RDEPENDS_${PN} += "\
 	patchelf \
 	pax-utils \
 	prelink \
-	python-dbus \
-	python-distribute \
-	python-imaging \
-	python-setuptools \
+	python3-dbus \
+	python3-distribute \
+	python3-imaging \
+	python3-setuptools \
 	python3-docutils \
-	python-mako \
-	python-nose \
-	python-numpy \
-	python-pyiface \
+	python3-mako \
+	python3-nose \
+	python3-numpy \
+	python3-pyiface \
 	python3 \
 	python3-setuptools \
 	rpm \
@@ -206,7 +206,7 @@ RDEPENDS_${PN} += "\
 	ca-certificates \
 	createrepo-c \
 	debianutils \
-	enchant \
+	enchant2 \
 	gnupg \
 	gnutls \
 	gpgme \
@@ -320,10 +320,10 @@ RDEPENDS_${PN} += "\
 	php \
 	pm-qa \
 	protobuf \
-	python-futures \
-	python-pyopenssl \
-	python-simplejson \
-	python-tornado \
+	python3-futures \
+	python3-pyopenssl \
+	python3-simplejson \
+	python3-tornado \
 	swig \
 	tclap \
 	uw-imap \
@@ -490,7 +490,6 @@ RDEPENDS_${PN} += "\
 	tbb \
 	tree \
 	usb-modeswitch \
-	usbpath \
 	vim \
 "
 
@@ -607,54 +606,54 @@ RDEPENDS_${PN} += "\
 
 # meta-oe/recipes-devtools/python (most now in meta-oe/meta-python)
 RDEPENDS_${PN} += "\
-	python-future \
-	python-gsocketpool \
-	python-mprpc \
-	python-pycrypto \
-	python-feedparser \
-	python-requests \
-	python-pyzmq \
-	python-m2crypto \
-	python-cheetah \
-	python-configparser \
-	python-lxml \
-	python-numeric \
-	python-matplotlib \
-	python-pyudev \
-	python-pyalsaaudio \
-	python-pyusb \
-	python-markupsafe \
-	python-jinja2 \
-	python-pexpect \
-	python-webdav \
-	python-dateutil \
-	python-ldap \
-	python-epydoc \
-	python-gevent \
-	python-cython \
-	python-smbus \
-	python-snakefood \
-	python-psutil \
-	python-msgpack \
-	python-vobject \
-	python-twisted \
-	python-pyserial \
-	python-slip-dbus \
-	python-gdata \
+	python3-future \
+	python3-gsocketpool \
+	python3-mprpc \
+	python3-pycrypto \
+	python3-feedparser \
+	python3-requests \
+	python3-pyzmq \
+	python3-m2crypto \
+	python3-cheetah \
+	python3-configparser \
+	python3-lxml \
+	python3-numeric \
+	python3-matplotlib \
+	python3-pyudev \
+	python3-pyalsaaudio \
+	python3-pyusb \
+	python3-markupsafe \
+	python3-jinja2 \
+	python3-pexpect \
+	python3-webdav \
+	python3-dateutil \
+	python3-ldap \
+	python3-epydoc \
+	python3-gevent \
+	python3-cython \
+	python3-smbus \
+	python3-snakefood \
+	python3-psutil \
+	python3-msgpack \
+	python3-vobject \
+	python3-twisted \
+	python3-pyserial \
+	python3-slip-dbus \
+	python3-gdata \
 	pyrtm \
-	python-sqlalchemy \
-	python-pyyaml \
-	python-decorator \
-	python-greenlet \
-	python-pytz \
-	python-zopeinterface \
-	python-pyparted \
-	python-pyconnman \
+	python3-sqlalchemy \
+	python3-pyyaml \
+	python3-decorator \
+	python3-greenlet \
+	python3-pytz \
+	python3-zopeinterface \
+	python3-pyparted \
+	python3-pyconnman \
 	python3-gevent \
 	python3-greenlet \
 	python3-gsocketpool \
 "
-# python-matplotlib: hang on do_install
+# python3-matplotlib: hang on do_install
 
 # meta-openembedded/meta-webserver
 RDEPENDS_${PN} += "\
@@ -679,115 +678,115 @@ RDEPENDS_${PN} += " \
 RDEPENDS_${PN} += "\
 	erlang \
 	libconfig-general-perl \
-	python-amqp \
-	python-amqplib \
-	python-anyjson \
-	python-beautifulsoup4 \
-	python-boto \
-	python-cephclient \
-	python-cliff \
-	python-cmd2 \
-	python-colorama \
-	python-coverage \
-	python-croniter \
-	python-cssselect \
-	python-decorator \
-	python-django \
-	python-django-appconf \
-	python-django-compressor \
-	python-django-nose \
-	python-dnspython \
-	python-eventlet \
-	python-extras \
-	python-falcon \
-	python-fixtures \
-	python-flake8 \
-	python-futures \
-	python-greenlet \
-	python-html5lib \
-	python-httplib2 \
-	python-httpretty \
-	python-ipaddr \
-	python-iso8601 \
-	python-jinja2 \
-	python-jsonpatch \
-	python-jsonpath-rw \
-	python-jsonpointer \
-	python-jsonschema \
-	python-keyring \
-	python-kombu \
-	python-lesscpy \
-	python-lockfile \
-	python-logutils \
-	python-lxml \
-	python-mako \
-	python-markupsafe \
-	python-mccabe \
-	python-memcache \
-	python-memcached \
-	python-mimeparse \
-	python-mock \
-	python-mox \
-	python-mox3 \
-	python-msgpack \
-	python-netaddr \
-	python-netifaces \
-	python-networkx \
-	python-requests \
-	python-oauth2 \
-	python-oauthlib \
-	python-pam \
-	python-paramiko \
-	python-passlib \
-	python-paste \
-	python-pastedeploy \
-	python-pbr \
-	python-pep8 \
-	python-ply \
-	python-posix-ipc \
-	python-prettytable \
-	python-psycopg2 \
-	python-py \
-	python-pyasn1 \
-	python-pycrypto \
-	python-pyflakes \
-	python-pymongo \
-	python-pyparsing \
-	python-pyscss \
-	python-pysnmp \
-	python-pysqlite \
-	python-pytest \
-	python-pytz \
-	python-pyudev \
-	python-requests \
-	python-rfc3986 \
-	python-rtslib-fb \
-	python-setuptools-git \
-	python-simplegeneric \
-	python-singledispatch \
-	python-six \
-	python-sqlalchemy \
-	python-stevedore \
-	python-subunit \
-	python-suds \
-	python-sysv-ipc \
-	python-taskflow \
-	python-tempita \
-	python-termcolor \
-	python-testrepository \
-	python-testresources \
-	python-testscenarios \
-	python-testtools \
-	python-tooz \
-	python-tox \
-	python-virtualenv \
-	python-waitress \
-	python-warlock \
-	python-websockify \
-	python-webtest \
-	python-wsgiref \
-	python-wsme \
-	python-xattr \
+	python3-amqp \
+	python3-amqplib \
+	python3-anyjson \
+	python3-beautifulsoup4 \
+	python3-boto \
+	python3-cephclient \
+	python3-cliff \
+	python3-cmd2 \
+	python3-colorama \
+	python3-coverage \
+	python3-croniter \
+	python3-cssselect \
+	python3-decorator \
+	python3-django \
+	python3-django-appconf \
+	python3-django-compressor \
+	python3-django-nose \
+	python3-dnspython \
+	python3-eventlet \
+	python3-extras \
+	python3-falcon \
+	python3-fixtures \
+	python3-flake8 \
+	python3-futures \
+	python3-greenlet \
+	python3-html5lib \
+	python3-httplib2 \
+	python3-httpretty \
+	python3-ipaddr \
+	python3-iso8601 \
+	python3-jinja2 \
+	python3-jsonpatch \
+	python3-jsonpath-rw \
+	python3-jsonpointer \
+	python3-jsonschema \
+	python3-keyring \
+	python3-kombu \
+	python3-lesscpy \
+	python3-lockfile \
+	python3-logutils \
+	python3-lxml \
+	python3-mako \
+	python3-markupsafe \
+	python3-mccabe \
+	python3-memcache \
+	python3-memcached \
+	python3-mimeparse \
+	python3-mock \
+	python3-mox \
+	python3-mox3 \
+	python3-msgpack \
+	python3-netaddr \
+	python3-netifaces \
+	python3-networkx \
+	python3-requests \
+	python3-oauth2 \
+	python3-oauthlib \
+	python3-pam \
+	python3-paramiko \
+	python3-passlib \
+	python3-paste \
+	python3-pastedeploy \
+	python3-pbr \
+	python3-pep8 \
+	python3-ply \
+	python3-posix-ipc \
+	python3-prettytable \
+	python3-psycopg2 \
+	python3-py \
+	python3-pyasn1 \
+	python3-pycrypto \
+	python3-pyflakes \
+	python3-pymongo \
+	python3-pyparsing \
+	python3-pyscss \
+	python3-pysnmp \
+	python3-pysqlite \
+	python3-pytest \
+	python3-pytz \
+	python3-pyudev \
+	python3-requests \
+	python3-rfc3986 \
+	python3-rtslib-fb \
+	python3-setuptools-git \
+	python3-simplegeneric \
+	python3-singledispatch \
+	python3-six \
+	python3-sqlalchemy \
+	python3-stevedore \
+	python3-subunit \
+	python3-suds \
+	python3-sysv-ipc \
+	python3-taskflow \
+	python3-tempita \
+	python3-termcolor \
+	python3-testrepository \
+	python3-testresources \
+	python3-testscenarios \
+	python3-testtools \
+	python3-tooz \
+	python3-tox \
+	python3-virtualenv \
+	python3-waitress \
+	python3-warlock \
+	python3-websockify \
+	python3-webtest \
+	python3-wsgiref \
+	python3-wsme \
+	python3-xattr \
 "
 
 # meta-cloud-services/meta-openstack/recipes-devtools
@@ -851,7 +850,7 @@ RDEPENDS_${PN} += "\
 RDEPENDS_${PN} += "\
 	clamav \
 	libhtp \
-	python-pycrypto \
+	python3-pycrypto \
 	samhain-server \
 "
 
