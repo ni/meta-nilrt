@@ -1,0 +1,26 @@
+From bab8d6f1e74d52c53bb0600bbe5afd8943b65bce Mon Sep 17 00:00:00 2001
+From: Andrei Zene <andrei.zene@ni.com>
+Date: Tue, 8 Sep 2020 22:07:25 +0300
+Subject: [PATCH] Fix issue where update did not work for uncompressed feeds
+
+---
+ libopkg/opkg_download_curl.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/libopkg/opkg_download_curl.c b/libopkg/opkg_download_curl.c
+index d572070..8d6ca6a 100644
+--- a/libopkg/opkg_download_curl.c
++++ b/libopkg/opkg_download_curl.c
+@@ -245,6 +245,12 @@ static int opkg_validate_cached_file(const char *src, const char *cache_location
+         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &error_code);
+         opkg_msg(ERROR, "Failed to download %s headers: %s.\n", src,
+                  curl_easy_strerror(res));
++        free(etag);
++        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
++        curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, NULL);
++        curl_easy_setopt(curl, CURLOPT_WRITEHEADER, NULL);
++        curl_easy_setopt(curl, CURLOPT_HEADER, 0);
++        curl_easy_setopt(curl, CURLOPT_NOBODY, 0);
+         return -1;
+     }
+     curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &src_size);
