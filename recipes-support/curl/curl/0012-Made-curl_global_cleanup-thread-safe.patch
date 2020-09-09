@@ -1,4 +1,4 @@
-From d71253d4674b535e2834ab3fae4f584adfc12ecf Mon Sep 17 00:00:00 2001
+From 03d8bd548872eb9d6838ac2f6090beda40d5513a Mon Sep 17 00:00:00 2001
 From: Jonathan David <jonathan.david@ni.com>
 Date: Mon, 21 Jul 2014 15:28:15 -0500
 Subject: [PATCH] Made curl_global_cleanup() thread safe
@@ -9,10 +9,10 @@ Upstream-Status: Inappropriate [creates Linux dependency]
  1 file changed, 16 insertions(+)
 
 diff --git a/lib/easy.c b/lib/easy.c
-index e3bbec057..545ab85e3 100644
+index 96599ab..ba828e4 100644
 --- a/lib/easy.c
 +++ b/lib/easy.c
-@@ -349,11 +349,24 @@ CURLcode curl_global_init_mem(long flags, curl_malloc_callback m,
+@@ -278,11 +278,24 @@ CURLcode curl_global_init_mem(long flags, curl_malloc_callback m,
   */
  void curl_global_cleanup(void)
  {
@@ -35,9 +35,9 @@ index e3bbec057..545ab85e3 100644
      return;
 +  }
  
-   Curl_global_host_cache_dtor();
    Curl_ssl_cleanup();
-@@ -373,6 +386,9 @@ void curl_global_cleanup(void)
+   Curl_resolver_global_cleanup();
+@@ -300,6 +313,9 @@ void curl_global_cleanup(void)
  #endif
  
    init_flags  = 0;
@@ -48,5 +48,5 @@ index e3bbec057..545ab85e3 100644
  
  /*
 -- 
-2.17.1
+2.20.1
 

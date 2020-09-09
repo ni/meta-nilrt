@@ -1,4 +1,4 @@
-From 11858441b7147142ca804bc9af17fd8bb0d06e54 Mon Sep 17 00:00:00 2001
+From aaa4945c3befa01d0a59b5eb1df25a88f485e8be Mon Sep 17 00:00:00 2001
 From: Haris Okanovic <haris.okanovic@ni.com>
 Date: Mon, 25 Feb 2019 17:31:50 -0600
 Subject: [PATCH] Revert "global_init: ignore CURL_GLOBAL_SSL's absense"
@@ -16,10 +16,10 @@ Upstream-Status: Inappropriate [deprecated behavior]
  3 files changed, 17 insertions(+), 9 deletions(-)
 
 diff --git a/docs/libcurl/curl_global_init.3 b/docs/libcurl/curl_global_init.3
-index 6ba0920c1..ef4227fbb 100644
+index 56663a6..bd1c772 100644
 --- a/docs/libcurl/curl_global_init.3
 +++ b/docs/libcurl/curl_global_init.3
-@@ -62,8 +62,8 @@ Initialize everything possible. This sets all known bits except
+@@ -63,8 +63,8 @@ Initialize everything possible. This sets all known bits except
  \fBCURL_GLOBAL_ACK_EINTR\fP.
  
  .IP CURL_GLOBAL_SSL
@@ -31,10 +31,10 @@ index 6ba0920c1..ef4227fbb 100644
  Initialize SSL.
  
 diff --git a/include/curl/curl.h b/include/curl/curl.h
-index d1f857994..efa65576e 100644
+index c9c9b7b..e21ebf9 100644
 --- a/include/curl/curl.h
 +++ b/include/curl/curl.h
-@@ -2569,7 +2569,7 @@ typedef enum {
+@@ -2647,7 +2647,7 @@ typedef enum {
    CURLCLOSEPOLICY_LAST /* last, never use this */
  } curl_closepolicy;
  
@@ -44,10 +44,10 @@ index d1f857994..efa65576e 100644
  #define CURL_GLOBAL_ALL (CURL_GLOBAL_SSL|CURL_GLOBAL_WIN32)
  #define CURL_GLOBAL_NOTHING 0
 diff --git a/lib/easy.c b/lib/easy.c
-index ea267f809..f86e802d2 100644
+index 060353e..2972d25 100644
 --- a/lib/easy.c
 +++ b/lib/easy.c
-@@ -227,13 +227,16 @@ static CURLcode global_init(long flags, bool memoryfuncs)
+@@ -163,13 +163,16 @@ static CURLcode global_init(long flags, bool memoryfuncs)
  #endif
    }
  
@@ -62,17 +62,17 @@ index ea267f809..f86e802d2 100644
 -    curl_global_mutex_unlock();
 +      curl_global_mutex_unlock();
  #endif
--    return CURLE_FAILED_INIT;
+-    goto fail;
 -  }
-+      return CURLE_FAILED_INIT;
++      goto fail;
 +    }
  
-   if(flags & CURL_GLOBAL_WIN32)
-     if(win32_init()) {
-@@ -369,7 +372,12 @@ void curl_global_cleanup(void)
+ #ifdef WIN32
+   if(Curl_win32_init(flags)) {
+@@ -297,7 +300,12 @@ void curl_global_cleanup(void)
+     return;
    }
  
-   Curl_global_host_cache_dtor();
 -  Curl_ssl_cleanup();
 +
 +  /* XXX CURL_GLOBAL_SSL was removed from mainline cURL,
@@ -82,7 +82,7 @@ index ea267f809..f86e802d2 100644
 +
    Curl_resolver_global_cleanup();
  
-   if(init_flags & CURL_GLOBAL_WIN32)
+ #ifdef WIN32
 -- 
 2.20.1
 

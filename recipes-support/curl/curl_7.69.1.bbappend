@@ -1,9 +1,6 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
 SRC_URI += " \
-        file://0001-Updated-Curl_wait_ms-for-VxWorks.patch \
-        file://0002-Including-wrn-coreip-hostLib.h-in-lib-hostip4.c-for-.patch \
-        file://0003-Including-selectLib.h-in-lib-select.c-for-VxWorks-bu.patch \
         file://0004-Added-curl_easy_getinfo_va-API-function.patch \
         file://0006-Added-curl_formadd_va-API-function.patch \
         file://0007-Added-curl_multi_setopt_va-API-function.patch \
@@ -13,14 +10,7 @@ SRC_URI += " \
         file://0011-Made-curl_global_init-thread-safe.patch \
         file://0012-Made-curl_global_cleanup-thread-safe.patch \
         file://0013-Made-curl_easy_init-thread-safe.patch \
-        file://0014-Updated-verifyconnect-for-PharLAP.patch \
-        file://0015-Excluding-HAVE_WINSOCK2_H-and-HAVE_WS2TCPIP_H-on-Pha.patch \
-        file://0016-Excluding-HAVE_RAND_SCREEN-on-PharLAP.patch \
-        file://0017-Add-NI-specific-changes-to-VxWorks-config-file.patch \
-        file://0018-Modified-include-curl-curlbuild.h.dist-for-NI-s-VxWo.patch \
-        file://0019-Don-t-use-wincrypt.h-on-PharLap.patch \
         file://0021-Fixup-lib1529-test.patch \
-        file://0022-config-win32.h-Disable-Win32-crypto-API-on-Phar-Lap-.patch \
         file://0023-Decorate-API-functions-on-Windows-with-__cdecl.patch \
         file://0024-curl-system.h-define-SIZEOF_CURL_OFF_T.patch \
         file://0025-global_init-restore-CURL_GLOBAL_SSL-option.patch \
@@ -29,3 +19,4 @@ SRC_URI += " \
 SELECTED_OPTIMIZATION += "-Wno-deprecated-declarations"
 
 ENABLE_SRC_INSTALL_${PN} = "1"
+PACKAGE_DEBUG_SPLIT_STYLE = "debug-with-srcpkg"
