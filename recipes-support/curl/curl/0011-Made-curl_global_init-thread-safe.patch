@@ -1,4 +1,4 @@
-From 48f8a4c2a9367a0f91d5898db9821561b3af50a5 Mon Sep 17 00:00:00 2001
+From 45f2f26ece3169e913beaba320e2cf2a92ba0a0a Mon Sep 17 00:00:00 2001
 From: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
 Date: Wed, 16 Nov 2016 16:07:23 +0200
 Subject: [PATCH] Made curl_global_init() thread safe
@@ -15,7 +15,7 @@ Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
  1 file changed, 28 insertions(+)
 
 diff --git a/lib/easy.c b/lib/easy.c
-index 47b85f40d..e3bbec057 100644
+index 9a112d6..96599ab 100644
 --- a/lib/easy.c
 +++ b/lib/easy.c
 @@ -21,6 +21,7 @@
@@ -26,7 +26,7 @@ index 47b85f40d..e3bbec057 100644
  
  /*
   * See comment in curl_memory.h for the explanation of this sanity check.
-@@ -203,8 +204,16 @@ curl_calloc_callback Curl_ccalloc;
+@@ -139,8 +140,16 @@ curl_calloc_callback Curl_ccalloc;
   */
  static CURLcode global_init(long flags, bool memoryfuncs)
  {
@@ -43,57 +43,58 @@ index 47b85f40d..e3bbec057 100644
  
    if(memoryfuncs) {
      /* Setup the default memory functions here (again) */
-@@ -220,18 +229,27 @@ static CURLcode global_init(long flags, bool memoryfuncs)
+@@ -156,12 +165,18 @@ static CURLcode global_init(long flags, bool memoryfuncs)
  
    if(!Curl_ssl_init()) {
      DEBUGF(fprintf(stderr, "Error: Curl_ssl_init failed\n"));
 +#ifdef CURL_THREAD_SAFE_INIT
 +    curl_global_mutex_unlock();
 +#endif
-     return CURLE_FAILED_INIT;
+     goto fail;
    }
  
-   if(flags & CURL_GLOBAL_WIN32)
-     if(win32_init()) {
-       DEBUGF(fprintf(stderr, "Error: win32_init failed\n"));
+ #ifdef WIN32
+   if(Curl_win32_init(flags)) {
+     DEBUGF(fprintf(stderr, "Error: win32_init failed\n"));
 +#ifdef CURL_THREAD_SAFE_INIT
 +      curl_global_mutex_unlock();
 +#endif
-       return CURLE_FAILED_INIT;
-     }
- 
+     goto fail;
+   }
+ #endif
+@@ -169,6 +184,9 @@ static CURLcode global_init(long flags, bool memoryfuncs)
  #ifdef __AMIGA__
    if(!Curl_amiga_init()) {
      DEBUGF(fprintf(stderr, "Error: Curl_amiga_init failed\n"));
 +#ifdef CURL_THREAD_SAFE_INIT
 +    curl_global_mutex_unlock();
 +#endif
-     return CURLE_FAILED_INIT;
+     goto fail;
    }
  #endif
-@@ -244,6 +262,9 @@ static CURLcode global_init(long flags, bool memoryfuncs)
+@@ -181,6 +199,9 @@ static CURLcode global_init(long flags, bool memoryfuncs)
  
    if(Curl_resolver_global_init()) {
      DEBUGF(fprintf(stderr, "Error: resolver_global_init failed\n"));
 +#ifdef CURL_THREAD_SAFE_INIT
 +    curl_global_mutex_unlock();
 +#endif
-     return CURLE_FAILED_INIT;
+     goto fail;
    }
  
-@@ -252,6 +273,9 @@ static CURLcode global_init(long flags, bool memoryfuncs)
- #if defined(USE_LIBSSH2) && defined(HAVE_LIBSSH2_INIT)
-   if(libssh2_init(0)) {
-     DEBUGF(fprintf(stderr, "Error: libssh2_init failed\n"));
+@@ -193,6 +214,9 @@ static CURLcode global_init(long flags, bool memoryfuncs)
+ #ifdef USE_WOLFSSH
+   if(WS_SUCCESS != wolfSSH_Init()) {
+     DEBUGF(fprintf(stderr, "Error: wolfSSH_Init failed\n"));
 +#ifdef CURL_THREAD_SAFE_INIT
 +    curl_global_mutex_unlock();
 +#endif
      return CURLE_FAILED_INIT;
    }
  #endif
-@@ -270,6 +294,10 @@ static CURLcode global_init(long flags, bool memoryfuncs)
- 
-   Curl_version_init();
+@@ -1129,6 +1153,10 @@ static CURLcode easy_connection(struct Curl_easy *data,
+     return CURLE_UNSUPPORTED_PROTOCOL;
+   }
  
 +#ifdef CURL_THREAD_SAFE_INIT
 +  curl_global_mutex_unlock();
@@ -103,5 +104,5 @@ index 47b85f40d..e3bbec057 100644
  }
  
 -- 
-2.17.1
+2.20.1
 
