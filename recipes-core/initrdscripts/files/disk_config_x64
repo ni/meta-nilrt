@@ -21,9 +21,9 @@ disk_partition()
 
 	parted -s "$disk" --align optimal \
 		mklabel "gpt" \
-		mkpart "niboota"   1MB  250MB \
-		mkpart "nibootb" 250MB  500MB \
-		mkpart "niuser"  500MB  100%
+		mkpart "niboota"   1MB  400MB \
+		mkpart "nibootb" 400MB  800MB \
+		mkpart "niuser"  800MB  100%
 
 	# Per https://www.freedesktop.org/wiki/Specifications/DiscoverablePartitionsSpec/
 	#  C12A7328-F81F-11D2-BA4B-00A0C93EC93B -- EFI System Partition
