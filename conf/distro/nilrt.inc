@@ -6,21 +6,34 @@ GRUB_BRANCH = "nilrt/19.0"
 
 # Common features enabled on all NILRT flavours
 DISTRO_FEATURES += "\
-        argp \
-        efi \
-        ext2 \
-        largefile \
-        usbgadget \
-        usbhost \
-        wifi \
-        xattr \
-        zeroconf \
-        pci \
-        sysvinit \
-        pam \
-        ptest \
-        selinux \
+	argp \
+	efi \
+	ext2 \
+	largefile \
+	usbgadget \
+	usbhost \
+	wifi \
+	xattr \
+	zeroconf \
+	pci \
+	sysvinit \
+	pam \
+	ptest \
+	selinux \
 	virtualization \
+"
+
+# Clean *most* package work directories
+INHERIT += " rm_work "
+RM_WORK_EXCLUDE += " \
+	dist-nilrt-efi-ab \
+	dist-nilrt-efi-ab-gateway \
+	dist-nilrt-grub-gateway \
+	lvcomms-restore-mode-image \
+	niconsole-image \
+	niconsole-image-safe \
+	restore-mode-image \
+	safemode-restore-image \
 "
 
 LVRT_USER = "lvuser"
