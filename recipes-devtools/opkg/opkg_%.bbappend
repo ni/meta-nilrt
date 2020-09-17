@@ -8,6 +8,7 @@ SRC_URI += " \
             file://gpg.conf \
             file://run-ptest \
             file://0001-opkg-key-add-keys-even-if-creation-date-is-in-the-fu.patch \
+            file://0002-libopkg-clear-curl-properties-on-download-error-to-p.patch \
 "
 
 SRC_URI_append_armv7a = " \
