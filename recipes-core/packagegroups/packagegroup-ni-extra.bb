@@ -225,6 +225,7 @@ RDEPENDS_${PN} += "\
 	kexec-tools \
 	kmod \
 	linux-firmware \
+	makedumpfile \
 	oprofile \
 	perf \
 	powertop \
