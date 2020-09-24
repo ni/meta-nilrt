@@ -1,8 +1,8 @@
-DESCRIPTION = "NILRT system bundle containing minimal image"
+DESCRIPTION = "NILRT base image RAUC bundle"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-BUNDLE_IMAGE = "minimal-nilrt-bundle-image"
+BUNDLE_IMAGE = "nilrt-base-bundle-image"
 
 DEPENDS = "${BUNDLE_IMAGE}"
 

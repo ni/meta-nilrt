@@ -1,25 +1,14 @@
-Basic NI Images hierarchy:
+NI Images Hierarchy:
 
-Mix-ins:
-i    | nilrt-initramfs.inc
- k   | nilrt-nikms.inc
-  x  | nilrt-xfce.inc
+Includes:
+c    | nilrt-image-common.inc  # inherits from core-image
+cb   | nilrt-base.inc
+c r  | nilrt-restore-mode.inc
+   i | nilrt-initramfs.inc
 Images:
-     | * nilrt-image-common.inc
-     |   * niconsole-image-safe.bb          [nilrt safemode]
-     |   * niconsole-image.inc
- k   |     * niconsole-image.bb             [nilrt ARM runmode w/ nikms]
-     |     * niconsole-dkms-image.bb        [nilrt ARM runmode w/ dkms]
-ikx  |     * nixfce-image.bb                [nilrt x64 runmode w/ nikms]
-i x  |     * nilrt-dkms-image.bb            [nilrt x64 runmode w/ dkms]
-     |     * minimal-nilrt-image.bb         [nilrt-nxg minimal image]
-     |       * lvcomms-nilrt-image.bb       [nilrt-nxg runmode]
-  x  |       * xfce-nilrt-image.bb          [nilrt-nxg minimal + xfce]
-     |   * restore-mode-image.inc
-     |     * restore-mode-image.bb          [nilrt-nxg provisioning img - installs minimal-nilrt-image from a USB key]
-     |     * lvcomms-restore-mode-image.bb  [ " - installs lvcomms-nilrt-image]
-     | * minimal-nilrt-bundle-image.bb      [nilrt system partition image booting nilrt-nxg minimal image]
-     |   * lvcomms-nilrt-bundle-image.bb
-     |   * minimal-nilrt-bundle.bb          [rauc bundle to deploy nilrt system partition image booting nilrt-nxg minimal image]
-     | * nilrt-dkms-bundle-image.bb         [image containing nilrt x64 runmode w/ dkms for rauc bundle]
-     |   * nilrt-dkms-bundle.bb             [rauc bundle to deploy nilrt x64 runmode w/ dkms]
+     | host-toolchain-sysroot.bb            # generated sysroot for Xcompile toolchains (standalone)
+     |         /-> nilrt-base-bundle.bb     # nilrt x64 RAUC bundle
+     |     /-> nilrt-base-bundle-image.bb   # nilrt x64 RAUC bundle contents
+cb i | /-> nilrt-base-image.bb              # nilrt x64 base rootfs
+c    | nilrt-initramfs.bb                   # nilrt x64 initramfs
+c r  | nilrt-restore-mode-image.bb          # recovery ISO from RAUC bundle
