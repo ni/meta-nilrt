@@ -1,40 +1,40 @@
 # LAYER_CONF_VERSION is increased each time build/conf/bblayers.conf
 # changes incompatibly
-LCONF_VERSION = "5"
+LCONF_VERSION = "6"
 
 BBPATH = "${TOPDIR}"
 BBFILES ?= ""
 
 BBLAYERS ?= " \
-  ${GIT_REPODIR}/openembedded-core/meta \
-  ${GIT_REPODIR}/meta-openembedded/meta-oe \
-  ${GIT_REPODIR}/meta-openembedded/meta-filesystems \
-  ${GIT_REPODIR}/meta-openembedded/meta-gnome \
-  ${GIT_REPODIR}/meta-openembedded/meta-multimedia \
-  ${GIT_REPODIR}/meta-openembedded/meta-networking \
-  ${GIT_REPODIR}/meta-openembedded/meta-perl \
-  ${GIT_REPODIR}/meta-openembedded/meta-python \
-  ${GIT_REPODIR}/meta-openembedded/meta-webserver \
-  ${GIT_REPODIR}/meta-openembedded/meta-xfce \
-  ${GIT_REPODIR}/meta-openembedded/meta-initramfs \
-  ${GIT_REPODIR}/meta-mingw \
-  ${GIT_REPODIR}/meta-nilrt \
-  ${GIT_REPODIR}/meta-selinux \
-  ${GIT_REPODIR}/meta-virtualization \
-  ${GIT_REPODIR}/meta-cloud-services/meta-openstack \
-  ${GIT_REPODIR}/meta-cloud-services \
-  ${GIT_REPODIR}/meta-mono \
-  ${GIT_REPODIR}/meta-security \
-  ${GIT_REPODIR}/meta-orgconf \
-  ${GIT_REPODIR}/meta-sdr \
-  ${GIT_REPODIR}/meta-java \
-  ${GIT_REPODIR}/meta-measured \
-  ${GIT_REPODIR}/meta-qt5 \
-  ${GIT_REPODIR}/meta-qt5-extra \
-  ${GIT_REPODIR}/meta-ivi/meta-ivi \
-  ${GIT_REPODIR}/meta-rauc \
-  "
+	${NILRT_ROOT}/sources/openembedded-core/meta \
+	${NILRT_ROOT}/sources/meta-openembedded/meta-oe \
+	${NILRT_ROOT}/sources/meta-openembedded/meta-filesystems \
+	${NILRT_ROOT}/sources/meta-openembedded/meta-gnome \
+	${NILRT_ROOT}/sources/meta-openembedded/meta-multimedia \
+	${NILRT_ROOT}/sources/meta-openembedded/meta-networking \
+	${NILRT_ROOT}/sources/meta-openembedded/meta-perl \
+	${NILRT_ROOT}/sources/meta-openembedded/meta-python \
+	${NILRT_ROOT}/sources/meta-openembedded/meta-webserver \
+	${NILRT_ROOT}/sources/meta-openembedded/meta-xfce \
+	${NILRT_ROOT}/sources/meta-openembedded/meta-initramfs \
+	${NILRT_ROOT}/sources/meta-mingw \
+	${NILRT_ROOT}/sources/meta-nilrt \
+	${NILRT_ROOT}/sources/meta-selinux \
+	${NILRT_ROOT}/sources/meta-virtualization \
+	${NILRT_ROOT}/sources/meta-cloud-services/meta-openstack \
+	${NILRT_ROOT}/sources/meta-cloud-services \
+	${NILRT_ROOT}/sources/meta-mono \
+	${NILRT_ROOT}/sources/meta-security \
+	${NILRT_ROOT}/sources/meta-orgconf \
+	${NILRT_ROOT}/sources/meta-sdr \
+	${NILRT_ROOT}/sources/meta-java \
+	${NILRT_ROOT}/sources/meta-measured \
+	${NILRT_ROOT}/sources/meta-qt5 \
+	${NILRT_ROOT}/sources/meta-qt5-extra \
+	${NILRT_ROOT}/sources/meta-ivi/meta-ivi \
+	${NILRT_ROOT}/sources/meta-rauc \
+"
 
 BBLAYERS_NON_REMOVABLE ?= " \
-  ${GIT_REPODIR}/openembedded-core/meta \
-  "
+	${NILRT_ROOT}/sources/openembedded-core/meta \
+"
