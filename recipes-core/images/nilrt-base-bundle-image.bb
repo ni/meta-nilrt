@@ -1,4 +1,4 @@
-DESCRIPTION = "Filesystem image/archive of NILRT boot partition containing boot loader and minimal NILRT image"
+DESCRIPTION = "Filesystem image/archive of NILRT boot partition containing boot loader and runmode NILRT image"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
@@ -15,7 +15,7 @@ IMAGE_INSTALL = " \
 INITRAMFS_IMAGE = "nilrt-initramfs"
 do_rootfs[depends] += "${INITRAMFS_IMAGE}:do_image_complete"
 
-BASEROOTFS_IMAGE = "minimal-nilrt-image"
+BASEROOTFS_IMAGE = "nilrt-base-image"
 do_rootfs[depends] += "${BASEROOTFS_IMAGE}:do_image_complete"
 
 bootimg_fixup() {
@@ -36,10 +36,10 @@ bootimg_fixup() {
 	echo >>"${IMAGE_ROOTFS}/boot/readme.txt" " - initrd.cpio.gz: ${INITRAMFS_IMAGE}-${MACHINE}.cpio.gz ramdisk image"
 	echo >>"${IMAGE_ROOTFS}/boot/readme.txt" " - baserootfs.squashfs: ${BASEROOTFS_IMAGE}-${MACHINE}.tar.bz2 root file system image"
 
-	# Install bzImage-<version> to /boot/bzImage
-	install -m 0644 "${IMAGE_ROOTFS}/boot/$(readlink "${IMAGE_ROOTFS}/boot/bzImage")" "${IMAGE_ROOTFS}/boot/bzImage"
-	# Remove kernel-<version> file
-	rm ${IMAGE_ROOTFS}/boot/bzImage-*
+	# Move /boot/runmode/bzImage to /boot/bzImage
+	mv "${IMAGE_ROOTFS}/boot/runmode/bzImage" "${IMAGE_ROOTFS}/boot/bzImage"
+	# Remove /boot/runmode
+	rmdir "${IMAGE_ROOTFS}/boot/runmode"
 
 	# Bitbake insists on installing glibc which is not needed on
 	#  EFI system partition. Cleanup all non-boot related files.

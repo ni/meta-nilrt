@@ -1,4 +1,4 @@
-DESCRIPTION ?= "Small initramfs for booting NILRT NXG targets"
+DESCRIPTION ?= "NI LinuxRT ramfs for booting NI targets."
 LICENSE = "MIT"
 
 PACKAGE_INSTALL = "init-nilrt-ramfs"

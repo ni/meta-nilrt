@@ -7,14 +7,33 @@ do_rootfs[depends] += "shadow-native:do_populate_sysroot"
 do_rootfs[depends] += "depmodwrapper-cross:do_populate_sysroot"
 
 # without package-management update-rc.d gets removed from image
-IMAGE_FEATURES += "package-management"
+IMAGE_FEATURES += "\
+	package-management \
+	x11 \
+"
 
 # Grant some space for package installs after boot
 IMAGE_ROOTFS_EXTRA_SPACE = "500000"
 
+# boot management
+IMAGE_INSTALL += "\
+	rauc \
+	rauc-mark-good \
+"
+
+# user software
 IMAGE_INSTALL += "\
 	packagegroup-ni-base \
+	packagegroup-ni-runmode \
+	packagegroup-ni-transconf \
 	packagegroup-ni-tzdata \
+	packagegroup-ni-wifi \
+	packagegroup-ni-xfce \
+"
+
+# kernel software
+IMAGE_INSTALL += "\
+	dkms \
 "
 
 addtask image_build_test before do_rootfs
