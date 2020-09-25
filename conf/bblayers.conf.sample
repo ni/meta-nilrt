@@ -36,3 +36,7 @@ BBLAYERS ?= " \
 BBLAYERS_NON_REMOVABLE ?= " \
 	${GIT_REPODIR}/openembedded-core/meta \
 "
+
+# Avoid meta-openstack complaining that we are using recipes from it without
+# declaring 'openstack' in our DISTRO_FEATURES.
+SKIP_META_OPENSTACK_SANITY_CHECK ?= "1"
