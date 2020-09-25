@@ -1,4 +1,0 @@
-#this itb tries to load the /boot/boot.scr file from the rootfs partition
-#and if it doesn't exist, it loads the restore.scr from the bootfs partition
-#to restore the target
-if ubi part root && ubifsmount ubi:rootfs && ubifsload $verifyaddr /boot/boot.scr; then source $verifyaddr; elif ubi part boot-config && ubifsmount ubi:bootfs && ubifsload $verifyaddr .restore/restore.scr; then restore=restore; source $verifyaddr; else echo No default OS or restore mode found; fi;
