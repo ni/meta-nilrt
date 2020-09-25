@@ -6,6 +6,8 @@ SRC_URI = "\
 	file://init-nilrt-ramfs.sh \
 "
 
+DEPENDS = "bash busybox util-linux ${PREFERRED_PROVIDER_virtual/kernel}"
+
 RDEPENDS_${PN} += " \
 	bash \
 	busybox \
@@ -21,4 +23,4 @@ do_install() {
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-FILES_${PN} += " /init"
+FILES_${PN} += "/init"
