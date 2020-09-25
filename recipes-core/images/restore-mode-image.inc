@@ -10,7 +10,6 @@ PACKAGE_INSTALL = "${ROOTFS_BOOTSTRAP_INSTALL} \
 IMAGE_FEATURES += "empty-root-password"
 
 DEPENDS += "init-restore-mode"
-DEPENDS_xilinx-zynqhf += "zynq-bootscripts zynq-itb"
 
 VIRTUAL-RUNTIME_mountpoint = "util-linux-mountpoint"
 PREFERRED_PROVIDER_getopt = "util-linux-getopt"
@@ -30,13 +29,6 @@ install_payload () {
 	install -m 0644 ${DEPLOY_DIR_IMAGE}/${NIBOOT_BUNDLE_IMAGE}-${MACHINE}.raucb  ${IMAGE_ROOTFS}/payload/niboot.raucb
 	echo "BUILD_IDENTIFIER=${BUILDNAME}" > ${IMAGE_ROOTFS}/payload/imageinfo
 	echo "IMAGE_DISPLAY_NAME=${IMAGE_DISPLAY_NAME}" >> ${IMAGE_ROOTFS}/payload/imageinfo
-}
-
-install_payload_append_xilinx-zynqhf(){
-	install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/boot.scr  ${IMAGE_ROOTFS}/payload/
-	install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/default.scr  ${IMAGE_ROOTFS}/payload/
-	install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/safemode.scr  ${IMAGE_ROOTFS}/payload/
-	install -m 0644 ${PKG_CONFIG_SYSROOT_DIR}/boot/nxg_redirect_runmode_boot.itb ${IMAGE_ROOTFS}/payload/
 }
 
 symlink_iso () {
