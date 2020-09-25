@@ -1,8 +1,4 @@
 #!/bin/bash
-
-# Any failure at any line of this script will cause the script to
-#  exit with error, this will then leads to a kernel panic
-#  because it's the init script
 set -euo pipefail
 
 # close stdin
