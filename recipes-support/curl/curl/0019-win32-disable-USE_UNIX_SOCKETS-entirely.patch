@@ -1,0 +1,33 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Richard Tollerton <rich.tollerton@ni.com>
+Date: Wed, 30 Sep 2020 17:24:03 -0500
+Subject: [PATCH] win32: disable USE_UNIX_SOCKETS entirely
+
+curl is being built on some really crufty Windows SDKs (think msvc90 era) for
+which AF_UNIX is wholly unavailable.
+
+Upstream-Status: Inappropriate [old SDK specific]
+
+diff --git a/lib/config-win32.h b/lib/config-win32.h
+index 9b9b236b5..97eaf73a5 100644
+--- a/lib/config-win32.h
++++ b/lib/config-win32.h
+@@ -726,6 +726,7 @@ Vista
+ #ifndef PHARLAP
+ #include <ws2tcpip.h>
+ #endif
++#if 0
+ #if !defined(__MINGW32__) || defined(LUP_SECURE)
+ /* Define to use Unix sockets. */
+ #define USE_UNIX_SOCKETS
+@@ -739,6 +740,7 @@ Vista
+   } SOCKADDR_UN, *PSOCKADDR_UN;
+ #endif
+ #endif
++#endif
+ 
+ /* ---------------------------------------------------------------- */
+ /*                       ADDITIONAL DEFINITIONS                     */
+-- 
+2.28.0
+

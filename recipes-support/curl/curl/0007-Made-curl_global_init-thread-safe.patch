@@ -1,0 +1,61 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+Date: Wed, 16 Nov 2016 16:07:23 +0200
+Subject: [PATCH] Made curl_global_init() thread safe
+
+Originally done by J.David but I had to redo the commit because his patch
+had a bad sha1 sum, probably because it was based on a non-public commit.
+
+Upstream-Status: Inappropriate [creates Linux dependency]
+
+Signed-off-by: Jonathan David <jonathan.david@ni.com>
+Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+
+Updated for curl 7.72.
+
+Signed-off-by: Richard Tollerton <rich.tollerton@ni.com>
+
+
+diff --git a/lib/easy.c b/lib/easy.c
+index 1e2b0aaa4..8464ef347 100644
+--- a/lib/easy.c
++++ b/lib/easy.c
+@@ -21,6 +21,7 @@
+  ***************************************************************************/
+ 
+ #include "curl_setup.h"
++#include "global_mutex.h"
+ 
+ /*
+  * See comment in curl_memory.h for the explanation of this sanity check.
+@@ -140,8 +141,17 @@ curl_calloc_callback Curl_ccalloc;
+  */
+ static CURLcode global_init(long flags, bool memoryfuncs)
+ {
++#ifdef CURL_THREAD_SAFE_INIT
++  curl_global_mutex_lock();
++#endif
++
+   if(initialized++)
++  {
++#ifdef CURL_THREAD_SAFE_INIT
++    curl_global_mutex_unlock();
++#endif
+     return CURLE_OK;
++  }
+ 
+   if(memoryfuncs) {
+     /* Setup the default memory functions here (again) */
+@@ -204,6 +214,9 @@ static CURLcode global_init(long flags, bool memoryfuncs)
+ 
+   fail:
+   initialized--; /* undo the increase */
++#ifdef CURL_THREAD_SAFE_INIT
++    curl_global_mutex_unlock();
++#endif
+   return CURLE_FAILED_INIT;
+ }
+ 
+-- 
+2.28.0
+

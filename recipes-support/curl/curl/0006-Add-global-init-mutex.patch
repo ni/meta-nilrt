@@ -1,4 +1,4 @@
-From b052afeae0e722337421c73d183cfafda0e87a70 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Haris Okanovic <haris.okanovic@ni.com>
 Date: Tue, 17 May 2016 12:57:33 -0500
 Subject: [PATCH] Add global init mutex
@@ -7,16 +7,10 @@ Add global_mutex.cpp/h to allow for thread-safe (un)initialization
 of libcurl.
 
 Upstream-Status: Inappropriate [NIBuild only]
----
- lib/global_mutex.cpp | 186 +++++++++++++++++++++++++++++++++++++++++++++++++++
- lib/global_mutex.h   |  18 +++++
- 2 files changed, 204 insertions(+)
- create mode 100644 lib/global_mutex.cpp
- create mode 100644 lib/global_mutex.h
 
 diff --git a/lib/global_mutex.cpp b/lib/global_mutex.cpp
 new file mode 100644
-index 0000000000000000000000000000000000000000..72f202eec68f02e9b3eb192a2b20e0d9fb7d1cf9
+index 000000000..72f202eec
 --- /dev/null
 +++ b/lib/global_mutex.cpp
 @@ -0,0 +1,186 @@
@@ -208,7 +202,7 @@ index 0000000000000000000000000000000000000000..72f202eec68f02e9b3eb192a2b20e0d9
 +}
 diff --git a/lib/global_mutex.h b/lib/global_mutex.h
 new file mode 100644
-index 0000000000000000000000000000000000000000..87aae31e5865b6199aab4eb984c2a2ff9ffadefd
+index 000000000..87aae31e5
 --- /dev/null
 +++ b/lib/global_mutex.h
 @@ -0,0 +1,18 @@
@@ -231,5 +225,5 @@ index 0000000000000000000000000000000000000000..87aae31e5865b6199aab4eb984c2a2ff
 +
 +#endif /* HEADER_CURL_GLOBAL_MUTEX_H */
 -- 
-2.8.2
+2.28.0
 

@@ -1,4 +1,4 @@
-From ffb5658aa75c72ea0dbd211ca99de727bb2716ab Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Jonathan David <jonathan.david@ni.com>
 Date: Tue, 15 Mar 2016 13:26:34 -0500
 Subject: [PATCH] Add nicurl wrapper functions
@@ -15,18 +15,11 @@ a means to keep previous code running.
 
 Upstream-Status: Inappropriate [NI specific changes]
 
----
- lib/easy.c     | 21 +++++++++++++++++++++
- lib/formdata.c | 12 ++++++++++++
- lib/multi.c    | 11 +++++++++++
- lib/share.c    | 11 +++++++++++
- 4 files changed, 55 insertions(+)
-
 diff --git a/lib/easy.c b/lib/easy.c
-index 32de192..1a1fc5c 100644
+index 9a5f09fce..1e2b0aaa4 100644
 --- a/lib/easy.c
 +++ b/lib/easy.c
-@@ -376,6 +376,16 @@ struct Curl_easy *curl_easy_init(void)
+@@ -308,6 +308,16 @@ struct Curl_easy *curl_easy_init(void)
    return data;
  }
  
@@ -43,7 +36,7 @@ index 32de192..1a1fc5c 100644
  #ifdef CURLDEBUG
  
  struct socketmonitor {
-@@ -855,6 +865,17 @@ CURLcode curl_easy_getinfo(struct Curl_easy *data, CURLINFO info, ...)
+@@ -769,6 +779,17 @@ CURLcode curl_easy_getinfo(struct Curl_easy *data, CURLINFO info, ...)
    return result;
  }
  
@@ -62,10 +55,10 @@ index 32de192..1a1fc5c 100644
  {
    CURLcode result = CURLE_OK;
 diff --git a/lib/formdata.c b/lib/formdata.c
-index f3fec88..45e2ed2 100644
+index 1c85b2a1d..a5a560acf 100644
 --- a/lib/formdata.c
 +++ b/lib/formdata.c
-@@ -711,6 +711,18 @@ CURLFORMcode curl_formadd(struct curl_httppost **httppost,
+@@ -709,6 +709,18 @@ CURLFORMcode curl_formadd(struct curl_httppost **httppost,
    return result;
  }
  
@@ -85,10 +78,10 @@ index f3fec88..45e2ed2 100644
   * curl_formget()
   * Serialize a curl_httppost struct.
 diff --git a/lib/multi.c b/lib/multi.c
-index 7c4334b..d8d12cb 100644
+index 4cd825d6c..13c8c57ff 100644
 --- a/lib/multi.c
 +++ b/lib/multi.c
-@@ -2764,6 +2764,17 @@ CURLMcode curl_multi_setopt(struct Curl_multi *multi,
+@@ -2997,6 +2997,17 @@ CURLMcode curl_multi_setopt(struct Curl_multi *multi,
    return res;
  }
  
@@ -107,10 +100,10 @@ index 7c4334b..d8d12cb 100644
  #undef curl_multi_socket
  
 diff --git a/lib/share.c b/lib/share.c
-index 79e1f12..64687ad 100644
+index ab215daf9..a57e78b7b 100644
 --- a/lib/share.c
 +++ b/lib/share.c
-@@ -187,6 +187,17 @@ curl_share_setopt(struct Curl_share *share, CURLSHoption option, ...)
+@@ -189,6 +189,17 @@ curl_share_setopt(struct Curl_share *share, CURLSHoption option, ...)
    return res;
  }
  
@@ -128,3 +121,6 @@ index 79e1f12..64687ad 100644
  CURLSHcode
  curl_share_cleanup(struct Curl_share *share)
  {
+-- 
+2.28.0
+
