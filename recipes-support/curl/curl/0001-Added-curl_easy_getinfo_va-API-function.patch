@@ -1,21 +1,18 @@
-From b23ac47e02f38077bce8f20cd739ebfe15f99ea6 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Jonathan David <jonathan.david@ni.com>
 Date: Mon, 21 Jul 2014 15:02:35 -0500
-Subject: [PATCH 04/22] Added curl_easy_getinfo_va() API function
+Subject: [PATCH] Added curl_easy_getinfo_va() API function
 
 Added API function with `va_list` variable argument parameter in
 addition to cURL's function using `...`.
 
 Upstream-Status: Submitted [curl-library@cool.haxx.se]
----
- lib/easy.c | 17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
 
 diff --git a/lib/easy.c b/lib/easy.c
-index eee1061..939b20d 100644
+index a69eb9e56..9a5f09fce 100644
 --- a/lib/easy.c
 +++ b/lib/easy.c
-@@ -839,18 +839,27 @@ void curl_easy_cleanup(struct Curl_easy *data)
+@@ -745,18 +745,27 @@ void curl_easy_cleanup(struct Curl_easy *data)
   * information from a performed transfer and similar.
   */
  #undef curl_easy_getinfo
@@ -48,5 +45,5 @@ index eee1061..939b20d 100644
  }
  
 -- 
-2.10.2
+2.28.0
 
