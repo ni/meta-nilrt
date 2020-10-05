@@ -6,6 +6,8 @@ BUNDLE_IMAGE = "nilrt-dkms-bundle-image"
 
 DEPENDS = "${BUNDLE_IMAGE}"
 
+LICENSE_CREATE_PACKAGE = "0"
+
 SRC_URI += " \
     file://nilrt-bundle-hooks.sh \
 "
