@@ -374,16 +374,12 @@ elif [ "$ARCH" = "x86_64" ]; then
             mount -o rw /dev/niboot/niboota /mnt/efi-auto/niboota
 
             local img_written=false
-            for imgname in "minimal-nilrt-bundle-image-x64.tar.bz2" "lvcomms-nilrt-bundle-image-x64.tar.bz2"; do
-                local imgpath="/mnt/efi-auto/bundle/$imgname"
+            for imgpath in /mnt/efi-auto/bundle/*.tar.bz2; do
+                echo "Installing $imgpath"
+                tar -xf "$imgpath" -C "/mnt/efi-auto/niboota/"
 
-                if [ -e "$imgpath" ]; then
-                    echo "Installing $imgpath"
-                    tar -xf "$imgpath" -C "/mnt/efi-auto/niboota/"
-
-                    img_written=true
-                    break
-                fi
+                img_written=true
+                break
             done
             if ! $img_written; then
                 die "Failed to find an image file in bundle"
