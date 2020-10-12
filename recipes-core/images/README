@@ -12,3 +12,13 @@ Images:
 cb i | /-> nilrt-base-image.bb              # nilrt x64 base rootfs
 c    | nilrt-initramfs.bb                   # nilrt x64 initramfs
 c r  | nilrt-restore-mode-image.bb          # recovery ISO from RAUC bundle
+
+## Legacy
+Includes:
+   o | niconsole-image.inc
+c    | nilrt-image-common.inc
+ x   | nilrt-xfce.inc
+  i  | nilrt-initramfs-legacy.inc
+Images:
+ xio | /-> nilrt-dkms-image.bb
+c    | niconsole-initramfs.bb
