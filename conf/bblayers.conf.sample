@@ -1,6 +1,6 @@
-# LAYER_CONF_VERSION is increased each time build/conf/bblayers.conf
-# changes incompatibly
-LCONF_VERSION = "6"
+# The LCONF_VERSION number should align with the minimum LAYER_CONF_VERSION
+# defined in the oe-core:meta/conf/sanity.conf file.
+LCONF_VERSION = "7"
 
 BBPATH = "${TOPDIR}"
 BBFILES ?= ""
