@@ -43,7 +43,7 @@ SDK_VENDOR = "-nilrtsdk"
 SDK_VERSION := "${@'${DISTRO_VERSION}'}"
 
 LOCALCONF_VERSION = "1"
-LAYER_CONF_VERSION ?= "5"
+LAYER_CONF_VERSION ?= "7"
 
 VIRTUAL-RUNTIME_graphical_init_manager = "xserver-xfce-init"
 
