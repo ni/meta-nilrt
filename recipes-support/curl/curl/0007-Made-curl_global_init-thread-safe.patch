@@ -46,12 +46,17 @@ index 1e2b0aaa4..8464ef347 100644
  
    if(memoryfuncs) {
      /* Setup the default memory functions here (again) */
-@@ -204,6 +214,9 @@ static CURLcode global_init(long flags, bool memoryfuncs)
+@@ -202,8 +212,14 @@ static CURLcode global_init(long flags, bool memoryfuncs)
+ 
++#ifdef CURL_THREAD_SAFE_INIT
++  curl_global_mutex_unlock();
++#endif
+   return CURLE_OK;
  
    fail:
    initialized--; /* undo the increase */
 +#ifdef CURL_THREAD_SAFE_INIT
-+    curl_global_mutex_unlock();
++  curl_global_mutex_unlock();
 +#endif
    return CURLE_FAILED_INIT;
  }
