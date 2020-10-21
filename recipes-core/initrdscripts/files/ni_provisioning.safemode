@@ -469,6 +469,7 @@ partitioning_disk
 wait_for_partitions $TARGET_DISK
 create_filesystems
 
+prune_efi_crash_vars
 install_grub
 install_safemode
 install_bootmode_file
