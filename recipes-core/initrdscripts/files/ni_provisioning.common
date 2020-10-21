@@ -289,10 +289,23 @@ elif [ "$ARCH" = "x86_64" ]; then
         ASK_BEFORE_REBOOT=1
     }
 
+    prune_efi_crash_vars()
+    {
+        # Previous kernels may have stored kernel crash information in EFI.
+        # Unfortunately if we have a backlog, this can prevent us from adding
+        # additional boot entries, since those are also EFI variables. Since
+        # we're (re)provisioning a target, we don't care about prior state,
+        # so just delete them.
+        LINUX_EFI_CRASH_GUID="cfc8fc79-be2e-4ddc-97f0-9f98bfe298a0"
+        find /sys/firmware/efi/efivars -name "*-${LINUX_EFI_CRASH_GUID}" -exec /bin/rm {} +
+    }
+
     provision_target()
     {
         echo "Partitioning $TARGET_DISK..."
         do_silent disk_setup "$TARGET_DISK"
+
+        prune_efi_crash_vars
 
         # XXX Find niboota and nibootb partlabels on TARGET_DISK and
         # link as needed by RAUC
