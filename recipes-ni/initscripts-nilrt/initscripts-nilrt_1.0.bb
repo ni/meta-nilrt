@@ -17,6 +17,7 @@ RDEPENDS_${PN}_append_x64 = " nilrtdiskcrypt "
 SRC_URI = "file://nisetbootmode \
            file://firewall \
            file://mountdebugfs \
+           file://nicleanefivars \
            file://nicleanstalelinks \
            file://nicreatecpusets \
            file://nicreatecpuacctgroups \
@@ -167,6 +168,9 @@ do_install_append_x64 () {
 
 	install -m 0755   ${WORKDIR}/niclosedisks  ${D}${sysconfdir}/init.d
 	update-rc.d -r ${D} niclosedisks start 41 0 . start 41 6 .
+
+	install -m 0755   ${WORKDIR}/nicleanefivars  ${D}${sysconfdir}/init.d
+	update-rc.d -r ${D} nicleanefivars start 10 S .
 }
 
 do_install_ptest () {
