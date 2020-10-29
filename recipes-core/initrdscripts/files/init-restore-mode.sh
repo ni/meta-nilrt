@@ -99,6 +99,7 @@ if [[ $ARCH == "x86_64" ]]; then
     disable_x64_cstates
     # support VMWare image keyboard
     modprobe atkbd 2> /dev/null
+    modprobe i8042 2> /dev/null
     remove_bootmode 2> /dev/null
 fi
 
