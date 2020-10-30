@@ -34,7 +34,6 @@ RDEPENDS_${PN}_append_x64 = "\
 		sessreg \
 		setxkbmap \
 		sip \
-		sysconfig-settings-ui \
 		t1lib \
 		toscoterm \
 		tk \
@@ -135,17 +134,12 @@ RDEPENDS_${PN} += "\
 	patchelf \
 	pax-utils \
 	prelink \
-	python3-dbus \
 	python3-distribute \
 	python3-imaging \
-	python3-setuptools \
 	python3-docutils \
 	python3-mako \
 	python3-nose \
 	python3-numpy \
-	python3-pyiface \
-	python3 \
-	python3-setuptools \
 	rpm \
 	rsync \
 	unfs3 \
@@ -301,7 +295,6 @@ RDEPENDS_${PN} += "\
 	dejagnu \
 	i2c-tools \
 	icon-slicer \
-	jq \
 	lemon \
 	libedit \
 	log4cplus \
@@ -604,32 +597,24 @@ RDEPENDS_${PN} += "\
 	python3-future \
 	python3-gsocketpool \
 	python3-mprpc \
-	python3-pycrypto \
 	python3-feedparser \
-	python3-requests \
 	python3-pyzmq \
 	python3-m2crypto \
 	python3-cheetah \
-	python3-configparser \
 	python3-lxml \
 	python3-numeric \
 	python3-matplotlib \
 	python3-pyudev \
 	python3-pyalsaaudio \
 	python3-pyusb \
-	python3-markupsafe \
-	python3-jinja2 \
 	python3-pexpect \
 	python3-webdav \
-	python3-dateutil \
 	python3-ldap \
 	python3-epydoc \
 	python3-gevent \
 	python3-cython \
 	python3-smbus \
 	python3-snakefood \
-	python3-psutil \
-	python3-msgpack \
 	python3-vobject \
 	python3-twisted \
 	python3-pyserial \
@@ -637,7 +622,6 @@ RDEPENDS_${PN} += "\
 	python3-gdata \
 	pyrtm \
 	python3-sqlalchemy \
-	python3-pyyaml \
 	python3-decorator \
 	python3-greenlet \
 	python3-pytz \
@@ -703,7 +687,6 @@ RDEPENDS_${PN} += "\
 	python3-httpretty \
 	python3-ipaddr \
 	python3-iso8601 \
-	python3-jinja2 \
 	python3-jsonpatch \
 	python3-jsonpath-rw \
 	python3-jsonpointer \
@@ -715,7 +698,6 @@ RDEPENDS_${PN} += "\
 	python3-logutils \
 	python3-lxml \
 	python3-mako \
-	python3-markupsafe \
 	python3-mccabe \
 	python3-memcache \
 	python3-memcached \
@@ -723,11 +705,9 @@ RDEPENDS_${PN} += "\
 	python3-mock \
 	python3-mox \
 	python3-mox3 \
-	python3-msgpack \
 	python3-netaddr \
 	python3-netifaces \
 	python3-networkx \
-	python3-requests \
 	python3-oauth2 \
 	python3-oauthlib \
 	python3-pam \
@@ -737,13 +717,10 @@ RDEPENDS_${PN} += "\
 	python3-pastedeploy \
 	python3-pbr \
 	python3-pep8 \
-	python3-ply \
 	python3-posix-ipc \
 	python3-prettytable \
 	python3-psycopg2 \
 	python3-py \
-	python3-pyasn1 \
-	python3-pycrypto \
 	python3-pyflakes \
 	python3-pymongo \
 	python3-pyparsing \
@@ -753,13 +730,11 @@ RDEPENDS_${PN} += "\
 	python3-pytest \
 	python3-pytz \
 	python3-pyudev \
-	python3-requests \
 	python3-rfc3986 \
 	python3-rtslib-fb \
 	python3-setuptools-git \
 	python3-simplegeneric \
 	python3-singledispatch \
-	python3-six \
 	python3-sqlalchemy \
 	python3-stevedore \
 	python3-subunit \
@@ -845,14 +820,12 @@ RDEPENDS_${PN} += "\
 RDEPENDS_${PN} += "\
 	clamav \
 	libhtp \
-	python3-pycrypto \
 	samhain-server \
 "
 
 # meta-nilrt/recipes-ni
 RDEPENDS_${PN} += "\
 	nirtcfg-tests \
-	sysconfig-settings \
 "
 
 # meta-qt5
