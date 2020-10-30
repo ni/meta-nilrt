@@ -117,6 +117,9 @@ NILRT_FEEDS_URI_RELEASE            ?= "${NILRT_FEEDS_URI}/${NILRT_RELEASE_NAME}"
 NILRT_MACHINE_FEED_URI_x64         ?= "${NILRT_FEEDS_URI_RELEASE}/x64"
 NILRT_MACHINE_FEED_URI_xilinx-zynq ?= "${NILRT_FEEDS_URI_RELEASE}/arm"
 
+NILRT_MAIN_FEED_VERSION            ?= "2020.6"
+NILRT_MACHINE_FEED_URI_nimain      ?= "${NILRT_FEEDS_URI}/${NILRT_MAIN_FEED_VERSION}/ni-main"
+
 # OE Packages with TUNEARCHes
 PACKAGE_FEED_URIS       = "${NILRT_MACHINE_FEED_URI}"
 PACKAGE_FEED_BASE_PATHS = "extra main"
@@ -129,3 +132,19 @@ PACKAGE_FEED_URIS_ADDITIONAL = 'fake value for PACKAGE_FEED_URIS_ADDITIONAL'
 
 # NI distribution packages
 PACKAGE_FEED_URIS_ADDITIONAL[NI-dist] = "${NILRT_FEEDS_URI}/dist"
+
+# NI-main packages
+PACKAGE_FEED_URIS_ADDITIONAL[ni-main] = "${NILRT_MACHINE_FEED_URI_nimain}"
+
+BUILD_IMAGES_FROM_FEEDS = "1"
+
+# Get NIOE packages from local deploy feed and NI packages from web feed
+NILRT_LOCAL_FEED_URI ?= "file://${DEPLOY_DIR_IPK}"
+
+# Configure feed URIs for image builds
+IPK_FEED_URIS += "\
+    NIOE-all##${NILRT_LOCAL_FEED_URI}/all \
+    NIOE-${MACHINE}##${NILRT_LOCAL_FEED_URI}/${MACHINE} \
+    NIOE-${TUNE_PKGARCH}##${NILRT_LOCAL_FEED_URI}/${TUNE_PKGARCH} \
+    NI-software##${NILRT_MACHINE_FEED_URI_nimain} \
+"
