@@ -10,5 +10,7 @@ tar_licenses() {
 	[ ! -e "${IMAGE_ROOTFS}/usr/share/common-licenses" ]
 }
 
-ROOTFS_POSTPROCESS_COMMAND += "tar_licenses; "
+# tar_licenses() does not work when using BUILD_IMAGE_FROM_FEEDS,
+# because licenses are not available in the rootfs.
+#ROOTFS_POSTPROCESS_COMMAND += "tar_licenses; "
 
