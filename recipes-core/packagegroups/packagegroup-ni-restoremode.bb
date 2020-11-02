@@ -31,6 +31,7 @@ RDEPENDS_${PN} += "\
     "
 
 RDEPENDS_${PN}_append_x64 = "\
+    binutils            \
     dmidecode           \
     efibootmgr          \
     efivar              \
@@ -41,6 +42,7 @@ RDEPENDS_${PN}_append_x64 = "\
     eudev               \
     ni-smbios-helper    \
     nilrtdiskcrypt      \
+    xz                  \
     "
 
 RDEPENDS_${PN}_append_xilinx-zynqhf = "\
