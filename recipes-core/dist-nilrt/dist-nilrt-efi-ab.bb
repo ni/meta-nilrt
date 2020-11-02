@@ -1,9 +1,9 @@
-SUMMARY = "IPK to install the current DISTRO_VERSION of the minimal image on an exising NXG target"
+SUMMARY = "IPK to install the current DISTRO_VERSION of base bundle"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384361b4de20420"
 
 PV = "${DISTRO_VERSION}"
-BUNDLE = "minimal-nilrt-bundle"
+BUNDLE = "nilrt-base-bundle"
 DEPENDS = "${BUNDLE}"
 RDEPENDS_${PN} += "bash rauc"
 ALLOW_EMPTY_${PN}-dbg = "0"

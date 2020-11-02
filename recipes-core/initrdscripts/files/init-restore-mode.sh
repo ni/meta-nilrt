@@ -8,6 +8,17 @@ umask 0022
 
 NIRECOVERY_MOUNTPOINT=/mnt/NIRECOVERY
 MOUNT_NIRECOVERY_USB_TIME=10
+BOOTMEDIA_UUID=
+
+parse_args() {
+   for x in $(cat /proc/cmdline); do
+       case $x in
+       bootmedia_uuid=*)
+          BOOTMEDIA_UUID=${x#bootmedia_uuid=}
+          ;;
+       esac
+   done
+}
 
 early_setup() {
     mkdir -p /proc
@@ -18,6 +29,8 @@ early_setup() {
     mount -t efivarfs efivarfs /sys/firmware/efi/efivars
     mount -t devtmpfs none /dev
 
+    parse_args
+
     COUNT=0
     while [ $COUNT -le "$MOUNT_NIRECOVERY_USB_TIME" ]; do
         mount_nirecovery_usb
@@ -27,6 +40,7 @@ early_setup() {
         COUNT=$(expr $COUNT + 1)
         sleep 1
     done
+    mount_payload
 
     # Set hostname
     echo "recovery" | tee /etc/hostname > /proc/sys/kernel/hostname
@@ -86,8 +100,57 @@ mount_nirecovery_usb()
         if [ ! -d $NIRECOVERY_MOUNTPOINT ]; then
             mkdir -p $NIRECOVERY_MOUNTPOINT
         fi
-        mount -o ro,sync,relatime -L NIRECOVERY $NIRECOVERY_MOUNTPOINT &> /dev/null
+        mount -o ro,sync,relatime UUID=$BOOTMEDIA_UUID $NIRECOVERY_MOUNTPOINT &> /dev/null
     fi
+}
+
+mount_payload()
+{
+   if [ -d $NIRECOVERY_MOUNTPOINT/payload ]; then
+      # We are booting from USB so payload will be on same partition as kernel and initrd
+      mount --bind $NIRECOVERY_MOUNTPOINT/payload /payload;
+   else
+      # We used migration ipk, so payload would be in nirootfs
+      ROOTFS_MOUNTPOINT=$(mktemp -d "/var/volatile/rootfs-XXXXXXX")
+
+      if [ -z  $ROOTFS_MOUNTPOINT ]
+      then
+         echo ""
+         echo "ERROR: Failed to create temporary directory to mount nirootfs"
+         echo ""
+
+         sync
+         show_console
+
+         exit 1
+      fi
+
+      mount -o rw -L nirootfs $ROOTFS_MOUNTPOINT;
+
+      # Delete everything except payload directory to ensure device
+      # has enough space to extract payload
+      for dir in $ROOTFS_MOUNTPOINT/*; do
+          if [ ${dir##*/} != "payload" ]; then
+              rm -rf $dir;
+          fi
+      done
+
+      # Payload is in an ipk, extract it
+      mkdir -p $ROOTFS_MOUNTPOINT/payload/extracted
+      pushd $ROOTFS_MOUNTPOINT/payload/extracted > /dev/null
+
+      ar x $ROOTFS_MOUNTPOINT/payload/*.ipk
+      mkdir data
+      tar -xpf data.tar* -C data
+
+      # Ramdisk size is limited, so copy payload to a tmpfs
+      mount -t tmpfs -o size=420m tmpfs /payload
+      cp data/usr/share/nilrt/* /payload
+      mv /payload/*.raucb /payload/niboot.raucb
+      popd > /dev/null
+
+      umount $ROOTFS_MOUNTPOINT;
+   fi
 }
 
 early_setup
