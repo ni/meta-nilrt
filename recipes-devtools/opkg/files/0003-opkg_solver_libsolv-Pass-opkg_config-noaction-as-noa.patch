@@ -1,0 +1,32 @@
+From 852b31b13de3ab739f889345b982a82970614cf7 Mon Sep 17 00:00:00 2001
+From: Zavaczki Raul <raul.zavaczki@ni.com>
+Date: Mon, 26 Oct 2020 05:57:41 -0700
+Subject: [PATCH] opkg_solver_libsolv: Pass opkg_config->noaction as 'noaction'
+ parameter to libsolv_solver_transaction_preamble
+
+Currently, if the option for 'download first' is true, opkg will download packages even when noaction is set to false
+Changing the function call to pass opkg_config->noaction instead of 0 will fix this behaviour
+
+Signed-off-by: Zavaczki Raul <raul.zavaczki@ni.com>
+
+Upstream-Status: Accepted [opkg-devel@googlegroups.com]
+---
+ libopkg/solvers/libsolv/opkg_solver_libsolv.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libopkg/solvers/libsolv/opkg_solver_libsolv.c b/libopkg/solvers/libsolv/opkg_solver_libsolv.c
+index 8e769b1..b625002 100644
+--- a/libopkg/solvers/libsolv/opkg_solver_libsolv.c
++++ b/libopkg/solvers/libsolv/opkg_solver_libsolv.c
+@@ -900,7 +900,7 @@ static int libsolv_solver_execute_transaction(libsolv_solver_t *libsolv_solver)
+     } else {
+         pkg_t *pkg;
+ 
+-        if (libsolv_solver_transaction_preamble(libsolv_solver, pkgs, transaction, 0)) {
++        if (libsolv_solver_transaction_preamble(libsolv_solver, pkgs, transaction, opkg_config->noaction)) {
+             err = -1;
+             goto CLEANUP;
+         }
+-- 
+2.25.1
+
