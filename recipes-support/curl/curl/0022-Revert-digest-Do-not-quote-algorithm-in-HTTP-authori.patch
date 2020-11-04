@@ -1,0 +1,227 @@
+From 18157a6651ed90c2faf5b3e1e8a913584fcf933d Mon Sep 17 00:00:00 2001
+From: Richard Tollerton <rich.tollerton@ni.com>
+Date: Tue, 3 Nov 2020 16:53:43 -0600
+Subject: [PATCH] Revert "digest: Do not quote algorithm in HTTP authorisation"
+
+This reverts commit feba3f0549af546677ee2d924344234fd91b8f50, in order to work
+around disgusting parsing bugs in AppWeb 4.1.
+
+Signed-off-by: Richard Tollerton <rich.tollerton@ni.com>
+
+Upstream-Status: Inappropriate [deprecated behavior]
+---
+ lib/vauth/digest.c  | 4 ++--
+ tests/data/test1437 | 2 +-
+ tests/data/test153  | 2 +-
+ tests/data/test2058 | 2 +-
+ tests/data/test2059 | 2 +-
+ tests/data/test2060 | 2 +-
+ tests/data/test2061 | 2 +-
+ tests/data/test2062 | 2 +-
+ tests/data/test2063 | 2 +-
+ tests/data/test2064 | 2 +-
+ tests/data/test2065 | 2 +-
+ tests/data/test2066 | 2 +-
+ tests/data/test2067 | 2 +-
+ tests/data/test2068 | 2 +-
+ tests/data/test2069 | 2 +-
+ 15 files changed, 16 insertions(+), 16 deletions(-)
+
+diff --git a/lib/vauth/digest.c b/lib/vauth/digest.c
+index b9210a8fe..b85a6bf7d 100644
+--- a/lib/vauth/digest.c
++++ b/lib/vauth/digest.c
+@@ -891,7 +891,7 @@ static CURLcode auth_create_digest_http_message(
+ 
+   if(digest->algorithm) {
+     /* Append the algorithm */
+-    tmp = aprintf("%s, algorithm=%s", response, digest->algorithm);
++    tmp = aprintf("%s, algorithm=\"%s\"", response, digest->algorithm);
+     free(response);
+     if(!tmp)
+       return CURLE_OUT_OF_MEMORY;
+diff --git a/tests/data/test1437 b/tests/data/test1437
+index 6a48444fb..19ccece04 100644
+--- a/tests/data/test1437
++++ b/tests/data/test1437
+@@ -75,7 +75,7 @@ Accept: */*
+ 
+ GET /1437 HTTP/1.1
+ Host: %HOSTIP:%HTTPPORT
+-Authorization: Digest username="testuser", realm="testrealm", nonce="2", uri="/1437", response="4376eb639bf8e7343a6e7b56e1b89c4f", algorithm=MD5
++Authorization: Digest username="testuser", realm="testrealm", nonce="2", uri="/1437", response="4376eb639bf8e7343a6e7b56e1b89c4f", algorithm="MD5"
+ User-Agent: curl/7.10.5 (i686-pc-linux-gnu) libcurl/7.10.5 OpenSSL/0.9.7a ipv6 zlib/1.1.3
+ Accept: */*
+ 
+diff --git a/tests/data/test153 b/tests/data/test153
+index 1f55f39b6..77f7adb01 100644
+--- a/tests/data/test153
++++ b/tests/data/test153
+@@ -115,7 +115,7 @@ Accept: */*
+ 
+ GET /1530002 HTTP/1.1
+ Host: %HOSTIP:%HTTPPORT
+-Authorization: Digest username="testuser", realm="testrealm", nonce="999999", uri="/1530002", cnonce="MTA4MzIy", nc="00000001", qop="auth", response="25291c357671604a16c0242f56721c07", algorithm=MD5
++Authorization: Digest username="testuser", realm="testrealm", nonce="999999", uri="/1530002", cnonce="MTA4MzIy", nc="00000001", qop="auth", response="25291c357671604a16c0242f56721c07", algorithm="MD5"
+ User-Agent: curl/7.11.0-CVS (i686-pc-linux-gnu) libcurl/7.11.0-CVS OpenSSL/0.9.6b ipv6 zlib/1.1.4 GSS
+ Accept: */*
+ 
+diff --git a/tests/data/test2058 b/tests/data/test2058
+index 613dff001..65a907f43 100644
+--- a/tests/data/test2058
++++ b/tests/data/test2058
+@@ -95,7 +95,7 @@ Content-Length: 0
+ 
+ GET http://%HOSTIP:%HTTPPORT/2058 HTTP/1.1
+ Host: %HOSTIP:%HTTPPORT
+-Authorization: Digest username="auser", realm="testrealm", nonce="1053604144", uri="/2058", response="fbed69f9f3fd304c8f1acb1a43eb32688b933c0e28055c16b926cbcec070aeed", algorithm=SHA-256
++Authorization: Digest username="auser", realm="testrealm", nonce="1053604144", uri="/2058", response="fbed69f9f3fd304c8f1acb1a43eb32688b933c0e28055c16b926cbcec070aeed", algorithm="SHA-256"
+ Content-Range: bytes 2-4/5
+ Accept: */*
+ Proxy-Connection: Keep-Alive
+diff --git a/tests/data/test2059 b/tests/data/test2059
+index 15799ae07..4272a7b41 100644
+--- a/tests/data/test2059
++++ b/tests/data/test2059
+@@ -95,7 +95,7 @@ Content-Length: 0
+ 
+ GET http://%HOSTIP:%HTTPPORT/2059 HTTP/1.1
+ Host: %HOSTIP:%HTTPPORT
+-Authorization: Digest username="fddc3bc7b753b73ab0848fd83cb20cbbca971258eb8d20c941dd5e0b010d66be", realm="testrealm", nonce="1053604144", uri="/2059", response="fc09be8192851e284e73e8b719b32a2f6f91cca0594e68713da8c49dc2c1656e", algorithm=SHA-512-256, userhash=true
++Authorization: Digest username="fddc3bc7b753b73ab0848fd83cb20cbbca971258eb8d20c941dd5e0b010d66be", realm="testrealm", nonce="1053604144", uri="/2059", response="fc09be8192851e284e73e8b719b32a2f6f91cca0594e68713da8c49dc2c1656e", algorithm="SHA-512-256", userhash=true
+ Content-Range: bytes 2-4/5
+ Accept: */*
+ Proxy-Connection: Keep-Alive
+diff --git a/tests/data/test2060 b/tests/data/test2060
+index 05ce35103..a0b291dc2 100644
+--- a/tests/data/test2060
++++ b/tests/data/test2060
+@@ -95,7 +95,7 @@ Content-Length: 0
+ 
+ GET http://%HOSTIP:%HTTPPORT/2060 HTTP/1.1
+ Host: %HOSTIP:%HTTPPORT
+-Authorization: Digest username="auser", realm="testrealm", nonce="1053604144", uri="/2060", response="3ce1e25ffa611bdbe90e2ab367b9602fa223db9f6de76ac667f0d6157e2178a6", algorithm=SHA-512-256
++Authorization: Digest username="auser", realm="testrealm", nonce="1053604144", uri="/2060", response="3ce1e25ffa611bdbe90e2ab367b9602fa223db9f6de76ac667f0d6157e2178a6", algorithm="SHA-512-256"
+ Content-Range: bytes 2-4/5
+ Accept: */*
+ Proxy-Connection: Keep-Alive
+diff --git a/tests/data/test2061 b/tests/data/test2061
+index bee88e34a..af3758c97 100644
+--- a/tests/data/test2061
++++ b/tests/data/test2061
+@@ -75,7 +75,7 @@ Accept: */*
+ 
+ GET /2061 HTTP/1.1
+ Host: %HOSTIP:%HTTPPORT
+-Authorization: Digest username="testuser", realm="testrealm", nonce="1053604145", uri="/2061", response="9dc55255f1a2537b838311674b621d45346b862a81631bb20e4ce356ef25062d", algorithm=SHA-256
++Authorization: Digest username="testuser", realm="testrealm", nonce="1053604145", uri="/2061", response="9dc55255f1a2537b838311674b621d45346b862a81631bb20e4ce356ef25062d", algorithm="SHA-256"
+ User-Agent: curl/7.10.5 (i686-pc-linux-gnu) libcurl/7.10.5 OpenSSL/0.9.7a ipv6 zlib/1.1.3
+ Accept: */*
+ 
+diff --git a/tests/data/test2062 b/tests/data/test2062
+index f6d4aff24..d5ce6899f 100644
+--- a/tests/data/test2062
++++ b/tests/data/test2062
+@@ -75,7 +75,7 @@ Accept: */*
+ 
+ GET /2062 HTTP/1.1
+ Host: %HOSTIP:%HTTPPORT
+-Authorization: Digest username="testuser", realm="testrealm", nonce="1053604145", uri="/2062", response="2af735ec3508f4dff99248ffbbe9de9002bfd7cc770cfa2b026cb334042a54e3", algorithm=SHA-512-256
++Authorization: Digest username="testuser", realm="testrealm", nonce="1053604145", uri="/2062", response="2af735ec3508f4dff99248ffbbe9de9002bfd7cc770cfa2b026cb334042a54e3", algorithm="SHA-512-256"
+ User-Agent: curl/7.10.5 (i686-pc-linux-gnu) libcurl/7.10.5 OpenSSL/0.9.7a ipv6 zlib/1.1.3
+ Accept: */*
+ 
+diff --git a/tests/data/test2063 b/tests/data/test2063
+index af9a9f0aa..220fe4ebe 100644
+--- a/tests/data/test2063
++++ b/tests/data/test2063
+@@ -75,7 +75,7 @@ Accept: */*
+ 
+ GET /2063 HTTP/1.1
+ Host: %HOSTIP:%HTTPPORT
+-Authorization: Digest username="75af8a3500f771e58a52093a25e7905d6e428a511285c12ea1420c73078dfd61", realm="testrealm", nonce="1053604145", uri="/2063", response="43f7ab531dff687b5dc75617daa59d1fd67d648341d6d2655ca65ef5064cfb51", algorithm=SHA-512-256, userhash=true
++Authorization: Digest username="75af8a3500f771e58a52093a25e7905d6e428a511285c12ea1420c73078dfd61", realm="testrealm", nonce="1053604145", uri="/2063", response="43f7ab531dff687b5dc75617daa59d1fd67d648341d6d2655ca65ef5064cfb51", algorithm="SHA-512-256", userhash=true
+ User-Agent: curl/7.10.5 (i686-pc-linux-gnu) libcurl/7.10.5 OpenSSL/0.9.7a ipv6 zlib/1.1.3
+ Accept: */*
+ 
+diff --git a/tests/data/test2064 b/tests/data/test2064
+index bfaaa05e8..aa20c0bc0 100644
+--- a/tests/data/test2064
++++ b/tests/data/test2064
+@@ -75,7 +75,7 @@ Accept: */*
+ 
+ GET /2064 HTTP/1.1
+ Host: %HOSTIP:%HTTPPORT
+-Authorization: Digest username="testuser", realm="testrealm", nonce="2053604145", uri="/2064", response="a9c3ec1036068b336cbabefe9dfcad52ee8b89bc7c91ddbb5bb415c6acdf38a5", algorithm=SHA-256
++Authorization: Digest username="testuser", realm="testrealm", nonce="2053604145", uri="/2064", response="a9c3ec1036068b336cbabefe9dfcad52ee8b89bc7c91ddbb5bb415c6acdf38a5", algorithm="SHA-256"
+ User-Agent: curl/7.10.5 (i686-pc-linux-gnu) libcurl/7.10.5 OpenSSL/0.9.7a ipv6 zlib/1.1.3
+ Accept: */*
+ 
+diff --git a/tests/data/test2065 b/tests/data/test2065
+index d18b008ad..d3afe0b13 100644
+--- a/tests/data/test2065
++++ b/tests/data/test2065
+@@ -75,7 +75,7 @@ Accept: */*
+ 
+ GET /2065 HTTP/1.1
+ Host: %HOSTIP:%HTTPPORT
+-Authorization: Digest username="testuser", realm="testrealm", nonce="2053604145", uri="/2065", response="5a5f20b0e601aeddc6f96422c2332d49ff431c49ab143b5f836ef76e9ac78f5e", algorithm=SHA-512-256
++Authorization: Digest username="testuser", realm="testrealm", nonce="2053604145", uri="/2065", response="5a5f20b0e601aeddc6f96422c2332d49ff431c49ab143b5f836ef76e9ac78f5e", algorithm="SHA-512-256"
+ User-Agent: curl/7.10.5 (i686-pc-linux-gnu) libcurl/7.10.5 OpenSSL/0.9.7a ipv6 zlib/1.1.3
+ Accept: */*
+ 
+diff --git a/tests/data/test2066 b/tests/data/test2066
+index b6effee0e..e6ec28a1e 100644
+--- a/tests/data/test2066
++++ b/tests/data/test2066
+@@ -75,7 +75,7 @@ Accept: */*
+ 
+ GET /2066 HTTP/1.1
+ Host: %HOSTIP:%HTTPPORT
+-Authorization: Digest username="75af8a3500f771e58a52093a25e7905d6e428a511285c12ea1420c73078dfd61", realm="testrealm", nonce="2053604145", uri="/2066", response="a2e2ae589f575fb132991d6f550ef14bf7ef697d2fef1242d2498f07eafc77dc", algorithm=SHA-512-256, userhash=true
++Authorization: Digest username="75af8a3500f771e58a52093a25e7905d6e428a511285c12ea1420c73078dfd61", realm="testrealm", nonce="2053604145", uri="/2066", response="a2e2ae589f575fb132991d6f550ef14bf7ef697d2fef1242d2498f07eafc77dc", algorithm="SHA-512-256", userhash=true
+ User-Agent: curl/7.10.5 (i686-pc-linux-gnu) libcurl/7.10.5 OpenSSL/0.9.7a ipv6 zlib/1.1.3
+ Accept: */*
+ 
+diff --git a/tests/data/test2067 b/tests/data/test2067
+index c203343e6..faa7c57fa 100644
+--- a/tests/data/test2067
++++ b/tests/data/test2067
+@@ -78,7 +78,7 @@ Content-Type: application/x-www-form-urlencoded
+ 
+ POST /2067 HTTP/1.1
+ Host: %HOSTIP:%HTTPPORT
+-Authorization: Digest username="auser", realm="testrealm", nonce="1053604144", uri="/2067", response="67b97af219c92fa7e8685e5bebb8e74892f6c6792e911c52bd2dfbf0b49272eb", algorithm=SHA-256
++Authorization: Digest username="auser", realm="testrealm", nonce="1053604144", uri="/2067", response="67b97af219c92fa7e8685e5bebb8e74892f6c6792e911c52bd2dfbf0b49272eb", algorithm="SHA-256"
+ Accept: */*
+ Content-Length: 11
+ Content-Type: application/x-www-form-urlencoded
+diff --git a/tests/data/test2068 b/tests/data/test2068
+index 5a197ce27..43a50e626 100644
+--- a/tests/data/test2068
++++ b/tests/data/test2068
+@@ -78,7 +78,7 @@ Content-Type: application/x-www-form-urlencoded
+ 
+ POST /2068 HTTP/1.1
+ Host: %HOSTIP:%HTTPPORT
+-Authorization: Digest username="auser", realm="testrealm", nonce="1053604144", uri="/2068", response="4bc9c97a72f1856bcec9b0e1518c6b7ee28773f91357d56840bdc30bd89ca68f", algorithm=SHA-512-256
++Authorization: Digest username="auser", realm="testrealm", nonce="1053604144", uri="/2068", response="4bc9c97a72f1856bcec9b0e1518c6b7ee28773f91357d56840bdc30bd89ca68f", algorithm="SHA-512-256"
+ Accept: */*
+ Content-Length: 11
+ Content-Type: application/x-www-form-urlencoded
+diff --git a/tests/data/test2069 b/tests/data/test2069
+index 99fd71d0e..e8040a5e0 100644
+--- a/tests/data/test2069
++++ b/tests/data/test2069
+@@ -78,7 +78,7 @@ Content-Type: application/x-www-form-urlencoded
+ 
+ POST /2069 HTTP/1.1
+ Host: %HOSTIP:%HTTPPORT
+-Authorization: Digest username="fddc3bc7b753b73ab0848fd83cb20cbbca971258eb8d20c941dd5e0b010d66be", realm="testrealm", nonce="1053604144", uri="/2069", response="ff13d977110a471f30de75e747976e4de78d7a3d2425cd23ff46e67f4bc9ead7", algorithm=SHA-512-256, userhash=true
++Authorization: Digest username="fddc3bc7b753b73ab0848fd83cb20cbbca971258eb8d20c941dd5e0b010d66be", realm="testrealm", nonce="1053604144", uri="/2069", response="ff13d977110a471f30de75e747976e4de78d7a3d2425cd23ff46e67f4bc9ead7", algorithm="SHA-512-256", userhash=true
+ Accept: */*
+ Content-Length: 11
+ Content-Type: application/x-www-form-urlencoded
+-- 
+2.28.0
+

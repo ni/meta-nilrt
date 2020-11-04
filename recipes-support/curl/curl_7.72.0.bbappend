@@ -22,6 +22,7 @@ SRC_URI += " \
 	file://0019-win32-disable-USE_UNIX_SOCKETS-entirely.patch \
 	file://0020-transfer.c-avoid-WSAIoctl-on-PHARLAP.patch \
 	file://0021-chkdecimalpoint-use-default-libs.patch \
+	file://0022-Revert-digest-Do-not-quote-algorithm-in-HTTP-authori.patch \
 "
 
 SELECTED_OPTIMIZATION += "-Wno-deprecated-declarations"
