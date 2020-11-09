@@ -2,7 +2,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=c996f5a78d858a52c894fa3f4bec68c1"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
-SRC_URI = "git://github.com/ni/salt.git;branch=ni/master/2018.3 \
+SRC_URI = "git://github.com/ni/salt.git;branch=ni/skyline-20.6-rt/2018.3 \
            file://set_python_location_hashbang.patch \
            file://minion \
            file://salt-minion \
@@ -17,7 +17,7 @@ SRC_URI = "git://github.com/ni/salt.git;branch=ni/master/2018.3 \
            file://run-ptest \
 "
 
-SRCREV = "${AUTOREV}"
+SRCREV = "053b2dced51a396bdfdb5b9bc8b0cd4bc7ea655c"
 PV = "2018.3+git${SRCPV}"
 
 S="${WORKDIR}/git"
