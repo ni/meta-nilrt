@@ -3,6 +3,7 @@ LINUX_VERSION = "5.6"
 KBRANCH = "nilrt/${NI_RELEASE_VERSION}/${LINUX_VERSION}"
 GIT_KERNEL_REPO = "linux.git"
 
+SRCREV="4b4582056dc76290a36f8d9a2aab63dee2ce0808"
 require linux-nilrt.inc
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=6bc538ed5bd9a7fc9398086aedcd7e46"
