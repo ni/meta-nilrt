@@ -3,5 +3,6 @@ LINUX_VERSION = "4.14"
 KBRANCH = "nilrt/${NI_RELEASE_VERSION}/${LINUX_VERSION}"
 GIT_KERNEL_REPO = "linux.git"
 
+SRCREV="997fc3df5a3e740f585e6298cae9bd9d63832f7a"
 require linux-nilrt.inc
 
