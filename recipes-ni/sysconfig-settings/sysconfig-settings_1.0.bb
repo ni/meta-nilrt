@@ -5,8 +5,33 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 SECTION = "base"
 
 SRC_URI = "file://niselectsystemsettings \
-	   file://uixml/* \
-	   file://systemsettings/* \
+           file://systemsettings/fpga_target.ini \
+           file://systemsettings/rt_target.ini \
+           file://systemsettings/target_common.ini \
+           file://uixml/nilinuxrt.rtprotocol_enable.binding.xml \
+           file://uixml/nilinuxrt.rtprotocol_enable.const.xml \
+           file://uixml/nilinuxrt.rtprotocol_enable.const.de.xml \
+           file://uixml/nilinuxrt.rtprotocol_enable.const.fr.xml \
+           file://uixml/nilinuxrt.rtprotocol_enable.const.ja.xml \
+           file://uixml/nilinuxrt.rtprotocol_enable.const.ko.xml \
+           file://uixml/nilinuxrt.rtprotocol_enable.const.zh-CN.xml \
+           file://uixml/nilinuxrt.rtprotocol_enable.def.xml \
+           file://uixml/nilinuxrt.soft_dip_switch.binding.xml \
+           file://uixml/nilinuxrt.soft_dip_switch.const.xml \
+           file://uixml/nilinuxrt.soft_dip_switch.const.de.xml \
+           file://uixml/nilinuxrt.soft_dip_switch.const.fr.xml \
+           file://uixml/nilinuxrt.soft_dip_switch.const.ja.xml \
+           file://uixml/nilinuxrt.soft_dip_switch.const.ko.xml \
+           file://uixml/nilinuxrt.soft_dip_switch.const.zh-CN.xml \
+           file://uixml/nilinuxrt.soft_dip_switch.def.xml \
+           file://uixml/nirio.soft_dip_switch.binding.xml \
+           file://uixml/nirio.soft_dip_switch.const.xml \
+           file://uixml/nirio.soft_dip_switch.const.de.xml \
+           file://uixml/nirio.soft_dip_switch.const.fr.xml \
+           file://uixml/nirio.soft_dip_switch.const.ja.xml \
+           file://uixml/nirio.soft_dip_switch.const.ko.xml \
+           file://uixml/nirio.soft_dip_switch.const.zh-CN.xml \
+           file://uixml/nirio.soft_dip_switch.def.xml \
 "
 
 FILES_${PN} += "/usr/local/natinst/share/uixml/sysconfig/* \
