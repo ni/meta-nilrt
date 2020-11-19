@@ -4,7 +4,23 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 SECTION = "base"
 
-SRC_URI = "file://uixml/* \
+SRC_URI = " \
+	   file://uixml/nilinuxrt.System.binding.xml \
+	   file://uixml/nilinuxrt.System.const.xml \
+	   file://uixml/nilinuxrt.System.const.de.xml \
+	   file://uixml/nilinuxrt.System.const.fr.xml \
+	   file://uixml/nilinuxrt.System.const.ja.xml \
+	   file://uixml/nilinuxrt.System.const.ko.xml \
+	   file://uixml/nilinuxrt.System.const.zh-CN.xml \
+	   file://uixml/nilinuxrt.System.def.xml \
+	   file://uixml/nilinuxrt.ui_enable.binding.xml \
+	   file://uixml/nilinuxrt.ui_enable.const.xml \
+	   file://uixml/nilinuxrt.ui_enable.const.de.xml \
+	   file://uixml/nilinuxrt.ui_enable.const.fr.xml \
+	   file://uixml/nilinuxrt.ui_enable.const.ja.xml \
+	   file://uixml/nilinuxrt.ui_enable.const.ko.xml \
+	   file://uixml/nilinuxrt.ui_enable.const.zh-CN.xml \
+	   file://uixml/nilinuxrt.ui_enable.def.xml \
 	   file://systemsettings/ui_enable.ini \
 "
 

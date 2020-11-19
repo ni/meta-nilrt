@@ -15,7 +15,12 @@ SRC_URI = "\
     file://setup.sh \
     file://shared-functions.sh \
     file://teardown.sh \
-    file://test_* \
+    file://test_binary.sh \
+    file://test_clear.sh \
+    file://test_get.sh \
+    file://test_list.sh \
+    file://test_rm-if-empty.sh \
+    file://test_set.sh \
 "
 
 S = "${WORKDIR}"
