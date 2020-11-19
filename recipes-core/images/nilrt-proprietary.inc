@@ -8,6 +8,7 @@ LDCONFIGDEPEND = ""
 # NI infrastructure packages to be installed in the image
 IMAGE_INSTALL_NODEPS = "\
         libnitargetcfg \
+        ni-arch-gen \
         ni-auth \
         ni-auth-webservice \
         ni-avahi-client \
