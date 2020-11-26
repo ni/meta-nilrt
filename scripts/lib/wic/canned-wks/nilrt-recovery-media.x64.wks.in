@@ -6,4 +6,4 @@ part /boot --source isoimage-isohybrid --sourceparams="esp_label=NIRECOVERY,esp_
 
 # note that --append is ignored by grub when using a configfile
 # and only processed by syslinux as configured below
-bootloader --configfile="grub.cfg" --append="restore=provision console=ttyS0"
+bootloader --configfile="grub-recovery-media.cfg" --append="restore=provision console=ttyS0"

@@ -64,7 +64,7 @@ fi
 # Identify the 2 partitions in the ISO/wic file
 info "Locating ISO source partitions"
 efipart=$(lsblk -lnpo NAME,LABEL "$LOOPDEV"p? |egrep 'NIRECOVERY$' |cut -d" " -f 1)
-isopart=$(lsblk -lnpo NAME,LABEL "$LOOPDEV"p? |grep NIRECOVERY-CD |cut -d" " -f 1)
+isopart=$(lsblk -lnpo NAME,LABEL "$LOOPDEV"p? |grep NIRECOVERY-HD |cut -d" " -f 1)
 
 # Locate target partitions by filesystem labels
 info "Locating destination partitions"
@@ -77,7 +77,7 @@ TARGET_OTHER=$(lsblk -lnpo NAME,LABEL |grep "nibootfs" |cut -d" " -f 1)
 
 # Verify partitions are all found
 [ -z "$efipart" ] && die "Unable to locate NIRECOVERY partition."
-[ -z "$isopart" ] && die "Unable to locate NIRECOVERY-CD partition."
+[ -z "$isopart" ] && die "Unable to locate NIRECOVERY-HD partition."
 [ ! -e "$TARGET_EFI" ] && die "Unable to locate efi partition."
 [ ! -e "$TARGET_OTHER" ] && die "Unable to locate secondary partition."
 
