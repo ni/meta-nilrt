@@ -7,4 +7,5 @@ RDEPENDS_${PN} = "\
 	kernel-next \
 	kernel-next-dev \
 	kernel-next-modules \
+	kernel-devsrc-next \
 "
