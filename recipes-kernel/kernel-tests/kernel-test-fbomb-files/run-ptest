@@ -1,0 +1,5 @@
+#!/bin/bash
+
+./fbomb -d 24h
+
+exit 0

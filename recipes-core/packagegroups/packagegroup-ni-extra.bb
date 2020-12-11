@@ -73,6 +73,11 @@ RDEPENDS_${PN} += "\
 	packagegroup-ni-selinux \
 "
 
+# kernel regression tests
+RDEPENDS_${PN} += "\
+	kernel-test-fbomb \
+"
+
 RDEPENDS_${PN} += "\
 	avahi \
 	bind \
