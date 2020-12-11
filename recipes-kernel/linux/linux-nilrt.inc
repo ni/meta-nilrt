@@ -77,6 +77,10 @@ do_install_append() {
 	${WORKDIR}/export-kernel-headers.sh ${S} ${D}/kernel
 }
 
+do_shared_workdir_append() {
+	cp -rf ./* ${STAGING_KERNEL_BUILDDIR}
+}
+
 pkg_postinst_ontarget_${KERNEL_PACKAGE_NAME}-base_append_x64 () {
 	cd "$D/${KERNEL_IMAGEDEST}"
 
