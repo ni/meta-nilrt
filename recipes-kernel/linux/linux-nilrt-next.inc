@@ -7,7 +7,7 @@ require linux-nilrt.inc
 
 kernel_do_deploy_append() {
     cp -rf ${STAGING_KERNEL_DIR} $deployDir/staging_kernel_dir
-    cp -rf ${B} $deployDir/staging_kernel_builddir
+    cp -rf ${STAGING_KERNEL_BUILDDIR} $deployDir/staging_kernel_builddir
     rm -f $deployDir/staging_kernel_builddir/source
 }
 
