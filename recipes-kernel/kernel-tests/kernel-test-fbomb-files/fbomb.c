@@ -10,7 +10,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <err.h>
 #include <errno.h>
 #include <sched.h>
 #include <time.h>
@@ -49,6 +48,19 @@ static struct option opt_long[] = {
 };
 
 const char *opt_short = "d:h";
+
+static void error_exit(char* msg)
+{
+	printf("error: %s\n", msg);
+	printf("FAIL: fbomb\n");
+	exit(EXIT_FAILURE);
+}
+
+static void success_exit()
+{
+	printf("PASS: fbomb\n");
+	exit(EXIT_SUCCESS);
+}
 
 static void usage(char* comm)
 {
@@ -89,8 +101,12 @@ static int parse_options(int argc, char *argv[])
 						test_duration *= 60 * 60 * 24;
 						/* days */
 						break;
+					case 0:
+						/* default to seconds */
+						break;
 					default:
-						fprintf(stderr, "warning: unrecognized qualifier for test duration '%c'\n", *endptr);
+						printf("error: unrecognized modifier '%c' used for specifying the test duration\n", *endptr);
+						goto err_exit;
 				}
                                 break;
                         case '?':
@@ -212,7 +228,7 @@ static void set_cpu_affinity(int cpu)
 	CPU_ZERO(&mask);
 	CPU_SET(cpu, &mask);
 	if (sched_setaffinity(0, sizeof(mask), &mask) < 0)
-		err(1, "Failed to set the CPU affinity");
+		error_exit("Failed to set the CPU affinity");
 }
 
 static void clr_cpu_affinity()
@@ -225,7 +241,7 @@ static void clr_cpu_affinity()
 		CPU_SET(i, &mask);
 
 	if (sched_setaffinity(0, sizeof(mask), &mask) < 0)
-		err(1, "Failed to clear the CPU affinity");
+		error_exit("Failed to clear the CPU affinity");
 }
 
 static void set_fifo_priority(int prio)
@@ -235,7 +251,7 @@ static void set_fifo_priority(int prio)
 	memset(&schedp, 0, sizeof(schedp));
 	schedp.sched_priority = prio;
 	if (sched_setscheduler(0, SCHED_FIFO, &schedp) < 0)
-		err(1, "Failed to set the test thread priority");
+		error_exit("Failed to set the test thread priority");
 }
 
 static void do_busy_work(unsigned long long nsec)
@@ -266,6 +282,8 @@ static void* boosted_thread(void *param)
 		futex_unlock_pi(&lock1);
 		futex_unlock_pi(&lock2);
 	}
+
+	return NULL;
 }
 
 #define SWEEP_START	500000ULL
@@ -299,6 +317,8 @@ static void* rt_thread(void *param)
 		futex_lock_pi(&lock2);
 		futex_unlock_pi(&lock2);
 	}
+
+	return NULL;
 }
 
 static void* waiter_thread(void *param)
@@ -317,6 +337,8 @@ static void* waiter_thread(void *param)
 		futex_wait_requeue_pi(&cond, &lock1, &ts);
 		futex_unlock_pi(&lock1);
 	}
+
+	return NULL;
 }
 
 static void* waker_thread(void *param)
@@ -333,6 +355,8 @@ static void* waker_thread(void *param)
 		futex_cmp_requeue_pi(&cond, &lock1);
 		futex_unlock_pi(&lock1);
 	}
+
+	return NULL;
 }
 
 static void* noise_thread(void *param)
@@ -346,16 +370,19 @@ static void* noise_thread(void *param)
 		ts.tv_nsec = random() % 1000000;
 		clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
 	}
+
+	return NULL;
 }
 
 static void* test_timer_thread(void *param)
 {
 	struct timespec sleep_ts = {.tv_sec = test_duration, .tv_nsec = 0ULL};
 
-	printf("Running test for %lld seconds\n", sleep_ts.tv_sec);
+	printf("Running test for %ld seconds\n", sleep_ts.tv_sec);
 	clock_nanosleep(CLOCK_MONOTONIC, 0, &sleep_ts, NULL);
-	printf("PASS: test_fbomb\n");
-	exit(EXIT_SUCCESS);
+	success_exit();
+
+	return NULL;
 }
 
 int main(int argc, char *argv[])
@@ -367,38 +394,37 @@ int main(int argc, char *argv[])
 	pthread_t test_timer;
 	pthread_t noise[NOISE_THREADS];
 	int i;
-	int ret;
 
-	if ((ret = parse_options(argc, argv)))
-		return ret;
+	if (parse_options(argc, argv))
+		error_exit("Failed to parse arguments\n");
 
 	if (pthread_barrier_init(&start_barrier, NULL, 4))
-		err(1, "Failed to create start_barrier");
+		error_exit("Failed to create start_barrier");
 
 	if (pthread_create(&waker, NULL, waker_thread, NULL) != 0)
-		err(1, "Failed to create waker thread");
+		error_exit("Failed to create waker thread");
 	pthread_setname_np(waker, "f_waker");
 
 	if (pthread_create(&waiter, NULL, waiter_thread, NULL) != 0)
-		err(1, "Failed to create waiter thread");
+		error_exit("Failed to create waiter thread");
 	pthread_setname_np(waiter, "f_waiter");
 
 	if (pthread_create(&rt, NULL, rt_thread, NULL) != 0)
-		err(1, "Failed to create rt thread");
+		error_exit("Failed to create rt thread");
 	pthread_setname_np(rt, "f_rt");
 
 	if (pthread_create(&boosted, NULL, boosted_thread, NULL) != 0)
-		err(1, "Failed to create boosted thread");
+		error_exit("Failed to create boosted thread");
 	pthread_setname_np(boosted, "f_boosted");
 
 	for (i = 0; i < NOISE_THREADS; i++) {
 		if (pthread_create(&noise[i], NULL, noise_thread, NULL) != 0)
-			err(1, "Failed to create noise thread");
+			error_exit("Failed to create noise thread");
 		pthread_setname_np(noise[i], "f_noise");
 	}
 
 	if (pthread_create(&test_timer, NULL, test_timer_thread, NULL) != 0)
-		err(1, "Failed to create test_timer thread");
+		error_exit("Failed to create test_timer thread");
 	pthread_setname_np(test_timer, "f_timer");
 
 

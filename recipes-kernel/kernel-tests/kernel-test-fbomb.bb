@@ -2,8 +2,7 @@ SUMMARY = "Linux kernel futex test"
 HOMEPAGE = "https://kernel.org"
 SECTION = "tests"
 LICENSE = "GPLv2"
-LIC_FILES_CHKSUM = "file://fbomb.c;md5=6ca6ccab92c415e517d1b65819dbd273"
-
+LIC_FILES_CHKSUM = "file://fbomb.c;md5=5087cbd611aca643601e03428b6ef30d"
 inherit ptest
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-files:"

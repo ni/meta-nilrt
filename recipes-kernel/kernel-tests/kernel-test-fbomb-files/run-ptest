@@ -1,5 +1,6 @@
 #!/bin/bash
 
-./fbomb -d 24h
+# redirect all stderr to stdout to maintain ordering of output
+exec 2>&1
 
-exit 0
+./fbomb -d 24h
