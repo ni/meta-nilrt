@@ -40,6 +40,7 @@ SRC_URI_append_x64 = "file://nidisablecstates \
                       file://nicheckbiosconfig \
                       file://niopendisks \
                       file://niclosedisks \
+                      file://nisetreboottype \
                       file://test-niopendisks-init \
                       file://test-niclosedisks-init \
 "
@@ -71,6 +72,7 @@ do_install () {
 	install -m 0755 ${WORKDIR}/nipopulateconfigdir   ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nisetupkernelconfig   ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nisetcommitratio      ${D}${sysconfdir}/init.d
+	install -m 0755 ${WORKDIR}/nisetreboottype       ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/wirelesssetdomain     ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/cleanvarcache         ${D}${sysconfdir}/init.d
 	install -m 0755 ${S}/nisetupirqpriority          ${D}${sysconfdir}/init.d
@@ -89,6 +91,8 @@ do_install () {
 	update-rc.d -r ${D} nisetcommitratio      start 99 S .
 	update-rc.d -r ${D} wirelesssetdomain     start 36 S .
 	update-rc.d -r ${D} cleanvarcache         start 38 0 6 S .
+
+	update-rc.d -r ${D} nisetreboottype       stop  55 6 .
 
 	# only for nilrt-nxg, on older nilrt it's installed via p4
 	if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'true', 'false', d)}; then
