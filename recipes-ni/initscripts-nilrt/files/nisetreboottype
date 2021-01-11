@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# The purpose of this script is to set the reboot type of the controller based
+# on the value of ni_boot_mode_input. Reboots to install mode require a cold
+# reboot. All other modes should use the default reboot type
+
+NI_REQUESTED_REBOOT_TYPE_FILE=/sys/kernel/ni_requested_reboot_type
+BOOT_MODE_INPUT=/tmp/ni_boot_mode_input
+
+# If we're on cRIO and booting to install mode, request a cold reboot
+if [ "`/sbin/fw_printenv -n TargetClass`" = "cRIO" ]; then
+	if [ -f $NI_REQUESTED_REBOOT_TYPE_FILE ]; then
+		if [ -f $BOOT_MODE_INPUT ]; then
+			read NEXT_BOOT_MODE < $BOOT_MODE_INPUT
+			if [ -n "$NEXT_BOOT_MODE" ]; then
+				case "$NEXT_BOOT_MODE" in
+				install)
+					echo 1 > $NI_REQUESTED_REBOOT_TYPE_FILE
+					;;
+				esac
+			fi
+		fi
+	fi
+fi
