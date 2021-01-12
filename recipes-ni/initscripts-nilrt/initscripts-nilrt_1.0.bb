@@ -34,6 +34,7 @@ SRC_URI = "file://nisetbootmode \
            file://nipopulateconfigdir \
            file://run-ptest \
            file://cleanvarcache \
+           file://niinitled \
 "
 
 SRC_URI_append_x64 = "file://nidisablecstates \
@@ -76,6 +77,7 @@ do_install () {
 	install -m 0755 ${WORKDIR}/wirelesssetdomain     ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/cleanvarcache         ${D}${sysconfdir}/init.d
 	install -m 0755 ${S}/nisetupirqpriority          ${D}${sysconfdir}/init.d
+	install -m 0755 ${S}/niinitled                   ${D}${sysconfdir}/init.d
 
 	install -d ${D}${sysconfdir}/natinst
 	install -m 0644 ${WORKDIR}/iso3166-translation.txt ${D}${sysconfdir}/natinst
@@ -91,6 +93,7 @@ do_install () {
 	update-rc.d -r ${D} nisetcommitratio      start 99 S .
 	update-rc.d -r ${D} wirelesssetdomain     start 36 S .
 	update-rc.d -r ${D} cleanvarcache         start 38 0 6 S .
+	update-rc.d -r ${D} niinitled             start 40 S .
 
 	update-rc.d -r ${D} nisetreboottype       stop  55 6 .
 
