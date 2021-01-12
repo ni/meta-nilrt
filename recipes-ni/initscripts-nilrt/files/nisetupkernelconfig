@@ -23,7 +23,16 @@ do
   echo 1 > $x
 done 2> /dev/null
 
-# Set affinity for running IRQ threads to Core-0
-grep -l irq/ /proc/*/comm | cut -d/ -f3 | xargs -n1 taskset -p 1 >/dev/null
+# Set affinity for running IRQ threads to Core-0 immediately.
+# Setting /proc/irq/default_smp_affinity and /proc/irq/*/smp_affinity as done above will
+# eventually cause the kernel to change the affinity for these threads automatically, but
+# not until the next time those threads are scheduled. We want to remove the possibility
+# of that happening during jitter-sensitive code in a user application.
+PIDS=`grep -l irq/ /proc/*/comm 2>/dev/null | cut -d/ -f3`
+if [ -z "$PIDS" ] ; then
+  echo $0: Warning: No IRQ threads found.
+  exit 0
+fi
+echo $PIDS | xargs -n1 taskset -p 1 >/dev/null 2>&1
 
 [ "${VERBOSE}" != "no" ] && echo "done"

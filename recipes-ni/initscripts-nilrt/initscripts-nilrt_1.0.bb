@@ -91,7 +91,7 @@ do_install () {
 	update-rc.d -r ${D} nicreatecpusets       start 1  4 5 .
 	update-rc.d -r ${D} nicreatecpuacctgroups start 2  4 5 .
 	update-rc.d -r ${D} nipopulateconfigdir   start 36 S .
-	update-rc.d -r ${D} nisetupkernelconfig   start 3  4 5 .
+	update-rc.d -r ${D} nisetupkernelconfig   start 3  5 .
 	update-rc.d -r ${D} nisetcommitratio      start 99 S .
 	update-rc.d -r ${D} wirelesssetdomain     start 36 S .
 	update-rc.d -r ${D} cleanvarcache         start 38 0 6 S .
