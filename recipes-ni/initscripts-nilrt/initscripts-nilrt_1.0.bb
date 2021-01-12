@@ -34,6 +34,7 @@ SRC_URI = "file://nisetbootmode \
            file://nipopulateconfigdir \
            file://run-ptest \
            file://cleanvarcache \
+           file://modules_autoload \
            file://niinitled \
 "
 
@@ -76,6 +77,7 @@ do_install () {
 	install -m 0755 ${WORKDIR}/nisetreboottype       ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/wirelesssetdomain     ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/cleanvarcache         ${D}${sysconfdir}/init.d
+	install -m 0755 ${WORKDIR}/modules_autoload      ${D}${sysconfdir}/init.d
 	install -m 0755 ${S}/nisetupirqpriority          ${D}${sysconfdir}/init.d
 	install -m 0755 ${S}/niinitled                   ${D}${sysconfdir}/init.d
 
@@ -93,6 +95,7 @@ do_install () {
 	update-rc.d -r ${D} nisetcommitratio      start 99 S .
 	update-rc.d -r ${D} wirelesssetdomain     start 36 S .
 	update-rc.d -r ${D} cleanvarcache         start 38 0 6 S .
+	update-rc.d -r ${D} modules_autoload      start 37 S .
 	update-rc.d -r ${D} niinitled             start 40 S .
 
 	update-rc.d -r ${D} nisetreboottype       stop  55 6 .
