@@ -3,6 +3,13 @@
 # All rights reserved.
 [ "${VERBOSE}" != "no" ] && echo -n "Starting nisetupkernelconfig:"
 
+#Create core dump files in the root directory of runmode with the
+#executable name as the suffix.
+echo "/var/local/natinst/log/core_dump.%E" > /proc/sys/kernel/core_pattern
+
+#Enable core dump for tainted binaries
+echo 1 > /proc/sys/fs/suid_dumpable
+
 #This disables RT scheduler's CPU throttling for National Instruments LabVIEW Real-Time
 echo -1 > /proc/sys/kernel/sched_rt_runtime_us
 
