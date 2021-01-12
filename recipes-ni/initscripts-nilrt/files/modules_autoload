@@ -1,0 +1,26 @@
+#!/bin/sh
+# Copyright (c) 2012-2013 National Instruments.
+# All rights reserved.
+
+# Script for auto-loading kernel modules (needed for modules that are not auto-loaded by udev)
+
+cd /etc/modules.autoload.d
+
+case "$1" in
+    start)
+	for mod in *; do
+	    modprobe -q "$mod"
+	done
+	#autodetection of hardware
+	find /sys/devices -name modalias |
+	    while read -r m; do
+		read -r alias < "$m"
+		modprobe -q "$alias"
+	    done
+	;;
+    stop)
+	for mod in *; do
+	    modprobe -q -r "$mod"
+	done
+	;;
+esac
