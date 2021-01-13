@@ -112,6 +112,7 @@ RDEPENDS_${PN} = "\
 	lsbinitscripts \
 	netbase \
 	niacctbase \
+	ni-systemformat \
 	openssh-sshd \
 	openssh-scp \
 	openssh-sftp-server \
