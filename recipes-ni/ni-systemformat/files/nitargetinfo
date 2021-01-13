@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+# Copyright (c) 2021 National Instruments
+#
+# Populate the targetinfo.ini file with property information about the current
+# and supported vfs_types, as they are interpreted by the nisystemformat
+# utility.
+#
+# This information is cached to avoid jitter from calling the
+# nisystemformat script within a realtime loop context.
+
+TARGETINFO_PATH=/etc/natinst/share/targetinfo.ini
+
+cat >"$TARGETINFO_PATH" <<EOF
+[FileSystem]
+Current=$(nisystemformat -s)
+Supported=$(nisystemformat -l)
+EOF
