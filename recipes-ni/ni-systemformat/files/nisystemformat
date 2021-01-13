@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2013 National Instruments
+# Copyright (c) 2021 National Instruments
 # For grub and u-boot targets, format rootfs and the config volumes and delete the runmode kernel
 # For RAUC targets, write init-action.cfg to format or boot into safemode on next boot.
 
