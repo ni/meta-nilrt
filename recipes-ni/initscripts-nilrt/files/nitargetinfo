@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# Copyright (c) 2013 National Instruments
+#
+# Collect specific target information at safemode boot time
+# and dump it into file /etc/natinst/share/targetinfo.ini
+# File uses default ownership and permissions: 
+# admin:administ (-rw-r--r--)
+#
+# Constants
+TARGETINFO_PATH=/etc/natinst/share/targetinfo.ini
+NISYSTEMFORMAT=/usr/local/natinst/bin/nisystemformat
+CURRENT=`$NISYSTEMFORMAT -s`
+SUPPORTED=`$NISYSTEMFORMAT -l`
+
+# Always recreate targetinfo.ini to ensure contents
+# update if safemode is upgraded
+cat >"$TARGETINFO_PATH" <<EOF
+[FileSystem]
+Current=$CURRENT
+Supported=$SUPPORTED
+EOF
+
