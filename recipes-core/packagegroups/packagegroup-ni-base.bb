@@ -115,6 +115,7 @@ RDEPENDS_${PN} = "\
 	ni-utils \
 	ni-safemode-utils \
 	ni-shutdown-guard \
+	ni-systemformat \
 	openssh-sshd \
 	openssh-scp \
 	openssh-sftp-server \
