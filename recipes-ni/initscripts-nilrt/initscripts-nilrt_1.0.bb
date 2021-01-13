@@ -23,6 +23,7 @@ SRC_URI = "file://nisetbootmode \
            file://nicreatecpuacctgroups \
            file://nisetupkernelconfig \
            file://nisetcommitratio \
+           file://nitargetinfo \
            file://test-nisetcommitratio-common.sh \
            file://test-nisetcommitratio-system \
            file://test-nisetcommitratio-unit \
@@ -71,6 +72,7 @@ do_install () {
 	install -m 0755 ${WORKDIR}/nipopulateconfigdir   ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nisetupkernelconfig   ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nisetcommitratio      ${D}${sysconfdir}/init.d
+	install -m 0755 ${WORKDIR}/nitargetinfo          ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/wirelesssetdomain     ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/cleanvarcache         ${D}${sysconfdir}/init.d
 	install -m 0755 ${S}/nisetupirqpriority          ${D}${sysconfdir}/init.d
@@ -87,6 +89,7 @@ do_install () {
 	update-rc.d -r ${D} nipopulateconfigdir   start 36 S .
 	update-rc.d -r ${D} nisetupkernelconfig   start 3  4 5 .
 	update-rc.d -r ${D} nisetcommitratio      start 99 S .
+	update-rc.d -r ${D} nitargetinfo          start 20 4 5 .
 	update-rc.d -r ${D} wirelesssetdomain     start 36 S .
 	update-rc.d -r ${D} cleanvarcache         start 38 0 6 S .
 
