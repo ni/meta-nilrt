@@ -32,6 +32,7 @@ RDEPENDS_${PN} += "\
 	htop \
 	iperf2 \
 	iperf3 \
+	kernel-performance-tests \
 	ldd \
 	ltrace \
 	mysql-python \
