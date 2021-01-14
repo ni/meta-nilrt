@@ -78,6 +78,7 @@ RDEPENDS_${PN} += "\
 # kernel regression tests
 RDEPENDS_${PN} += "\
 	kernel-test-fbomb \
+	kernel-performance-tests \
 "
 
 RDEPENDS_${PN} += "\
