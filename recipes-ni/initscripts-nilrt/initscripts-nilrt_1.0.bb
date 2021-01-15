@@ -39,6 +39,7 @@ SRC_URI = "file://nisetbootmode \
 "
 
 SRC_URI_append_x64 = "file://nidisablecstates \
+                      file://nisetembeddeduixml \
                       file://nicheckbiosconfig \
                       file://niopendisks \
                       file://niclosedisks \
@@ -68,6 +69,7 @@ do_install () {
 	fi
 
 	install -m 0755 ${WORKDIR}/mountdebugfs          ${D}${sysconfdir}/init.d
+	install -m 0755 ${WORKDIR}/nisetembeddeduixml    ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nicleanstalelinks     ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nicreatecpusets       ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nicreatecpuacctgroups ${D}${sysconfdir}/init.d
@@ -87,6 +89,7 @@ do_install () {
 	update-rc.d -r ${D} nisetbootmode         start 80 S . stop 0 0 6 .
 	update-rc.d -r ${D} firewall              start 39 S .
 	update-rc.d -r ${D} mountdebugfs          start 82 S .
+	update-rc.d -r ${D} nisetembeddeduixml    start 20 5 .
 	update-rc.d -r ${D} nicleanstalelinks     start 5  S .
 	update-rc.d -r ${D} nicreatecpusets       start 1  4 5 .
 	update-rc.d -r ${D} nicreatecpuacctgroups start 2  4 5 .
