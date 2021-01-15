@@ -11,7 +11,9 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-files:"
 S = "${WORKDIR}"
 
 DEPENDS = "virtual/kernel"
-RDEPENDS_${PN}-ptest += "bash rt-tests fio iperf3 fw-printenv"
+RDEPENDS_${PN}-ptest += "bash rt-tests fio iperf3"
+RDEPENDS_${PN}-ptest_append_x64 += "fw-printenv"
+RDEPENDS_${PN}-ptest_append_armv7a += "u-boot-fw-utils"
 
 ALLOW_EMPTY_${PN} = "1"
 
