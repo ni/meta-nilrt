@@ -16,6 +16,7 @@ RDEPENDS_${PN}_append_x64 = "\
 	packagegroup-ni-next-kernel \
 	packagegroup-ni-mono-extra \
 	florence \
+	kernel-performance-tests \
 "
 
 RDEPENDS_${PN} += "\
@@ -32,7 +33,6 @@ RDEPENDS_${PN} += "\
 	htop \
 	iperf2 \
 	iperf3 \
-	kernel-performance-tests \
 	ldd \
 	ltrace \
 	mysql-python \
