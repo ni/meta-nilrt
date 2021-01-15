@@ -23,7 +23,6 @@ RDEPENDS_${PN} = "\
 	libfmi-dev \
 	librtpi \
 	lldpd \
-	nisdbootconfig \
 	niwatchdogpet \
 	parted \
 	rtctl \

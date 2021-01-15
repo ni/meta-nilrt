@@ -19,8 +19,5 @@ do_install () {
 
 	# from artemis onwards, using sd card as main disk for arm target is introduced
 	# install nisdbootconfig to configure sd card booting requirement
-	if [ "${TARGET_ARCH}" = "arm" ]; then
-		install -m 0755 ${WORKDIR}/nisdbootconfig ${D}${sysconfdir}/init.d
-	fi
-
+	install -m 0755 ${WORKDIR}/nisdbootconfig ${D}${sysconfdir}/init.d
 }
