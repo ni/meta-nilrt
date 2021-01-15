@@ -1,0 +1,22 @@
+#!/bin/sh
+
+system_has_display_driver() {
+	[ -d /sys/class/drm ]
+}
+
+check_and_remove() {
+	if system_has_display_driver; then
+		return
+	fi
+	rm -f /var/local/natinst/systemsettings/ui_enable.ini
+	sed -i '/^.*embedded UI/,/^[ \t]*$/d' /etc/issue.template
+}
+
+case $1 in
+	start)
+		check_and_remove
+		;;
+	*)
+		;;
+esac
+
