@@ -1,28 +1,24 @@
 #!/bin/sh
+# Copyright (c) 2012-2013 National Instruments.
+# All rights reserved.
+# Spawn getty on the enabled, controlling console device. There will be at most
+# one of these. If there aren't any, use /dev/tty0. (This mostly matches
+# sysvinit behavior when $CONSOLE is unset.)
 
-# $1 and $2 are are passed by inittab, its values are given by OE
-CONSOLE="$2"
-SPEED="$1"
+. /etc/natinst/networking/functions.common
+update_all_interface_info
 
-if [[ -z "$CONSOLE" || ! -e "/dev/$CONSOLE" || -z "$SPEED" ]]; then
-    echo Specified console "$CONSOLE" with baud rate "$SPEED" is invalid, autodetecting...
+[ "$1" != "" ] && DEFAULT_CONSOLE="$1" || DEFAULT_CONSOLE="tty2"
+CONSOLE=$DEFAULT_CONSOLE
+while read cons flags; do
+   case "$flags" in
+   *EC*) CONSOLE="$cons"
+         break
+         ;;
+   esac
+done < /proc/consoles
 
-    CONSOLE=""
-    while read cons flags; do
-	case "$flags" in
-	    *EC*) CONSOLE="$cons"
-		  SPEED=$(stty speed < /dev/$CONSOLE)
-		  echo Autodetected console "$CONSOLE" with baud rate "$SPEED"
-		  break
-		  ;;
-	esac
-    done < /proc/consoles
-
-    if [[ -z "$CONSOLE" ]]; then
-	echo WARNING: Could not autodetect any active console. Defaulting to tty2.
-	TTY2_SPEED=$(stty speed < /dev/tty2)
-	exec /sbin/getty "$TTY2_SPEED" "tty2"
-    fi
-fi
-
-exec /sbin/getty "$SPEED" "$CONSOLE"
+# tty1 comes up by default in inittab, so disallow blank or conflicting choices
+[ "$CONSOLE" = "" ] || [ "$CONSOLE" = "tty0" ] || [ "$CONSOLE" = "tty1" ] && CONSOLE="$DEFAULT_CONSOLE"
+SPEED=`stty speed < /dev/$CONSOLE`
+exec /sbin/getty $SPEED $CONSOLE
