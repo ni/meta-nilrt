@@ -14,7 +14,7 @@ RDEPENDS_${PN}-ptest += "bash"
 DEPENDS_append_x64 = " nilrtdiskcrypt "
 RDEPENDS_${PN}_append_x64 = " nilrtdiskcrypt "
 
-SRC_URI = "file://nisetbootmode \
+SRC_URI = "\
            file://firewall \
            file://mountdebugfs \
            file://nicleanefivars \
@@ -51,9 +51,6 @@ S = "${WORKDIR}"
 do_install () {
 	install -d ${D}${sysconfdir}/init.d/
 
-	install -m 0550       ${S}/nisetbootmode       ${D}${sysconfdir}/init.d
-	chown 0:${LVRT_GROUP} ${D}${sysconfdir}/init.d/nisetbootmode
-
 	install -m 0755 ${WORKDIR}/firewall              ${D}${sysconfdir}/init.d
 
 	# this logic is only for nilrt and nilrt-xfce, not for nilrt-nxg
@@ -83,7 +80,6 @@ do_install () {
 	install -d ${D}${sysconfdir}/natinst
 	install -m 0644 ${WORKDIR}/iso3166-translation.txt ${D}${sysconfdir}/natinst
 
-	update-rc.d -r ${D} nisetbootmode         start 80 S . stop 0 0 6 .
 	update-rc.d -r ${D} firewall              start 39 S .
 	update-rc.d -r ${D} mountdebugfs          start 82 S .
 	update-rc.d -r ${D} nisetembeddeduixml    start 20 5 .

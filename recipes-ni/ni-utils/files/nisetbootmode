@@ -7,19 +7,25 @@
 #     startup and shutdown.  It is also designed to be run by the user to
 #     force the target to boot into one of the 3 boot modes.
 #
-#     1)default:      -boots from the main disk and uses that disk's filesystem
-#                     -$BOOT_MODE_INPUT file is deleted
+#     $BOOT_MODE_INPUT is a file that will contain the next boot mode for the
+#     target which is one of the following 3 values:
+#         safemode - boots from the NAND flash and uses a separate ramdisk
+#                    image -- may enter "restore mode" or "install mode"
+#         runtime  - boots from the main disk and uses that disk's filesystem
 #
-#     2)restore:      -boots the target into restore mode which prompts the user
-#                      for image reinstall
-#                     -$BOOT_MODE_INPUT contains BOOT_MODE=restore
+#     For user use, the following commands are supported
+#         force-safemode - boots the target into safe mode
+#         force-normal or force-runtime - boots the target into normal mode
+#         force-install - boots the target into install mode
 #
-#     3)auto-restore: -boots the target into restore mode and reinstalls
-#                      the image without user prompt
-#                     -$BOOT_MODE_INPUT contains BOOT_MODE=auto-restore
+#     This script reads the contents of the file, if it exists, and
+#     configures the boot process according to the value from the file, if
+#     the value is one of the valid values.  The file $BOOT_MODE_INPUT itself
+#     will be created by the web-service and/or a module that handles the
+#     "RebootEx" web-service.  In addition this script verifies that rebooting
+#     while in safemode results in the target attempting to boot into normal
+#     mode.
 #
-#     According to $BOOT_MODE_INPUT the $BOOT_CONFIG_LOCATION file will be set
-#     for next boot mode.
 
 if [[ -f /usr/lib/nisetbootmode.functions ]]; then
 	source /usr/lib/nisetbootmode.functions
@@ -29,22 +35,45 @@ else
 fi
 
 # Verify all the necessary utilities exist
-check_file $BOOT_CONFIG_LOCATION
+if [ "$NI_GRUB_ENABLE_BOOTFLAGS_DIR" -ge 1 ]; then
+	[ -f "$BOOTFLAGS_DIR/safemode" -o -f "$BOOTFLAGS_DIR/runtime" ] || fail "$0 error: Unable to find $BOOTFLAGS_DIR/safemode nor $BOOTFLAGS_DIR/runtime";
+else
+	[ -f "$BOOT_CONFIG_LOCATION" ] || fail "$0 error: Unable to find $BOOT_CONFIG_LOCATION";
+fi
 
 case "$1" in
-  auto-restore)
-    echo auto-restore >$BOOT_MODE_INPUT
-    ;;
-  restore)
-    echo restore >$BOOT_MODE_INPUT
-    ;;
-  default)
-    rm $BOOT_MODE_INPUT 2>/dev/null
-    ;;
+  start)
+	# The default boot mode is always runmode, we also change the permissions on
+	# the $BOOT_MODE_INPUT so the system webserver can change the mode to boot into
+	echo runtime >$BOOT_MODE_INPUT
+	chown lvuser:ni $BOOT_MODE_INPUT
+	chmod 660 $BOOT_MODE_INPUT
+	;;
+  stop)
+	# Will hit checkbootmode just before exit 0 below
+	;;
+  force-safemode|boot-safemode)
+	echo safemode >$BOOT_MODE_INPUT
+	if [ -z "$2" ]; then
+		echo "No safe mode reason specified."
+		echo "Safe Mode" >$SAFEMODE_REASON_FILE
+	else
+		echo "Safe Mode ($2)" >$SAFEMODE_REASON_FILE
+	fi
+	;;
+  force-install|boot-install)
+	# SAFEMODE_REASON_FILE is set in checkbootmode for install, because
+	# normally install mode is indicated by writing BOOT_MODE_INPUT
+	# directly, not by using this script.
+	echo install >$BOOT_MODE_INPUT
+	;;
+  force-runtime|boot-runtime|force-runmode|boot-runmode|force-normal|force-normalmode|boot-normal|boot-normalmode)
+	echo runtime >$BOOT_MODE_INPUT
+	;;
   *)
-    echo "Usage: $progname {restore|auto-restore|default}" >&2
-    exit 1
-    ;;
+	echo "Usage: $progname {force-safemode|force-runtime|force-install} [safemode reason]" >&2
+	exit 1
+	;;
 esac
 
 checkbootmode

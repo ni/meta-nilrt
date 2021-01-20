@@ -32,11 +32,12 @@ do_install () {
 	install -d ${D}${libdir}
 	install -m 0755   ${WORKDIR}/status_led                      ${D}${bindir}
 	install -m 0440   ${WORKDIR}/nisetbootmode.functions         ${D}${libdir}
-	install -m 0550   ${WORKDIR}/nisetbootmode                   ${D}${bindir}
+	install -m 0550   ${WORKDIR}/nisetbootmode                   ${D}${sysconfdir}/init.d
 	install -m 0755   ${WORKDIR}/nisetled                        ${D}${sysconfdir}/init.d
 
 	update-rc.d -r ${D} nisetled              start 40 S .
+	update-rc.d -r ${D} nisetbootmode         start 80 S . stop 0 0 6 .
 
 	chown 0:${LVRT_GROUP} ${D}${bindir}/status_led
-
+	chown 0:${LVRT_GROUP} ${D}${sysconfdir}/init.d/nisetbootmode
 }
