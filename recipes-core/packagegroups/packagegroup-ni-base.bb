@@ -51,7 +51,6 @@ NILRT_x64_PACKAGES = "\
 
 NILRT_NXG_PACKAGES = "\
 	modutils-initscripts \
-	ni-utils \
 	rauc \
 	rauc-mark-good \
 	packagegroup-ni-minimal-transconf \
@@ -111,6 +110,7 @@ RDEPENDS_${PN} = "\
 	lsbinitscripts \
 	netbase \
 	niacctbase \
+	ni-utils \
 	openssh-sshd \
 	openssh-scp \
 	openssh-sftp-server \

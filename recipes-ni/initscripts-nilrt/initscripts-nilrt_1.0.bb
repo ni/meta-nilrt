@@ -27,7 +27,6 @@ SRC_URI = "file://nisetbootmode \
            file://test-nisetcommitratio-system \
            file://test-nisetcommitratio-unit \
            file://test-safemode-runlevel-init \
-           file://nisetled \
            file://wirelesssetdomain \
            file://iso3166-translation.txt \
            file://nisetupirqpriority \
@@ -35,7 +34,6 @@ SRC_URI = "file://nisetbootmode \
            file://run-ptest \
            file://cleanvarcache \
            file://modules_autoload \
-           file://niinitled \
 "
 
 SRC_URI_append_x64 = "file://nidisablecstates \
@@ -81,7 +79,6 @@ do_install () {
 	install -m 0755 ${WORKDIR}/cleanvarcache         ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/modules_autoload      ${D}${sysconfdir}/init.d
 	install -m 0755 ${S}/nisetupirqpriority          ${D}${sysconfdir}/init.d
-	install -m 0755 ${S}/niinitled                   ${D}${sysconfdir}/init.d
 
 	install -d ${D}${sysconfdir}/natinst
 	install -m 0644 ${WORKDIR}/iso3166-translation.txt ${D}${sysconfdir}/natinst
@@ -99,15 +96,8 @@ do_install () {
 	update-rc.d -r ${D} wirelesssetdomain     start 36 S .
 	update-rc.d -r ${D} cleanvarcache         start 38 0 6 S .
 	update-rc.d -r ${D} modules_autoload      start 37 S .
-	update-rc.d -r ${D} niinitled             start 40 S .
 
 	update-rc.d -r ${D} nisetreboottype       stop  55 6 .
-
-	# only for nilrt-nxg, on older nilrt it's installed via p4
-	if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'true', 'false', d)}; then
-		install -m 0755   ${WORKDIR}/nisetled         ${D}${sysconfdir}/init.d
-		update-rc.d -r ${D} nisetled start 40 S .
-	fi
 
 	# CAR 450019: Remove this code (and associated script) and migrate
 	# responsibility for setting IRQ thread priority to RIO nisetupirqpriority
