@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=fi.w1.wpa_supplicant1
+Exec=/usr/sbin/wpa_supplicant -Dnl80211 -i wlan0 -c /etc/natinst/share/wpa_supplicant.conf -u
+User=root
