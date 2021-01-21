@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=fi.epitest.hostap.WPASupplicant
+Exec=/usr/sbin/wpa_supplicant -Dnl80211 -i wlan0 -c /etc/natinst/share/wpa_supplicant.conf -u
+User=root
