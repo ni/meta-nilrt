@@ -5,13 +5,10 @@
 # Version:      @(#)hostname.sh  1.10  26-Feb-2001  miquels@cistron.nl
 #
 
-if [ -f /etc/hostname ] && [ -r /etc/hostname ];then
-    HOSTNAME=$(cat /etc/hostname)
-else
-    HOSTNAME=
-fi
-
+# Check if there is a hostname in ni-rt.ini
+HOSTNAME=$(/usr/local/natinst/bin/nirtcfg --get section=SystemSettings,token=Host_Name)
 if [ $? -eq 0 ] && [ -n "$HOSTNAME" ]; then
+    # Set the hostname based on ni-rt.ini
     hostname "$HOSTNAME"
 else
     # Generates a default hostname based on firmware DeviceDesc and serial# or MAC address
@@ -40,8 +37,8 @@ else
     # Set new hostname
     echo "NI-$MODEL-$SERIAL" | sed -r -e 's/[^a-zA-Z0-9]+/-/g' -e 's/^-//' | xargs hostname
 
-    # Persist new hostname in /etc/hostname file
-    hostname > /etc/hostname
+    # Persist new hostname in ni-rt.ini
+    /usr/local/natinst/bin/nirtcfg --set section=SystemSettings,token=Host_Name,value="$(hostname)"
 
     # Print new hostname to screen
     echo -n "New system hostname: "
