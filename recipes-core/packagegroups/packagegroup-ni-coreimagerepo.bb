@@ -5,12 +5,13 @@ inherit packagegroup
 
 RDEPENDS_${PN} = "\
 	packagegroup-ni-base \
+	packagegroup-ni-crio \
 	packagegroup-ni-ptest \
+	packagegroup-ni-restoremode \
+	packagegroup-ni-runmode \
+	packagegroup-ni-transconf \
 	packagegroup-ni-tzdata \
 	packagegroup-ni-wifi \
-	packagegroup-ni-runmode \
-	packagegroup-ni-crio \
-	packagegroup-ni-restoremode \
 	${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'packagegroup-core-x11', '', d)} \
 	packagegroup-core-standalone-sdk-target \
 	packagegroup-kernel-module-build \
