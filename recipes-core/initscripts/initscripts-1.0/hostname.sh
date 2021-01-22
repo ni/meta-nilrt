@@ -10,6 +10,8 @@ HOSTNAME=$(/usr/local/natinst/bin/nirtcfg --get section=SystemSettings,token=Hos
 if [ $? -eq 0 ] && [ -n "$HOSTNAME" ]; then
     # Set the hostname based on ni-rt.ini
     hostname "$HOSTNAME"
+    # Persist hostname in /etc/hostname file
+    hostname > /etc/hostname
 else
     # Generates a default hostname based on firmware DeviceDesc and serial# or MAC address
 
@@ -37,6 +39,8 @@ else
     # Set new hostname
     echo "NI-$MODEL-$SERIAL" | sed -r -e 's/[^a-zA-Z0-9]+/-/g' -e 's/^-//' | xargs hostname
 
+    # Persist new hostname in /etc/hostname file
+    hostname > /etc/hostname
     # Persist new hostname in ni-rt.ini
     /usr/local/natinst/bin/nirtcfg --set section=SystemSettings,token=Host_Name,value="$(hostname)"
 
