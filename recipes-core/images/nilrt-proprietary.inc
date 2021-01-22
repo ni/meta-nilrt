@@ -14,6 +14,7 @@ IMAGE_INSTALL_NODEPS = "\
         ni-avahi-client \
         ni-ca-certs \
         ni-rt-exec-webservice \
+        ni-rtlog \
         ni-service-locator \
         ni-skyline-file-client \
         ni-skyline-message-client \
@@ -32,6 +33,7 @@ IMAGE_INSTALL_NODEPS = "\
         ni-webdav-system-webserver-support \
         ni-webserver-libs \
         ni-webservices-webserver-support \
+        ni-wireless-cert-storage \
         nicurl \
         nirtcfg \
         nirtmdnsd \
