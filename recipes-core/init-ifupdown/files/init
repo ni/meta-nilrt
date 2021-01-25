@@ -1,0 +1,154 @@
+#!/bin/sh
+#
+# Copyright (c) 2013 National Instruments
+#
+# manage network interfaces and configure some networking options
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+if ! [ -x /sbin/ifup ]; then
+    exit 0
+fi
+
+. /etc/natinst/networking/functions.common
+
+if [ -e /etc/natinst/networking/wireless.common ]; then
+	. /etc/natinst/networking/wireless.common
+fi
+
+spoofprotect_rp_filter () {
+    # This is the best method: turn on Source Address Verification and get
+    # spoof protection on all current and future interfaces.
+
+    if [ -e /proc/sys/net/ipv4/conf/all/rp_filter ]; then
+        for f in /proc/sys/net/ipv4/conf/*; do
+        [ -e $f/rp_filter ] && echo 1 > $f/rp_filter
+        done
+        return 0
+    else
+        return 1
+    fi
+}
+
+spoofprotect () {
+    [ "${VERBOSE}" != "no" ] && echo -n "Setting up IP spoofing protection: "
+    if spoofprotect_rp_filter; then
+        [ "${VERBOSE}" != "no" ] && echo "rp_filter."
+    else
+        [ "${VERBOSE}" != "no" ] && echo "FAILED."
+    fi
+}
+
+ip_forward () {
+    if [ -e /proc/sys/net/ipv4/ip_forward ]; then
+        [ "${VERBOSE}" != "no" ] && echo -n "Enabling packet forwarding... "
+        echo 1 > /proc/sys/net/ipv4/ip_forward
+        [ "${VERBOSE}" != "no" ] && echo "done."
+    fi
+}
+
+syncookies () {
+    if [ -e /proc/sys/net/ipv4/tcp_syncookies ]; then
+        [ "${VERBOSE}" != "no" ] && echo -n "Enabling TCP/IP SYN cookies... "
+        echo 1 > /proc/sys/net/ipv4/tcp_syncookies
+        [ "${VERBOSE}" != "no" ] && echo "done."
+    fi
+}
+
+doopt () {
+    optname=$1
+    default=$2
+    if [ -f /etc/network/options ]; then
+        opt=`grep "^$optname=" /etc/network/options`
+    fi
+    if [ -z "$opt" ]; then
+        opt="$optname=$default"
+    fi
+    optval=${opt#$optname=}
+    if [ "$optval" = "yes" ]; then
+        eval $optname
+    fi
+}
+
+netif_set()
+{
+    DEVICELIST=`ifconfig -a | grep HWaddr | awk '{print $1}'`
+
+    for DEV in $DEVICELIST
+    do
+        netif_set_device $1 ${DEV}
+    done
+}
+
+
+
+check_mounts() {
+    if sed -n 's/^[^ ]* \([^ ]*\) \([^ ]*\) .*$/\1 \2/p' /proc/mounts |
+        grep -q "^/ nfs$"; then
+            echo "NOT configuring network interfaces: / is an NFS mount"
+    elif sed -n 's/^[^ ]* \([^ ]*\) \([^ ]*\) .*$/\1 \2/p' /proc/mounts |
+        grep -q "^/ smbfs$"; then
+            echo "NOT configuring network interfaces: / is an SMB mount"
+    elif sed -n 's/^[^ ]* \([^ ]*\) \([^ ]*\) .*$/\2/p' /proc/mounts |
+        grep -qE '^(nfs|smbfs|ncp|coda)$'; then
+            echo "NOT configuring network interfaces: network shares still mounted."
+    else
+        return 0
+    fi
+    
+    return 1
+}
+
+case "$1" in
+    start)
+        if check_mounts; then
+            [ "${VERBOSE}" != "no" ] && echo -n "Configuring network interfaces... "
+            if [ -e /sys/class/ieee80211 ];
+            then
+              INTERFACESW=`echo /sys/class/ieee80211/*/device/net/*`
+              for INTERFACEW in $INTERFACESW
+              do
+                INTERFACEW=$(basename $INTERFACEW)
+                case $INTERFACEW in
+                  mon.*) continue ;;
+                esac
+                echo "Setting up networking on $INTERFACEW: "
+                setup_wireless $INTERFACEW
+              done
+            fi
+            netif_set up
+            ifup -a
+            [ "${VERBOSE}" != "no" ] && echo "done."
+            # /etc/sysctl.conf is preferred
+            if [ ! -f /etc/sysctl.conf ]; then
+                doopt spoofprotect yes
+                doopt syncookies no
+                doopt ip_forward no
+            fi
+            enable_net_hotplug
+        fi
+      ;;
+    stop)
+        if check_mounts; then
+            echo -n "Deconfiguring network interfaces... "
+            netif_set down
+            ifdown -a
+            echo "done."
+        fi
+    ;;
+    force-reload|restart)
+        echo -n "Reconfiguring network interfaces... "
+        netif_set down
+        ifdown -a
+        netif_set up
+        ifup -a
+    echo "done."
+    ;;
+    *)
+    echo "Usage: /etc/init.d/networking {start|stop|restart|force-reload}"
+    exit 1
+    ;;
+esac
+
+exit 0
+
