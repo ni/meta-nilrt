@@ -1,0 +1,33 @@
+#!/bin/sh
+# Copyright (c) 2012-2014 National Instruments
+# All Rights Reserved
+
+WPA_SUP_CONF=/etc/natinst/share/wpa_supplicant.conf
+
+# If the supplicant config file is missing, create it
+if [ ! -e $WPA_SUP_CONF ] && [ -x /usr/sbin/wpa_supplicant ]; then
+    cat <<TXT >/etc/natinst/share/wpa_supplicant.conf
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=ni
+update_config=1
+fast_reauth=0
+
+TXT
+    chown 0:0 $WPA_SUP_CONF
+    chmod 0600 $WPA_SUP_CONF
+fi
+# For platforms that require it, limit the max stations
+PLATFORM_MAX_NUM_STA=$(/usr/local/natinst/bin/nirtcfg --get section=SystemSettings,token=APMaxNumStations)
+# If the APMaxNumStations token does not exist,
+# then do not change the wpa_supplicant.conf file
+if [ "${PLATFORM_MAX_NUM_STA}" != "" ]
+then
+    if grep -q max_num_sta $WPA_SUP_CONF
+    then
+        # Update the max_num_sta entry in wpa_supplicant.conf
+        sed -i 's/^max_num_sta=.*/max_num_sta='"${PLATFORM_MAX_NUM_STA}"'/g' $WPA_SUP_CONF
+    else
+        # Insert the max_num_sta entry into the wpa_supplicant.conf file
+        sed -i 's/update_config=1/update_config=1\nmax_num_sta='"${PLATFORM_MAX_NUM_STA}"'/g' $WPA_SUP_CONF
+    fi
+fi
+
