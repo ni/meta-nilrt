@@ -9,74 +9,145 @@
 # estimated kernelspace memory allocations in megabytes, or a comment (starting
 # with #). Syntax errors are silently ignored.
 #
-# This script will adjust overcommit_ratio based on your reservation and
-# everybody else's. If this facility is unused (no reservations under
-# /etc/memreserve.d or they sum to 0), then overcommit ratio is left unchanged;
-# typically a default value for overcommit_ratio can be set in /etc/sysctl.conf
-# in that event.
+# This script sets the overcommit ratio for the system. The value set is the
+# calculated number. If there is an error nothing is set. Reserved memory is
+# specified in /etc/natinst/share/ni-rt.ini in the RtLinuxMemReserve section.
+
+set -e
+SCRIPTNAME="${0##*/}"
+SYSCTL_OVERCOMMIT_KEY="vm.overcommit_ratio"
 
 : ${MEMRESERVE_DIR:=/etc/memreserve.d}
-: ${OVERCOMMIT_RATIO:=/proc/sys/vm/overcommit_ratio}
 
-get_total_reserve_kb () {
-	# Don't execute the `cat | awk` unless at least one file exists
-	for f in "$MEMRESERVE_DIR"/*; do
-		[ -f "$f" ] || break
-		# Grep for all lines containing only a single natural number,
-		# sum them together, and convert to KB
-		cat "$MEMRESERVE_DIR"/* | awk \
-			'/^[[:space:]]*[[:digit:]]+[[:space:]]*$/ {s+=$1} END {print s*1024}'
-		return 0
-	done
-	echo 0
+SYSTEM_MEMORY=0
+RESERVED_TOTAL=0
+COMMIT_RATIO=0
+
+log()
+{
+   { [ "${VERBOSE}" != "no" ] && echo "$SCRIPTNAME: $1"; } || true
 }
 
-get_memtotal_kb () {
-	awk 'BEGIN {s=0} /MemTotal/{s=$2} END {print s}' /proc/meminfo
+get_memreserve_kb () {
+   # Don't execute the `cat | awk` unless at least one file exists
+   for f in "$MEMRESERVE_DIR"/*; do
+      [ -f "$f" ] || break
+      # Grep for all lines containing only a single natural number,
+      # sum them together, and convert to KB
+      cat "$MEMRESERVE_DIR"/* | awk \
+         '/^[[:space:]]*[[:digit:]]+[[:space:]]*$/ {s+=$1} END {print s*1024}'
+      return 0
+   done
+   echo 0
 }
 
-# Echoes the computed overcommit ratio percentage based on the total amount of
-# memory and the memory reservations specified under $MEMRESERVE_DIR. If an
-# error occurs, such that the overcommit ratio should not be set, 0 will be
-# echoed.
-overcommit_ratio () {
-	# Allow MemTotal to be overridden via $MEMTOTAL_KB to allow control by
-	# unit tests
-	memtotal=${MEMTOTAL_KB:-`get_memtotal_kb`}
-	reserved=`get_total_reserve_kb`
-	if [ $memtotal -le 0 ]; then
-		ratio=0
-		cat <<EOF >&2
-$0: WARNING: Unable to get MemTotal (got $memtotal); overcommit ratio is unchanged
-EOF
-	elif [ $memtotal -le $reserved ]; then
-		# Don't just not set overcommit_ratio; that could mask real
-		# problems. Instead, choose a ratio that is ridiculously low,
-		# and will cause problems, but should still allow the system to
-		# finish booting and start running stuff
-		ratio=25
-		cat <<EOF >&2
-$0: WARNING: Reserved memory ($reserved) exceeds MemTotal ($memtotal); \
-defaulting to overcommit_ratio=$ratio
-EOF
-	elif [ $reserved -eq 0 ]; then
-		ratio=0		# will be interpreted as "don't set"
-	else
-		ratio=$(( (memtotal-reserved)*100/memtotal ))
-	fi
-	echo $ratio
+get_total_memory_reserved()
+{
+   local list element mem
+   local cmd="/usr/local/natinst/bin/nirtcfg --list"
+   local cmd_tr="/usr/bin/tr '[:upper:]' '[:lower:]'"
+   local reserved=false
+
+   list=$($cmd | $cmd_tr)
+   if [ "$list" ]; then
+      for element in $list; do
+         case $element in
+            *"[rtlinuxmemreserve]"*)
+               mem="${element#*=}"
+               mem=$((mem*1024))
+               RESERVED_TOTAL=$((RESERVED_TOTAL+mem))
+               reserved=true
+            ;;
+         esac
+      done
+   else
+      log "Unable to get valid output from $cmd"
+   fi
+
+   # Also look for reservations in the memreserve location
+   RESERVED_TOTAL=$((RESERVED_TOTAL + `get_memreserve_kb`))
+
+   if $reserved; then
+      log "NI reserved memory: $RESERVED_TOTAL"
+      return 0
+   else
+      log "No NI reserved memory, using system default"
+      return 1
+   fi
+}
+
+get_memory_total()
+{
+   if SYSTEM_MEMORY=$(awk '/MemTotal/{print $2}' /proc/meminfo); then
+      log "Total system memory: $SYSTEM_MEMORY"
+   else
+      log "Failed to get system memory."
+   fi
+}
+
+calculate_commit_ratio()
+{
+   local unreserved percentage
+   # Get the unreserved amount of memory
+   if ! unreserved=$((SYSTEM_MEMORY - RESERVED_TOTAL)); then
+       log "Failed to calculate unreserved memory"
+   fi
+
+   # Get the commit percentage (unreserved/total memory)*100
+   if ! percentage=$(awk -v x=$unreserved -v y=$SYSTEM_MEMORY \
+                      'BEGIN {print ((x/y)*100)}'); then
+       log "Failed to calculate commit ratio"
+   fi
+
+   # Floor the percentage
+   COMMIT_RATIO=${percentage%.*}
+   log "Calculated commit ratio: $COMMIT_RATIO"
+}
+
+write_commit_ratio()
+{
+   validate_commit_ratio
+   sysctl -w $SYSCTL_OVERCOMMIT_KEY=$COMMIT_RATIO
+   log "Wrote $SYSCTL_OVERCOMMIT_KEY=$COMMIT_RATIO"
+}
+
+validate_commit_ratio()
+{
+   if [ "$COMMIT_RATIO" -le 0 ]; then
+      log "Calculated bad commit ratio '$COMMIT_RATIO'. Leaving system default."
+      return 1
+   fi
+   return 0
+}
+
+do_start()
+{
+   get_total_memory_reserved
+   get_memory_total
+   calculate_commit_ratio
+   write_commit_ratio
+}
+
+do_status()
+{
+   set +e
+   get_total_memory_reserved
+   get_memory_total
+   calculate_commit_ratio
+   local actual=$(sysctl $SYSCTL_OVERCOMMIT_KEY)
+   log "Actual $actual"
+   set -e
 }
 
 case "$1" in
-start)
-	ratio=`overcommit_ratio`
-	if [ "x$ratio" != "x" -a $ratio -gt 0 ]; then
-		[ "$VERBOSE" != "no" ] && echo "Overcommit ratio: $ratio"
-		echo $ratio > "$OVERCOMMIT_RATIO"
-	fi ;;
-stop)	exit 0 ;;
-*)
-	echo "Usage: $0 start" >&2
-	exit 3
-	;;
+  start)
+   do_start
+   ;;
+  status)
+   do_status
+   ;;
+  *)
+   echo "Usage: $0 {start|status}" >&2
+   exit 3
+   ;;
 esac
