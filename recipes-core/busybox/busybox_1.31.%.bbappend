@@ -3,6 +3,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/files:${THISDIR}/${PN}:"
 SRC_URI =+ " \
             file://busybox-ifplugd \
             file://ifplugd.action \
+            file://ifplugd.conf \
             file://busybox-acpid \
             file://acpid.conf \
             file://acpid_poweroff.sh \
@@ -21,7 +22,7 @@ PACKAGES =+ " ${PN}-acpid"
 
 DEPENDS =+ " libselinux"
 
-FILES_${PN}-ifplugd = "${sysconfdir}/init.d/busybox-ifplugd ${sysconfdir}/ifplugd/ifplugd.action"
+FILES_${PN}-ifplugd = "${sysconfdir}/init.d/busybox-ifplugd ${sysconfdir}/ifplugd/ifplugd.action ${sysconfdir}/ifplugd/ifplugd.conf"
 FILES_${PN}-acpid = "${sysconfdir}/init.d/busybox-acpid ${sysconfdir}/acpid.conf ${sysconfdir}/acpi ${sysconfdir}/acpi/poweroff.sh"
 
 INITSCRIPT_PACKAGES =+ " ${PN}-acpid"
@@ -34,6 +35,7 @@ do_install_append () {
 		install -d ${D}${sysconfdir}/ifplugd/
 		install -m 0755 ${WORKDIR}/busybox-ifplugd ${D}${sysconfdir}/init.d/
 		install -m 0755 ${WORKDIR}/ifplugd.action ${D}${sysconfdir}/ifplugd/
+		install -m 0755 ${WORKDIR}/ifplugd.conf ${D}${sysconfdir}/ifplugd/
 	fi
 	if grep "CONFIG_ACPID=y" ${B}/.config; then
 		install -m 0755 ${WORKDIR}/busybox-acpid ${D}${sysconfdir}/init.d/
