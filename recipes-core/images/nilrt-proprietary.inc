@@ -6,7 +6,7 @@
 LDCONFIGDEPEND = ""
 
 # NI infrastructure packages to be installed in the image
-IMAGE_INSTALL_NODEPS = "\
+IMAGE_INSTALL_NODEPS += "\
         libnitargetcfg \
         ni-arch-gen \
         ni-auth \
