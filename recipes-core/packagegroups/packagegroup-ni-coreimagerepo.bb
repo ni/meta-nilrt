@@ -4,6 +4,8 @@ LICENSE = "MIT"
 inherit packagegroup
 
 RDEPENDS_${PN} = "\
+	packagegroup-base \
+	packagegroup-core-boot \
 	packagegroup-ni-base \
 	packagegroup-ni-crio \
 	packagegroup-ni-ptest \
