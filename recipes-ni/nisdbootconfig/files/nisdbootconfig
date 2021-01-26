@@ -2,19 +2,15 @@
 set -e
 
 # check if target is NOT using ubifs (mtd)
-if ! cat /proc/mtd | grep -qs mtd ; then
+if ! grep -qs mtd /proc/mtd ; then
 
     # configure the partitions to mount by label in fstab
     sed -i '/ubifs/d' /etc/fstab
     echo LABEL=nibootfs         /boot                ext4       sync           0  0 >>/etc/fstab
     echo LABEL=niconfig         /etc/natinst/share   ext4       sync           0  0 >>/etc/fstab
+    echo LABEL=nirootfs         /mnt/userfs          ext4       defaults       0  0 >>/etc/fstab
     mkdir -p /etc/natinst/share
-
-    # configure the nirootfs partition if we are in safemode
-    if [ -f /etc/natinst/safemode ]; then
-        echo LABEL=nirootfs         /mnt/userfs          ext4       defaults       0  0 >>/etc/fstab
-        mkdir -p /mnt/userfs
-    fi
+    mkdir -p /mnt/userfs
 
     # configure the path for fw_printenv to read environmental variables from u-boot
     # replace /dev/mtd4 and /dev/mtd5 with /boot/uboot/uboot.env
