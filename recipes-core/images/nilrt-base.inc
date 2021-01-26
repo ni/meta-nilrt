@@ -16,24 +16,24 @@ IMAGE_FEATURES += "\
 IMAGE_ROOTFS_EXTRA_SPACE = "500000"
 
 # boot management
-IMAGE_INSTALL += "\
+IMAGE_INSTALL_NODEPS += "\
 	rauc \
 	rauc-mark-good \
 "
 
+# kernel software
+IMAGE_INSTALL_NODEPS += "\
+	dkms \
+"
+
 # user software
-IMAGE_INSTALL += "\
+IMAGE_INSTALL_NODEPS += "\
 	packagegroup-ni-base \
 	packagegroup-ni-runmode \
 	packagegroup-ni-transconf \
 	packagegroup-ni-tzdata \
 	packagegroup-ni-wifi \
 	packagegroup-ni-xfce \
-"
-
-# kernel software
-IMAGE_INSTALL += "\
-	dkms \
 "
 
 addtask image_build_test before do_rootfs
