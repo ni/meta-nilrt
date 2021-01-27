@@ -159,9 +159,6 @@ PACKAGE_FEED_URIS_ADDITIONAL = 'fake value for PACKAGE_FEED_URIS_ADDITIONAL'
 # NI distribution packages
 PACKAGE_FEED_URIS_ADDITIONAL[NI-dist] ?= "${NILRT_FEEDS_URI}/dist"
 
-# NI-main packages
-PACKAGE_FEED_URIS_ADDITIONAL[ni-main] = "${NILRT_MACHINE_FEED_URI_nimain}"
-
 BUILD_IMAGES_FROM_FEEDS = "1"
 
 # Get NIOE packages from local deploy feed and NI packages from web feed
