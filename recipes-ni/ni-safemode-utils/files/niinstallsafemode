@@ -1,0 +1,104 @@
+#!/bin/bash
+#
+# Copyright (c) 2013 National Instruments
+#
+# Returns 1 on usage error, 2 if trying to downgrade without -f, 3 if
+# reapplying the same version without -f, 5 on error manipulating /boot/.safe;
+# 6 if shutting down
+
+if [ $# -ne 1 ] && [ $# -ne 2 ]; then
+	echo "Usage: `basename $0` <safemode .cfg file> [-f]"
+	exit 1
+fi
+
+case "$(/sbin/runlevel)" in
+*\ 6|*\ 0) echo "$0: called during shutdown; aborting."; exit 6 ;;
+esac
+
+ver_cmp=/usr/local/natinst/bin/nicompareversion
+mount_point="/boot"
+source_file="$1"
+tmp_dir=$(mktemp -d -t new-safemode.XXXXXX)
+kernel="bzImage"
+ramdisk="ramdisk.gz"
+grub_bootimage_cfg="bootimage.cfg"
+bootimage_data="bootimage.ini"
+
+# Bail out on first error
+set -o errexit
+
+cleanup()
+{
+	rm -rf $tmp_dir
+}
+
+# Make sure we only replace older firmware with newer firmware
+check_version()
+{
+	cur_ver_string=`grep component_version= $mount_point/.safe/$bootimage_data`
+	cur_ver_string="${cur_ver_string##*=}"
+
+	tmp_ver_string=`grep component_version= $tmp_dir/$bootimage_data`
+	tmp_ver_string="${tmp_ver_string##*=}"
+
+	result=$($ver_cmp "$cur_ver_string" "$tmp_ver_string")
+	if [ "$result" == "older" ]; then
+		echo "$0": not updating $cur_ver_string to older $tmp_ver_string, use -f to downgrade or reapply the current version
+		exit 2
+	elif [ "$result" == "equal" ]; then
+		echo "$0": not updating as $cur_ver_string is already present, use -f to downgrade or reapply the current version
+		exit 3
+	fi
+}
+
+trap cleanup INT TERM EXIT
+
+tar -xzf $source_file -C $tmp_dir
+
+if [ "$2" != "-f" ]; then check_version; fi
+
+if [ -x $tmp_dir/preinst ]; then
+	$tmp_dir/preinst
+	rm -f $tmp_dir/preinst
+fi
+
+#TODO: Consider reading the kernel_version field directly from the image header instead.
+#See https://www.kernel.org/doc/Documentation/x86/boot.txt for details.
+bootimage_device_code=`grep device_code= $tmp_dir/$bootimage_data`
+bootimage_device_code="${bootimage_device_code##*=}"
+
+target_device_code=`/sbin/fw_printenv -n DeviceCode`
+
+# Ensure that the ITB is built for this device
+[[ $bootimage_device_code =~ (^| )$target_device_code($| ) ]]
+
+# Ensure critical files exist before attempting to copy any
+[ -s $tmp_dir/$grub_bootimage_cfg ]
+[ -s $tmp_dir/$kernel ]
+[ -s $tmp_dir/$ramdisk ]
+
+# Return a different error code if there is a failure while touching the safemode files
+chmod u+w $mount_point/.safe || exit 5
+chmod u+w $mount_point/.safe/* || exit 5
+cp -f $tmp_dir/* $mount_point/.safe/ || exit 5
+chmod u-w $mount_point/.safe/* || exit 5
+chmod u-w $mount_point/.safe || exit 5
+
+# Unseal safemode key for reseal on next boot
+CONFIGFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^niconfig '| tr -s ' ' | cut -d' ' -f2)"
+ROOTFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^nirootfs '| tr -s ' ' | cut -d' ' -f2)"
+if /usr/sbin/nilrtdiskcrypt_canopen -d "$ROOTFS_DEV" -d "$CONFIGFS_DEV"; then
+	if ! /usr/sbin/nilrtdiskcrypt_unseal -s 0 -d 0; then
+		exit 1
+	fi
+fi
+unset ROOTFS_DEV
+unset CONFIGFS_DEV
+
+if [ -x $tmp_dir/postinst ]; then
+	$tmp_dir/postinst
+	rm -f $tmp_dir/postinst
+fi
+
+trap - INT TERM EXIT
+cleanup
