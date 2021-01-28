@@ -1,0 +1,90 @@
+#!/bin/bash
+#
+# Copyright (c) 2013 National Instruments
+#
+# Script used to get the current version of safemode on the system, the version of safemode
+# for the specified cfg file, or the comparision of the safemode version on the system with
+# the version of the safemode on the cfg file.
+#
+# returns:
+#    0 if doing a version print
+#    1 for any invalid usage (bad parameters, or invalid cfg files)
+#    2 if the version for comparison is older
+#    3 if the version for comparison is the same
+#    4 if the version for comparison is newer
+#    5 if the comparison is invalid due to an unkown version for either the current or given safemode
+
+usage()
+{
+	echo -e "Usage: `basename $0`\t\tPrint the version of the installed safemode." >&2
+	echo -e "       `basename $0` -v [cfg file]\tPrint the version of the cfg file passed in" >&2
+	echo -e "       `basename $0` -c [cfg file]\tCompare the version of the cfg file passed in to the version on the system" >&2
+}
+
+cleanup()
+{
+	rm -rf $tmp_dir
+}
+
+unknown_ver_string=unknown
+
+get_version_grub()
+{
+	version_string=`grep ^component_version= $1`
+	version_string="${version_string##*=}"
+	if [ -z "$version_string" ]; then
+		version_string=$unknown_ver_string
+	fi
+	echo ${version_string//\"/}
+}
+
+mount_point="/boot"
+
+bootimage_data="bootimage.ini"
+get_version=get_version_grub
+
+current_version_source=$mount_point/.safe/$bootimage_data
+version_source=$current_version_source
+
+trap cleanup EXIT
+
+while getopts "v:c:" Option
+do
+	case $Option in
+		v)	source_file=$2; tmp_dir=/tmp/`basename $source_file`.dir; version_source=$tmp_dir/$bootimage_data;;
+		c)	source_file=$2; tmp_dir=/tmp/`basename $source_file`.dir; version_source=$tmp_dir/$bootimage_data; compare=True;;
+		*)	usage; exit 1;;
+	esac
+done
+
+if [ ! -z "$source_file" ]; then
+	tar -tvf $source_file | grep $bootimage_data > /dev/null 2>&1
+	if [ $? -ne 0 ]; then
+		echo "cfg file given was invalid" >&2
+		exit 1
+	fi
+
+	mkdir -p $tmp_dir
+	tar -xf $source_file -C $tmp_dir > /dev/null 2>&1
+fi
+
+if [ -z "$compare" ]; then
+	$get_version $version_source
+else
+	ver_cmp=/usr/local/natinst/bin/nicompareversion
+	cur_ver_string=`$get_version $current_version_source`
+	tmp_ver_string=`$get_version $version_source`
+
+	if [ "$cur_ver_string" == "$unknown_ver_string" ] || [ "$tmp_ver_string" == "$unknown_ver_string" ]; then
+		echo "Unknown version for either the current or given safemode" >&2
+		exit 5
+	fi
+	result=$($ver_cmp "$cur_ver_string" "$tmp_ver_string")
+	case $result in
+		older) exitcode=2 ;;
+		equal) exitcode=3 ;;
+		newer) exitcode=4 ;;
+	esac
+	echo "Version for $2 ($tmp_ver_string) as compared to $cur_ver_string is $result" >&2
+	exit $exitcode
+fi

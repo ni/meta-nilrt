@@ -113,6 +113,7 @@ RDEPENDS_${PN} = "\
 	niacctbase \
 	ni-systemformat \
 	ni-utils \
+	ni-safemode-utils \
 	openssh-sshd \
 	openssh-scp \
 	openssh-sftp-server \
