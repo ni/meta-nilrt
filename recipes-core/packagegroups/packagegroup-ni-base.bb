@@ -111,6 +111,7 @@ RDEPENDS_${PN} = "\
 	netbase \
 	niacctbase \
 	ni-utils \
+	ni-safemode-utils \
 	openssh-sshd \
 	openssh-scp \
 	openssh-sftp-server \
