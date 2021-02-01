@@ -8,7 +8,7 @@
 
 . /etc/natinst/networking/functions.common
 
-INTERFACE=$1
+export INTERFACE=$1
 
 # If there are drivers that need priorities changed, do it
 update_driver_priorities
@@ -32,9 +32,11 @@ case "$2" in
          # static
          start_static_interface $INTERFACE;
       fi
+      run-parts /etc/network/if-up.d
       update_interface_info $INTERFACE
       ;;
    down)
+      run-parts --reverse /etc/network/if-down.d
       stop_dhcp_server $INTERFACE;
       stop_dhcp_client $INTERFACE;
       stop_linklocal_client $INTERFACE;
