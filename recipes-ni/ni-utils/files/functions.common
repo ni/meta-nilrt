@@ -1,0 +1,810 @@
+#!/bin/bash
+
+# Common functions used for the ifplugd, zcip, and udhcpc scripts.
+#ni-rt.ini token names mapping to uboot environment variable names
+#must be identical to the one in source/linuxU/rtcfg/configuration/tLegacyVariable.cpp
+
+sipaddr="IP_Address"
+snetmask="Subnet_Mask"
+sgatewayip="Gateway"
+sdnsip="DNS_Address"
+NIRTCFG=/usr/local/natinst/bin/nirtcfg
+
+# get_mtu_raw (returns empty if not set)
+# Usage: $(get_mtu_raw <interface>)
+get_mtu_raw ()
+{
+   if [ -x ${NIRTCFG} ]; then
+      ${NIRTCFG} --get section=${1},token=mtu
+   else
+      UBOOT_MTU=`fw_printenv mtu 2>/dev/null`
+      if [ $? -ne 0 ]; then
+         echo
+      else
+         echo $UBOOT_MTU | awk -F = '{print $2}'
+      fi
+   fi
+}
+
+# get_mtu (returns default if not set)
+# Usage: $(get_mtu <interface>)
+get_mtu ()
+{
+   MTU_RAW=$(get_mtu_raw ${1})
+   if [ -n "$MTU_RAW" ]; then
+       echo $MTU_RAW
+   else
+       echo 1500
+   fi
+}
+
+# Usage: process_is_running <pidfile> <processName>
+# Returns 0 (true) if processName is running with the PID noted in
+# pidfile, 1 (false) otherwise. Note that we can end up with false
+# matches if a second process gets allocated the same pid (example
+# might be two dhcp clients on two interfaces), but it should work
+# as an okay sanity check.
+process_is_running ()
+{
+   PIDFILE=$1
+   PROCNAME=$2
+
+   if [ -f $PIDFILE ]; then
+      OLDPID=`cat ${PIDFILE}`
+      if [ "x${OLDPID}" != "x" -a -f /proc/${OLDPID}/status ]; then
+         FOUNDPROCNAME=`cat /proc/${OLDPID}/status | grep Name | cut -f 2`
+         if [ "x${FOUNDPROCNAME}" = "x${PROCNAME}" ]; then
+            return 0;
+         fi;
+      fi;
+   fi
+   return 1;
+}
+
+# Returns a passed in MAC address normalized to uppercase characters and
+# stripped of colons.
+# Usage: normalize_macaddr $mac
+normalize_macaddr ()
+{
+   echo "${1:-}" | sed -e 's/://g;y/abcdef/ABCDEF/'
+}
+
+# Prints a possible primary network device to stdout from list of
+# detected devices
+# Usage: addr="$(get_primary_device_from_hw)"
+#
+# - A non-loopback network device is preferred.
+# - If no non-loopback network devices are discovered, "lo" is printed.
+# - Always returns success (exit code 0).
+get_primary_device_from_hw()
+{
+   defaultdevname="lo"
+   defaultdevindex=3000000000
+
+   # Iterate through all adapters to find a usable MAC.
+   # There are a few heuristics employed, to make sure
+   # that we don't choose things like loopback or CAN interfaces:
+   # - Avoid interfaces with type=280 (CAN) or type=772 (loopback)
+   #    (see include/uapi/linux/if_arp.h for possible values)
+   # - Prioritize BIOS-provided indexes for built-in interfaces over other types
+   # - Next, prioritize 'eth' interfaces over other types
+   # - Next, choose the interface with the lowest ifindex, since the
+   #   primary interface is presumed to always exist
+   for devpath in /sys/class/net/*; do
+      devname="${devpath##*/}"
+      devtype="$(cat $devpath/type)" || continue
+      if [ "$devtype" -ne 772 -a "$devtype" -ne 280 ]; then
+         if [ -e $devpath/device/acpi_index ]; then
+            devindex="$(cat $devpath/device/acpi_index)"
+         elif [ ${devname//[^a-z]/} = "eth" ]; then
+            devindex=$(( 1000000000 + ${devname//[^0-9]/} ))
+         else
+            devindex=$(( 2000000000 + $(cat $devpath/ifindex) ))
+         fi
+
+         if [ $devindex -lt $defaultdevindex ]; then
+            defaultdevindex=$devindex
+            defaultdevname="$devname"
+         fi
+      fi
+   done
+
+   echo "$defaultdevname"
+   return 0
+}
+
+# Verifies a network adapter is present in the system
+# Usage: adapter_is_present $mac
+#
+# - Assumes MAC address passed in is already normalized
+#   to uppercase characters and stripped of colons.
+# - If adapter is present, returns 0
+# - If that adapter does not exist, returns 1
+adapter_is_present()
+{
+   local FW_ETHADDR_ORIG=${1:-}
+   [ -z "$FW_ETHADDR_ORIG" ] && return 1
+   local FW_ETHADDR="$(normalize_macaddr $FW_ETHADDR_ORIG)"
+   for devpath in /sys/class/net/*; do
+      HW_ETHADDR="$(normalize_macaddr $(cat $devpath/address))"
+      if [ "$HW_ETHADDR" = "$FW_ETHADDR" ]; then
+         return 0
+      fi
+   done
+   return 1
+}
+
+# Attempts to set the "[SystemSettings]PrimaryMAC" INI setting to a sane value
+# Usage: reset_primary_mac
+#
+# - Use the value in 'primaryethaddr' as the default network adapter.
+# - If not defined, prefer 'ethaddr' next, and 'usbgadgetethaddr' last before
+#   scanning hardware for a default value.
+# - Save the final choice in 'primaryethaddr'.
+# - Always returns success (exit code 0).
+reset_primary_mac()
+{
+   # Get the default saved value for the primary network adapter if it
+   # matches an adapter currently present in the system.
+   # Prefer primaryethaddr, then ethaddr, else usbgadgetethaddr
+   # If default value mismatched or missing, pick a new primary adapter
+   # from the available hardware
+   # If existing primaryethaddr is zeroes, always retry for something better.
+   primaryethaddr="$(normalize_macaddr $(fw_printenv -n primaryethaddr 2>/dev/null))" || true
+   if ! adapter_is_present $primaryethaddr || [ "$primaryethaddr" = 000000000000 ] ; then
+      primaryethaddr="$(normalize_macaddr $(fw_printenv -n ethaddr 2>/dev/null))" || true
+      adapter_is_present $primaryethaddr || primaryethaddr="$(normalize_macaddr $(fw_printenv -n usbgadgetethaddr 2>/dev/null))" || true
+      adapter_is_present $primaryethaddr || primaryethaddr="$(normalize_macaddr $(cat /sys/class/net/$(get_primary_device_from_hw)/address))" || true
+      fw_setenv primaryethaddr "$primaryethaddr" || true
+   fi
+
+   # If nirtcfg returned an error, assume that its output is invalid (e.g.,
+   # might include error text)
+   PRIMARYMAC="$(normalize_macaddr $(${NIRTCFG} -g section=SystemSettings,token=PrimaryMAC))" || PRIMARYMAC=""
+
+   # If nirtcfg value mismatched or missing, reset to default value.
+   if ! [ -n "$PRIMARYMAC" -a "$PRIMARYMAC" = "$primaryethaddr" ]; then
+      ${NIRTCFG} -s section=SystemSettings,token=PrimaryMAC,value=$primaryethaddr
+   fi
+   return 0
+}
+
+# Prints the current primary network device defined in ni-rt.ini to stdout.
+# Usage: get_primary_device_from_ini
+#
+# - Nominally this will be the network device with MAC address matching the
+#   "[SystemSettings]PrimaryMAC" INI setting.
+# - If that setting does not exist or is invalid (i.e., refers to a nonexistent
+#   network device), no value is printed to stdout
+# - Always returns success (exit code 0).
+get_primary_device_from_ini()
+{
+   PRIMARYMAC="$(${NIRTCFG} -g section=SystemSettings,token=PrimaryMAC)" \
+     || return 0
+
+   # If we find a network device with a MAC address matching the INI
+   # setting, use that.
+   for devpath in /sys/class/net/*; do
+      devname="${devpath##*/}"
+      devaddr="$(cat $devpath/address)" || continue
+
+      # Look for a matching MAC with a case-insensitive compare after
+      # stripping colons. The INI setting does not contain byte
+      # delimiters and is not a consistent case; the sysfs "address"
+      # file is colon-delimited and is lowercase.
+      if [ -n "$PRIMARYMAC" ] && echo "$devaddr" \
+        | sed 's/\://g' | grep -qi "^$PRIMARYMAC\$"
+      then
+         echo $devname
+         return 0
+      fi
+   done
+   return 0
+}
+
+# Prints the current primary network device to stdout.
+# Usage: get_primary_device
+#
+# - Nominally this will be the network device with MAC address matching the
+#   "[SystemSettings]PrimaryMAC" INI setting.
+# - If that setting does not exist or is invalid (i.e., refers to a nonexistent
+#   network device), the PrimaryMAC INI value will be reset to a usable default
+# - Always returns success (exit code 0).
+get_primary_device()
+{
+   devname=$(get_primary_device_from_ini)
+
+   if [ -z "$devname" ]; then
+      reset_primary_mac
+      devname=$(get_primary_device_from_ini)
+   fi
+
+   echo $devname
+   return 0
+}
+
+# Prints a space-delimited list of all currently-existing interfaces, excluding
+# the primary and loopback interfaces.
+get_secondary_interfaces () {
+        local RET=""
+        local PRIMARY=$(get_primary_device)
+        for f in /sys/class/net/*; do
+                dev=${f##/sys/class/net/}
+                case "$dev" in
+                lo|$PRIMARY) ;;
+                * ) RET="$RET $dev" ;;
+                esac
+        done
+        echo "$RET"
+}
+
+is_primary_interface ()
+{
+   PRIMARY_NIC=$(get_primary_device)
+   if [ "x$1" = "x${PRIMARY_NIC}" ]; then
+      return 0; # true
+   else
+      return 1; # false
+   fi
+}
+
+# Usage: $(uboot_var_for_interface <variable> <interface>)
+uboot_var_for_interface ()
+{
+   # section=[$interfacename],token=$variable
+   TOKEN=${1}
+   eval TOKEN=\$$TOKEN
+   if [ "x$TOKEN" == "x" ]; then
+      echo "section=${2},token=${1}"
+   else
+      echo "section=${2},token=$TOKEN"
+   fi
+}
+
+# Usage: $(get_var <var>)
+get_var ()
+{
+   if [ -x ${NIRTCFG} ]; then
+      echo `${NIRTCFG} --get ${1}`
+   else
+      # compatibility so we don't need nirtcfg
+      VARNAME=`echo ${1} | sed 's/section\=.*token\=//;'`
+      echo `fw_printenv ${VARNAME} 2>/dev/null | awk -F = '{print $2}'`
+   fi
+}
+
+# Usage: $(get_var_with_default <var> <def>)
+get_var_with_default ()
+{
+   if [ -x ${NIRTCFG} ]; then
+      echo `${NIRTCFG} --get ${1},value=${2}`
+   else
+      # compatibility.
+      VARNAME=`echo ${1} | sed 's/section\=.*token\=//;'`
+      RAWVALUE=`fw_printenv ${VARNAME} 2>/dev/null`
+      if [ $? -ne 0 ]; then
+         echo ${2}
+      else
+         echo `echo ${RAWVALUE} | awk -F = '{print $2}'`
+      fi
+   fi
+}
+
+# Usage: set_var <name> <value>
+set_var ()
+{
+   if [ -x ${NIRTCFG} ]; then
+      ${NIRTCFG} --set ${1},value=${2}
+   else
+      # compatibility.
+      VARNAME=`echo ${1} | sed 's/section\=.*token\=//;'`
+      fw_setenv ${VARNAME} ${2} 2>/dev/null
+   fi
+}
+
+# Usage: update_resolv_conf
+# Combines all resolv.conf.xxx files into a single resolv.conf.
+update_resolv_conf ()
+{
+   # mv in the same filesystem is atomic.
+   TMPFILE=`mktemp -t -p /etc resolvXXXXXX`
+   cat /etc/resolv.conf.* > ${TMPFILE}
+   chmod 644 ${TMPFILE}
+   mv ${TMPFILE} /etc/resolv.conf
+}
+
+# Usage: start_dhcp_client <interface>
+start_dhcp_client ()
+{
+   local INTERFACE=$1
+   PIDFILE=/var/run/udhcpc.${INTERFACE}.pid
+
+   if process_is_running $PIDFILE udhcpc ; then
+      return;
+   fi
+
+   rm -f $PIDFILE
+
+   DHCPIPADDR=$(uboot_var_for_interface dhcpipaddr ${INTERFACE})
+
+   OLD_ADDRESS=$(get_var ${DHCPIPADDR})
+   if [ "x${OLD_ADDRESS}" != "x" ]; then
+      OLD_ADDRESS_PARAM="-r ${OLD_ADDRESS}"
+   else
+      OLD_ADDRESS_PARAM=""
+   fi
+
+   /sbin/udhcpc -a -b -x hostname:`hostname` -i $INTERFACE $OLD_ADDRESS_PARAM -s /etc/natinst/networking/udhcpc.script -p $PIDFILE
+}
+
+# Usage: start_dhcp_client <interface>
+start_dhcp_server ()
+{
+   local INTERFACE=$1
+   PIDFILE=/var/run/udhcpd.${INTERFACE}.pid
+
+   if process_is_running $PIDFILE udhcpd ; then
+      return;
+   fi
+
+   rm -f $PIDFILE
+   ip address add dev $INTERFACE 172.16.0.1/12 broadcast 172.15.255.255
+   udhcpd /etc/udhcpd.${INTERFACE}.conf
+}
+
+# Usage: reload_dhcp_client <interface>
+reload_dhcp_client ()
+{
+   local INTERFACE=$1
+
+   # SIGUSR1 sent to udhcpc will force a renew, but it doesn't seem
+   # to move it into a state where it will leasefail. Since zcip is
+   # run from udhcpc on leasefail, we need that. Instead of sending
+   # SIGUSR1, we just bounce the entire daemon.
+   stop_dhcp_client $INTERFACE
+   start_dhcp_client $INTERFACE
+}
+
+reload_dhcp_server ()
+{
+   local INTERFACE=$1
+
+   stop_dhcp_server $INTERFACE
+   start_dhcp_server $INTERFACE
+}
+
+# Usage: stop_dhcp_client <interface>
+stop_dhcp_client ()
+{
+   local INTERFACE=$1
+   PIDFILE=/var/run/udhcpc.${INTERFACE}.pid
+
+   if ( process_is_running $PIDFILE udhcpc ); then
+      kill `cat ${PIDFILE}`
+      rm -f $PIDFILE
+   fi
+
+   remove_addresses $INTERFACE global
+}
+
+# Usage: stop_dhcp_server <interface>
+stop_dhcp_server ()
+{
+   local INTERFACE=$1
+   PIDFILE=/var/run/udhcpd.${INTERFACE}.pid
+
+   if ( process_is_running $PIDFILE udhcpd ); then
+      kill `cat ${PIDFILE}`
+      rm -f $PIDFILE
+   fi
+
+   remove_addresses $INTERFACE global
+}
+
+# Usage: is_dhcp_enabled <interface>
+# Returns: 0 (true) if dhcp is enabled, 1 (false) if disabled.
+is_dhcp_enabled ()
+{
+   local INTERFACE=$1
+   DHCPENABLED=$(uboot_var_for_interface dhcpenabled ${INTERFACE})
+
+   # If the variable is '0' then it's disabled.
+   # If anything else ('1', not present), then it's enabled.
+   DHCPSTR=$(get_var_with_default ${DHCPENABLED} 1)
+   if [ "x${DHCPSTR}" = "x0" ]; then
+      return 1; # false
+   else
+      return 0; # true
+   fi
+}
+
+# Usage: start_linklocal_client <interface>
+start_linklocal_client ()
+{
+   local INTERFACE=$1
+   PIDFILE=/var/run/zcip.${INTERFACE}.pid
+
+   if process_is_running $PIDFILE zcip ; then
+      return;
+   fi
+   rm -f $PIDFILE
+
+   LLIPADDR=$(uboot_var_for_interface llipaddr ${INTERFACE})
+
+   OLD_ADDRESS=$(get_var ${LLIPADDR})
+   if [ "x${OLD_ADDRESS}" != "x" ]; then
+      OLD_ADDRESS_PARAM="-r ${OLD_ADDRESS}"
+   else
+      OLD_ADDRESS_PARAM=""
+   fi
+
+   # We run zcip in the foreground (-f) and then background it--
+   # this way we can capture the PID. An alternative would be to
+   # add pidfile support directly to zcip.
+   /sbin/zcip -f $OLD_ADDRESS_PARAM $INTERFACE /etc/natinst/networking/zcip.script &
+   echo $! > $PIDFILE
+}
+
+# Usage: reload_linklocal_client <interface>
+reload_linklocal_client ()
+{
+   local INTERFACE=$1
+
+   stop_linklocal_client $INTERFACE;
+   start_linklocal_client $INTERFACE;
+}
+
+# Usage: stop_linklocal_client <interface>
+stop_linklocal_client ()
+{
+   local INTERFACE=$1
+   PIDFILE=/var/run/zcip.${INTERFACE}.pid
+
+   if ( process_is_running $PIDFILE zcip ); then
+      kill `cat ${PIDFILE}`
+      rm -f $PIDFILE
+   fi
+
+   remove_addresses $INTERFACE link
+}
+
+# Usage: is_linklocal_enabled <interface>
+# Returns: 0 (true) if linklocal is enabled, 1 (false) if disabled.
+is_linklocal_enabled ()
+{
+   local INTERFACE=$1
+   LINKLOCALENABLED=$(uboot_var_for_interface linklocalenabled ${INTERFACE})
+
+   # If the variable is '0' then it's disabled.
+   # If anything else ('1', not present), then it's enabled.
+   LINKLOCALSTR=$(get_var_with_default ${LINKLOCALENABLED} 1)
+   if [ "x${LINKLOCALSTR}" = "x0" ]; then
+      return 1; # false
+   else
+      return 0; # true
+   fi
+}
+
+#Usage: $(get_device_type() <interface>)
+#Returns: wireless if DEVTYPE=wlan, usb if DEVTYPE=gadget, wired otherwise
+get_device_type()
+{
+  DEV=$1
+  TYPE=`cat /sys/class/net/$DEV/uevent | grep DEVTYPE`
+  if [ "$TYPE" ]; then
+    DTYPE=`echo $TYPE | awk -F'=' {'print $2'}`
+    if [ "x$DTYPE" == "xwlan" ]; then
+      echo "wireless";
+    fi
+    if [ "x$DTYPE" == "xgadget" ]; then
+      echo "usb";
+    fi
+  else echo "wired";
+  fi
+}
+
+#Usage set_link_speed <interface>
+set_link_speed_duplex()
+{
+   local INTERFACE=$1
+   DEVICETYPE=$(get_device_type ${INTERFACE})
+   if [ "x$DEVICETYPE" == "xwired" ]; then
+     MMTMP=$(get_var $(uboot_var_for_interface MediaMode ${INTERFACE}))
+     MEDIAMODE=`echo ${MMTMP} | awk '{print tolower($1)}'`
+     if [ "x$MEDIAMODE" == "xauto" ]; then
+        ETH_ARGS="-s ${INTERFACE} autoneg on"
+     else
+       ETH_ARGS=`echo $MEDIAMODE | sed -ne "/[0-9]\+.\+/{s/\([0-9]\+\)\(.\+\)/-s ${INTERFACE} speed \1 duplex \2/;p}"`
+     fi
+     if [ "$ETH_ARGS" ]; then
+        ethtool $ETH_ARGS
+     fi
+   fi
+}
+
+# Usage: start_static_interface <interface>
+start_static_interface ()
+{
+   local INTERFACE=$1
+
+   IPADDR=$(get_var $(uboot_var_for_interface sipaddr ${INTERFACE}))
+   NETMASK=$(get_var $(uboot_var_for_interface snetmask ${INTERFACE}))
+   GATEWAY=$(get_var $(uboot_var_for_interface sgatewayip ${INTERFACE}))
+   NAMESERVER=$(get_var $(uboot_var_for_interface sdnsip ${INTERFACE}))
+
+   ifconfig $INTERFACE $IPADDR netmask $NETMASK
+
+   if ( is_primary_interface $INTERFACE ); then
+      METRIC=0
+   else
+      METRIC=5
+   fi
+
+   if [ -n "$GATEWAY" ]; then
+      ip route add default via $GATEWAY dev $INTERFACE src $IPADDR metric 1$METRIC
+   fi
+   if [ -n "$NAMESERVER" ]; then
+      echo "nameserver $NAMESERVER" >> /etc/resolv.conf.$INTERFACE
+   fi
+
+   # Add routes for mixed link-local and routable IP addresses.
+   add_linklocal_route $INTERFACE 10$METRIC 119
+
+   # We changed the routing tables so flush the cache.
+   ip route flush cache
+
+   update_resolv_conf
+}
+
+# Usage: remove_addresses <interface> <scope>
+# scope is one of 'link' or 'global'
+remove_addresses ()
+{
+   local INTERFACE=$1
+   SCOPE=$2
+   OLDIPS=`ip -f inet -o address show dev $INTERFACE scope $SCOPE \
+      | awk -F ' ' '{print $4}' \
+      | awk -F '/' '{print $1}'`
+   if [ -n "${OLDIPS}" ]; then
+      for x in $OLDIPS; do
+         ip address del $x dev $INTERFACE
+      done
+   fi
+}
+
+# Usage: prefix_length_from_netmask <xxx.xxx.xxx.xxx>
+# Returns: 0 if netmask bogus, otherwise [8..30].
+prefix_length_from_netmask ()
+{
+   SUBNET=$1
+   case "x$SUBNET" in
+      ( "x255.0.0.0" )       PREFIX=8 ;;
+      ( "x255.128.0.0" )     PREFIX=9 ;;
+      ( "x255.192.0.0" )     PREFIX=10 ;;
+      ( "x255.224.0.0" )     PREFIX=11 ;;
+      ( "x255.240.0.0" )     PREFIX=12 ;;
+      ( "x255.248.0.0" )     PREFIX=13 ;;
+      ( "x255.252.0.0" )     PREFIX=14 ;;
+      ( "x255.254.0.0" )     PREFIX=15 ;;
+      ( "x255.255.0.0" )     PREFIX=16 ;;
+      ( "x255.255.128.0" )   PREFIX=17 ;;
+      ( "x255.255.192.0" )   PREFIX=18 ;;
+      ( "x255.255.224.0" )   PREFIX=19 ;;
+      ( "x255.255.240.0" )   PREFIX=20 ;;
+      ( "x255.255.248.0" )   PREFIX=21 ;;
+      ( "x255.255.252.0" )   PREFIX=22 ;;
+      ( "x255.255.254.0" )   PREFIX=23 ;;
+      ( "x255.255.255.0" )   PREFIX=24 ;;
+      ( "x255.255.255.128" ) PREFIX=25 ;;
+      ( "x255.255.255.192" ) PREFIX=26 ;;
+      ( "x255.255.255.224" ) PREFIX=27 ;;
+      ( "x255.255.255.240" ) PREFIX=28 ;;
+      ( "x255.255.255.248" ) PREFIX=29 ;;
+      ( "x255.255.255.252" ) PREFIX=30 ;;
+      ( * ) echo "Error: bogus netmask"; PREFIX=0 ;;
+   esac
+   return $PREFIX
+}
+
+# Usage: print_interface_info <interface>
+print_interface_info () {
+    DEV=$1
+
+    read MAC < /sys/class/net/$DEV/address
+
+    IS_PRIMARY=
+    is_primary_interface $DEV && IS_PRIMARY=1
+    DEFAULT_MODE="TCPIP"
+    MODE=`${NIRTCFG} --get section=${DEV},token=Mode,value=$DEFAULT_MODE`
+    if [ "$MODE" != "TCPIP" ] ; then
+        MODE_TEXT="$MODE"
+    else
+        LINK_STATE=`ip link show $DEV | sed -ne 's/^[0-9]\+.*'"$DEV"'.*state \([^ ]\+\).*/\1/p'`
+        if [ "$LINK_STATE" = "DOWN" ]; then
+            IPV4_ADDR="down"
+        else
+            IPV4_ADDR=`ip addr show dev $DEV | sed -ne "/inet[^6]/{s/.*inet\w* \([^ ]*\).*/\1/;p}"`
+            [ -z "$IPV4_ADDR" ] && IPV4_ADDR="obtaining address"
+        fi
+
+        IS_DHCP_ENABLED=
+        is_dhcp_enabled $DEV && IS_DHCP_ENABLED=1
+        IS_LL_ENABLED=
+        is_linklocal_enabled $DEV && IS_LL_ENABLED=1
+        PRIMARY_TEXT=
+        [ "$IS_PRIMARY" ] && PRIMARY_TEXT="primary - "
+        if [ "$IS_DHCP_ENABLED" ] ; then
+            if [ "$IS_LL_ENABLED" ] ; then
+                ADDRMODE_TEXT="auto"
+            else
+                ADDRMODE_TEXT="DHCP"
+            fi
+        else
+            if [ "$IS_LL_ENABLED" ] ; then
+                ADDRMODE_TEXT="LL"
+            else
+                ADDRMODE_TEXT="static"
+            fi
+        fi
+        MODE_TEXT="$IPV4_ADDR (${PRIMARY_TEXT}${ADDRMODE_TEXT})"
+    fi
+    echo "Interface $DEV - MAC addr: $MAC - $MODE_TEXT"
+}
+
+update_interface_info () {
+    local interface="$1"
+    local issue_file="/etc/issue"
+    local lock_dir="/var/lock/issue.lock"
+
+    if [ "$1" = "lo" ]; then
+        # ignore local interfaces
+        return
+    fi
+
+    (
+    # try to claim the lock
+    flock --timeout 1 9 || return
+
+    for i in `awk '/^Interface /{print $2;}' "$issue_file"`; do
+        if [ "$interface" = "$i" ]; then
+            sed -i '/^Interface '"$i"' /c '"`print_interface_info $interface`" "$issue_file"
+            return
+        fi
+        if [ "$interface" \< "$i" ]; then
+            sed -i '/^Interface '"$i"' /i '"`print_interface_info $interface`" "$issue_file"
+            return
+        fi
+    done
+
+    # fall through, if the interface is not in the issue file or is alphabetically a the end
+    print_interface_info $interface >> "$issue_file"
+
+    # make sure we have exactly one empty line at the end of file and no empty lines in between
+    sed -i '/^Interface .*$/,$ {/^$/d;}' "$issue_file"
+    echo >> "$issue_file"
+    ) 9>$lock_dir
+}
+
+cleanup_all_interface_info () {
+    local issue_file="/etc/issue"
+    local issue_template="/etc/issue.template"
+    local lock_dir="/var/lock/issue.lock"
+
+    (
+    # try to claim the lock
+    flock --timeout 1 9 || return
+
+    # clean the /etc/issue file
+    cp -f "$issue_template" "$issue_file"
+    ) 9>$lock_dir
+}
+
+update_all_interface_info () {
+    cleanup_all_interface_info
+
+    for f in /sys/class/net/*; do
+        dev=`basename $f`
+        case "$dev" in
+            lo ) ;;
+            * ) update_interface_info $dev ;;
+        esac
+    done
+}
+
+update_driver_priorities () {
+    for d in /proc/irq/*; do
+        # Adjust wl12xx priority to something
+        # that allows reclamation of RCU objects
+        # through ksoftirqd under prolonged heavy
+        # wireless traffic conditions
+        if [ -d "$d"/wl12xx ]; then
+                echo 7 > "$d"/priority
+                break
+        fi
+    done
+}
+
+# Usage: enable_net_hotplug
+# Sets the flag so that enables hotplug.script to run
+enable_net_hotplug () {
+    /usr/bin/udevadm control --property=networking=done
+    /usr/bin/udevadm trigger --property-match=skipped=yes
+}
+
+# Usage: is_interface_up <interface_name>
+# Returns 1 if the interface was configured (administration up) and 0 otherwise.
+is_interface_up () {
+    interface_tmp=`/sbin/ifconfig | grep "^$1 " | awk '{print $1}'`
+    if [ "x$1" == "x${interface_tmp}" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Usage: netif_set_device <up|down> <interface_name>
+# Configures device properties and brings the device up or down (administration)
+netif_set_device()
+{
+    DEV=$2
+    MODE=`/usr/local/natinst/bin/nirtcfg -g section=${DEV},token=Mode,value=TCPIP`
+    if [ "x$MODE" = "xTCPIP" ]; then
+        OPMODE=`/usr/local/natinst/bin/nirtcfg -g section=${DEV},token=OperationMode,value=Interrupt`
+        if [ "x`echo $OPMODE | tr '[:upper:]' '[:lower:]'`" = "xpolling" ]; then
+            POLLINT=`/usr/local/natinst/bin/nirtcfg -g section=${DEV},token=PollingInterval,value=1`
+            if echo $POLLINT | grep -q "^[0-9]*$"; then
+                if [ $POLLINT -lt 1 ]; then
+                    POLLINT=1
+                elif [ $POLLINT -gt 10000 ]; then
+                    POLLINT=10000
+                fi
+                echo $POLLINT > /sys/class/net/${DEV}/ni_polling_interval
+            fi
+        fi
+        MTU_RAW=$(get_mtu_raw ${DEV})
+        # For risk-mitigation, if no specific MTU is requested, do not try to set it
+        if [ -n "$MTU_RAW" ]; then
+            ifconfig $DEV mtu $MTU_RAW $1
+        else
+            ifconfig $DEV $1
+        fi
+        if [ "x$1" = "xup" ]; then
+            set_link_speed_duplex $DEV
+        fi
+    fi
+}
+
+# Usage: add_linklocal_route <INTERFACE> <MIN_METRIC> <MAX_METRIC>
+# Description: this function will try to add a 169.254.0.0/16 route
+# in the routing table. It will try with different metrics, starting
+# from MIN_METRIC (which must be at least 20) up to MAX_METRIC, because
+# there can't be two routes with the same destination same metric and
+# different interfaces.
+add_linklocal_route()
+{
+    local INTERFACE=$1
+    METRIC=$2
+    MAX_METRIC=$3
+    RET_CODE=1
+
+    while [ $METRIC -le $MAX_METRIC -a $RET_CODE -ne 0 ]
+    do
+      if udevadm info --path=/sys/class/net/$INTERFACE --query=property | grep -q "^preferred_linklocal=1"
+      then
+        # the udev property "preferred_linklocal", which is set in the net-hotplug udev rules,
+        # is used to determine which should be the first interface in the routing table
+        # when using link-local IPs
+
+        # set a much lower metric on this interface, forcing it to be first in the routing table
+        METRIC_TO_SET=$(( $METRIC - 20 ))
+      else
+        METRIC_TO_SET=$METRIC
+      fi
+
+      RET_CODE=0
+      ip route add 169.254.0.0/16 dev $INTERFACE metric $METRIC_TO_SET || RET_CODE=$?
+      METRIC=$(( $METRIC + 1 ))
+   done
+
+   return $RET_CODE
+}

@@ -9,6 +9,7 @@ SRC_URI = "\
 	file://nisetbootmode.functions \
 	file://nisetbootmode \
 	file://nisetled \
+	file://functions.common \
 "
 
 FILES_${PN} += "\
@@ -16,6 +17,7 @@ FILES_${PN} += "\
 	${libdir}/nisetbootmode.functions \
 	${sysconfdir}/init.d/nisetbootmode \
 	${sysconfdir}/init.d/nisetled \
+	${sysconfdir}/natinst/networking/functions.common \
 "
 
 DEPENDS += "shadow-native pseudo-native niacctbase update-rc.d-native"
@@ -30,10 +32,13 @@ do_install () {
 	install -d ${D}${bindir}
 	install -d ${D}${sysconfdir}/init.d
 	install -d ${D}${libdir}
-	install -m 0755   ${WORKDIR}/status_led                      ${D}${bindir}
-	install -m 0440   ${WORKDIR}/nisetbootmode.functions         ${D}${libdir}
-	install -m 0550   ${WORKDIR}/nisetbootmode                   ${D}${sysconfdir}/init.d
-	install -m 0755   ${WORKDIR}/nisetled                        ${D}${sysconfdir}/init.d
+	install -d ${D}${sysconfdir}/natinst/networking
+
+	install -m 0755   ${WORKDIR}/status_led                  ${D}${bindir}
+	install -m 0440   ${WORKDIR}/nisetbootmode.functions     ${D}${libdir}
+	install -m 0550   ${WORKDIR}/nisetbootmode               ${D}${sysconfdir}/init.d
+	install -m 0755   ${WORKDIR}/nisetled                    ${D}${sysconfdir}/init.d
+	install -m 0755   ${WORKDIR}/functions.common            ${D}${sysconfdir}/natinst/networking
 
 	update-rc.d -r ${D} nisetled              start 40 S .
 	update-rc.d -r ${D} nisetbootmode         start 80 S . stop 0 0 6 .
