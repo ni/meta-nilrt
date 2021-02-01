@@ -334,7 +334,7 @@ start_dhcp_client ()
       OLD_ADDRESS_PARAM=""
    fi
 
-   /sbin/udhcpc -a -b -x hostname:`hostname` -i $INTERFACE $OLD_ADDRESS_PARAM -s /etc/natinst/networking/udhcpc.script -p $PIDFILE
+   /sbin/udhcpc -a -b -x hostname:`hostname` -i $INTERFACE $OLD_ADDRESS_PARAM -p $PIDFILE
 }
 
 # Usage: start_dhcp_client <interface>
