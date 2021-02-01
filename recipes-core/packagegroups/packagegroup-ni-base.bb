@@ -64,6 +64,7 @@ NILRT_NXG_PACKAGES = "\
 
 NILRT_PACKAGES = "\
 	busybox-ifplugd \
+	busybox-zcip \
 	glibc-gconv-utf-16 \
 	init-ifupdown \
 	libstdc++ \

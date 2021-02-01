@@ -1,0 +1,76 @@
+#!/bin/sh
+
+# only for use as a "zcip" callback script
+[ "x$interface" = x ] && echo "Error: should be called from zcip" && exit 1
+
+. /etc/natinst/networking/functions.common
+
+# zcip should start on boot/resume and various media changes
+case "$1" in
+   init)
+      if ! ( is_interface_up $interface ); then
+         /sbin/ifconfig $interface up 0.0.0.0
+      fi
+      update_interface_info $interface
+      exit 0
+      ;;
+   config)
+      [ "x$ip" = "x" ] && exit 1
+
+      # The IP might already exist through some other interface. If so, abort.
+      # We first check local information (interface addresses and ARP tables)
+      # before attempting to ping. The ping represents a small leak of
+      # information between network interfaces, but it's comparable to ARP flux,
+      # which is pretty small.
+      #
+      # LLDDFI_* are fault injection variables; set them to inject faults into
+      # the individual link-layer duplicate decection conditions.
+      if [ "x$LLDDFI_IPADDR" == "x" -a "x$(ip addr show to $ip)" != "x" ] ||
+	      [ "x$LLDDFI_IPNEIGH" == "x" -a "x$(ip neigh show to $ip nud reachable)" != "x" ] ||
+	      [ "x$LLDDFI_PING" == "x" ] && ping -4 -c 1 -W 1 -q $ip >/dev/null 2>&1
+      then
+	      exit 67 # 67 == 'C'; cf busybox/networking/zcip.c
+      fi
+
+      set_var $(uboot_var_for_interface llipaddr $interface) $ip
+
+      if ( is_primary_interface $interface ); then
+         METRIC=0
+      else
+         METRIC=5
+      fi
+
+      BROADCAST="broadcast +"
+      ip address add dev $interface scope link local "$ip/16" $BROADCAST
+
+      # Delete the default route, we want a different metric.
+      ip route del 169.254.0.0/16 dev $interface metric 0
+      # Add route to link-local addresses
+      # We add 100 for static/dhcp 169.254.0.0 routes, add 80 here to prefer it over
+      # static/dhcp 169.254.0.0 routes for other interfaces.
+      # Because we can't have multiple routes with the same destination and the
+      # same metric but with different interface we are going to try different
+      # metrics when adding a new route. The maximum metric for LL devices is
+      # limited to 99, so that we keep it below the metrics of static/dhcp. This
+      # also means that there will only be 15 secondary LL interfaces with routes
+      # in the table.
+      add_linklocal_route $interface 8$METRIC 99
+
+      # We changed routing so flush the cache.
+      ip route flush cache
+
+      # No DNS server, so clear the DNS server for this interface.
+      rm -f /etc/resolv.conf.${interface}
+      update_resolv_conf
+      update_interface_info $interface
+
+      exit 0
+      ;;
+   deconfig)
+      [ "x$ip" = "x" ] && exit 1
+      ip address del dev $interface local $ip
+      update_interface_info $interface
+      exit 0
+      ;;
+esac
+exit 1
