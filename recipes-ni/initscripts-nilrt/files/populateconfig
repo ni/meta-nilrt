@@ -1,0 +1,100 @@
+#!/bin/sh
+# Copyright (c) 2012-2013 National Instruments.
+# All rights reserved.
+
+if [ "$1" = "start" ]
+then
+	#check if the system is in reset state
+	reset_state=`/sbin/fw_printenv -n sys_reset 2>&1`
+	if [ "$reset_state" = "true" -o "$sys_reset" = "true" ]; then
+		#restore default environmnet vars
+		cp -fp /boot/grub/grubenv.bak /boot/grub/grubenv
+		chown root:ni /boot/grub/grubenv
+		chmod 664 /boot/grub/grubenv
+		/usr/local/natinst/bin/niresetip
+	fi
+
+	if [ -x /usr/local/natinst/bin/nirtcfg ]; then
+		[ "${VERBOSE}" != "no" ] && echo "Migrating bootloader env into ni-rt.ini"
+		/usr/local/natinst/bin/nirtcfg --migrate
+
+		# If IPReset.enabled was true on boot, the ip reset functionality is complete and need not stay set
+		IPRESET=`/usr/local/natinst/bin/nirtcfg --get section=SystemSettings,token="IPReset.enabled",value=false | tr "[:upper:]" "[:lower:]"`
+		if [ $IPRESET != "false" ]; then
+			/usr/local/natinst/bin/nirtcfg --set section=SystemSettings,token="IPReset.enabled",value=false
+		fi
+	fi
+
+	mkdir -p /etc/natinst/share/tpm
+	mkdir -p /etc/natinst/share/ssh
+	chmod -t /etc/natinst/share
+	test -L /etc/natinst/share/localtime || ( rm -f /etc/natinst/share/localtime && ln -s /usr/share/zoneinfo/UTC /etc/natinst/share/localtime )
+
+	# Ensure that /etc/natinst/share/timestamp exists and that /etc/timestamp symlinks to it.
+	LCLTIMESTAMP="/etc/timestamp"
+	SHAREDTIMESTAMP="/etc/natinst/share/timestamp"
+	if [ -f $LCLTIMESTAMP ]; then
+		# If /etc/natinst/share/timestamp doesn't exist, use /etc/timestamp to create it
+		if [ ! -e $SHAREDTIMESTAMP ]; then
+			mv $LCLTIMESTAMP $SHAREDTIMESTAMP
+		fi
+	elif [ ! -e $SHAREDTIMESTAMP ]; then
+		touch $SHAREDTIMESTAMP
+	fi
+
+	ln -sf $SHAREDTIMESTAMP $LCLTIMESTAMP
+
+	# BEGIN: Populate the certstore.
+	#
+	# IMPORTANT NOTE: Changes to any code in this section may require
+	#  updating the "postinst" scripts of the noted components.
+
+	# nisslinit
+	mkdir -p "/etc/natinst/share/certstore"
+	mkdir -p "/etc/natinst/share/certstore/open_csrs"
+	mkdir -p "/etc/natinst/share/certstore/server_certs"
+	mkdir -p "/etc/natinst/share/certstore/temp"
+
+	chown root:root "/etc/natinst/share/certstore"
+	chmod 755 "/etc/natinst/share/certstore"
+
+	chown webserv:root "/etc/natinst/share/certstore/open_csrs"
+	chmod 700 "/etc/natinst/share/certstore/open_csrs"
+
+	chown webserv:niwscerts "/etc/natinst/share/certstore/server_certs"
+	chmod 750 "/etc/natinst/share/certstore/server_certs"
+
+	chown webserv:root "/etc/natinst/share/certstore/temp"
+	chmod 700 "/etc/natinst/share/certstore/temp"
+
+	touch "/etc/natinst/share/certstore/nexthandle.dat"
+	chown webserv:root "/etc/natinst/share/certstore/nexthandle.dat"
+	chmod 600 "/etc/natinst/share/certstore/nexthandle.dat"
+
+	# wireless certificates
+	mkdir -p "/etc/natinst/share/certstore/wireless/trusted"
+	mkdir -p "/etc/natinst/share/certstore/wireless/pac"
+	mkdir -p "/etc/natinst/share/certstore/wireless/client"
+
+	chown webserv:root "/etc/natinst/share/certstore/wireless"
+	chmod 700 "/etc/natinst/share/certstore/wireless"
+
+	chown webserv:root "/etc/natinst/share/certstore/wireless/trusted"
+	chmod 700 "/etc/natinst/share/certstore/wireless/trusted"
+
+	chown webserv:root "/etc/natinst/share/certstore/wireless/pac"
+	chmod 700 "/etc/natinst/share/certstore/wireless/pac"
+
+	chown webserv:root "/etc/natinst/share/certstore/wireless/client"
+	chmod 700 "/etc/natinst/share/certstore/wireless/client"
+
+	#default wireless configuration
+	/etc/network/wpa_supplicant_conf
+
+	# ws_core
+	touch /etc/natinst/share/certstore/wsapi.key
+	chown webserv:niwscerts /etc/natinst/share/certstore/wsapi.key
+	chmod 640 /etc/natinst/share/certstore/wsapi.key
+
+	# END: Populate the certstore.
+fi
