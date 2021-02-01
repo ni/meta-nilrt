@@ -9,6 +9,7 @@ SRC_URI = "\
 	file://EFI_NI_vars \
 	file://SMBIOS_NI_vars \
 	file://grubvar_readonly \
+	file://fw_env.config \
 "
 
 COMPATIBLE_MACHINE = "x64"
@@ -24,6 +25,7 @@ S = "${WORKDIR}"
 do_install () {
 	install -d ${D}${base_sbindir}
 	install -d ${D}${datadir}/fw_printenv
+	install -d ${D}${sysconfdir}
 
 	install -m 0550   ${WORKDIR}/fw_printenv         ${D}${base_sbindir}
 	sed -i -e 's,@FW_PRINTENV_DIR@,${datadir}/fw_printenv,g' ${D}${base_sbindir}/fw_printenv
@@ -34,4 +36,6 @@ do_install () {
 	install -m 0444   ${WORKDIR}/EFI_NI_vars         ${D}${datadir}/fw_printenv
 	install -m 0444   ${WORKDIR}/SMBIOS_NI_vars      ${D}${datadir}/fw_printenv
 	install -m 0444   ${WORKDIR}/grubvar_readonly    ${D}${datadir}/fw_printenv
+
+	install -m 0644   ${WORKDIR}/fw_env.config       ${D}${sysconfdir}
 }
