@@ -9,6 +9,7 @@ SRC_URI = "\
 	file://nisetbootmode.functions \
 	file://nisetbootmode \
 	file://nisetled \
+	file://nisetprimarymac \
 	file://functions.common \
 "
 
@@ -17,6 +18,7 @@ FILES_${PN} += "\
 	${libdir}/nisetbootmode.functions \
 	${sysconfdir}/init.d/nisetbootmode \
 	${sysconfdir}/init.d/nisetled \
+	${sysconfdir}/init.d/nisetprimarymac \
 	${sysconfdir}/natinst/networking/functions.common \
 "
 
@@ -38,11 +40,14 @@ do_install () {
 	install -m 0440   ${WORKDIR}/nisetbootmode.functions     ${D}${libdir}
 	install -m 0550   ${WORKDIR}/nisetbootmode               ${D}${sysconfdir}/init.d
 	install -m 0755   ${WORKDIR}/nisetled                    ${D}${sysconfdir}/init.d
+	install -m 0550   ${WORKDIR}/nisetprimarymac             ${D}${sysconfdir}/init.d
 	install -m 0755   ${WORKDIR}/functions.common            ${D}${sysconfdir}/natinst/networking
 
 	update-rc.d -r ${D} nisetled              start 40 S .
 	update-rc.d -r ${D} nisetbootmode         start 80 S . stop 0 0 6 .
+	update-rc.d -r ${D} nisetprimarymac       start 4 5 .
 
 	chown 0:${LVRT_GROUP} ${D}${bindir}/status_led
 	chown 0:${LVRT_GROUP} ${D}${sysconfdir}/init.d/nisetbootmode
+	chown 0:${LVRT_GROUP} ${D}${sysconfdir}/init.d/nisetprimarymac
 }
