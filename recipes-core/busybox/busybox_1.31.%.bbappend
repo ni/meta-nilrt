@@ -10,7 +10,8 @@ SRC_URI =+ " \
             file://acpid_poweroff.sh \
             file://acpid-logrotate.conf \
             file://zcip-allow-action-script-to-reject-chosen-IP.patch \
-            file://login-utilities.cfg"
+            file://login-utilities.cfg \
+            file://udhcpd.wlan0.conf"
 
 SRC_URI_append_x64 += "file://enable_ar_create_fragment.cfg"
 
@@ -27,6 +28,7 @@ DEPENDS =+ " libselinux"
 FILES_${PN}-ifplugd = "${sysconfdir}/init.d/busybox-ifplugd ${sysconfdir}/ifplugd/ifplugd.action ${sysconfdir}/ifplugd/ifplugd.conf"
 FILES_${PN}-acpid = "${sysconfdir}/init.d/busybox-acpid ${sysconfdir}/acpid.conf ${sysconfdir}/acpi ${sysconfdir}/acpi/poweroff.sh"
 FILES_${PN}-zcip = "${sysconfdir}/natinst/networking/zcip.script"
+FILES_${PN}-udhcpd =+ "${sysconfdir}/udhcpd.wlan0.conf"
 
 INITSCRIPT_PACKAGES =+ " ${PN}-acpid"
 
@@ -51,5 +53,8 @@ do_install_append () {
 	if grep "CONFIG_ZCIP=y" ${B}/.config; then
 		install -d ${D}${sysconfdir}/natinst/networking
 		install -m 0755 ${WORKDIR}/zcip.script ${D}${sysconfdir}/natinst/networking/zcip.script
+	fi
+	if grep "CONFIG_UDHCPD=y" ${B}/.config; then
+		install -m 0644 ${WORKDIR}/udhcpd.wlan0.conf ${D}${sysconfdir}
 	fi
 }
