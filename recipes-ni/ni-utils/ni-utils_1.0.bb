@@ -10,6 +10,7 @@ SRC_URI = "\
 	file://nisetbootmode \
 	file://nisetled \
 	file://functions.common \
+	file://udhcpd.wlan0.conf \
 "
 
 FILES_${PN} += "\
@@ -18,6 +19,7 @@ FILES_${PN} += "\
 	${sysconfdir}/init.d/nisetbootmode \
 	${sysconfdir}/init.d/nisetled \
 	${sysconfdir}/natinst/networking/functions.common \
+	${sysconfdir}/udhcpd.wlan0.conf \
 "
 
 DEPENDS += "shadow-native pseudo-native niacctbase update-rc.d-native"
@@ -39,6 +41,7 @@ do_install () {
 	install -m 0550   ${WORKDIR}/nisetbootmode               ${D}${sysconfdir}/init.d
 	install -m 0755   ${WORKDIR}/nisetled                    ${D}${sysconfdir}/init.d
 	install -m 0755   ${WORKDIR}/functions.common            ${D}${sysconfdir}/natinst/networking
+	install -m 0644   ${WORKDIR}/udhcpd.wlan0.conf		 ${D}${sysconfdir}
 
 	update-rc.d -r ${D} nisetled              start 40 S .
 	update-rc.d -r ${D} nisetbootmode         start 80 S . stop 0 0 6 .
