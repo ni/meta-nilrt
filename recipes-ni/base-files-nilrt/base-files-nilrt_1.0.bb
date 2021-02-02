@@ -25,6 +25,8 @@ FILES_${PN} += "README_File_Paths.txt \
 		/usr/share/doc/LICENSES \
 		/usr/lib/${TARGET_ARCH}-linux-gnu${ARCH_ABI_EXT} \
 		/etc/ld.so.conf.d/multiarch_libs.conf \
+		/usr/local/natinst/bin \
+		/usr/local/natinst/lib \
 "
 
 S = "${WORKDIR}"
@@ -34,7 +36,7 @@ ARCH_ABI_EXT="${ABIEXTENSION}${@bb.utils.contains('TUNE_FEATURES','callconventio
 DEPENDS += "niacctbase"
 
 do_install () {
-	install -d -m 0755 ${D}${sysconfdir}/natinst/share/
+	install -d -m 0755 -o ${LVRT_USER} -g ${LVRT_GROUP} ${D}${sysconfdir}/natinst/share/
 
 	# boot loader/init configuration directory
 	install -d -m 0755 ${D}${sysconfdir}/niboot/
@@ -46,6 +48,15 @@ do_install () {
 	# /etc/issue
 	install -d ${D}${sysconfdir}/
 	install -m 0644 ${WORKDIR}/issue.template ${D}${sysconfdir}/
+
+	# /usr/natinst/local directories
+	install -d -m 0755 ${D}/usr/local/natinst
+	install -d -m 0755 ${D}/usr/local/natinst/bin
+	install -d -m 0755 ${D}/usr/local/natinst/lib
+
+	# log dir
+	install -d -m 0775 -o ${LVRT_USER} -g ${LVRT_GROUP} ${D}/var/local/natinst
+	install -d -m 0775 -o ${LVRT_USER} -g ${LVRT_GROUP} ${D}/var/local/natinst/log
 
 	# license information
 	install -d ${D}/usr/share/doc/
