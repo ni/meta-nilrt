@@ -45,6 +45,9 @@ KBUILD_DEFCONFIG_x64 = "nati_x86_64_defconfig"
 KBUILD_DEFCONFIG_armv7a = "nati_zynq_defconfig"
 KCONFIG_MODE="--alldefconfig"
 
+# autoload if installed
+KERNEL_MODULE_AUTOLOAD += "ehci-hcd g_ether xilinx-xadcps"
+
 # i915 video driver module options to disable render and display power saving
 # disabling them improves real-time determinism
 KERNEL_MODULE_PROBECONF += "i915"
