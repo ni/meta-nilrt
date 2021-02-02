@@ -49,5 +49,4 @@ do_install () {
 
 	chown 0:${LVRT_GROUP} ${D}${bindir}/status_led
 	chown 0:${LVRT_GROUP} ${D}${sysconfdir}/init.d/nisetbootmode
-	chown 0:${LVRT_GROUP} ${D}${sysconfdir}/init.d/nisetprimarymac
 }
