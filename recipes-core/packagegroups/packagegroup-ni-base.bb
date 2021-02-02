@@ -88,6 +88,7 @@ RDEPENDS_${PN} = "\
 	busybox \
 	${@bb.utils.contains('MACHINE_FEATURES', 'acpi', 'busybox-acpid', '', d)} \
 	coreutils-hostname \
+	crio-support-scripts \
 	cronie \
 	curl \
 	daemonize \
