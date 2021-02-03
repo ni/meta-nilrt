@@ -20,14 +20,10 @@ FILES_${PN} += "\
 
 DEPENDS += "shadow-native pseudo-native niacctbase update-rc.d-native"
 
-RDEPENDS_${PN} += "niacctbase bash"
-
-RDEPENDS_${PN}_append_x64 += "fw-printenv"
-
-S = "${WORKDIR}"
+RDEPENDS_${PN} += "niacctbase bash fw-printenv"
 
 do_install () {
-	install -d ${D}/usr/local/natinst/bin
+	install -d ${D}${natinstbin}
 	install -m 0755   ${WORKDIR}/nisafemodeversion           ${D}${natinstbin}
 	install -m 0550   ${WORKDIR}/niinstallsafemode           ${D}${natinstbin}
 	install -m 0755   ${WORKDIR}/nicompareversion            ${D}${natinstbin}
