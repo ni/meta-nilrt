@@ -1,0 +1,321 @@
+#!/bin/sh
+#
+# Normalize network interface names on selected NI Linux RT controllers.
+#
+# We do this outside of udev for two reasons: (1) conceptually, these rules are
+# controller-specific, not target-specific, which was something udev was never
+# really designed for; (2) we don't want the rules generator, but udev rename
+# behavior for old-style network interface naming has generally been maintained
+# assuming the rules generator is used, at least as of eudev commit
+# d9488d78ebc2dde8ac4065381780e4d974056e92 ("rule-generator: proactively rename
+# ifaces to avoid conflicts").
+#
+# Since NI software on these controllers presently requires that network devices
+# be named eth0..ethN, this script implements an in-place rename using temporary
+# interface names. As long as we rename *every* network interface that start
+# with "eth", this strategy is at least internally consistent -- but even that
+# precludes PXI! And any other controller where plugin devices can intermingle
+# in their device naming with onboard devices.
+#
+# More generally, this whole premise is considered a little broken by upstream
+# to begin with. Caveat emptor.
+
+ORIGVERBOSE=$VERBOSE
+[ -f /etc/default/rcS ] && . /etc/default/rcS
+# Allow VERBOSE to be set in environment, overriding rcS
+if [ "${VERBOSE}" = no ] && [ -n "${ORIGVERBOSE}" ]; then
+	VERBOSE="${ORIGVERBOSE}"
+fi
+PROGNAME="${0##*/}"
+
+# Given a path to a sysfs device assumed to be a network device, print the
+# interface name to stdout. Returns failure if no interface is bound to the
+# device.
+find_net_under_dev () {
+	devpath="$1"
+	ifname=
+	[ "${VERBOSE}" = very ] && echo "find_net_under_dev($devpath)" >&2
+	for f in "$devpath/net/"*; do
+		[ "${VERBOSE}" = very ] && echo "found if: $f" >&2
+		[ -e "$f" ] || continue
+		if [ -n "$ifname" ]; then
+			cat >&2 <<EOF
+$PROGNAME: WARNING: more than one network interface is associated with \
+$devpath; choosing $ifname.
+EOF
+			break
+		fi
+		ifname="${f##*/}"
+	done
+	echo -n "$ifname"
+	[ -n "$ifname" ]
+	return
+}
+
+# Renames a network device referred by sysfs path $1 to name $2.
+rename_dev () {
+	devpath="$1" newname="$2"
+	[ "${VERBOSE}" = very ] && echo "$PROGNAME: rename_dev: $1 -> $2"
+	if ! [ -e "$devpath" ]; then
+		echo "$PROGNAME: Can't find $devpath" >&2
+		return 1
+	fi
+	if ! [ -e "$devpath/net" ]; then
+		echo "$PROGNAME: Can't find $devpath/net" >&2
+		return 1
+	fi
+	if ! oldname=`find_net_under_dev $devpath`; then
+		echo "$PROGNAME: No oldname for $devpath" >&2
+		return 1
+	fi
+	if ! ip link set "$oldname" name "$newname"; then
+		echo "$PROGNAME: ip link set $oldname name $newname failed" >&2
+		return 1
+	fi
+	if ! [ -e "$devpath/net/$newname" ]; then
+		echo "$PROGNAME: Rename to $newname failed" >&2
+		return 1
+	fi
+	return 0
+}
+
+# Rename all network device interfaces to eth{no}_ren
+temp_interface_list=''
+rename_all_interfaces () {
+	temp_interface_list=`ip link | grep "\: eth.\:" | sed -e 's/.*\: \(.*\)\:.*/\1/'`
+	[ "${VERBOSE}" = very ] && echo "$PROGNAME: eth list: $temp_interface_list"
+	for eth in $temp_interface_list; do
+		if ! ip link set $eth name ${eth}_ren; then
+			echo "$PROGNAME: ip link set $eth name ${eth}_ren failed" >&2
+			return 1
+		fi
+		[ "${VERBOSE}" = very ] && echo "$PROGNAME: $eth -> ${eth}_ren"
+	done
+	return 0
+}
+
+# Rename removable network device interfaces to eth{no>$1}
+rename_plugin_interfaces () {
+	count=$1
+	[ "${VERBOSE}" = very ] && echo "$PROGNAME: eth plugin number start: $count"
+	[ "${VERBOSE}" = very ] && echo "$PROGNAME: eth plugin list: $temp_interface_list"
+	for eth in $temp_interface_list; do
+		if ! ip link set ${eth}_ren name eth$count; then
+			echo "$PROGNAME: ip link set ${eth}_ren name eth$count failed" >&2
+			return 1
+		fi
+		[ "${VERBOSE}" = very ] && echo "$PROGNAME: ${eth}_ren -> eth$count"
+		((count+=1))
+	done
+	return 0
+}
+
+# Reorder all network device interfaces so the on-board ones have priority
+reorder_all_interfaces () {
+	eth_count=$#
+	eth_paths="$@"
+
+	# save original eth names for on-board interfaces
+	eth_oldnames=""
+	for devpath in $eth_paths; do
+		if ! oldname=`find_net_under_dev $devpath`; then
+			echo "$PROGNAME: No oldname for $devpath" >&2
+			return 1
+		fi
+		eth_oldnames="$eth_oldnames $oldname"
+	done
+
+	# rename all interfaces to format eth{no}_ren
+	if ! rename_all_interfaces; then
+		echo "$PROGNAME: function rename_all_interfaces() failed" >&2
+		return 1
+	fi
+
+	# rename on-board interfaces back to eth{no} format
+	count=0
+	for devpath in $eth_paths; do
+		if ! rename_dev $devpath eth$count; then
+			echo "$PROGNAME: function rename_dev($devpath eth$count) failed" >&2
+			return 1
+		fi
+		((count+=1))
+	done
+
+	# remove original eth entries referencing on-board interfaces from $temp_interface_list
+	for oldname in $eth_oldnames; do
+		temp_interface_list=${temp_interface_list//$oldname/}
+	done
+
+	# rename remaining eth{no} interfaces in $temp_interface_list, from eth{no}_ren to eth{no}
+	if ! rename_plugin_interfaces $eth_count; then
+		echo "$PROGNAME: function rename_plugin_interfaces() failed" >&2
+		return 1
+	fi
+	return 0
+}
+
+# Rename rules for all known IC-317x controllers, specifically the IC-3171,
+# IC-3172, and IC-3173.
+rename_ic_3171 () {
+	reorder_all_interfaces \
+	"/sys/bus/pci/devices/0000:00:19.0" \
+	"/sys/bus/pci/devices/0000:07:00.0" \
+	"/sys/bus/pci/devices/0000:08:00.0" \
+	"/sys/bus/pci/devices/0000:09:00.0" \
+	"/sys/bus/pci/devices/0000:0a:00.0"
+}
+
+# Rename rules for IC-3120 and CVS-1458RT.
+rename_ic_3120 () {
+	reorder_all_interfaces \
+	"/sys/bus/pci/devices/0000:04:00.0" \
+	"/sys/bus/pci/devices/0000:02:00.0" \
+	"/sys/bus/pci/devices/0000:03:00.0"
+}
+
+do_rename () {
+	[ "${VERBOSE}" != "no" ] && echo -n "Renaming network devices..."
+
+	if [ -f /sys/class/dmi/id/product_name ]; then
+		# Wait for coldplug to finish. This assumes a clear delineation
+		# between coldplug and hotplug, which is NOT generally a valid
+		# assumption. Controller groups assume all responsibility for
+		# ensuring its validity.
+		udevadm settle || return
+
+		read -r product_name < /sys/class/dmi/id/product_name
+		[ "${VERBOSE}" != "no" ] && echo -n "(pn: $product_name)..."
+
+		# This logic must match that in do_verify()
+		case "$product_name" in
+		"NI IC-3171"|"NI IC-3172"|"NI IC-3173")
+			[ "${VERBOSE}" != no ] && echo -n "(IC-3171 rules)..."
+			rename_ic_3171 || return
+			;;
+		"NI CVS-1458RT"|"NI IC-3120")
+			[ "${VERBOSE}" != no ] && echo -n "(IC-3120 rules)..."
+			rename_ic_3120 || return
+			;;
+		# "NI CVS-1459RT"|"NI IC-3121") - skip: those are USB3 instead of
+		# GigE PoE, and only have one ethernet port
+		*) [ "${VERBOSE}" != "no" ] && echo -n "No rename rules found. " ;;
+		esac
+		[ "${VERBOSE}" != "no" ] && echo "done."
+	fi
+	return 0
+}
+
+# Attempt to verify that network renaming succeeded. Returns failure and report
+# on stderr if not all appropriate network interfaces were renamed, otherwise
+# returns 0.
+#
+# Note that this does not validate the correctness of the rename rules (i.e.
+# that the rules map to the appropriate physical ports), nor does it verify that
+# all appropriate controllers have rename rules defined for them (although it
+# does try hard). This is primarily to ensure that every appropriate network
+# device has a rule defined for it.
+#
+# We assume in a couple places that only eth* devices are under consideration.
+#
+# This only checks that network devices have been renamed; it doesn't check who
+# renamed them. Be sure to disable any other udev rules or rules generators.
+do_verify () {
+	must_verify=0
+
+	# Verify any controller we are explicitly matching against. This logic
+	# must match that in do_rename().
+	if [ -f /sys/class/dmi/id/product_name ]; then
+		read -r product_name < /sys/class/dmi/id/product_name
+		case "$product_name" in
+		 "NI IC-3171"|"NI IC-3172"|"NI IC-3173"|"NI CVS-1458RT"|"NI IC-3120")
+			if [ "${VERBOSE}" = very ]; then
+				echo "product_name '$product_name' matched"
+			fi
+			must_verify=1 ;;
+		*)
+			if [ "${VERBOSE}" = very ]; then
+				echo "product_name '$product_name' did NOT match"
+			fi ;;
+		esac
+	fi
+
+	# A heuristic: if eth* devices are handled by more than one driver,
+	# assume that we ALWAYS need to rename, regardless of any other matching
+	# rules. This is meant to catch affected controllers whose rules haven't
+	# been written yet.
+	if [ $must_verify -ne 1 ]; then
+		num_drivers=`for d in /sys/class/net/eth*/device/driver; do \
+				readlink -f $d; \
+			done | sort | uniq | wc -l`
+		[ "${VERBOSE}" = very ] && echo "num_drivers=$num_drivers"
+		if [ $num_drivers -gt 1 ]; then
+			must_verify=1
+			if [ "${VERBOSE}" = very ]; then
+				echo "num_drivers>1; assuming we must verify."
+			fi
+		fi
+	fi
+
+	if [ $must_verify -ne 1 ]; then
+		[ "${VERBOSE}" != no ] && cat <<EOF
+$PROGNAME: Not verifying network interfaces because this controller does not \
+appear to require interface renaming. (product_name='$product_name')
+EOF
+		return 0
+	fi
+
+	if [ "${VERBOSE}" != no ]; then
+		echo "$PROGNAME: Verifying that network interfaces have been renamed."
+	fi
+	unfixed_ifs=""
+	[ "${VERBOSE}" != no ] && echo -n "$PROGNAME: "
+	cd /sys/class/net
+	for i in eth*; do
+		[ -e "$i" ] || continue
+		[ "${VERBOSE}" != no ] && echo -n "${i}: "
+
+		# linux/Documentation/ABI/testing/sysfs-class-net
+		#
+		# "Indicates the name assignment type. Possible values are:
+		# 1: enumerated by the kernel, possibly in an unpredictable way
+		# 2: predictably named by the kernel
+		# 3: named by userspace
+		# 4: renamed"
+		#
+		# The rename rules will cause name_assign_type==4, but 2 and 3
+		# are acceptable too. 1 (or any other value we don't recognize)
+		# is forbidden.
+		#
+		# If the driver doesn't set a default type then reading the file
+		# returns EINVAL. Just assume it's 1 in that event.
+		case `cat $i/name_assign_type 2>/dev/null || echo 1` in
+		2|3|4) [ "${VERBOSE}" != no ] && echo -n "OK. "
+			;;
+		*) [ "${VERBOSE}" != no ] && echo -n "FAIL. "
+			unfixed_ifs="$unfixed_ifs $i"
+			;;
+		esac
+	done
+	[ "${VERBOSE}" != no ] && echo
+	if [ -z "$unfixed_ifs" ]; then
+		[ "${VERBOSE}" != no ] && echo "$PROGNAME: All interfaces OK!"
+		return 0
+	fi
+	cat >&2 <<EOF
+$PROGNAME: ERROR: The following network interfaces may not be named \
+correctly: $unfixed_ifs
+EOF
+	return 1
+}
+
+ret=0
+case "$1" in
+start|restart)
+	# Always rename then verify. Return failure if either failed
+	do_rename; ret=$?
+	do_verify; ret2=$?
+	[ $ret -gt 0 ] && exit $ret
+	exit $ret2
+	;;
+verify) do_verify || exit ;;
+esac
