@@ -35,6 +35,11 @@ INITSCRIPT_PACKAGES =+ " ${PN}-acpid"
 INITSCRIPT_NAME_${PN}-acpid = "busybox-acpid"
 INITSCRIPT_PARAMS_${PN}-acpid = "start 20 2 3 4 5 . stop 20 0 1 6 ."
 
+# Remove default busybox udhcpd init script; on NILRT images
+# udhcpd is invoked directly from ifplugd action scripts
+unset INITSCRIPT_NAME_${PN}-udhcpd
+INITSCRIPT_PACKAGES_remove = "${PN}-udhcpd"
+
 do_install_append () {
 	if grep "CONFIG_IFPLUGD=y" ${B}/.config; then
 		install -d ${D}${sysconfdir}/ifplugd/
@@ -56,5 +61,8 @@ do_install_append () {
 	fi
 	if grep "CONFIG_UDHCPD=y" ${B}/.config; then
 		install -m 0644 ${WORKDIR}/udhcpd.wlan0.conf ${D}${sysconfdir}
+
+		# Remove unused default busybox udhcpd init script
+		rm -f ${D}${sysconfdir}/init.d/busybox-udhcpd
 	fi
 }
