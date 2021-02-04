@@ -27,10 +27,7 @@ do_install_append () {
 	install -d ${D}${sysconfdir}/profile.d/
 	install -m 0644 ${WORKDIR}/natinst-path.sh ${D}${sysconfdir}/profile.d/
 
-	if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'true', 'false', d)}; then
-		# only for newer NILRT
-		install -m 644 ${WORKDIR}/issue.net  ${D}${sysconfdir}
-	fi
+	install -m 644 ${WORKDIR}/issue.net  ${D}${sysconfdir}
 
 	install ${WORKDIR}/safemode-ps1.sh ${D}${sysconfdir}/profile.d/
 
