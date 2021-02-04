@@ -1,0 +1,38 @@
+#!/bin/sh
+#
+# Block system shutdown while critical operations are being performed, whose
+# interrupt may compromise system integrity.
+
+HOLDOFF_SHUTDOWN_DEFAULT_ARGS="-i 5"
+
+[ -f /etc/default/rcS ] && . /etc/default/rcS
+
+do_stop () {
+	ARGS="$HOLDOFF_SHUTDOWN_DEFAULT_ARGS"
+
+	case "$VERBOSE" in
+	no) ;;
+	very) ARGS="-v debug $ARGS" ;;
+	*) ARGS="-v info $ARGS" ;;
+	esac
+
+	for f in /etc/holdoff-shutdown.d/*; do
+		[ -f "$f" ] || continue
+		while read -r l; do
+			case "$l" in
+			"#"*|"") break ;;
+			esac
+			ARGS="$ARGS $l"
+		done < "$f"
+	done
+	[ "$VERBOSE" = "very" ] && echo "$0: calling: rguard $ARGS"
+	rguard $ARGS
+}
+
+case "$1" in
+stop)
+	echo -n "Waiting for critical processes..."
+	do_stop
+	echo "done."
+	;;
+esac

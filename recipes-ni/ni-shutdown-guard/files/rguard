@@ -1,0 +1,122 @@
+#!/bin/bash
+#
+# Minimal bash implementation of https://github.com/ryran/reboot-guard.
+
+set -eEu
+
+declare -i VERBOSE=0
+declare -r BASENAME=${0##*/}
+
+DEFAULT_INTERVAL=60
+INTERVAL=$DEFAULT_INTERVAL
+
+declare -a FORBIDDEN_CMDS=()
+declare -a FORBIDDEN_FILES=()
+
+print_help () {
+cat <<EOF
+Usage: $BASENAME [CONDITION]... [OPTION]...
+Conditionally block system shutdown.
+
+CONDITIONS:
+  Each may be specified multiple times.
+  -f FILE       prevent shutdown while FILE exists
+  -c CMD        prevent shutdown while CMD matches at least
+                one running process
+
+GENERAL OPTIONS:
+  -i SEC                                control sleep interval between checks
+                                        (default: $DEFAULT_INTERVAL)
+  -v debug|info|warning|error           control verbosity
+
+EOF
+}
+
+declare -Ar EXITCODES=(
+	[UNKNOWN]=1
+	[INVALID_ARGUMENT]=10
+)
+
+# $@: text
+die_with_help () {
+	echo -e "ERROR: $BASENAME: $@\n" >&2
+	print_help >&2
+	exit ${EXITCODES[INVALID_ARGUMENT]}
+}
+
+# $1: exit code (key from EXITCODES)
+# ${@:2}: text
+die () {
+	RET=${EXITCODES[$1]}
+	echo -e "$(date '+%T') ERROR: $BASENAME[$$]:${BASH_LINENO[1]}: ${@:2}" >&2
+	exit $RET
+}
+
+# $1: required verbosity level
+# ${@:2}: text
+#
+# $2 will be unescaped; ${@:2} won't
+echo_verbose () {
+	if (( $VERBOSE >= $1 )); then
+		echo -e "$BASENAME: $2" >&2
+		(($# > 2)) && printf '\t%s\n' "${@:3}" >&2
+	fi
+	return 0
+}
+
+# $1: ${BASH_SOURCE}
+# $2: ${LINENO}
+# $3: ${FUNCNAME}
+handle_err () {
+	echo -e "$1:$2: $3: Unhandled error (status=$4) encountered, exiting." >&2
+}
+
+parse_settings () {
+	while getopts :c:f:i:hv: opt ; do
+		case $opt in
+		c) FORBIDDEN_CMDS+=( "$OPTARG" ) ;;
+		f) FORBIDDEN_FILES+=( "$OPTARG" ) ;;
+		i) INTERVAL=$OPTARG ;;
+		h) print_help; exit 0 ;;
+		v)
+			case "$OPTARG" in
+			debug) VERBOSE=3 ;;
+			info) VERBOSE=2 ;;
+			warning) VERBOSE=1 ;;
+			error) VERBOSE=0 ;;
+			*) die_with_help "unknown verbose option $OPTARG" ;;
+			esac ;;
+		:) die_with_help "Missing option for '$OPTARG'" ;;
+		\?) die_with_help "Unknown option '$opt'" ;;
+		esac
+	done
+}
+
+trap 'handle_err ${BASH_SOURCE} ${LINENO} ${FUNCNAME:-unknown} $?' ERR
+
+parse_settings "$@"
+
+while :; do
+	found=0
+	ret=0
+	verb=3
+	cmd_pids=$(pidof -x "${FORBIDDEN_CMDS[@]:+${FORBIDDEN_CMDS[@]}}") || ret=$?
+	if (( $ret == 0 )) && [[ $cmd_pids ]]; then
+		found=1
+		verb=2
+	fi
+	echo_verbose $verb "pidof(${FORBIDDEN_CMDS[*]:+${FORBIDDEN_CMDS[*]}})=$cmd_pids"
+	for f in "${FORBIDDEN_FILES[@]:+${FORBIDDEN_FILES[@]}}"; do
+		if [[ -e $f ]]; then
+			found=1
+			echo_verbose 2 "forbidden file exists: $f"
+		else
+			echo_verbose 3 "forbidden file missing: $f"
+		fi
+	done
+	(( found == 0 )) && break
+	echo_verbose 3 "Sleeping for $INTERVAL"
+	sleep $INTERVAL
+done
+
+echo_verbose 3 Done.
