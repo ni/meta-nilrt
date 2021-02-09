@@ -114,7 +114,7 @@ RDEPENDS_${PN} = "\
 	lsbinitscripts \
 	netbase \
 	niacctbase \
-	ni-hw-support \
+	ni-hw-scripts \
 	ni-systemformat \
 	ni-utils \
 	ni-safemode-utils \
