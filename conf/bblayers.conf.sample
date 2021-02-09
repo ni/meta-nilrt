@@ -25,7 +25,6 @@ BBLAYERS ?= " \
 	${NILRT_ROOT}/sources/meta-cloud-services \
 	${NILRT_ROOT}/sources/meta-mono \
 	${NILRT_ROOT}/sources/meta-security \
-	${NILRT_ROOT}/sources/meta-orgconf \
 	${NILRT_ROOT}/sources/meta-sdr \
 	${NILRT_ROOT}/sources/meta-java \
 	${NILRT_ROOT}/sources/meta-measured \
