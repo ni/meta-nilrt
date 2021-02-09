@@ -12,7 +12,7 @@ SRC_URI = "file://LICENSE \
 	   file://niwatchdogpet.sh"
 
 INITSCRIPT_NAME = "niwatchdogpet"
-INITSCRIPT_PARAMS = "start 03 S ."
+INITSCRIPT_PARAMS = "start 04 S ."
 
 CFLAGS_append = " -std=c89 -Wall -Werror -pedantic"
 
