@@ -171,6 +171,18 @@ BB_DISKMON_DIRS ??= "\
 #file://.* http://someserver.tld/share/sstate/PATH;downloadfilename=PATH \n \
 #file://.* file:///some/local/dir/sstate/PATH"
 
+
+#
+# Qemu configuration
+#
+# By default qemu will build with a builtin VNC server where graphical output can be
+# seen. The two lines below enable the SDL backend too. By default libsdl2-native will
+# be built, if you want to use your host's libSDL instead of the minimal libsdl built
+# by libsdl2-native then uncomment the ASSUME_PROVIDED line below.
+PACKAGECONFIG_append_pn-qemu-system-native = " sdl"
+PACKAGECONFIG_append_pn-nativesdk-qemu = " sdl"
+#ASSUME_PROVIDED += "libsdl2-native"
+
 # Set a meaningful default BUILDNAME. The bitbake default for the variable is a
 # concatentation of the currrent $DATE and $TIME - which is not very meaningful
 # and can lead to taskhash issues in recipes which are sensitive to it (like
