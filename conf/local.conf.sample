@@ -16,8 +16,8 @@
 
 #
 # Machine Selection
-#   Supported NILRT machine values are: x64, xilinx-zynq
-MACHINE ?= "x64"
+#   Supported NILRT distros are limited to x64 for this release.
+# MACHINE ?= "x64"
 
 # Distribution selection
 #   Supported NILRT distro values are: nilrt
@@ -85,6 +85,8 @@ DISTRO ?= "nilrt"
 # variable can contain the following options:
 #  "dbg-pkgs"       - add -dbg packages for all installed packages
 #                     (adds symbol information for debugging/profiling)
+#  "src-pkgs"       - add -src packages for all installed packages
+#                     (adds source code for debugging)
 #  "dev-pkgs"       - add -dev packages for all installed packages
 #                     (useful if you want to develop against libs in the image)
 #  "ptest-pkgs"     - add -ptest packages for all ptest-enabled packages
@@ -169,25 +171,13 @@ BB_DISKMON_DIRS ??= "\
 #file://.* http://someserver.tld/share/sstate/PATH;downloadfilename=PATH \n \
 #file://.* file:///some/local/dir/sstate/PATH"
 
-
-#
-# Qemu configuration
-#
-# By default qemu will build with a builtin VNC server where graphical output can be
-# seen. The two lines below enable the SDL backend too. By default libsdl-native will
-# be built, if you want to use your host's libSDL instead of the minimal libsdl built
-# by libsdl-native then uncomment the ASSUME_PROVIDED line below.
-PACKAGECONFIG_append_pn-qemu-native = " sdl"
-PACKAGECONFIG_append_pn-nativesdk-qemu = " sdl"
-#ASSUME_PROVIDED += "libsdl-native"
-
-# CONF_VERSION is increased each time build/conf/ changes incompatibly and is used to
-# track the version of this file when it was generated. This can safely be ignored if
-# this doesn't mean anything to you.
-CONF_VERSION = "1"
-
 # Set a meaningful default BUILDNAME. The bitbake default for the variable is a
 # concatentation of the currrent $DATE and $TIME - which is not very meaningful
 # and can lead to taskhash issues in recipes which are sensitive to it (like
 # os-release.)
 BUILDNAME ?= "dev-nilrt"
+
+# CONF_VERSION is increased each time build/conf/ changes incompatibly and is used to
+# track the version of this file when it was generated. This can safely be ignored if
+# this doesn't mean anything to you.
+CONF_VERSION = "1"
