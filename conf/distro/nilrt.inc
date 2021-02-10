@@ -36,9 +36,6 @@ RM_WORK_EXCLUDE += " \
 	safemode-restore-image \
 "
 
-# This sets the default machine to be x64 if no other machine is selected:
-MACHINE ?= "x64"
-
 # Various packages dynamically add users and groups to the system at package
 # install time.  For programs that do not care what the uid/gid is of the
 # resulting users/groups, the order of the install will determine the final

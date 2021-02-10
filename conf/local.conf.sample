@@ -16,8 +16,8 @@
 
 #
 # Machine Selection
-#   Supported NILRT distros are limited to x64 for this release.
-# MACHINE ?= "x64"
+#   Supported NILRT machine values are: x64
+MACHINE ?= "x64"
 
 # Distribution selection
 #   Supported NILRT distro values are: nilrt
