@@ -55,6 +55,8 @@ then
 	mkdir -p "/etc/natinst/share/certstore/server_certs"
 	mkdir -p "/etc/natinst/share/certstore/temp"
 
+	ln -sf -T /etc/natinst/share/certstore /var/local/natinst/certstore
+
 	chown root:root "/etc/natinst/share/certstore"
 	chmod 755 "/etc/natinst/share/certstore"
 
