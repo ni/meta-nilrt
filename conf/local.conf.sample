@@ -16,11 +16,11 @@
 
 #
 # Machine Selection
-#   Supported NILRT distros are limited to x64 for this release.
-# MACHINE ?= "x64"
+#   Supported NILRT machine values are: x64
+MACHINE ?= "x64"
 
 # Distribution selection
-# Default to NI Linux RT for the distro
+#   Supported NILRT distro values are: nilrt
 DISTRO ?= "nilrt"
 
 # Clean *most* package work directories
