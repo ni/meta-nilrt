@@ -8,8 +8,8 @@ SRC_URI += " \
 
 PACKAGES_prepend = "${PN}-nilrt"
 
-FILES_${PN}-nilrt      += "/boot/efi/nilrt/grub.cfg /boot/grub/grubenv /bootimage.cfg.d/*.cfg"
-CONFFILES_${PN}-nilrt  += "/boot/efi/nilrt/grub.cfg /boot/grub/grubenv /bootimage.cfg.d/*.cfg"
+FILES_${PN}-nilrt      += "/boot/efi/nilrt/grub.cfg /boot/grub/grubenv /boot/bootimage.cfg.d/*.cfg"
+CONFFILES_${PN}-nilrt  += "/boot/efi/nilrt/grub.cfg /boot/grub/grubenv /boot/bootimage.cfg.d/*.cfg"
 
 do_install_append () {
 
@@ -21,6 +21,6 @@ do_install_append () {
     install -d "${D}/boot/grub"
     install -m 0644 "${S}/grubenv" "${D}/boot/grub/grubenv"
 
-    install -d "${D}/bootimage.cfg.d"
-    install -m 0644 ${S}/grub.d/* ${D}/bootimage.cfg.d
+    install -d "${D}/boot/bootimage.cfg.d"
+    install -m 0644 ${S}/grub.d/* ${D}/boot/bootimage.cfg.d
 }

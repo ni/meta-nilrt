@@ -49,6 +49,8 @@ bootimg_fixup() {
 		-a -not -path "${IMAGE_ROOTFS}/boot/efi" \
 		-a -not -path "${IMAGE_ROOTFS}/boot/efi/nilrt" \
 		-a -not -path "${IMAGE_ROOTFS}/boot/efi/nilrt/*" \
+		-a -not -path "${IMAGE_ROOTFS}/boot/bootimage.cfg.d" \
+		-a -not -path "${IMAGE_ROOTFS}/boot/bootimage.cfg.d/*" \
 		-delete
 
 	# Promote EFI system directory to top so that filesystem looks
