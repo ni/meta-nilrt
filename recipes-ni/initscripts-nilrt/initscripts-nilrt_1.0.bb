@@ -78,19 +78,19 @@ do_install () {
 	install -d ${D}${sysconfdir}/natinst
 	install -m 0644 ${WORKDIR}/iso3166-translation.txt ${D}${sysconfdir}/natinst
 
-	update-rc.d -r ${D} firewall              start 39 S .
-	update-rc.d -r ${D} mountdebugfs          start 82 S .
-	update-rc.d -r ${D} nisetembeddeduixml    start 20 5 .
-	update-rc.d -r ${D} nicleanstalelinks     start 5  S .
 	update-rc.d -r ${D} nicreatecpusets       start 1  4 5 .
 	update-rc.d -r ${D} nicreatecpuacctgroups start 2  4 5 .
+	update-rc.d -r ${D} nisetupkernelconfig   start 3  5 .
+	update-rc.d -r ${D} nicleanstalelinks     start 5  S .
+	update-rc.d -r ${D} nisetembeddeduixml    start 20 5 .
 	update-rc.d -r ${D} nipopulateconfigdir   start 36 S .
 	update-rc.d -r ${D} populateconfig        start 36 S . start 30 0 6 .
-	update-rc.d -r ${D} nisetupkernelconfig   start 3  5 .
-	update-rc.d -r ${D} nisetcommitratio      start 99 S .
 	update-rc.d -r ${D} wirelesssetdomain     start 36 S .
-	update-rc.d -r ${D} cleanvarcache         start 38 0 6 S .
 	update-rc.d -r ${D} modules_autoload      start 37 S .
+	update-rc.d -r ${D} cleanvarcache         start 38 0 6 S .
+	update-rc.d -r ${D} firewall              start 39 S .
+	update-rc.d -r ${D} mountdebugfs          start 82 S .
+	update-rc.d -r ${D} nisetcommitratio      start 99 S .
 
 	update-rc.d -r ${D} nisetreboottype       stop  55 6 .
 }
