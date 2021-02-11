@@ -29,22 +29,19 @@ SRC_URI = "\
            file://test-safemode-runlevel-init \
            file://wirelesssetdomain \
            file://iso3166-translation.txt \
-           file://nisetupirqpriority \
            file://nipopulateconfigdir \
            file://populateconfig \
            file://run-ptest \
            file://cleanvarcache \
            file://modules_autoload \
-"
-
-SRC_URI_append_x64 = "file://nidisablecstates \
-                      file://nisetembeddeduixml \
-                      file://nicheckbiosconfig \
-                      file://niopendisks \
-                      file://niclosedisks \
-                      file://nisetreboottype \
-                      file://test-niopendisks-init \
-                      file://test-niclosedisks-init \
+           file://nidisablecstates \
+           file://nisetembeddeduixml \
+           file://nicheckbiosconfig \
+           file://niopendisks \
+           file://niclosedisks \
+           file://nisetreboottype \
+           file://test-niopendisks-init \
+           file://test-niclosedisks-init \
 "
 
 S = "${WORKDIR}"
@@ -77,7 +74,6 @@ do_install () {
 	install -m 0755 ${WORKDIR}/wirelesssetdomain     ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/cleanvarcache         ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/modules_autoload      ${D}${sysconfdir}/init.d
-	install -m 0755 ${S}/nisetupirqpriority          ${D}${sysconfdir}/init.d
 
 	install -d ${D}${sysconfdir}/natinst
 	install -m 0644 ${WORKDIR}/iso3166-translation.txt ${D}${sysconfdir}/natinst
@@ -97,24 +93,6 @@ do_install () {
 	update-rc.d -r ${D} modules_autoload      start 37 S .
 
 	update-rc.d -r ${D} nisetreboottype       stop  55 6 .
-
-	# CAR 450019: Remove this code (and associated script) and migrate
-	# responsibility for setting IRQ thread priority to RIO nisetupirqpriority
-	# script that sets up kernel config parameters
-	if [ "${TARGET_ARCH}" = "arm" ]; then
-		update-rc.d -r ${D} nisetupirqpriority start 4 4 5 .
-	else
-		update-rc.d -r ${D} nisetupirqpriority start 30 4 5 .
-	fi
-
-	# CAR 450019: Remove this code (and associated script) and migrate
-	# responsibility for setting IRQ thread priority to RIO nisetupirqpriority
-	# script that sets up kernel config parameters
-	if [ "${TARGET_ARCH}" = "arm" ]; then
-		update-rc.d -r ${D} nisetupirqpriority start 4 4 5 .
-	else
-		update-rc.d -r ${D} nisetupirqpriority start 30 4 5 .
-	fi
 }
 
 pkg_postinst_ontarget_${PN} () {
