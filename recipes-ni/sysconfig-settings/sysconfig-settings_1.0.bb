@@ -59,5 +59,8 @@ do_install () {
 }
 
 pkg_postinst_ontarget_${PN} () {
+	# Enable ssh by default
+	/usr/local/natinst/bin/nirtcfg -s section=systemsettings,token=sshd.enabled,value=True
+
 	${sysconfdir}/natinst/niselectsystemsettings postinst
 }
