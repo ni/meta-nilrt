@@ -133,6 +133,10 @@ pkg_postinst_ontarget_${PN} () {
 		fi
 	fi
 
+
+	# Enable core dumps on PXI, not on any other targets
+	[ "$class" = "PXI" ] && echo "* soft core unlimited" > /etc/security/limits.d/allow-core-dumps.conf
+
 	# Restore the original state of /boot
 	[ $mountstate == 0 ] && umount /boot || true
 }
