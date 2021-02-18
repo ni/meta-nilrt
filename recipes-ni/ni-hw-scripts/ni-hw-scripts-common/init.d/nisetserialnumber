@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# If the serial number is undefined in hardware, create one from a MAC address.
+
+. /etc/natinst/networking/functions.common
+
+SERIAL=`/sbin/fw_printenv -n serial# 2>&1`
+if [ "$SERIAL" = "ABCDEFG" ]; then
+    # Use the last 8 digits of the primary network device
+    SERIAL=`cat /sys/class/net/$(get_primary_device)/address | sed 's/://g' | cut -c 5-12`
+    fw_setenv serial# $SERIAL
+fi

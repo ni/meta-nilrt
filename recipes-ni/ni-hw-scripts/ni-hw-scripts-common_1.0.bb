@@ -10,6 +10,7 @@ DEPENDS += "\
 
 SRC_URI += "\
 	file://init.d/ni-rename-ifaces \
+	file://init.d/nisetserialnumber \
 "
 
 S = "${WORKDIR}"
@@ -18,7 +19,8 @@ S = "${WORKDIR}"
 do_install () {
 	install -d ${D}${sysconfdir}/init.d/
 
-	install -m 0755 ${S}/init.d/ni-rename-ifaces ${D}${sysconfdir}/init.d/ni-rename-ifaces
+	install -m 0755 ${S}/init.d/ni-rename-ifaces     ${D}${sysconfdir}/init.d
+	install -m 0755 ${S}/init.d/nisetserialnumber    ${D}${sysconfdir}/init.d
 }
 
 pkg_postinst_${PN} () {
@@ -28,7 +30,8 @@ pkg_postinst_${PN} () {
 		OPT="-s"
 	fi
 
-	update-rc.d $OPT ni-rename-ifaces start 38 S .
+	update-rc.d $OPT ni-rename-ifaces    start 38 S .
+	update-rc.d $OPT nisetserialnumber   start 38 S .
 }
 
 pkg_postrm_${PN} () {
@@ -38,7 +41,8 @@ pkg_postrm_${PN} () {
 		OPT="-f"
 	fi
 
-	update-rc.d -f ni-rename-ifaces remove
+	update-rc.d $OPT ni-rename-ifaces  remove
+	update-rc.d $OPT nisetserialnumber remove
 }
 
 
@@ -47,6 +51,7 @@ PACKAGES_remove += "${PN}-staticdev ${PN}-dev ${PN}-dbg"
 
 FILES_${PN} += "\
 	${sysconfdir}/init.d/ni-rename-ifaces \
+	${sysconfdir}/init.d/nisetserialnumber \
 "
 
 RDEPENDS_${PN} += "\
