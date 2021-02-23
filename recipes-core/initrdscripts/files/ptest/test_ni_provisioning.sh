@@ -61,7 +61,10 @@ fi
 
 ## PARTITION TESTS ##
 echo "## Checking that RAUC partitons are present..."
+# The UUIDs here should match those set by the disk_config_x64 file.
+# https://github.com/ni/meta-nilrt/blob/983d50796302b394aa428b992dae48b4da32ff08/recipes-core/initrdscripts/files/disk_config_x64#L28
 RE_ESP_UUID=C12A7328\-F81F\-11D2\-BA4B\-00A0C93EC93B
+RE_X64_ROOT_UUID=4F68BCE3\-E8CD\-4DB1\-96E7\-FBCAF984B709
 
 # Determine the configured /boot storage device. Assert that this device should
 # be the root of the partitions we evaluate in the remainder of this test.
@@ -79,7 +82,7 @@ test_part_id ${parts[0]} niboota $RE_ESP_UUID
 # ASSERT: part 1 is: nibootb and is an ESP partition
 test_part_id ${parts[1]} nibootb $RE_ESP_UUID
 # ASSERT: part 2 is: niuser and is any partition type
-test_part_id ${parts[2]} niuser '.*'
+test_part_id ${parts[2]} niuser $RE_X64_ROOT_UUID
 
 # bail out if the partition tests failed
 $found_error && ptest_fail
