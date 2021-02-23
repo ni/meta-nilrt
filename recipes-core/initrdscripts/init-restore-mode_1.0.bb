@@ -3,12 +3,12 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
 SRC_URI = "\
-	file://init-restore-mode.sh \
 	file://00-init-restore-mode.sh \
-        file://efifix \
+	file://efifix \
+	file://init-restore-mode.sh \
 	file://ni_provisioning \
-	file://ni_provisioning.common \
 	file://ni_provisioning.answers.default \
+	file://ni_provisioning.common \
 "
 
 SRC_URI_append_xilinx-zynqhf = "\
@@ -16,12 +16,20 @@ SRC_URI_append_xilinx-zynqhf = "\
 "
 
 SRC_URI_append_x64 = "\
-	file://ni_provisioning.safemode \
 	file://disk_config_x64 \
 	file://grub.cfg	\
+	file://ni_provisioning.safemode \
+	file://ptest \
 "
 
 RDEPENDS_${PN} += "bash rauc"
+
+inherit ptest
+
+RDEPENDS_${PN}-ptest += "bash efibootmgr"
+# The ptests should be run on a system which has already been provisioned, so a
+# dependency on the provisioning scripts is not necessary.
+RDEPENDS_${PN}-ptest_remove += "${PN}"
 
 do_install() {
 	install -m 0755 ${WORKDIR}/init-restore-mode.sh ${D}/init
@@ -42,6 +50,11 @@ do_install_append_x64() {
 
 do_install_append_xilinx-zynqhf() {
 	install -m 0755 ${WORKDIR}/disk_config_xilinx-zynqhf ${D}/disk_config
+}
+
+do_install_ptest_append_x64() {
+	install -m 0755 ${WORKDIR}/ptest/run-ptest               ${D}${PTEST_PATH}
+	install -m 0755 ${WORKDIR}/ptest/test_ni_provisioning.sh ${D}${PTEST_PATH}
 }
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"

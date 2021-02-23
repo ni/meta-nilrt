@@ -1,0 +1,5 @@
+#!/bin/bash
+
+SCRIPT_ROOT=$(dirname $0)
+
+${SCRIPT_ROOT}/test_ni_provisioning.sh
