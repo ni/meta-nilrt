@@ -88,6 +88,28 @@ test_part_id ${parts[2]} niuser $RE_X64_ROOT_UUID
 $found_error && ptest_fail
 
 
+## RAUC PARTITION DEVICE LINKS TESTING ##
+echo "## Checking for RAUC partition device links in /dev..."
+test -d /dev/niboot || print_error "/dev/niboot does not exist."
+
+niboot_links=(\
+	/dev/niboot/niboot.current \
+	/dev/niboot/niboot.other \
+	/dev/niboot/niboota \
+	/dev/niboot/nibootb \
+	/dev/niboot/niuser \
+)
+for link in ${niboot_links[@]}; do
+	if [ -L "$link" ]; then
+		echo "${link} [OK]"
+	else
+		echo "${link} [FAIL]"
+		print_error "Device link \"$link\" does not exist."
+	fi
+done
+# the link subtests are not critical failures, so keep testing, even if they fail.
+
+
 ## PARTITION CONTENTS TESTING ##
 echo "## Checking that niboot* contents are similar..."
 set -eo pipefail
