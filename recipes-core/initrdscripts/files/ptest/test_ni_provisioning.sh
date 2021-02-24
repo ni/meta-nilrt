@@ -131,8 +131,15 @@ trap "unmount_ro_partitions ${mnt_a} ${mnt_b}; exit 99" EXIT
 mount -o ro -L niboota ${mnt_a}
 mount -o ro -L nibootb ${mnt_b}
 
-diff --recursive ${mnt_a} ${mnt_b} || \
+DIFF_BLACKLIST=$(cat <<-EOF
+	slot.raucs
+EOF
+)
+if diff --exclude-from=- --recursive ${mnt_a} ${mnt_b}; then
+	echo "INFO: All tracked files are similar."
+else
 	print_error "niboot partition contents differ appreciably."
+fi <<<"$DIFF_BLACKLIST"
 echo "----"
 
 trap - EXIT
