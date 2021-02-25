@@ -36,10 +36,11 @@ bootimg_fixup() {
 	echo >>"${IMAGE_ROOTFS}/boot/readme.txt" " - initrd.cpio.gz: ${INITRAMFS_IMAGE}-${MACHINE}.cpio.gz ramdisk image"
 	echo >>"${IMAGE_ROOTFS}/boot/readme.txt" " - baserootfs.squashfs: ${BASEROOTFS_IMAGE}-${MACHINE}.tar.bz2 root file system image"
 
-	# Move /boot/runmode/bzImage to /boot/bzImage
-	mv "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/$(readlink "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/bzImage")" "${IMAGE_ROOTFS}/boot/bzImage"
-	# Remove /boot/runmode
-	rm -rf "${IMAGE_ROOTFS}/boot/runmode"
+	# FAT partitions do not understand links of any type. Rename the
+	# versioned bzImage to just 'bzImage' in the bundle, instead of
+	# linking. Otherwise, RAUC will fail when untarring the bundle to the
+	# FAT slot.
+	mv "${IMAGE_ROOTFS}/boot/$(readlink "${IMAGE_ROOTFS}/boot/bzImage")" "${IMAGE_ROOTFS}/boot/bzImage"
 
 	# Bitbake insists on installing glibc which is not needed on
 	#  EFI system partition. Cleanup all non-boot related files.
