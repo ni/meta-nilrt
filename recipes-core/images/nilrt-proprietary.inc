@@ -33,6 +33,7 @@ IMAGE_INSTALL_NODEPS += "\
         ni-webdav-system-webserver-support \
         ni-webserver-libs \
         ni-webservices-webserver-support \
+        ni-wireless-ath6kl \
         ni-wireless-cert-storage \
         nicurl \
         nirtcfg \
