@@ -7,6 +7,7 @@ ALLOW_EMPTY_${PN}-dev = "0"
 
 SRC_URI += "\
     file://nilrt-gateway-install \
+    file://ptest \
 "
 
 DEPENDS = "safemode-image"
@@ -33,6 +34,18 @@ python do_package_prepend() {
              line = fp.readline()
     if found != True:
         bb.fatal("Safemode version not found (check safemode-image recipe) !!!")
+}
+
+inherit ptest
+
+RDEPENDS_${PN}-ptest += "bash"
+# The ptests should be run on a system which has already been provisioned, so a
+# dependency on the migration IPK is not necessary.
+RDEPENDS_${PN}-ptest_remove += "${PN}"
+
+do_install_ptest_append_x64() {
+    install -m 0755 ${WORKDIR}/ptest/run-ptest ${D}${PTEST_PATH}
+    install -m 0755 ${WORKDIR}/ptest/test_safemode_provisioning.sh ${D}${PTEST_PATH}
 }
 
 FILES_${PN} = "\
