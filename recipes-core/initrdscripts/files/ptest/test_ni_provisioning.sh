@@ -70,9 +70,9 @@ RE_X64_ROOT_UUID=4F68BCE3\-E8CD\-4DB1\-96E7\-FBCAF984B709
 # be the root of the partitions we evaluate in the remainder of this test.
 # For RAUC systems, we expect this to be: /dev/sda, but it isn't required to be.
 boot_part=$(findmnt --kernel --first-only --noheadings --output SOURCE /boot)
-test -n "${boot_part}" || (print_error "No detected /boot mount; system state invalid."; ptest_fail)
+test -n "${boot_part}" || { print_error "No detected /boot mount; system state invalid."; ptest_fail; }
 boot_dev=/dev/$(lsblk -no PKNAME ${boot_part})
-test -e "${boot_dev}" || (print_error "Boot device ${boot_dev} does not exist; system state invalid."; ptest_fail)
+test -e "${boot_dev}" || { print_error "Boot device ${boot_dev} does not exist; system state invalid."; ptest_fail; }
 
 
 readarray -t parts < <(fdisk -l ${boot_dev} -o Device,Name,Type-UUID | grep -o -E '^\/dev\/.*')
@@ -92,12 +92,12 @@ $found_error && ptest_fail
 echo "## Checking for RAUC partition device links in /dev..."
 test -d /dev/niboot || print_error "/dev/niboot does not exist."
 
-niboot_links=(\
+niboot_links=(                \
 	/dev/niboot/niboot.current \
-	/dev/niboot/niboot.other \
-	/dev/niboot/niboota \
-	/dev/niboot/nibootb \
-	/dev/niboot/niuser \
+	/dev/niboot/niboot.other   \
+	/dev/niboot/niboota        \
+	/dev/niboot/nibootb        \
+	/dev/niboot/niuser         \
 )
 for link in ${niboot_links[@]}; do
 	if [ -L "$link" ]; then
