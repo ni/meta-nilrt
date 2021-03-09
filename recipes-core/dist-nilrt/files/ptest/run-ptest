@@ -1,0 +1,5 @@
+#!/bin/bash
+
+SCRIPT_ROOT=$(dirname $0)
+
+${SCRIPT_ROOT}/test_safemode_provisioning.sh
