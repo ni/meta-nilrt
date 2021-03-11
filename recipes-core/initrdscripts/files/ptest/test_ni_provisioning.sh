@@ -41,11 +41,9 @@ test_part_id () {
 
 	if [[ ! "${label}" =~ $correct_re_label ]]; then
 		print_error "Partition ${label} @ ${device} does not match required label ${correct_re_label}"
-		found_error=true
 	fi
 	if [[ ! "${uuid}" =~ $correct_re_uuid ]]; then
 		print_error "Partition ${label} @ ${device} does not match required type UUID ${correct_re_uuid}"
-		found_error=true
 	fi
 }
 
@@ -170,7 +168,6 @@ for bootnum in 0 1; do
 			;;
 		*)
 			print_error "efi_bootorder[${bootnum}] is (${bootorder}, \"${bootlabel}\"); not one of: niboota, nibootb"
-			found_error=true
 			;;
 	esac
 done
