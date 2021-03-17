@@ -106,50 +106,59 @@ mount_nirecovery_usb()
 
 mount_payload()
 {
-   if [ -d $NIRECOVERY_MOUNTPOINT/payload ]; then
-      # We are booting from USB so payload will be on same partition as kernel and initrd
-      mount --bind $NIRECOVERY_MOUNTPOINT/payload /payload;
-   else
-      # We used migration ipk, so payload would be in nirootfs
-      ROOTFS_MOUNTPOINT=$(mktemp -d "/var/volatile/rootfs-XXXXXXX")
+   # Locate and mount the payload at /payload (in the case of initrd having the payload, do nothing)
+   # 1) Check in the current directory (ie built into the initrd as with rauc->safemode migration)
+   # 2) Check in the boot media (as with USB provisioning)
+   # 3) Check on the "big" partition (as with safemode->rauc migrations)
 
-      if [ -z  $ROOTFS_MOUNTPOINT ]
-      then
-         echo ""
-         echo "ERROR: Failed to create temporary directory to mount nirootfs"
-         echo ""
+   if [ -z "$(ls -A /payload 2>/dev/null)" ] ; then
+       if [ -n "$(ls -A '$NIRECOVERY_MOUNT/payload' 2>/dev/null)" ] ; then
+           # We are booting from USB so payload will be on same partition as kernel and initrd
+           mount --bind $NIRECOVERY_MOUNTPOINT/payload /payload;
+       else
+           # Payload is not contained in the initrd file, it is on the large partition on the target
+           #  - booting from a migration ipk that uses an external payload on the main (nirootfs or niuser) partition
+           PAYLOAD_MOUNT=$(mktemp -d "/var/volatile/nipayload-XXXXXXX")
 
-         sync
-         show_console
+           if [ -z  $PAYLOAD_MOUNT ]
+           then
+              echo ""
+              echo "ERROR: Failed to create temporary directory to mount nirootfs"
+              echo ""
 
-         exit 1
-      fi
+              sync
+              show_console
 
-      mount -o rw -L nirootfs $ROOTFS_MOUNTPOINT;
+              exit 1
+           fi
 
-      # Delete everything except payload directory to ensure device
-      # has enough space to extract payload
-      for dir in $ROOTFS_MOUNTPOINT/*; do
-          if [ ${dir##*/} != "payload" ]; then
-              rm -rf $dir;
-          fi
-      done
+           PAYLOAD_LABEL=$(lsblk -lnpo NAME,LABEL |egrep -o "niuser|nirootfs")
+           mount -o rw -L $PAYLOAD_LABEL $PAYLOAD_MOUNT;
 
-      # Payload is in an ipk, extract it
-      mkdir -p $ROOTFS_MOUNTPOINT/payload/extracted
-      pushd $ROOTFS_MOUNTPOINT/payload/extracted > /dev/null
+           # Delete everything except payload directory to ensure device
+           # has enough space to extract payload
+           for dir in $PAYLOAD_MOUNT/*; do
+               if [ ${dir##*/} != "payload" ]; then
+                   rm -rf $dir;
+               fi
+           done
 
-      ar x $ROOTFS_MOUNTPOINT/payload/*.ipk
-      mkdir data
-      tar -xpf data.tar* -C data
+           # Payload is in an ipk, extract it
+           mkdir -p $PAYLOAD_MOUNT/payload/extracted
+           pushd $PAYLOAD_MOUNT/payload/extracted > /dev/null
 
-      # Ramdisk size is limited, so copy payload to a tmpfs
-      mount -t tmpfs -o size=420m tmpfs /payload
-      cp data/usr/share/nilrt/* /payload
-      mv /payload/*.raucb /payload/niboot.raucb
-      popd > /dev/null
+           ar x $PAYLOAD_MOUNT/payload/*.ipk
+           mkdir data
+           tar -xpf data.tar* -C data
 
-      umount $ROOTFS_MOUNTPOINT;
+           # Ramdisk size is limited, so copy payload to a tmpfs
+           mount -t tmpfs -o size=420m tmpfs /payload
+           cp data/usr/share/nilrt/* /payload
+           mv /payload/*.raucb /payload/niboot.raucb
+           popd > /dev/null
+
+           umount $PAYLOAD_MOUNT;
+       fi
    fi
 }
 
@@ -166,7 +175,7 @@ if [[ $ARCH == "x86_64" ]]; then
     remove_bootmode 2> /dev/null
 fi
 
-if [[ $ARCH =~ ^(x86_64|armv7l)$ ]]; then
+if [[ $ARCH == "x86_64" ]]; then
     /ni_provisioning
 else
     echo ""
