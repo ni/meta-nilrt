@@ -112,7 +112,7 @@ mount_payload()
    # 3) Check on the "big" partition (as with safemode->rauc migrations)
 
    if [ -z "$(ls -A /payload 2>/dev/null)" ] ; then
-       if [ -n "$(ls -A '$NIRECOVERY_MOUNT/payload' 2>/dev/null)" ] ; then
+       if [ -n "$(ls -A $NIRECOVERY_MOUNTPOINT/payload 2>/dev/null)" ] ; then
            # We are booting from USB so payload will be on same partition as kernel and initrd
            mount --bind $NIRECOVERY_MOUNTPOINT/payload /payload;
        else
