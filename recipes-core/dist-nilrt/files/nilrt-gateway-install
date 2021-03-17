@@ -24,9 +24,9 @@ function cleanup() {
     fi
 
     # Restore boot partitions to previous states
-    [ ! -z "${EFI_MOUNT_A-}" ] && mount -o remount,ro "$EFI_MOUNT_A" &>/dev/null
-    [ ! -z "${EFI_MOUNT_B-}" ] && umount "$EFI_MOUNT_B" &>/dev/null
-    [ ! -z "${NIROOTFS_MOUNT-}" ] && umount "$NIROOTFS_MOUNT" &>/dev/null
+    [ -n "${EFI_MOUNT_A-}" ] && mount -o remount,ro "$EFI_MOUNT_A" &>/dev/null
+    [ -n "${EFI_MOUNT_B-}" ] && umount "$EFI_MOUNT_B" &>/dev/null
+    [ -n "${NIPAYLOAD_MOUNT-}" ] && umount "$NIPAYLOAD_MOUNT" &>/dev/null
 
     exit "$exitCode"
 }
@@ -38,27 +38,34 @@ function die() {
     exit 1
 }
 
-# Download dist-nilrt-efi-ab.ipk into /payload of nirootfs partition
-NIROOTFS_MOUNT=$(mktemp -d "/var/volatile/niroot-XXXXXXX")
-mount -L nirootfs $NIROOTFS_MOUNT || die "Unable to mount nirootfs."
-
-rm -rf $NIROOTFS_MOUNT/payload
-mkdir $NIROOTFS_MOUNT/payload || die "Unable to create payload directory."
-
-pushd $NIROOTFS_MOUNT/payload > /dev/null
-opkg update > /dev/null
-opkg download dist-nilrt-efi-ab > /dev/null || (popd > /dev/null; die "Unable to download dist-nilrt-efi-ab. Check if disk has sufficient space.")
-test -e dist-nilrt-efi-ab*.ipk || (popd > /dev/null; die "Unable to download dist-nilrt-efi-ab. Check if feeds contain dist-nilrt-efi-ab package.")
-popd > /dev/null
-
 # Mount the ISO/wic file as a loopback device
 info "Mounting the ISO"
 if [ -f "$SCRIPT_DIR/restore-mode-image-x64.iso" ] ; then
+    # grub->efi-ab migration
+    EXTERNAL_PAYLOAD="dist-nilrt-efi-ab"
     losetup -f "$SCRIPT_DIR/restore-mode-image-x64.iso" -P -r
     LOOPDEV=$(losetup -j "$SCRIPT_DIR/restore-mode-image-x64.iso" |cut -f 1 -d:)
 else
+    # efi-ab->grub migration
     losetup -f "$SCRIPT_DIR/safemode-restore-image-x64.iso" -P -r
     LOOPDEV=$(losetup -j "$SCRIPT_DIR/safemode-restore-image-x64.iso" |cut -f 1 -d:)
+fi
+
+if [ -n "${EXTERNAL_PAYLOAD:-}" ] ; then
+    # Download ipk into /payload of nirootfs or niuser partition
+    NIPAYLOAD_MOUNT=$(mktemp -d "/var/volatile/nipayload-XXXXXXX")
+    PAYLOAD_LABEL=$(lsblk -lnpo NAME,LABEL |egrep -o "niuser|nirootfs")
+    mount -L $PAYLOAD_LABEL $NIPAYLOAD_MOUNT || die "Unable to mount nirootfs."
+
+    info "Downloading external payload ${EXTERNAL_PAYLOAD} to ${PAYLOAD_LABEL}"
+    rm -rf $NIPAYLOAD_MOUNT/payload
+    mkdir $NIPAYLOAD_MOUNT/payload || die "Unable to create payload directory."
+
+    pushd $NIPAYLOAD_MOUNT/payload > /dev/null
+    opkg update > /dev/null
+    opkg download $EXTERNAL_PAYLOAD > /dev/null || (popd > /dev/null; die "Unable to download ${EXTERNAL_PAYLOAD}.  Check if disk has sufficient space.")
+    test -e "${EXTERNAL_PAYLOAD}*.ipk" || (popd > /dev/null; die "Unable to download ${EXTERNAL_PAYLOAD}. Check if feeds contain ${EXTERNAL_PAYLOAD} package.")
+    popd > /dev/null
 fi
 
 # Identify the 2 partitions in the ISO/wic file
