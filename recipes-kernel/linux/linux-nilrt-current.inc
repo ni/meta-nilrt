@@ -5,3 +5,6 @@ GIT_KERNEL_REPO = "linux.git"
 
 require linux-nilrt.inc
 
+# This is the place to overwrite the source AUTOREV from linux-nilrt.inc, if
+# the kernel recipe requires a particular ref.
+#SRCREV = ""

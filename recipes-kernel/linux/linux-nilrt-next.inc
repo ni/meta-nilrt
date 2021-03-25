@@ -5,6 +5,10 @@ GIT_KERNEL_REPO = "linux.git"
 
 require linux-nilrt.inc
 
+# This is the place to overwrite the source AUTOREV from linux-nilrt.inc, if
+# the kernel recipe requires a particular ref.
+#SRCREV = ""
+
 kernel_do_deploy_append() {
     cp -rf ${STAGING_KERNEL_DIR} $deployDir/staging_kernel_dir
     cp -rf ${STAGING_KERNEL_BUILDDIR} $deployDir/staging_kernel_builddir
