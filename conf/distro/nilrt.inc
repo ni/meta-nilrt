@@ -105,7 +105,7 @@ PACKAGE_ENABLE_FILELIST ?= "True"
 
 # Root URI of all NILRT feeds
 NILRT_FEEDS_URI                    ?= "http://download.ni.com/ni-linux-rt/feeds"
-NILRT_FEEDS_URI_RELEASE            ?= "${NILRT_FEEDS_URI}/${NILRT_RELEASE_NAME}"
+NILRT_FEEDS_URI_RELEASE            ?= "${NILRT_FEEDS_URI}/${NILRT_FEED_NAME}"
 NILRT_MACHINE_FEED_URI_x64         ?= "${NILRT_FEEDS_URI_RELEASE}/x64"
 NILRT_MACHINE_FEED_URI_xilinx-zynq ?= "${NILRT_FEEDS_URI_RELEASE}/arm"
 
