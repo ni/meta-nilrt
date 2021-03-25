@@ -7,4 +7,4 @@ require linux-nilrt.inc
 
 # This is the place to overwrite the source AUTOREV from linux-nilrt.inc, if
 # the kernel recipe requires a particular ref.
-#SRCREV = ""
+SRCREV = "db94e1d70abfe097c354d6eadb0adbe7044b699e"
