@@ -11,7 +11,7 @@ SECTION = "libs"
 PR = "r5"
 DEPENDS = "zlib gdk-pixbuf gtk+ glib-2.0-native"
 
-inherit autotools pkgconfig gnomebase gtk-doc distro_features_check
+inherit autotools pkgconfig gnomebase gtk-doc features_check
 ANY_OF_DISTRO_FEATURES = "${GTK2DISTROFEATURES}"
 GNOME_COMPRESS_TYPE="bz2"
 
