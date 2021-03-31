@@ -39,6 +39,7 @@ partition_format()
 {
     local disk="$1" label="$2"
 
+    sync ${disk}
     partitions=($(lsblk -rnpo NAME -x NAME ${disk} | tail +2))
     disk_check "$disk"
 
