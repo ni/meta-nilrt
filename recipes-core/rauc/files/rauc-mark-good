@@ -32,6 +32,26 @@ function info () {
     echo "$SCRIPT_NAME: $*" || true
 }
 
+# usb_boot - determine if the system has booted from a USB device
+# and appears to be a one time boot.
+#
+# 1) Device must be removable (or its not a USB)
+# 2) More than one niboota or nibootb exists (one of which is
+#    presumed to be on internal storage)
+#
+function usb_boot () {
+    # Check for 2 (or more) niboota or nibootb labeled partitions
+    [ $(lsblk -lno NAME,PARTLABEL |grep niboota |wc -l) -gt 1 ] || return 1
+    [ $(lsblk -lno NAME,PARTLABEL |grep nibootb |wc -l) -gt 1 ] || return 1
+
+    # is the device removable
+    devname=$(mount |grep boot |cut -d" " -f1)
+    devname=${devname#/dev/}
+    devname=${devname%[[:digit:]]*}
+
+    [ $(</sys/block/$devname/removable) != 0 ]
+}
+
 if [ "${1:-}" != "start" ]; then
     error "This boot script can only run with 'start' parameter"
 fi
@@ -112,10 +132,16 @@ fi
 
 # Mark the current boot good
 # Suppress errors when running on non-A/B capable firmware/boot loader
-if $HAS_NIBOOT_EFI; then
-    rauc status mark-good >/dev/null
+# Skip call to mark-good if this boot a one-time USB boot
+if ! usb_boot; then
+    if $HAS_NIBOOT_EFI; then
+        rauc status mark-good >/dev/null
+    else
+        rauc status mark-good >/dev/null || true
+    fi
+    info "Marked current boot good"
 else
-    rauc status mark-good >/dev/null || true
+    info "USB boot detected; skipping call to RAUC mark-good to avoid updating the boot sequence"
 fi
 
 if $FIRST_BOOT; then
@@ -132,12 +158,8 @@ if [ ! -e "$BACKUP_MARKER" ]; then
     mount /dev/niboot/niboot.other "$OTHER_TMP_MOUNT"
     rm -fr "$OTHER_TMP_MOUNT/*"
     cp -R /boot/* "$OTHER_TMP_MOUNT"
-    rm "$OTHER_TMP_MOUNT/slot.raucs"
+    rm -fr "$OTHER_TMP_MOUNT/slot.raucs"
     echo -n > "$BACKUP_MARKER"
     chmod 0444 "$BACKUP_MARKER"
     sync
 fi
-
-# Print message at end so that we have some indication in system log
-# that everything went well
-info "Marked current boot good"
