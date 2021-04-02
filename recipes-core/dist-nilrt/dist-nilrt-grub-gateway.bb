@@ -1,13 +1,18 @@
 SUMMARY = "Partition the target with the original safemode partioning scheme"
 LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384361b4de20420"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
+
+LICENSE_CREATE_PACKAGE = "0"
 
 ALLOW_EMPTY_${PN}-dbg = "0"
 ALLOW_EMPTY_${PN}-dev = "0"
 
 SRC_URI += "\
     file://nilrt-gateway-install \
+    file://MIT \
 "
+
+FILESEXTRAPATHS_prepend := "${COMMON_LICENSE_DIR}:"
 
 DEPENDS = "safemode-image"
 RDEPENDS_${PN} += "bash"
@@ -15,7 +20,9 @@ do_install[depends] = "safemode-restore-image:do_image_complete"
 
 do_install_x64() {
     install -d ${D}/usr/share/nilrt
+    install -d ${D}/usr/share/licenses/${PN}
     install -m 0755 ${WORKDIR}/nilrt-gateway-install ${D}/usr/share/nilrt/nilrt-install
+    install -m 0755 ${WORKDIR}/MIT ${D}/usr/share/licenses/${PN}/MIT
     install -m 0755 ${DEPLOY_DIR_IMAGE}/safemode-restore-image-${MACHINE}.wic ${D}/usr/share/nilrt/safemode-restore-image-${MACHINE}.iso
 }
 
@@ -38,4 +45,5 @@ python do_package_prepend() {
 FILES_${PN} = "\
     /usr/share/nilrt/safemode-restore-image-${MACHINE}.iso \
     /usr/share/nilrt/nilrt-install \
+    /usr/share/licenses/${PN}/MIT \
 "
