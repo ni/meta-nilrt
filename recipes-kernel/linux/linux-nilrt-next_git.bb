@@ -1,6 +1,6 @@
 DESCRIPTION = "NILRT linux kernel next development build"
 
-require linux-nilrt-next.inc
+require linux-nilrt-alternate.inc
 
 KERNEL_PACKAGE_NAME = "kernel-next"
 
