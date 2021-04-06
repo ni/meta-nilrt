@@ -1,11 +1,6 @@
 # This file is based on the template in OE-Core. On updates to newer
 # branches of OE, the template should be reintroduced or at least examined
 # for significant changes
-
-# Place organization-specific configuration settings in an included
-# org.conf file
-include conf/org.conf
-
 #
 # This file is your local configuration file and is where all local user settings
 # are placed. The comments in this file give some guide to the options a new user
@@ -21,46 +16,16 @@ include conf/org.conf
 
 #
 # Machine Selection
-#
-# You need to select a specific machine to target the build with. There are a selection
-# of emulated machines available which can boot and run in the QEMU emulator:
-#
-#MACHINE ?= "qemuarm"
-#MACHINE ?= "qemuarm64"
-#MACHINE ?= "qemumips"
-#MACHINE ?= "qemumips64"
-#MACHINE ?= "qemuppc"
-#MACHINE ?= "qemux86"
-#MACHINE ?= "qemux86-64"
-#
-# This sets the default machine to be x64 if no other machine is selected:
-MACHINE ??= "x64"
+#   Supported NILRT machine values are: x64, xilinx-zynq
+MACHINE ?= "x64"
 
 # Distribution selection
-# Default to NI Linux RT for the distro
-DISTRO ?= "nilrt-nxg"
+#   Supported NILRT distro values are: nilrt
+DISTRO ?= "nilrt"
 
 # Clean *most* package work directories
-INHERIT += " rm_work "
-RM_WORK_EXCLUDE += " \
-	dist-nilrt-efi-ab \
-	dist-nilrt-efi-ab-gateway \
-	dist-nilrt-grub-gateway \
-	lvcomms-restore-mode-image \
-	niconsole-image \
-	niconsole-image-safe \
-	restore-mode-image \
-	safemode-restore-image \
-"
-
-# Include buildhistory as it is used by toaster as well as generally
-# useful in detecting changes in builds/configurations
-INHERIT += " buildhistory "
-BUILDHISTORY_COMMIT = "1"
-
-# Generates a "cve/cve.log" in every recipe's work dir.
-# https://wiki.yoctoproject.org/wiki/How_do_I#Q:_How_do_I_get_a_list_of_CVEs_patched.3F
-#INHERIT += " cve-check "
+#INHERIT += " rm_work "
+#RM_WORK_EXCLUDE += ""
 
 #
 # Where to place downloads
@@ -103,21 +68,6 @@ BUILDHISTORY_COMMIT = "1"
 #
 #TMPDIR = "${TOPDIR}/tmp"
 
-
-#
-# Package Management configuration
-#
-# This variable lists which packaging formats to enable. Multiple package backends
-# can be enabled at once and the first item listed in the variable will be used
-# to generate the root filesystems.
-# Options are:
-#  - 'package_deb' for debian style deb files
-#  - 'package_ipk' for ipk files are used by opkg (a debian style embedded package manager)
-#  - 'package_rpm' for rpm style packages
-# E.g.: PACKAGE_CLASSES ?= "package_rpm package_deb package_ipk"
-# We default to ipk:
-PACKAGE_CLASSES ?= "package_ipk"
-
 #
 # SDK target architecture
 #
@@ -148,7 +98,6 @@ PACKAGE_CLASSES ?= "package_ipk"
 #                     e.g. ssh root access has a blank password
 # There are other application targets that can be used here too, see
 # meta/classes/image.bbclass and meta/classes/core-image.bbclass for more details.
-EXTRA_IMAGE_FEATURES = "empty-root-password allow-empty-password"
 
 #
 # Additional image features
@@ -161,17 +110,8 @@ EXTRA_IMAGE_FEATURES = "empty-root-password allow-empty-password"
 #   - 'image-prelink' in order to prelink the filesystem image
 # NOTE: if listing mklibs & prelink both, then make sure mklibs is before prelink
 # NOTE: mklibs also needs to be explicitly enabled for a given image, see local.conf.extended
-USER_CLASSES ?= "buildstats"
+#USER_CLASSES ?= "buildstats"
 
-
-#
-# Runtime testing of images
-#
-# The build system can test booting virtual machine images under qemu (an emulator)
-# after any root filesystems are created and run tests against those images. To
-# enable this uncomment this line. See classes/testimage(-auto).bbclass for
-# further details.
-#TEST_IMAGE = "1"
 #
 # Interactive shell configuration
 #
