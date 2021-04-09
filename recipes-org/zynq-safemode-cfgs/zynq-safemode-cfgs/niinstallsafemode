@@ -1,0 +1,103 @@
+#!/bin/bash
+#
+# Copyright (c) 2013 National Instruments
+#
+# Returns 1 on usage error, 2 if trying to downgrade without -f, 3 if
+# reapplying the same version without -f, 5 on error manipulating /boot/.safe.
+
+if [ $# -ne 1 ] && [ $# -ne 2 ]; then
+	echo "Usage: `basename $0` <safemode .cfg file> [-f]"
+	exit 1
+fi
+
+ver_cmp=/usr/local/natinst/bin/nicompareversion
+mount_point="/boot"
+source_file=$1
+tmp_dir=/tmp/`basename $source_file`.dir
+itb="linux_safemode.itb"
+defbit="default.bit.*"
+
+# Bail out on first error
+set -o errexit
+
+cleanup()
+{
+	rm -rf $tmp_dir
+	exit
+}
+
+# Make sure we only replace older firmware with newer firmware
+check_version()
+{
+	cur_ver_string=`/sbin/fdtview -l / version $mount_point/.safe/$itb | awk -F = '{print $2}'`
+	tmp_ver_string=`/sbin/fdtview -l / version $tmp_dir/$itb | awk -F = '{print $2}'`
+
+	result=$($ver_cmp "$cur_ver_string" "$tmp_ver_string")
+	if [ "$result" == "older" ]; then
+		echo $0: not updating $cur_ver_string to older $tmp_ver_string, use -f to downgrade or reapply the current version
+		exit 2
+	elif [ "$result" == "equal" ]; then
+		echo $0: not updating as $cur_ver_string is already present, use -f to downgrade or reapply the current version
+		exit 3
+	fi
+}
+
+# Read a property from an fdt file
+# Params are: (file, fdt_path, fdt_property)
+get_fdt_prop()
+{
+	value=`/sbin/fdtview -l $2 $3 $1`
+	value="${value##*= \"}"
+	echo "${value%\"}"
+}
+
+[ -x /sbin/fdtview ]
+
+trap cleanup INT TERM EXIT
+
+mkdir -p $tmp_dir
+tar -x --warning=no-timestamp -f $source_file -C $tmp_dir
+
+if [ "$2" != "-f" ]; then check_version; fi
+
+if [ -x $tmp_dir/preinst ]; then
+	$tmp_dir/preinst
+fi
+
+# Validate hashes in ITB
+/sbin/fdtview -i $tmp_dir/$itb
+
+itb_device_codes=`get_fdt_prop $tmp_dir/$itb / DeviceCodes`
+itb_device_codes="$itb_device_codes `get_fdt_prop $tmp_dir/$itb / DeviceCode`"
+
+target_device_code=`/sbin/fw_printenv -n DeviceCode`
+
+# Ensure that the ITB is built for this device
+[[ $itb_device_codes =~ (^| )$target_device_code($| ) ]]
+
+# Ensure the bootscript exists
+itb_script_type=`/sbin/fdtview -l /images/bootscript type $tmp_dir/$itb`
+itb_script_type="${itb_script_type##*= \"}"
+itb_script_type="${itb_script_type%\"}"
+[ "$itb_script_type" = script ]
+
+# Return a different error code if there is a failure while touching the ITB or bitfile
+chmod u+w $mount_point/.safe || exit 5
+chmod u+w $mount_point/.safe/$itb || exit 5
+cp -f $tmp_dir/$itb $mount_point/.safe/ || exit 5
+chmod u-w $mount_point/.safe/$itb || exit 5
+chmod u-w $mount_point/.safe || exit 5
+
+chmod u+w $mount_point/.defbit || exit 5
+chmod u+w $mount_point/.defbit/$defbit || exit 5
+cp -f $tmp_dir/$target_device_code/$defbit $mount_point/.defbit/ || \
+  cp -f $tmp_dir/$defbit $mount_point/.defbit/ || exit 5
+chmod u-w $mount_point/.defbit/$defbit || exit 5
+chmod u-w $mount_point/.defbit || exit 5
+
+if [ -x $tmp_dir/postinst ]; then
+	$tmp_dir/postinst
+fi
+
+trap - INT TERM EXIT
+cleanup
