@@ -18,7 +18,7 @@ SRC_URI = "file://autostart/dpms.desktop \
 	file://menus/xfce-applications.menu \
 	file://xfce4/desktop/icons.screen0-624x384.rc \
 	file://xfce4/desktop/icons.screen0-624x464.rc \
-	file://xfce4/desktop/nilrt-desktop-background.jpg \
+	file://xfce4/desktop/nilrt-desktop-background.png \
 	file://xfce4/panel/launcher-1/file_manager_launcher.desktop \
 	file://xfce4/panel/launcher-2/terminal_emulator_launcher.desktop \
 	file://xfce4/panel/launcher-3/settings_manager_launcher.desktop \
@@ -44,7 +44,7 @@ FILES_${PN} = "${confdir}/autostart/dpms.desktop \
 	    ${confdir}/menus/xfce-applications.menu \
 	    ${confdir}/xfce4/desktop/icons.screen0-624x384.rc \
 	    ${confdir}/xfce4/desktop/icons.screen0-624x464.rc \
-	    ${backgrounddir}/nilrt-desktop-background.jpg \
+	    ${backgrounddir}/nilrt-desktop-background.png \
 	    ${confdir}/xfce4/panel/launcher-1/file_manager_launcher.desktop \
 	    ${confdir}/xfce4/panel/launcher-2/terminal_emulator_launcher.desktop \
 	    ${confdir}/xfce4/panel/launcher-3/settings_manager_launcher.desktop \
@@ -86,7 +86,7 @@ do_install () {
 	   install -m 0644 ${S}/menus/xfce-applications.menu ${D}${confdir}/menus/
 	   install -m 0644 ${S}/xfce4/desktop/icons.screen0-624x384.rc ${D}${confdir}/xfce4/desktop/
 	   install -m 0644 ${S}/xfce4/desktop/icons.screen0-624x464.rc ${D}${confdir}/xfce4/desktop/
-	   install -m 0644 ${S}/xfce4/desktop/nilrt-desktop-background.jpg ${D}${backgrounddir}/
+	   install -m 0644 ${S}/xfce4/desktop/nilrt-desktop-background.png ${D}${backgrounddir}/
 	   install -m 0644 ${S}/xfce4/panel/launcher-1/file_manager_launcher.desktop ${D}${confdir}/xfce4/panel/launcher-1/
 	   install -m 0644 ${S}/xfce4/panel/launcher-2/terminal_emulator_launcher.desktop ${D}${confdir}/xfce4/panel/launcher-2/
 	   install -m 0644 ${S}/xfce4/panel/launcher-3/settings_manager_launcher.desktop ${D}${confdir}/xfce4/panel/launcher-3/
