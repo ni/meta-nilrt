@@ -5,12 +5,12 @@ inherit packagegroup
 
 RDEPENDS_${PN} = "\
 	kernel-debug \
-	kernel-debug-base \
 	kernel-debug-vmlinux \
-	kernel-debug-image \
 	kernel-debug-dev \
 	kernel-debug-modules \
-	kernel-module-versioning \
+	kernel-devsrc-debug \
+"
+
+RDEPENDS_${PN}_append_armv7a = " \
 	kernel-debug-devicetree \
-	kernel-debug-image-bzimage \
 "

@@ -3,7 +3,7 @@ NI_RELEASE_VERSION = "master"
 LINUX_VERSION = "4.14"
 LINUX_KERNEL_TYPE = "debug"
 
-require linux-nilrt.inc
+require linux-nilrt-alternate.inc
 
 SRC_URI += "\
 	file://debug.cfg \
