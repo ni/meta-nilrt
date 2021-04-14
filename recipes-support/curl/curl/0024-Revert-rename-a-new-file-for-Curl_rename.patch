@@ -1,0 +1,209 @@
+From 9c65206dea76d3b09b7eca4ffcdb6f469e6e7bf2 Mon Sep 17 00:00:00 2001
+From: Richard Tollerton <rich.tollerton@ni.com>
+Date: Thu, 25 Mar 2021 18:35:49 -0500
+Subject: [PATCH 24/25] Revert "rename: a new file for Curl_rename()"
+
+This reverts commit 330f133224af18c65b9325d9b6502e07b4f09f6b.
+
+Uses Curl_rename(), which presently is implemented on Win32 with MoveFileEx(),
+which does not exist on Phar Lap.
+
+Upstream-Status: Inappropriate [wacky builds]
+Signed-off-by: Richard Tollerton <rich.tollerton@ni.com>
+---
+ lib/Makefile.inc |  4 +--
+ lib/cookie.c     | 28 +++++++++++++++++--
+ lib/rename.c     | 71 ------------------------------------------------
+ lib/rename.h     | 27 ------------------
+ 4 files changed, 28 insertions(+), 102 deletions(-)
+ delete mode 100644 lib/rename.c
+ delete mode 100644 lib/rename.h
+
+diff --git a/lib/Makefile.inc b/lib/Makefile.inc
+index ae3f961cf..0316e03b6 100644
+--- a/lib/Makefile.inc
++++ b/lib/Makefile.inc
+@@ -56,7 +56,7 @@ LIB_CFILES = altsvc.c amigaos.c asyn-ares.c asyn-thread.c base64.c            \
+   http_ntlm.c http_proxy.c idn_win32.c if2ip.c imap.c inet_ntop.c inet_pton.c \
+   krb5.c ldap.c llist.c md4.c md5.c memdebug.c mime.c mprintf.c mqtt.c        \
+   multi.c netrc.c non-ascii.c nonblock.c openldap.c parsedate.c pingpong.c    \
+-  pop3.c progress.c psl.c doh.c rand.c rename.c rtsp.c security.c select.c    \
++  pop3.c progress.c psl.c doh.c rand.c rtsp.c security.c select.c             \
+   sendf.c setopt.c sha256.c share.c slist.c smb.c smtp.c socketpair.c socks.c \
+   socks_gssapi.c socks_sspi.c speedcheck.c splay.c strcase.c strdup.c         \
+   strerror.c strtok.c strtoofft.c system_win32.c telnet.c tftp.c timeval.c    \
+@@ -75,7 +75,7 @@ LIB_HFILES = altsvc.h amigaos.h arpa_telnet.h asyn.h conncache.h connect.h    \
+   http2.h http_chunks.h http_digest.h http_negotiate.h http_ntlm.h            \
+   http_proxy.h if2ip.h imap.h inet_ntop.h inet_pton.h llist.h memdebug.h      \
+   mime.h mqtt.h multihandle.h multiif.h netrc.h non-ascii.h nonblock.h        \
+-  parsedate.h pingpong.h pop3.h progress.h psl.h doh.h quic.h rand.h rename.h \
++  parsedate.h pingpong.h pop3.h progress.h psl.h doh.h quic.h rand.h          \
+   rtsp.h select.h sendf.h setopt.h setup-vms.h share.h sigpipe.h slist.h      \
+   smb.h smtp.h sockaddr.h socketpair.h socks.h speedcheck.h splay.h strcase.h \
+   strdup.h strerror.h strtok.h strtoofft.h system_win32.h telnet.h tftp.h     \
+diff --git a/lib/cookie.c b/lib/cookie.c
+index cb7d94b10..e3746850c 100644
+--- a/lib/cookie.c
++++ b/lib/cookie.c
+@@ -98,7 +98,6 @@ Example set of cookies:
+ #include "inet_pton.h"
+ #include "parsedate.h"
+ #include "rand.h"
+-#include "rename.h"
+ 
+ /* The last 3 #include files should be in this order */
+ #include "curl_printf.h"
+@@ -1494,6 +1493,31 @@ static char *get_netscape_format(const struct Cookie *co)
+     co->value?co->value:"");
+ }
+ 
++/* return 0 on success, 1 on error */
++static int xrename(const char *oldpath, const char *newpath)
++{
++#ifdef WIN32
++  /* rename() on Windows doesn't overwrite, so we can't use it here.
++     MoveFileExA() will overwrite and is usually atomic, however it fails
++     when there are open handles to the file. */
++  const int max_wait_ms = 1000;
++  struct curltime start = Curl_now();
++  for(;;) {
++    timediff_t diff;
++    if(MoveFileExA(oldpath, newpath, MOVEFILE_REPLACE_EXISTING))
++      break;
++    diff = Curl_timediff(Curl_now(), start);
++    if(diff < 0 || diff > max_wait_ms)
++      return 1;
++    Sleep(1);
++  }
++#else
++  if(rename(oldpath, newpath))
++    return 1;
++#endif
++  return 0;
++}
++
+ /*
+  * cookie_output()
+  *
+@@ -1581,7 +1605,7 @@ static int cookie_output(struct Curl_easy *data,
+   if(!use_stdout) {
+     fclose(out);
+     out = NULL;
+-    if(Curl_rename(tempstore, filename)) {
++    if(xrename(tempstore, filename)) {
+       unlink(tempstore);
+       goto error;
+     }
+diff --git a/lib/rename.c b/lib/rename.c
+deleted file mode 100644
+index fe5f95d0d..000000000
+--- a/lib/rename.c
++++ /dev/null
+@@ -1,71 +0,0 @@
+-/***************************************************************************
+- *                                  _   _ ____  _
+- *  Project                     ___| | | |  _ \| |
+- *                             / __| | | | |_) | |
+- *                            | (__| |_| |  _ <| |___
+- *                             \___|\___/|_| \_\_____|
+- *
+- * Copyright (C) 2020, Daniel Stenberg, <daniel@haxx.se>, et al.
+- *
+- * This software is licensed as described in the file COPYING, which
+- * you should have received as part of this distribution. The terms
+- * are also available at https://curl.haxx.se/docs/copyright.html.
+- *
+- * You may opt to use, copy, modify, merge, publish, distribute and/or sell
+- * copies of the Software, and permit persons to whom the Software is
+- * furnished to do so, under the terms of the COPYING file.
+- *
+- * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
+- * KIND, either express or implied.
+- *
+- ***************************************************************************/
+-
+-#include "rename.h"
+-
+-#include "curl_setup.h"
+-
+-#if (!defined(CURL_DISABLE_HTTP) && !defined(CURL_DISABLE_COOKIES)) ||  \
+-  defined(USE_ALTSVC)
+-
+-#include "curl_multibyte.h"
+-#include "timeval.h"
+-
+-/* The last 3 #include files should be in this order */
+-#include "curl_printf.h"
+-#include "curl_memory.h"
+-#include "memdebug.h"
+-
+-/* return 0 on success, 1 on error */
+-int Curl_rename(const char *oldpath, const char *newpath)
+-{
+-#ifdef WIN32
+-  /* rename() on Windows doesn't overwrite, so we can't use it here.
+-     MoveFileEx() will overwrite and is usually atomic, however it fails
+-     when there are open handles to the file. */
+-  const int max_wait_ms = 1000;
+-  struct curltime start = Curl_now();
+-  TCHAR *tchar_oldpath = curlx_convert_UTF8_to_tchar((char *)oldpath);
+-  TCHAR *tchar_newpath = curlx_convert_UTF8_to_tchar((char *)newpath);
+-  for(;;) {
+-    timediff_t diff;
+-    if(MoveFileEx(tchar_oldpath, tchar_newpath, MOVEFILE_REPLACE_EXISTING)) {
+-      curlx_unicodefree(tchar_oldpath);
+-      curlx_unicodefree(tchar_newpath);
+-      break;
+-    }
+-    diff = Curl_timediff(Curl_now(), start);
+-    if(diff < 0 || diff > max_wait_ms) {
+-      curlx_unicodefree(tchar_oldpath);
+-      curlx_unicodefree(tchar_newpath);
+-      return 1;
+-    }
+-    Sleep(1);
+-  }
+-#else
+-  if(rename(oldpath, newpath))
+-    return 1;
+-#endif
+-  return 0;
+-}
+-
+-#endif
+diff --git a/lib/rename.h b/lib/rename.h
+deleted file mode 100644
+index d7442c844..000000000
+--- a/lib/rename.h
++++ /dev/null
+@@ -1,27 +0,0 @@
+-#ifndef HEADER_CURL_RENAME_H
+-#define HEADER_CURL_RENAME_H
+-/***************************************************************************
+- *                                  _   _ ____  _
+- *  Project                     ___| | | |  _ \| |
+- *                             / __| | | | |_) | |
+- *                            | (__| |_| |  _ <| |___
+- *                             \___|\___/|_| \_\_____|
+- *
+- * Copyright (C) 2020, Daniel Stenberg, <daniel@haxx.se>, et al.
+- *
+- * This software is licensed as described in the file COPYING, which
+- * you should have received as part of this distribution. The terms
+- * are also available at https://curl.haxx.se/docs/copyright.html.
+- *
+- * You may opt to use, copy, modify, merge, publish, distribute and/or sell
+- * copies of the Software, and permit persons to whom the Software is
+- * furnished to do so, under the terms of the COPYING file.
+- *
+- * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
+- * KIND, either express or implied.
+- *
+- ***************************************************************************/
+-
+-int Curl_rename(const char *oldpath, const char *newpath);
+-
+-#endif /* HEADER_CURL_RENAME_H */
+-- 
+2.30.0
+
