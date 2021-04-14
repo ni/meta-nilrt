@@ -23,6 +23,9 @@ SRC_URI += " \
 	file://0020-transfer.c-avoid-WSAIoctl-on-PHARLAP.patch \
 	file://0021-chkdecimalpoint-use-default-libs.patch \
 	file://0022-Revert-digest-Do-not-quote-algorithm-in-HTTP-authori.patch \
+	file://0023-Revert-altsvc-make-saving-the-cache-an-atomic-operat.patch \
+	file://0024-Revert-rename-a-new-file-for-Curl_rename.patch \
+	file://0025-Revert-cookies-make-saving-atomic-with-a-rename.patch \
 "
 
 SELECTED_OPTIMIZATION += "-Wno-deprecated-declarations"
