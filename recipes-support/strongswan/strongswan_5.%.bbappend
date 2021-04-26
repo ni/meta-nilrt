@@ -3,6 +3,8 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 SRC_URI += "file://ipsec.init \
 "
 
+PACKAGECONFIG += " eap-identity eap-mschapv2"
+
 inherit update-rc.d
 
 INITSCRIPT_NAME = "ipsec"
