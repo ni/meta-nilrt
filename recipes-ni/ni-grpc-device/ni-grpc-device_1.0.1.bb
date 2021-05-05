@@ -1,5 +1,5 @@
-SUMMARY = "gRPC server providing remote access to NI device driver APIs."
-DESCRIPTION = ""
+SUMMARY = "NI gRPC Device Server"
+DESCRIPTION = "gRPC server providing remote access to NI device driver APIs."
 HOMEPAGE = "https://github.com/ni/grpc-device"
 SECTION = "base"
 LICENSE = "MIT"
