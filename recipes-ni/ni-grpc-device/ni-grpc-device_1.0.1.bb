@@ -20,13 +20,6 @@ ${PN}_RELEASE_TAG = "v${PV}-rc1"
 
 S = "${WORKDIR}"
 
-DEPENDS += "\
-"
-
-RDEPENDS_${PN} += "\
-	python3 \
-"
-
 do_install_append () {
 	install -d ${D}${bindir}
 	install --mode=0755 --owner=0 --group=0 ${S}/${PN}-server/ni_grpc_device_server ${D}${bindir}
