@@ -2,8 +2,11 @@ SUMMARY = "NI gRPC Device Server"
 DESCRIPTION = "gRPC server providing remote access to NI device driver APIs."
 HOMEPAGE = "https://github.com/ni/grpc-device"
 SECTION = "base"
-LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
+LICENSE = "MIT & Apache-2.0"
+LIC_FILES_CHKSUM = "\
+	file://${PN}-server/LICENSE;md5=08ed4de411f83eee0363c9d12e31e92d \
+	file://${PN}-server/ThirdPartyNotices.txt;md5=6def9ca42f278e76d89243699fae2b67 \
+"
 
 SRC_URI = "\
 	https://github.com/ni/grpc-device/releases/download/${RELEASE_TAG}/ni-grpc-device-server-ni-linux-rt-x64.tar.gz;name=release-server-tar;downloadfilename=${PN}_${RELEASE_TAG}.tar.gz;subdir=${PN}-server \
