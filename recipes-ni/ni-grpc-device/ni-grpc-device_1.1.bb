@@ -11,6 +11,10 @@ LIC_FILES_CHKSUM = "\
 SRC_URI = "\
 	https://github.com/ni/grpc-device/releases/download/${RELEASE_TAG}/ni-grpc-device-server-ni-linux-rt-x64.tar.gz;name=release-server-tar;downloadfilename=${PN}_${RELEASE_TAG}.tar.gz;subdir=${PN}-server \
 	https://github.com/ni/grpc-device/releases/download/${RELEASE_TAG}/ni-grpc-device-client.tar.gz;name=release-client-tar;downloadfilename=${PN}-client_${PN}_${RELEASE_TAG}.tar.gz;subdir=${PN}-client \
+	file://enumerate-device.py \
+	file://run-ptest \
+	file://session_pb2_grpc.py \
+	file://session_pb2.py \
 "
 
 SRC_URI[release-server-tar.md5sum] = "0385d3b2f42a8be7bdc35d399ff4cdbd"
@@ -33,4 +37,16 @@ do_install_append () {
 	# package .proto files from the -client archive for use by developers
 	install -d ${D}${includedir}/${PN}
 	install --mode 644 --owner=0 --group=0 ${S}/${PN}-client/proto/*.proto ${D}${includedir}/${PN}/
+}
+
+inherit ptest
+
+RDEPENDS_${PN}-ptest += "${PN} bash python3-grpcio"
+
+do_install_ptest_append () {
+	install -d ${D}${PTEST_PATH}
+	install -m 0644 ${S}/enumerate-device.py ${D}${PTEST_PATH}/
+	install -m 0755 ${S}/run-ptest ${D}${PTEST_PATH}/
+	install -m 0644 ${S}/session_pb2_grpc.py ${D}${PTEST_PATH}/
+	install -m 0644 ${S}/session_pb2.py ${D}${PTEST_PATH}/
 }
