@@ -1,0 +1,29 @@
+From ecf319099ad9956137dfa6bbc880f1363dffcdc1 Mon Sep 17 00:00:00 2001
+From: Alex Stewart <alex.stewart@ni.com>
+Date: Wed, 12 May 2021 08:03:37 -0500
+Subject: [PATCH] CMakeLists: only link win64 on windows
+
+Adding a link to ./imports/lib/win64 is not sane to do on Linux builds;
+restrict it to the WIN32-build-case.
+
+Signed-off-by: Alex Stewart <alex.stewart@ni.com>
+
+---
+ CMakeLists.txt | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 14bac57..6cad5ef 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -47,7 +47,9 @@ include_directories(
+   "./imports/include"
+   "./source"
+ )
+-link_directories("./imports/lib/win64")
++if(WIN32)
++  link_directories("./imports/lib/win64")
++endif()
+ 
+ #----------------------------------------------------------------------
+ # Get list of NI Driver APIs and directories to generate from

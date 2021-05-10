@@ -1,0 +1,28 @@
+From 23a4b47a758c4d5de3f7b6cb3c37fc0d908c18aa Mon Sep 17 00:00:00 2001
+From: Alex Stewart <alex.stewart@ni.com>
+Date: Mon, 10 May 2021 23:09:38 +0000
+Subject: [PATCH] CMakeLists.txt: remove local protobuf includes
+
+When building grpc from within OE, protobuf is supplied by the native
+sysroot. Do not add an includes path to the un-checked-out submodule.
+
+Signed-off-by: Alex Stewart <alex.stewart@ni.com>
+
+Upstream-Status: Inappropriate [Would break non-cross-compile builds]
+
+---
+ CMakeLists.txt | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b187fa4..eb8987b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -132,7 +132,6 @@ function(GenerateGrpcSources proto_file proto_path proto_srcs proto_hdrs grpc_sr
+     ARGS --grpc_out "${proto_out_path}"
+       --cpp_out "${proto_out_path}"
+       -I "${proto_path}"
+-      -I ${CMAKE_SOURCE_DIR}/third_party/grpc/third_party/protobuf/src/
+       -I ${CMAKE_SOURCE_DIR}/source/protobuf
+       --plugin=protoc-gen-grpc="${_GRPC_CPP_PLUGIN_EXECUTABLE}"
+       "${proto_file}"
