@@ -8,6 +8,8 @@ exec 0<&-
 exec 2>&1
 
 TEST_NAME="grpcio_smoke_ptest"
+DAEMON="/usr/bin/ni_grpc_device_server"
+CONFIG="/usr/share/ni-grpc-device/server_config.json.example"
 
 error_exit_handler () {
     set +e
@@ -20,11 +22,22 @@ error_exit_handler () {
 
 trap 'error_exit_handler ${LINENO} "$BASH_COMMAND"' ERR
 
+# Check server files
+[ -f "$DAEMON" ]
+[ -x "$DAEMON" ]
+
+# Start the daemon in the background
+$DAEMON $CONFIG >/dev/null 2>&1 &
+DAEMON_PID=$!
+
 # Run the python code and expect the server to respond with a known error message
 # about the NI System Configuration API not being installed.  The API is not
 # required, the fact that the server responds is enough for the test to pass.
 testtxt=`python enumerate-device.py`
 [ "$testtxt" == "The NI System Configuration API is not installed on the server." ]
+
+# Stop the server since this test started it
+kill $DAEMON_PID
 
 echo "PASS: $TEST_NAME"
 exit 0
