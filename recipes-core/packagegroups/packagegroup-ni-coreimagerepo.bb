@@ -21,6 +21,7 @@ RDEPENDS_${PN} = "\
 	apache-websocket \
 	apr-iconv \
 	dkms \
+	ni-grpc-device \
 "
 
 RDEPENDS_${PN}_append_x64 = "\
