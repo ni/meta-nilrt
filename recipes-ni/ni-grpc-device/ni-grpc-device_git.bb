@@ -37,14 +37,17 @@ S = "${WORKDIR}/git"
 inherit cmake python3native
 
 EXTRA_OECMAKE += "-DCMAKE_BUILD_TYPE=Release"
-
 OECMAKE_TARGET_COMPILE = "ni_grpc_device_server"
 
 
 inherit ptest
 
-RDEPENDS_${PN}-ptest += "${PN} bash python3-grpcio"
 BUILD_PTEST = "${B}/ptest"
+RDEPENDS_${PN}-ptest += "\
+	${PN} \
+	bash \
+	python3-grpcio \
+"
 
 do_compile_ptest_append () {
 	install -d ${BUILD_PTEST}
