@@ -1,4 +1,4 @@
-From ecf319099ad9956137dfa6bbc880f1363dffcdc1 Mon Sep 17 00:00:00 2001
+From 4e84481e6ec524cc6cfa8fa37c914d4bd63ca1e3 Mon Sep 17 00:00:00 2001
 From: Alex Stewart <alex.stewart@ni.com>
 Date: Wed, 12 May 2021 08:03:37 -0500
 Subject: [PATCH] CMakeLists: only link win64 on windows
@@ -8,15 +8,17 @@ restrict it to the WIN32-build-case.
 
 Signed-off-by: Alex Stewart <alex.stewart@ni.com>
 
+Upstream-Status: Pending
+
 ---
  CMakeLists.txt | 4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 14bac57..6cad5ef 100644
+index 3081b59..df0f980 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -47,7 +47,9 @@ include_directories(
+@@ -56,7 +56,9 @@ include_directories(
    "./imports/include"
    "./source"
  )
