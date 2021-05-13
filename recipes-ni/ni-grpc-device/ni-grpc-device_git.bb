@@ -20,13 +20,9 @@ DEPENDS += "\
 BPV = "1.1"
 PV = "${BPV}+git${SRCPV}"
 
-SRC_URI = " \
+SRC_URI = "\
 	git://github.com/ni/grpc-device.git;name=grpc-device;branch=${SRCBRANCH} \
-	file://0001-CMakeLists.txt-search-for-host-tools-when-cross-comp.patch \
-	file://0002-CMakeLists-only-link-win64-on-windows.patch \
-	file://0003-CMakeLists-fixup-RPATH.patch \
-	file://0004-nilrt-x86_64.cmake-set-legacy-toolchain-variable.patch \
-	file://0005-CMakeLists.txt-remove-local-protobuf-includes.patch \
+	file://0001-CMakeLists.txt-remove-local-protobuf-includes.patch \
 	file://ptest \
 "
 
