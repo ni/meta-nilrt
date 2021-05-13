@@ -1,4 +1,4 @@
-From ed8058aa5979e73e4f4548622e634028920f07ea Mon Sep 17 00:00:00 2001
+From 5beb04fda1a29cd1c82a3177564415845bf40ba5 Mon Sep 17 00:00:00 2001
 From: Alex Stewart <alex.stewart@ni.com>
 Date: Mon, 10 May 2021 23:09:38 +0000
 Subject: [PATCH] CMakeLists.txt: remove local protobuf includes
@@ -15,7 +15,7 @@ Upstream-Status: Inappropriate [Would break non-cross-compile builds]
  1 file changed, 1 deletion(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 5de7e71..92d103f 100644
+index 656909d..4be9fd3 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -141,7 +141,6 @@ function(GenerateGrpcSources proto_file proto_path proto_srcs proto_hdrs grpc_sr
