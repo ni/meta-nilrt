@@ -1,4 +1,4 @@
-From 7ded2f72e73e5ef4f4380785c081346de5981c0d Mon Sep 17 00:00:00 2001
+From a2cfe85faa6c5248bffa0f51ea5172a846f77027 Mon Sep 17 00:00:00 2001
 From: Alex Stewart <alex.stewart@ni.com>
 Date: Wed, 12 May 2021 08:05:05 -0500
 Subject: [PATCH] CMakeLists: fixup RPATH
@@ -15,15 +15,17 @@ paths.
 
 Signed-off-by: Alex Stewart <alex.stewart@ni.com>
 
+Upstream-Status: Pending
+
 ---
  CMakeLists.txt | 2 ++
  1 file changed, 2 insertions(+)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 6cad5ef..b187fa4 100644
+index df0f980..5de7e71 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -189,6 +189,8 @@ target_link_libraries(ni_grpc_device_server
+@@ -198,6 +198,8 @@ target_link_libraries(ni_grpc_device_server
     nlohmann_json::nlohmann_json
     )
  
