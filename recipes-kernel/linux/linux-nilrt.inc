@@ -3,7 +3,7 @@ require recipes-kernel/linux/linux-yocto.inc
 
 machine_srcrev="${SRCREV}"
 
-LINUX_VERSION_EXTENSION = "-ni"
+LINUX_VERSION_EXTENSION = "$([ "${LINUX_KERNEL_TYPE}" != "standard" ] && echo '-${LINUX_KERNEL_TYPE}')"
 
 # Setting EXTRA_OEMAKE to include CFLAGS settings is required as
 # the Kbuild system will clobber CC (which is used by OE for setting
