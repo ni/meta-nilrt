@@ -11,7 +11,6 @@ machine_srcrev="${SRCREV}"
 # Provide a unique name for each recipe saved in the same source folder
 KBUILD_FRAGMENTS_LOCATION ?= "nilrt"
 
-# Set the version for traceability purposes
 LINUX_VERSION_EXTENSION = "$([ "${LINUX_KERNEL_TYPE}" != "standard" ] && echo '-${LINUX_KERNEL_TYPE}')"
 
 # Setting EXTRA_OEMAKE to include CFLAGS settings is required as
