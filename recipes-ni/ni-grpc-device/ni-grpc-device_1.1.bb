@@ -17,13 +17,13 @@ SRC_URI = "\
 	file://session_pb2.py \
 "
 
-SRC_URI[release-server-tar.md5sum] = "0385d3b2f42a8be7bdc35d399ff4cdbd"
-SRC_URI[release-server-tar.sha256sum] = "a901fc43a3e6dd1bbf97fc538c3cc0964510c6779fe76fbe609219c5e4a9906a"
-SRC_URI[release-client-tar.md5sum] = "d0ebf80b0a0dd72e348c718be156c6e6"
-SRC_URI[release-client-tar.sha256sum] = "d3039250da01c1b39c58060374e8866f5dc5ef852f97369adfe0d88eea7f6d97"
+SRC_URI[release-server-tar.md5sum] = "27d8b2976e6253a2bcbee6330ffc24cf"
+SRC_URI[release-server-tar.sha256sum] = "e68feaeaf6f9a3a3be3fd572c0d213531958dcd3ca8d33ccce57093b64f2747f"
+SRC_URI[release-client-tar.md5sum] = "9e14d407c530825c80e7a39507a59b08"
+SRC_URI[release-client-tar.sha256sum] = "4a8bdd02821301ebf41945943efdfc25439e30c43a62b3ec42dd5feccdbdf868"
 
 PV = "1.1.0"
-RELEASE_TAG = "v1.1.0-internal"
+RELEASE_TAG = "v1.1.0-rc1"
 
 S = "${WORKDIR}"
 
