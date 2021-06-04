@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# redirect all stderr to stdout to maintain ordering of output
+exec 2>&1
+
+# disable tracing
+echo 0 > "/sys/kernel/debug/tracing/tracing_on"
+
+# move kernel worqueue threads to CPU 0
+for file in `find /sys/devices/virtual/workqueue -name "cpumask"`; do
+    echo 1 > "$file" 2>/dev/null
+done
+
+# delay the vmstat timer far away
+sysctl vm.stat_interval=999
+
+# start background scheduler load
+hackbench -l 36000000 -g 10 > /dev/null &
+
+# run test
+./nohz_test --max=6000 --p3nines=250 --p4nines=3000 --duration=24h
+RESULT="$?"
+
+# cleanup
+killall -INT hackbench > /dev/null
+
+exit $RESULT
