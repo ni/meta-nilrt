@@ -1,0 +1,35 @@
+From 79dfc384960769aa48069ebcbd7adfc496cc85ab Mon Sep 17 00:00:00 2001
+From: Bill Pittman <bill.pittman@ni.com>
+Date: Wed, 9 Jun 2021 23:05:42 +0000
+Subject: [opkg][opkg-0.4.5 PATCH] opkg_conf.c: Verify directory exists before
+ delete
+To: opkg-devel@googlegroups.com
+Cc: alex.stewart@ni.com
+
+Avoid unnecessary error when removing non-existent directory,
+read-only commands do not create temp directories.
+
+Signed-off-by: Bill Pittman <bill.pittman@ni.com>
+Signed-off-by: Alex Stewart <alex.stewart@ni.com>
+
+Upstream-Status: Accepted [https://groups.google.com/g/opkg-devel/c/qGqOkihnI3Q]
+---
+ libopkg/opkg_conf.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libopkg/opkg_conf.c b/libopkg/opkg_conf.c
+index b49f5fb6b6e942aeaaea82b9759d1d94e982b52e..39aafedd5d678a99cd4b39f63c2228ac02cc1130 100644
+--- a/libopkg/opkg_conf.c
++++ b/libopkg/opkg_conf.c
+@@ -918,7 +918,7 @@ void opkg_conf_deinit(void)
+     if (opkg_config->tmp_dir)
+         rm_r(opkg_config->tmp_dir);
+ 
+-    if (opkg_config->volatile_cache)
++    if (opkg_config->volatile_cache && file_exists(opkg_config->cache_dir))
+         rm_r(opkg_config->cache_dir);
+ 
+     free(opkg_config->dest_str);
+-- 
+2.32.0
+
