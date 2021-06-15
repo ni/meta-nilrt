@@ -1,5 +1,5 @@
 DESCRIPTION = "Linux kernel based on nilrt branch"
-NI_RELEASE_VERSION = "master"
+NI_RELEASE_VERSION = "21.0"
 LINUX_VERSION = "4.14"
 
 require linux-nilrt.inc
