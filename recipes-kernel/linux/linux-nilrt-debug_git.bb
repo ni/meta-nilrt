@@ -1,5 +1,5 @@
 DESCRIPTION = "NILRT linux kernel debug build"
-NI_RELEASE_VERSION = "master"
+NI_RELEASE_VERSION = "21.0"
 LINUX_VERSION = "4.14"
 LINUX_KERNEL_TYPE = "debug"
 
