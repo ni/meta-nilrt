@@ -1,0 +1,29 @@
+Panic#2 Part4
+<6>[    0.899116] sdhci: Secure Digital Host Controller Interface driver
+<6>[    0.899116] sdhci: Copyright(c) Pierre Ossman
+<6>[    0.899126] EFI Variables Facility v0.08 2004-May-17
+<6>[    0.899514] pstore: using zlib compression
+<6>[    0.899515] pstore: Registered efi as persistent store backend
+<6>[    0.899520] hidraw: raw HID events driver (C) Jiri Kosina
+<6>[    0.899531] usbcore: registered new interface driver usbhid
+<6>[    0.899531] usbhid: USB HID core driver
+<6>[    0.899573] NET: Registered protocol family 17
+<5>[    0.899580] Key type dns_resolver registered
+<3>[    0.899581] mce: Unable to init MCE device (rc: -5)
+<6>[    0.901224] rtc_cmos 00:00: setting system clock to 2021-06-17 15:02:53 UTC (1623942173)
+<6>[    0.901225] BIOS EDD facility v0.16 2004-Jun-25, 0 devices found
+<6>[    0.901225] EDD information not available.
+<7>[    0.960783] ata1.01: NODEV after polling detection
+<6>[    0.961204] ata1.00: ATA-7: QEMU HARDDISK, 2.5+, max UDMA/100
+<6>[    0.961206] ata1.00: 20971520 sectors, multi 16: LBA48 
+<6>[    0.961883] ata1.00: configured for MWDMA2
+<5>[    0.962024] scsi 0:0:0:0: Direct-Access     ATA      QEMU HARDDISK    2.5+ PQ: 0 ANSI: 5
+<5>[    0.962194] sd 0:0:0:0: [sda] 20971520 512-byte logical blocks: (10.7 GB/10.0 GiB)
+<5>[    0.962199] sd 0:0:0:0: [sda] Write Protect is off
+<7>[    0.962200] sd 0:0:0:0: [sda] Mode Sense: 00 3a 00 00
+<5>[    0.962209] sd 0:0:0:0: [sda] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+<6>[    0.965297]  sda: sda1 sda2 sda3 sda4
+<5>[    0.965594] sd 0:0:0:0: [sda] Attached SCSI disk
+<6>[    1.035177] EXT4-fs (sda4): recovery complete
+<6>[    1.036050] EXT4-fs (sda4): mounted filesystem with ordered data mode. Opts: (null)
+<6>[    1.036055] VFS: Mounted root (ext4 filesystem) on device 8:4.

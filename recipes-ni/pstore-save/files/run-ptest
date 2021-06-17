@@ -1,0 +1,53 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# close stdin
+exec 0<&-
+
+# redirect stderr to stdout
+exec 2>&1
+
+TEST_NAME="pstore_save_ptest"
+DATADIR=/usr/lib/pstore-save/ptest
+ARCHIVEDIR=$(mktemp -d "/tmp/pstore-save-XXXXXXX")
+
+cleanup () {
+    rm -rf "${ARCHIVEDIR}"
+}
+
+error_exit_handler () {
+    set +e
+    local lineno=$1
+    local msg=$2
+    cleanup
+    echo "ERROR on line $lineno: $msg" 1>&2
+    echo "FAIL: $TEST_NAME"
+    exit 1
+}
+
+trap 'error_exit_handler ${LINENO} "$BASH_COMMAND"' ERR
+
+# Run pstore-save on the test data directory.
+# Add -k to not unlink the test data files.
+SOURCEDIR=${DATADIR}/src
+EXPECTEDDIR=${DATADIR}/expected
+EXPECTED_DATE=20210617_163840
+
+/usr/sbin/pstore-save -s $SOURCEDIR -a $ARCHIVEDIR -k > $ARCHIVEDIR/stdout.txt
+echo "pstore-save: Saving prior dmesg from crash to ${ARCHIVEDIR}/${EXPECTED_DATE}" > $ARCHIVEDIR/expected_stdout.txt
+diff -q "${ARCHIVEDIR}/expected_stdout.txt" "${ARCHIVEDIR}/stdout.txt"
+
+# source chunks should have been moved into a directory with date
+for file in ${SOURCEDIR}/dmesg-efi-*; do
+    diff -q "$file" "${ARCHIVEDIR}/${EXPECTED_DATE}/$(basename $file)"
+done
+
+# the source data should result in two oopses
+diff -q "${EXPECTEDDIR}/dmesg-001.txt" "${ARCHIVEDIR}/${EXPECTED_DATE}/dmesg-001.txt"
+diff -q "${EXPECTEDDIR}/dmesg-002.txt" "${ARCHIVEDIR}/${EXPECTED_DATE}/dmesg-002.txt"
+
+cleanup
+
+echo "PASS: $TEST_NAME"
+exit 0

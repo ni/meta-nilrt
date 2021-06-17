@@ -1,0 +1,34 @@
+Oops#1 Part11
+<6>[    0.543517] acpi PNP0A03:00: _OSC: OS supports [Segments MSI]
+<6>[    0.543520] acpi PNP0A03:00: _OSC failed (AE_NOT_FOUND); disabling ASPM
+<4>[    0.543523] acpi PNP0A03:00: fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge.
+<6>[    0.543598] acpiphp: Slot [3] registered
+<6>[    0.543628] acpiphp: Slot [4] registered
+<6>[    0.543666] acpiphp: Slot [6] registered
+<6>[    0.543694] acpiphp: Slot [7] registered
+<6>[    0.543723] acpiphp: Slot [8] registered
+<6>[    0.543751] acpiphp: Slot [9] registered
+<6>[    0.543780] acpiphp: Slot [10] registered
+<6>[    0.543809] acpiphp: Slot [11] registered
+<6>[    0.543837] acpiphp: Slot [12] registered
+<6>[    0.543866] acpiphp: Slot [13] registered
+<6>[    0.543894] acpiphp: Slot [14] registered
+<6>[    0.543923] acpiphp: Slot [15] registered
+<6>[    0.543952] acpiphp: Slot [16] registered
+<6>[    0.543980] acpiphp: Slot [17] registered
+<6>[    0.544009] acpiphp: Slot [18] registered
+<6>[    0.544037] acpiphp: Slot [19] registered
+<6>[    0.544065] acpiphp: Slot [20] registered
+<6>[    0.544094] acpiphp: Slot [21] registered
+<6>[    0.544122] acpiphp: Slot [22] registered
+<6>[    0.544151] acpiphp: Slot [23] registered
+<6>[    0.544179] acpiphp: Slot [24] registered
+<6>[    0.544208] acpiphp: Slot [25] registered
+<6>[    0.544236] acpiphp: Slot [26] registered
+<6>[    0.544264] acpiphp: Slot [27] registered
+<6>[    0.544293] acpiphp: Slot [28] registered
+<6>[    0.544322] acpiphp: Slot [29] registered
+<6>[    0.544350] acpiphp: Slot [30] registered
+<6>[    0.544379] acpiphp: Slot [31] registered
+<6>[    0.544389] PCI host bridge to bus 0000:00
+<6>[    0.544390] pci_bus 0000:00: root bus resource [io  0x0000-0x0cf7 window]

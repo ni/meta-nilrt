@@ -1,0 +1,30 @@
+Panic#2 Part12
+<6>[    0.160008] Performance Events: no PMU driver, software events only.
+<6>[    0.200003] Hierarchical SRCU implementation.
+<5>[    0.260132] random: crng done (trusting CPU's manufacturer)
+<6>[    0.280003] smp: Bringing up secondary CPUs ...
+<6>[    0.380045] x86: Booting SMP configuration:
+<6>[    0.380046] .... node  #0, CPUs:      #1
+<6>[    0.540093] smp: Brought up 1 node, 2 CPUs
+<6>[    0.540094] smpboot: Total of 2 processors activated (15203.71 BogoMIPS)
+<6>[    0.540412] devtmpfs: initialized
+<6>[    0.540565] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
+<6>[    0.540568] futex hash table entries: 512 (order: 3, 32768 bytes)
+<6>[    0.540605] pinctrl core: initialized pinctrl subsystem
+<6>[    0.540739] NET: Registered protocol family 16
+<6>[    0.540862] cpuidle: using governor ladder
+<6>[    0.540893] ACPI: bus type PCI registered
+<6>[    0.540894] acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
+<6>[    0.540972] PCI: Using configuration type 1 for base access
+<6>[    0.541792] ACPI: Added _OSI(Module Device)
+<6>[    0.541792] ACPI: Added _OSI(Processor Device)
+<6>[    0.541793] ACPI: Added _OSI(3.0 _SCP Extensions)
+<6>[    0.541793] ACPI: Added _OSI(Processor Aggregator Device)
+<6>[    0.542244] ACPI: Interpreter enabled
+<6>[    0.542247] ACPI: (supports S0 S5)
+<6>[    0.542247] ACPI: Using IOAPIC for interrupt routing
+<6>[    0.542253] PCI: Using host bridge windows from ACPI; if necessary, use "pci=nocrs" and report a bug
+<6>[    0.542336] ACPI: Enabled 2 GPEs in block 00 to 0F
+<6>[    0.543515] ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
+<6>[    0.543517] acpi PNP0A03:00: _OSC: OS supports [Segments MSI]
+<6>[    0.543520] acpi PNP0A03:00: _OSC failed (AE_NOT_FOUND); disabling ASPM

@@ -1,0 +1,29 @@
+Oops#1 Part8
+<6>[    0.573158] vgaarb: loaded
+<5>[    0.573194] SCSI subsystem initialized
+<7>[    0.573249] libata version 3.00 loaded.
+<6>[    0.573259] ACPI: bus type USB registered
+<6>[    0.573267] usbcore: registered new interface driver usbfs
+<6>[    0.573271] usbcore: registered new interface driver hub
+<6>[    0.573282] usbcore: registered new device driver usb
+<6>[    0.573289] pps_core: LinuxPPS API ver. 1 registered
+<6>[    0.573289] pps_core: Software ver. 5.3.6 - Copyright 2005-2007 Rodolfo Giometti <giometti@linux.it>
+<6>[    0.573291] PTP clock support registered
+<6>[    0.573307] Registered efivars operations
+<6>[    0.573580] PCI: Using ACPI for IRQ routing
+<7>[    0.573581] PCI: pci_cache_line_size set to 64 bytes
+<7>[    0.573766] e820: reserve RAM buffer [mem 0x3e8da000-0x3fffffff]
+<7>[    0.573767] e820: reserve RAM buffer [mem 0x3e9ee000-0x3fffffff]
+<7>[    0.573768] e820: reserve RAM buffer [mem 0x3fb9b000-0x3fffffff]
+<7>[    0.573768] e820: reserve RAM buffer [mem 0x3ffe0000-0x3fffffff]
+<6>[    0.573957] clocksource: Switched to clocksource refined-jiffies
+<6>[    0.581399] pnp: PnP ACPI init
+<7>[    0.581419] pnp 00:00: Plug and Play ACPI device, IDs PNP0b00 (active)
+<7>[    0.581432] pnp 00:01: Plug and Play ACPI device, IDs PNP0303 (active)
+<7>[    0.581442] pnp 00:02: Plug and Play ACPI device, IDs PNP0f13 (active)
+<7>[    0.581446] pnp 00:03: [dma 2]
+<7>[    0.581450] pnp 00:03: Plug and Play ACPI device, IDs PNP0700 (active)
+<7>[    0.581492] pnp 00:04: Plug and Play ACPI device, IDs PNP0501 (active)
+<6>[    0.581602] pnp: PnP ACPI: found 5 devices
+<6>[    0.588271] clocksource: acpi_pm: mask: 0xffffff max_cycles: 0xffffff, max_idle_ns: 2085701024 ns
+<6>[    0.588293] clocksource: Switched to clocksource acpi_pm

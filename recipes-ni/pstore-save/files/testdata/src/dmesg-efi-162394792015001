@@ -1,0 +1,28 @@
+Oops#1 Part15
+<6>[    0.000000]   node   0: [mem 0x000000003eb1b000-0x000000003fb9afff]
+<6>[    0.000000]   node   0: [mem 0x000000003fbff000-0x000000003ffdffff]
+<6>[    0.000000] Initmem setup node 0 [mem 0x0000000000001000-0x000000003ffdffff]
+<7>[    0.000000] On node 0 totalpages: 261613
+<7>[    0.000000]   DMA zone: 64 pages used for memmap
+<7>[    0.000000]   DMA zone: 2040 pages reserved
+<7>[    0.000000]   DMA zone: 3999 pages, LIFO batch:0
+<7>[    0.000000]   DMA32 zone: 4032 pages used for memmap
+<7>[    0.000000]   DMA32 zone: 257614 pages, LIFO batch:31
+<6>[    0.000000] ACPI: PM-Timer IO Port: 0xb008
+<7>[    0.000000] ACPI: Local APIC address 0xfee00000
+<6>[    0.000000] ACPI: LAPIC_NMI (acpi_id[0xff] dfl dfl lint[0x1])
+<6>[    0.000000] IOAPIC[0]: apic_id 0, version 17, address 0xfec00000, GSI 0-23
+<6>[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+<6>[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 5 global_irq 5 high level)
+<6>[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
+<6>[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 10 global_irq 10 high level)
+<6>[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 11 global_irq 11 high level)
+<7>[    0.000000] ACPI: IRQ0 used by override.
+<7>[    0.000000] ACPI: IRQ5 used by override.
+<7>[    0.000000] ACPI: IRQ9 used by override.
+<7>[    0.000000] ACPI: IRQ10 used by override.
+<7>[    0.000000] ACPI: IRQ11 used by override.
+<6>[    0.000000] Using ACPI (MADT) for SMP configuration information
+<6>[    0.000000] smpboot: Allowing 2 CPUs, 0 hotplug CPUs
+<6>[    0.000000] e820: [mem 0x40000000-0xffffffff] available for PCI devices
+<6>[    0.000000] clocksource: refined-jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
