@@ -1,0 +1,144 @@
+#!/bin/bash
+
+# Copyright (c) 2021 National Instruments
+#
+# SPDX-License-Identifier: MIT
+#
+# This script retrieves data from "pstore", which is a persistent
+# storage interface that the kernel can use to store "last breath"
+# crash information. On x64 targets, this takes the form of EFI
+# variables. Because there is limited space available in pstore,
+# this script is intended to run on boot to archive such information
+# to disk.
+#
+# By default, dmesg information from last boot is reconstructed in
+#    /var/lib/pstore/YYYYMMDD_hhmmss/dmesg-nnn.txt
+#
+# This script is largely inspired by (and obsoleted by) systemd-pstore,
+# added in systemd 243.
+
+set -euo pipefail
+
+SCRIPTNAME=$(basename "$0")
+
+UNLINK=1
+SOURCEDIR="/sys/fs/pstore"
+ARCHIVEDIR="/var/lib/pstore"
+
+function print_usage_and_die () {
+    cat >&2 <<ENDUSAGE
+$0 [-a archivedir] [-k] [-s sourcedir] [-d]
+   -a     output directory for pstore data ($ARCHIVEDIR)
+   -k     keep pstore data (default: remove from pstore)
+   -s     source directory ($SOURCEDIR)
+ENDUSAGE
+    exit 1
+}
+
+while getopts "ha:ks:" arg; do
+    case ${arg} in
+    a)  ARCHIVEDIR=${OPTARG} ;;
+    k)  UNLINK=0 ;;
+    s)  SOURCEDIR=${OPTARG} ;;
+    h|?) print_usage_and_die ;;
+    esac
+done
+
+function log_msg () {
+    echo "$SCRIPTNAME: $@"
+}
+
+function log_error () {
+    echo "$SCRIPTNAME: $@" >&2
+}
+
+# move_file <src> <dst-subdir>
+function move_file () {
+    if ! mkdir -p -m 0755 "${ARCHIVEDIR}/${2}"; then
+        log_error "Failed to create ${ARCHIVEDIR}/${2}"
+        return 1
+    fi
+
+    if ! cp -a "$1" "${ARCHIVEDIR}/${2}"; then
+        log_error "Failed to copy ${1} to ${ARCHIVEDIR}/${2}"
+        return 1
+    fi
+
+    if [ $UNLINK -ne 0 ]; then
+        rm "$1" || true
+    fi
+}
+
+function check_for_mount () {
+    # If the source directory is /sys/fs/pstore, make sure that
+    # it has been mounted, and mount it if it has not. (If the
+    # source directory is not /sys/fs/pstore, you're on your own.)
+    if [ "${SOURCEDIR}" = "/sys/fs/pstore" ]; then
+        # check /proc/mtab for mounts
+        if ! grep "/sys/fs/pstore" "/proc/mounts"; then
+            if ! mount -t pstore pstore "/sys/fs/pstore"; then
+                log_error "/sys/fs/pstore wasn't mounted and can't be mounted"
+            fi
+        fi
+    fi
+}
+
+function process_dmesg_files () {
+    declare -A LOGGED_TIMESTAMPS
+
+    # The efi-pstore backend stores dmesg text as compressed chunks in
+    # EFI variables as a backing store; if the backend is unable to
+    # decompress a variable on retrieval, the resulting entry in
+    # /sys/fs/pstore has the extension ".enc.z". We take that to mean
+    # that the result is probably not text and that we shouldn't try to
+    # do anything to process it automatically, so all we can do is move
+    # them out of pstore and into the archive.
+    find "${SOURCEDIR}" -type f -name 'dmesg-*.enc.z' -print0 | sort -z | while IFS= read -r -d '' file; do
+        move_file "$file" ""
+    done
+
+    # Now find all the other files that start with "dmesg-".
+
+    # The files end with a record ID. For the EFI backend, this is defined as
+    #   generic_id = (timestamp * 100 + part) * 1000 + count
+    # which means we have a timestamp + two-digit part + three-digit oops count
+    #
+    # We want to put all these files in a subdirectory corresponding to the timestamp.
+    # Unfortunately the order here is kind of a pain, because it doesn't match up with
+    # sorted filesystem order.
+    find "${SOURCEDIR}" -type f -name 'dmesg-*' -and -not -name 'dmesg-*.enc.z' -print0 | sort -r -z | while IFS= read -r -d '' file; do
+        basefile=$(basename "$file")
+        timestamp="$(echo "${basefile:0:(-5)}" | awk -F '-' '{print $(NF)}')"
+        part=${basefile:(-5):2}
+        oops=${basefile:(-3):3}
+        human_timestamp=$(date -u -d "@$timestamp" '+%Y%m%d_%H%M%S')
+        move_file "$file" "$human_timestamp"
+
+        # Try to reconstruct a coherant dmesg textfile.
+        # We want to skip over the first line in the file (which
+        # is a header that says something like "Oops#1 Part1").
+        # Appending works here because we're sorting filenames in
+        # reverse order, so we should get all the parts for each oops
+        # correctly.
+        tail "${ARCHIVEDIR}/${human_timestamp}/${basefile}" -n +2 >> \
+            "${ARCHIVEDIR}/${human_timestamp}/dmesg-${oops}.txt" || true
+
+        # Make sure that we log that we're saving something.
+        if [ "${LOGGED_TIMESTAMPS[$timestamp]:-0}" -ne 1 ]; then
+            LOGGED_TIMESTAMPS[$timestamp]=1
+            log_msg "Saving prior dmesg from crash to ${ARCHIVEDIR}/${human_timestamp}"
+        fi
+    done
+}
+
+function process_remaining_files () {
+    # Any files that do not start with "dmesg-" should have been processed
+    # already. We don't know what to do with any others, so just move them.
+    find "${SOURCEDIR}" -type f -not -name 'dmesg-*' -print0 | sort -z | while IFS= read -r -d '' file; do
+        move_file "$file" ""
+    done
+}
+
+check_for_mount
+process_dmesg_files
+process_remaining_files

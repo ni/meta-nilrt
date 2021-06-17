@@ -1,0 +1,26 @@
+Panic#2 Part13
+<6>[    0.020000] tsc: Detected 3799.989 MHz processor
+<6>[    0.020000] tsc: Marking TSC unstable due to TSCs unsynchronized
+<6>[    0.020000] Calibrating delay loop (skipped), value calculated using timer frequency.. 7599.97 BogoMIPS (lpj=37999890)
+<6>[    0.020000] pid_max: default: 32768 minimum: 301
+<6>[    0.020000] ACPI: Core revision 20170728
+<6>[    0.020000] ACPI: 1 ACPI AML tables successfully acquired and loaded
+<6>[    0.020000] Security Framework initialized
+<6>[    0.020000] Dentry cache hash table entries: 131072 (order: 9, 2097152 bytes)
+<6>[    0.020000] Inode-cache hash table entries: 65536 (order: 7, 524288 bytes)
+<6>[    0.020000] Mount-cache hash table entries: 2048 (order: 2, 16384 bytes)
+<6>[    0.020000] Mountpoint-cache hash table entries: 2048 (order: 2, 16384 bytes)
+<6>[    0.020000] mce: CPU supports 10 MCE banks
+<6>[    0.020000] mce: unknown CPU type - not enabling MCE support
+<6>[    0.020000] Last level iTLB entries: 4KB 0, 2MB 0, 4MB 0
+<6>[    0.020000] Last level dTLB entries: 4KB 0, 2MB 0, 4MB 0, 1GB 0
+<6>[    0.020000] Spectre V1 : Mitigation: usercopy/swapgs barriers and __user pointer sanitization
+<6>[    0.020000] Spectre V2 : off selected on command line.
+<6>[    0.020000] Speculative Store Bypass: Mitigation: Speculative Store Bypass disabled
+<6>[    0.020000] MDS: Vulnerable: Clear CPU buffers attempted, no microcode
+<6>[    0.020000] Freeing SMP alternatives memory: 24K
+<6>[    0.020000] smpboot: Max logical packages: 2
+<6>[    0.020000] x2apic: IRQ remapping doesn't support X2APIC mode
+<6>[    0.020000] ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
+<7>[    0.127877] TSC deadline timer enabled
+<6>[    0.127880] smpboot: CPU0: AuthenticAMD AMD EPYC Processor (with IBPB) (family: 0x17, model: 0x1, stepping: 0x2)

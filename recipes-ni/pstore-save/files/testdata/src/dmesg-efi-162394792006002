@@ -1,0 +1,30 @@
+Panic#2 Part6
+<6>[    0.748754] audit: initializing netlink subsys (disabled)
+<5>[    0.748810] audit: type=2000 audit(1623942172.739:1): state=initialized audit_enabled=0 res=1
+<6>[    0.748878] workingset: timestamp_bits=56 max_order=18 bucket_order=0
+<6>[    0.749462] squashfs: version 4.0 (2009/01/31) Phillip Lougher
+<6>[    0.750198] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 249)
+<6>[    0.750199] io scheduler noop registered
+<6>[    0.750200] io scheduler deadline registered
+<6>[    0.750209] io scheduler cfq registered (default)
+<6>[    0.750210] io scheduler mq-deadline registered
+<6>[    0.750210] io scheduler kyber registered
+<6>[    0.750274] efifb: probing for efifb
+<6>[    0.750278] efifb: framebuffer at 0x84000000, using 1920k, total 1920k
+<6>[    0.750279] efifb: mode is 800x600x32, linelength=3200, pages=1
+<6>[    0.750279] efifb: scrolling: redraw
+<6>[    0.750280] efifb: Truecolor: size=8:8:8:8, shift=24:16:8:0
+<6>[    0.751506] Console: switching to colour frame buffer device 100x37
+<6>[    0.752097] fb0: EFI VGA frame buffer device
+<6>[    0.752189] Serial: 8250/16550 driver, 0 ports, IRQ sharing enabled
+<6>[    0.776085] 00:04: ttyS0 at I/O 0x3f8 (irq = 4, base_baud = 115200) is a 16550A
+<6>[    0.778484] console [ttyS0] enabled
+<6>[    0.779618] brd: module loaded
+<6>[    0.780517] loop: module loaded
+<7>[    0.780617] ata_piix 0000:00:01.1: version 2.13
+<6>[    0.780989] scsi host0: ata_piix
+<6>[    0.781092] scsi host1: ata_piix
+<6>[    0.781104] ata1: PATA max MWDMA2 cmd 0x1f0 ctl 0x3f6 bmdma 0xc0e0 irq 14
+<6>[    0.781104] ata2: PATA max MWDMA2 cmd 0x170 ctl 0x376 bmdma 0xc0e8 irq 15
+<6>[    0.781157] tun: Universal TUN/TAP device driver, 1.6
+<6>[    0.781586] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver

@@ -1,0 +1,28 @@
+Panic#2 Part9
+<7>[    0.559625] pci 0000:00:03.0: reg 0x30: [mem 0xfffc0000-0xffffffff pref]
+<7>[    0.559784] pci 0000:00:04.0: [8086:2668] type 00 class 0x040300
+<7>[    0.560019] pci 0000:00:04.0: reg 0x10: [mem 0x88020000-0x88023fff]
+<7>[    0.561681] pci 0000:00:05.0: [8086:2934] type 00 class 0x0c0300
+<7>[    0.562837] pci 0000:00:05.0: reg 0x20: [io  0xc0a0-0xc0bf]
+<7>[    0.563393] pci 0000:00:05.1: [8086:2935] type 00 class 0x0c0300
+<7>[    0.564564] pci 0000:00:05.1: reg 0x20: [io  0xc080-0xc09f]
+<7>[    0.565171] pci 0000:00:05.2: [8086:2936] type 00 class 0x0c0300
+<7>[    0.567248] pci 0000:00:05.2: reg 0x20: [io  0xc060-0xc07f]
+<7>[    0.567833] pci 0000:00:05.7: [8086:293a] type 00 class 0x0c0320
+<7>[    0.568104] pci 0000:00:05.7: reg 0x10: [mem 0x88026000-0x88026fff]
+<7>[    0.569541] pci 0000:00:06.0: [1af4:1002] type 00 class 0x00ff00
+<7>[    0.570004] pci 0000:00:06.0: reg 0x10: [io  0xc040-0xc05f]
+<7>[    0.571594] pci 0000:00:06.0: reg 0x20: [mem 0x800000000-0x800003fff 64bit pref]
+<6>[    0.572736] ACPI: PCI Interrupt Link [LNKA] (IRQs 5 10 *11)
+<6>[    0.572812] ACPI: PCI Interrupt Link [LNKB] (IRQs 5 10 *11)
+<6>[    0.572881] ACPI: PCI Interrupt Link [LNKC] (IRQs 5 *10 11)
+<6>[    0.572950] ACPI: PCI Interrupt Link [LNKD] (IRQs 5 *10 11)
+<6>[    0.572991] ACPI: PCI Interrupt Link [LNKS] (IRQs *9)
+<6>[    0.573154] pci 0000:00:02.0: vgaarb: setting as boot VGA device
+<6>[    0.573156] pci 0000:00:02.0: vgaarb: VGA device added: decodes=io+mem,owns=io+mem,locks=none
+<6>[    0.573158] pci 0000:00:02.0: vgaarb: bridge control possible
+<6>[    0.573158] vgaarb: loaded
+<5>[    0.573194] SCSI subsystem initialized
+<7>[    0.573249] libata version 3.00 loaded.
+<6>[    0.573259] ACPI: bus type USB registered
+<6>[    0.573267] usbcore: registered new interface driver usbfs

@@ -1,0 +1,25 @@
+Panic#2 Part10
+<6>[    0.544392] pci_bus 0000:00: root bus resource [mem 0x40000000-0xfebfffff window]
+<6>[    0.544393] pci_bus 0000:00: root bus resource [mem 0x800000000-0x87fffffff window]
+<6>[    0.544394] pci_bus 0000:00: root bus resource [bus 00-ff]
+<7>[    0.544427] pci 0000:00:00.0: [8086:1237] type 00 class 0x060000
+<7>[    0.544816] pci 0000:00:01.0: [8086:7000] type 00 class 0x060100
+<7>[    0.545355] pci 0000:00:01.1: [8086:7010] type 00 class 0x010180
+<7>[    0.546675] pci 0000:00:01.1: reg 0x20: [io  0xc0e0-0xc0ef]
+<6>[    0.547174] pci 0000:00:01.1: legacy IDE quirk: reg 0x10: [io  0x01f0-0x01f7]
+<6>[    0.547174] pci 0000:00:01.1: legacy IDE quirk: reg 0x14: [io  0x03f6]
+<6>[    0.547175] pci 0000:00:01.1: legacy IDE quirk: reg 0x18: [io  0x0170-0x0177]
+<6>[    0.547175] pci 0000:00:01.1: legacy IDE quirk: reg 0x1c: [io  0x0376]
+<7>[    0.547300] pci 0000:00:01.3: [8086:7113] type 00 class 0x068000
+<6>[    0.547741] pci 0000:00:01.3: quirk: [io  0xb000-0xb03f] claimed by PIIX4 ACPI
+<6>[    0.547749] pci 0000:00:01.3: quirk: [io  0xb100-0xb10f] claimed by PIIX4 SMB
+<7>[    0.547929] pci 0000:00:02.0: [1b36:0100] type 00 class 0x030000
+<7>[    0.549296] pci 0000:00:02.0: reg 0x10: [mem 0x84000000-0x87ffffff]
+<7>[    0.550008] pci 0000:00:02.0: reg 0x14: [mem 0x80000000-0x83ffffff]
+<7>[    0.551178] pci 0000:00:02.0: reg 0x18: [mem 0x88024000-0x88025fff]
+<7>[    0.552337] pci 0000:00:02.0: reg 0x1c: [io  0xc0c0-0xc0df]
+<7>[    0.556574] pci 0000:00:02.0: reg 0x30: [mem 0xffff0000-0xffffffff pref]
+<6>[    0.556605] pci 0000:00:02.0: BAR 0: assigned to efifb
+<7>[    0.556728] pci 0000:00:03.0: [8086:100e] type 00 class 0x020000
+<7>[    0.557245] pci 0000:00:03.0: reg 0x10: [mem 0x88000000-0x8801ffff]
+<7>[    0.557635] pci 0000:00:03.0: reg 0x14: [io  0xc000-0xc03f]

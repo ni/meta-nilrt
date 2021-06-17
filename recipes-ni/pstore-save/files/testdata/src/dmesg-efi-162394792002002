@@ -1,0 +1,22 @@
+Panic#2 Part2
+<6>[    2.509696] input: AT Translated Set 2 keyboard as /devices/platform/i8042/serio0/input/input2
+<6>[    2.655528] e1000 0000:00:03.0 eth0: (PCI:33MHz:32-bit) 52:54:00:48:78:28
+<6>[    2.655534] e1000 0000:00:03.0 eth0: Intel(R) PRO/1000 Network Connection
+<12>[    2.855359] pstore-save: Saving prior dmesg from crash to /var/lib/pstore/1623942135
+<6>[    3.151993] input: ImExPS/2 Generic Explorer Mouse as /devices/platform/i8042/serio1/input/input4
+<6>[    4.573492] udc-core: couldn't find an available UDC - added [g_ether] to list of pending drivers
+<6>[    4.890499] e1000: eth0 NIC Link is Up 1000 Mbps Full Duplex, Flow Control: RX
+<6>[    5.220669] NET: Registered protocol family 10
+<6>[    5.226349] IPv6: ADDRCONF(NETDEV_UP): eth0: link is not ready
+<6>[    5.226411] Segment Routing with IPv6
+<6>[    7.280104] e1000: eth0 NIC Link is Up 1000 Mbps Full Duplex, Flow Control: RX
+<6>[    7.280696] IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready
+<6>[ 5747.559477] sysrq: SysRq : Trigger a crash
+<1>[ 5747.560986] BUG: unable to handle kernel NULL pointer dereference at           (null)
+<1>[ 5747.560991] IP: sysrq_handle_crash+0x17/0x20
+<6>[ 5747.560992] PGD 3f35a067 P4D 3f35a067 PUD 3f304067 PMD 0 
+<4>[ 5747.560995] Oops: 0002 [#1] PREEMPT SMP NOPTI
+<4>[ 5747.560996] Modules linked in: ipv6 g_ether u_ether libcomposite udc_core virtio_balloon psmouse atkbd libps2 mousedev aesni_intel crypto_simd glue_helper i8042 serio virtio_pci virtio_ring button virtio e1000 [last unloaded: tpm]
+<4>[ 5747.561006] CPU: 0 PID: 2357 Comm: bash Not tainted 4.14.146-rt67 #1
+<4>[ 5747.561007] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 0.0.0 02/06/2015
+<4>[ 5747.561008] task: ffffa29734fe6c00 task.stack: ffffab3b82778000

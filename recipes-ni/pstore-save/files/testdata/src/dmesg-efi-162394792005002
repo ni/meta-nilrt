@@ -1,0 +1,29 @@
+Panic#2 Part5
+<6>[    0.781587] ehci-pci: EHCI PCI platform driver
+<7>[    0.791693] ata2: port disabled--ignoring
+<6>[    0.802603] ehci-pci 0000:00:05.7: EHCI Host Controller
+<6>[    0.802607] ehci-pci 0000:00:05.7: new USB bus registered, assigned bus number 1
+<6>[    0.802804] ehci-pci 0000:00:05.7: irq 11, io mem 0x88026000
+<6>[    0.830071] ehci-pci 0000:00:05.7: USB 2.0 started, EHCI 1.00
+<6>[    0.830216] hub 1-0:1.0: USB hub found
+<6>[    0.830220] hub 1-0:1.0: 6 ports detected
+<6>[    0.830369] uhci_hcd: USB Universal Host Controller Interface driver
+<6>[    0.855832] uhci_hcd 0000:00:05.0: UHCI Host Controller
+<6>[    0.855836] uhci_hcd 0000:00:05.0: new USB bus registered, assigned bus number 2
+<6>[    0.855956] uhci_hcd 0000:00:05.0: irq 11, io base 0x0000c0a0
+<6>[    0.856082] hub 2-0:1.0: USB hub found
+<6>[    0.856084] hub 2-0:1.0: 2 ports detected
+<6>[    0.877038] uhci_hcd 0000:00:05.1: UHCI Host Controller
+<6>[    0.877040] uhci_hcd 0000:00:05.1: new USB bus registered, assigned bus number 3
+<6>[    0.877178] uhci_hcd 0000:00:05.1: irq 10, io base 0x0000c080
+<6>[    0.877296] hub 3-0:1.0: USB hub found
+<6>[    0.877298] hub 3-0:1.0: 2 ports detected
+<6>[    0.898363] uhci_hcd 0000:00:05.2: UHCI Host Controller
+<6>[    0.898366] uhci_hcd 0000:00:05.2: new USB bus registered, assigned bus number 4
+<6>[    0.898488] uhci_hcd 0000:00:05.2: irq 10, io base 0x0000c060
+<6>[    0.898599] hub 4-0:1.0: USB hub found
+<6>[    0.898601] hub 4-0:1.0: 2 ports detected
+<6>[    0.898675] usbcore: registered new interface driver usb-storage
+<6>[    0.898716] rtc_cmos 00:00: RTC can wake from S4
+<6>[    0.898967] rtc_cmos 00:00: rtc core: registered rtc_cmos as rtc0
+<6>[    0.899109] rtc_cmos 00:00: alarms up to one day, y3k, 114 bytes nvram

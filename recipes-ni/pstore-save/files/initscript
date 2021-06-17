@@ -1,0 +1,46 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          pstore-save
+# Required-Start:    $mountvirtfs
+# Required-Stop:     
+# Default-Start:     S
+# Default-Stop:      
+# Short-Description: pstore-save
+# Description:       This is a script that saves efi-pstore information.
+### END INIT INFO
+
+NAME=pstore-save
+SCRIPTNAME=/etc/init.d/$NAME
+SCRIPT=/usr/sbin/pstore-save
+
+# variables that can be overridden by /etc/default
+ENABLE=1
+SOURCEDIR="/sys/fs/pstore"
+ARCHIVEDIR="/var/lib/pstore"
+EXTRA_OPTS=""
+
+# Read configuration variable file if it is present
+[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+
+# no-op if ENABLE is 0
+if [ $ENABLE -eq 0 ]; then
+    exit 0
+fi
+
+test -x "$SCRIPT" || exit 0
+
+case "$1" in
+    start)
+        # stdout goes to kmsg here; if there were prior dmesg logs,
+        # we want knowledge of that to show up in this boot's dmesg buffer
+        $SCRIPT -s "$SOURCEDIR" -a "${ARCHIVEDIR}" $EXTRA_OPTS >/dev/kmsg
+        ;;
+    stop|status|reload|restart|force-reload)
+        ;;
+    *)
+        echo "Usage: $SCRIPTNAME {start}" >&2
+        exit 3
+        ;;
+esac
+
+exit 0

@@ -1,0 +1,25 @@
+Panic#2 Part7
+<6>[    0.588302] pci 0000:00:03.0: BAR 6: assigned [mem 0x40000000-0x4003ffff pref]
+<6>[    0.588303] pci 0000:00:02.0: BAR 6: assigned [mem 0x40040000-0x4004ffff pref]
+<7>[    0.588305] pci_bus 0000:00: resource 4 [io  0x0000-0x0cf7 window]
+<7>[    0.588305] pci_bus 0000:00: resource 5 [io  0x0d00-0xffff window]
+<7>[    0.588306] pci_bus 0000:00: resource 6 [mem 0x000a0000-0x000bffff window]
+<7>[    0.588307] pci_bus 0000:00: resource 7 [mem 0x40000000-0xfebfffff window]
+<7>[    0.588307] pci_bus 0000:00: resource 8 [mem 0x800000000-0x87fffffff window]
+<6>[    0.588333] NET: Registered protocol family 2
+<6>[    0.588420] TCP established hash table entries: 8192 (order: 4, 65536 bytes)
+<6>[    0.588457] TCP bind hash table entries: 8192 (order: 6, 458752 bytes)
+<6>[    0.588515] TCP: Hash tables configured (established 8192 bind 8192)
+<6>[    0.588539] UDP hash table entries: 512 (order: 4, 65536 bytes)
+<6>[    0.588552] UDP-Lite hash table entries: 512 (order: 4, 65536 bytes)
+<6>[    0.588583] NET: Registered protocol family 1
+<6>[    0.588588] pci 0000:00:00.0: Limiting direct PCI/PCI transfers
+<6>[    0.588601] pci 0000:00:01.0: PIIX3: Enabling Passive Release
+<6>[    0.588620] pci 0000:00:01.0: Activating ISA DMA hang workarounds
+<6>[    0.588671] pci 0000:00:02.0: Video device with shadowed ROM at [mem 0x000c0000-0x000dffff]
+<4>[    0.601451] ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 11
+<4>[    0.643602] ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 10
+<4>[    0.685514] ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 10
+<4>[    0.727427] ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 11
+<7>[    0.748488] PCI: CLS 0 bytes, default 64
+<6>[    0.748555] clocksource: tsc: mask: 0xffffffffffffffff max_cycles: 0x6d8c9c5f96e, max_idle_ns: 881591091472 ns

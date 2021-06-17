@@ -1,0 +1,23 @@
+Panic#2 Part14
+<6>[    0.000000] percpu: Embedded 43 pages/cpu s135808 r8192 d32128 u1048576
+<7>[    0.000000] pcpu-alloc: s135808 r8192 d32128 u1048576 alloc=1*2097152
+<7>[    0.000000] pcpu-alloc: [0] 0 1 
+<6>[    0.000000] Built 1 zonelists, mobility grouping on.  Total pages: 255477
+<6>[    0.000000] Policy zone: DMA32
+<5>[    0.000000] Kernel command line: BOOT_IMAGE=/runmode/bzImage root=PARTUUID=dfa3db1c-a07a-45b5-bb0b-2a0650317529 rootwait rw usbcore.usbfs_memory_mb=0 consoleblank=0 rcu_nocbs=all spectre_v2=off pti=off l1tf=off spec_store_bypass_disable=on quiet console=tty0 console=ttyS0,115200n8 sys_reset=false
+<6>[    0.000000] PID hash table entries: 4096 (order: 3, 32768 bytes)
+<6>[    0.000000] Memory: 975376K/1046452K available (10252K kernel code, 1085K rwdata, 2624K rodata, 1264K init, 588K bss, 71076K reserved, 0K cma-reserved)
+<6>[    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=2, Nodes=1
+<6>[    0.000000] ftrace: allocating 26938 entries in 106 pages
+<6>[    0.000000] Preemptible hierarchical RCU implementation.
+<6>[    0.000000] 	RCU restricting CPUs from NR_CPUS=64 to nr_cpu_ids=2.
+<6>[    0.000000] 	RCU priority boosting: priority 1 delay 500 ms.
+<6>[    0.000000] 	No expedited grace period (rcu_normal_after_boot).
+<6>[    0.000000] 	Tasks RCU enabled.
+<6>[    0.000000] RCU: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=2
+<6>[    0.000000] NR_IRQS: 4352, nr_irqs: 440, preallocated irqs: 16
+<6>[    0.000000] 	Note: kernel parameter 'rcu_nocbs=' contains nonexistent CPUs.
+<6>[    0.000000] 	Offload RCU callbacks from CPUs: 0-1.
+<6>[    0.000000] Console: colour dummy device 80x25
+<6>[    0.000000] console [tty0] enabled
+<6>[    0.010000] tsc: Fast TSC calibration using PIT
