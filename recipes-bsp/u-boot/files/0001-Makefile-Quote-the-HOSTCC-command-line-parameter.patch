@@ -1,0 +1,30 @@
+Upstream status: Obsolete
+
+From 46f83b1364ca4459d11b62034a747f9571089f6d Mon Sep 17 00:00:00 2001
+From: Joe Hershberger <joe.hershberger@ni.com>
+Date: Fri, 11 Jun 2021 10:32:52 -0500
+Subject: [PATCH] Makefile: Quote the HOSTCC command-line parameter
+
+OpenEmbedded may set "CC" to a command with parameters, so quoting this
+assignment will allow the sub-make to have the complete command.
+
+Signed-off-by: Joe Hershberger <joe.hershberger@ni.com>
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index fd6a9a705a..6d00baf2ce 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1398,7 +1398,7 @@ checkarmreloc: u-boot
+	fi
+
+ env fdtview: scripts_basic
+-	$(Q)$(MAKE) HOSTCC=$(CC) $(build)=tools/$@
++	$(Q)$(MAKE) HOSTCC='$(CC)' $(build)=tools/$@
+
+ tools-only: scripts_basic $(version_h) $(timestamp_h)
+	$(Q)$(MAKE) $(build)=tools
+--
+2.11.0

@@ -12,21 +12,15 @@ SRC_URI_append_arm = "\
 "
 
 SRC_URI_append = " \
-        file://0001-Remove-hardcoded-softfp-from-arm-makefile.patch \
         file://fw-enw-fix-missing-stdint-h.patch \
-        file://0001-gcc5-backport-add-compiler-gcc5.h.patch \
-        file://0002-gcc5-use-gcc-inline-version-instead-c99.patch \
         file://0003-gcc5-include-io.h-needs-inline-def-from-compiler-gcc.h.patch \
-        file://fix-build-error-under-gcc6.patch \
-        file://fix-build-error-under-gcc7.patch \
+        file://0001-Makefile-Quote-the-HOSTCC-command-line-parameter.patch \
 "
 
 do_compile(){
-    unset LDFLAGS
-    unset CFLAGS
-    unset CPPFLAGS
     oe_runmake ${UBOOT_MACHINE}
-    oe_runmake HOSTCC="${CC}" HOSTSTRIP="${TARGET_PREFIX}strip" env
+    oe_runmake env
+
 }
 
 do_install_append(){
