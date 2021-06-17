@@ -1,4 +1,4 @@
-UBOOT_BRANCH ?= "nizynq/15.0/v2012.10"
-UBOOT_MACHINE ?= "nicrio9068_config"
+UBOOT_BRANCH ?= "nizynq/21.0/v2017.03"
+UBOOT_MACHINE ?= "ni_elvisiii_defconfig"
 
-SRCREV = "3fe8a01a00724a9252baea4d852b8b7fbe17e5b2"
+SRCREV = "653fc09e01ff78e08f9683e1585f4fac05f289d9"
