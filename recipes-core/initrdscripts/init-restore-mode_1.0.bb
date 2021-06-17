@@ -6,6 +6,7 @@ SRC_URI = "\
 	file://init-restore-mode.sh \
 	file://00-init-restore-mode.sh \
         file://efifix \
+	file://mmc_storage_device_codes.allow \
 	file://ni_provisioning \
 	file://ni_provisioning.common \
 	file://ni_provisioning.answers.default \
@@ -24,6 +25,9 @@ SRC_URI_append_x64 = "\
 RDEPENDS_${PN} += "bash rauc"
 
 do_install() {
+	install -d ${D}${sysconfdir}/ni-provisioning
+	install -m 0644 ${WORKDIR}/mmc_storage_device_codes.allow ${D}${sysconfdir}/ni-provisioning/
+
 	install -m 0755 ${WORKDIR}/init-restore-mode.sh ${D}/init
 	install -m 0755 ${WORKDIR}/efifix ${D}/
 	install -m 0755 ${WORKDIR}/ni_provisioning ${D}/

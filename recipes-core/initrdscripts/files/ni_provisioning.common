@@ -2,6 +2,7 @@
 #this file contains the functions needed by the provisioning tool
 
 ANSWER_FILE_DISK_MOUNTPOINT=/var/volatile/answerFileDisk
+MMC_DEVICE_ALLOW_PATH=/etc/ni-provisioning/mmc_storage_device_codes.allow
 USB_MOUNTPOINT=/var/volatile/usbrtdeploy
 NILRT_MOUNTPOINT=/var/volatile/nilrt
 GRUB_MOUNTPOINT=/var/volatile/nigrub
@@ -154,9 +155,12 @@ elif [ "$ARCH" = "x86_64" ]; then
     }
 
     # For a given block device (represented by sysfs path $1 and block device path
-    # $2), return zero if suitable for provisioning.
+    # $2), return zero if suitable for provisioning. If $3 is not True, skip MMC
+    # block devices.
     check_block_device () {
-        local path=$1 block=$2
+        local path=$1
+        local block=$2
+        local mmc_ok=${3:-false}
 
         if ! (( $? == 0 )); then
             (( verbose_mode )) && echo "SKIPPED $path_abbrev: udevadm failed" >&2
@@ -195,6 +199,16 @@ elif [ "$ARCH" = "x86_64" ]; then
             return 1
         fi
 
+        # Some devices have onboard or removable MMC devices which should be
+        # skipped, unless the system's architect has added it to the MMC
+        # whitelist.
+        if ! $mmc_ok; then
+                if [[ "${path##*/}" =~ ^mmc.* ]]; then
+                        (( verbose_mode )) && echo "SKIPPED: $path_abbrev: mmc block device && MMC provisioning is not permitted for this device." >&2
+                        return 1
+                fi
+        fi
+
         # Skip the recovery partition itself. Scan all partitions that might be present
         # at/underneath the given block device.
         if [[ "$restore" != "migrate" && "$restore" != "backward-migrate" ]] ; then
@@ -217,11 +231,23 @@ elif [ "$ARCH" = "x86_64" ]; then
     find_target_block_device()
     {
         local selected_block=""
+        local mmc_ok=false
+
+        # Check if the machine's DeviceCode is in the MMC device whitelist.
+        if [ -e "${MMC_DEVICE_ALLOW_PATH}" ]; then
+                device_code=$(fw_printenv -n DeviceCode 2>/dev/null)
+                [ -n "$device_code" ] && \
+                        grep -iq -E "^\s*(0x)?${device_code}\s*$" "${MMC_DEVICE_ALLOW_PATH}" && \
+                        mmc_ok=true
+        else
+                (( verbose_mode )) && echo "Warning: eMMC device whitelist not found. eMMC block devices will be disqualified from provisioning." >&2
+        fi
+
 
         for path in /sys/block/*; do
             path_abbrev=${path##/sys/block/}
             local block=$(udevadm info -r --query=name --path=$path)
-            check_block_device $path $block || continue
+            check_block_device $path $block $mmc_ok || continue
 
             # Looks good. Select the first device we see.
             if [[ $selected_block ]]; then

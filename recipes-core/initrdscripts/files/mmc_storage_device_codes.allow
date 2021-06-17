@@ -1,0 +1,5 @@
+# Add DeviceCodes to this file - one per line - which use eMMC block devices
+# as their primary storage drive.
+
+# ISC-1781 Smart Camera
+0x78CA
