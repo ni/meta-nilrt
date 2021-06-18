@@ -26,651 +26,651 @@ MKFS_ARGS=${MKFS_ARGS:-"$VERBOSE_ARGS -F"}
 verbose_mode=${verbose_mode:-0}
 
 if [ "$verbose_mode" -eq 0 ]; then
-    do_silent() { "$@" &>/dev/null; };
+	do_silent() { "$@" &>/dev/null; };
 else
-    do_silent() { "$@"; }
+	do_silent() { "$@"; }
 fi
 
 # source reboot/poweroff functions since we don't have sysvinit in restore
 # tried adding in /init but the commands are not passed to /ni_provisioning context
 if [ -e /etc/profile.d/00-init-restore-mode.sh ]; then
-    source /etc/profile.d/00-init-restore-mode.sh
+	source /etc/profile.d/00-init-restore-mode.sh
 else
-    printf "\n***Error: File 00-init-restore-mode.sh not found!\n"
-    printf "Reboot/poweroff will not work automatically!"
+	printf "\n***Error: File 00-init-restore-mode.sh not found!\n"
+	printf "Reboot/poweroff will not work automatically!"
 fi
 
 get_image_info()
 {
-    TOKEN=$1
+	TOKEN=$1
 
-    grep -Po "(?<=${TOKEN}=).*" /payload/imageinfo
+	grep -Po "(?<=${TOKEN}=).*" /payload/imageinfo
 }
 
 ask_for_continue()
 {
-    type=${1:-"Recovery"}
-    variable=${2:-"PROVISION_REPARTITION_TARGET"}
+	type=${1:-"Recovery"}
+	variable=${2:-"PROVISION_REPARTITION_TARGET"}
 
-    BUILD_IDENTIFIER=$(get_image_info BUILD_IDENTIFIER)
-    IMAGE_DISPLAY_NAME=$(get_image_info IMAGE_DISPLAY_NAME)
+	BUILD_IDENTIFIER=$(get_image_info BUILD_IDENTIFIER)
+	IMAGE_DISPLAY_NAME=$(get_image_info IMAGE_DISPLAY_NAME)
 
-    printf "\nNI Linux Real-Time $type $BUILD_IDENTIFIER. \n\n"
-    printf "Continuing will partition the disk, format, and install $IMAGE_DISPLAY_NAME to the target.\n\n"
-    if [[ "$FORCE_PROVISIONING" -ne 1 ]];then
-        prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" $variable
-    else
-        eval ${variable}="y"
-    fi
+	printf "\nNI Linux Real-Time $type $BUILD_IDENTIFIER. \n\n"
+	printf "Continuing will partition the disk, format, and install $IMAGE_DISPLAY_NAME to the target.\n\n"
+	if [[ "$FORCE_PROVISIONING" -ne 1 ]];then
+		prompt_user "Do you want to continue? [y/N]" "^(y|n)$" "n" $variable
+	else
+		eval ${variable}="y"
+	fi
 }
 
 provision_successfull()
 {
-    do_silent mount
-    echo -e ${GREEN}"PROVISIONING SUCCESSFUL!"${NC} 1>&3 2>&4
+	do_silent mount
+	echo -e ${GREEN}"PROVISIONING SUCCESSFUL!"${NC} 1>&3 2>&4
 }
 
 umount_partition()
 {
-    if [ ! -z "`mount | grep $1`" ]; then
-        umount $1 &>/dev/null
-    fi
+	if [ ! -z "`mount | grep $1`" ]; then
+		umount $1 &>/dev/null
+	fi
 }
 
 umount_partitions()
 {
-    for PART in `ls -1 ${TARGET_DISK}* | tail -n +2`
-    do
-        umount_partition $PART
-    done
+	for PART in `ls -1 ${TARGET_DISK}* | tail -n +2`
+	do
+		umount_partition $PART
+	done
 }
 
 cleanup_and_exit()
 {
-    echo $LOG_LEVEL > /proc/sys/kernel/printk
-    trap - ERR
+	echo $LOG_LEVEL > /proc/sys/kernel/printk
+	trap - ERR
 
-    sync
+	sync
 
-    if [ "$ARCH" = "armv7l" ]; then
-        #set the bootmode to default
-        echo -n 00 >  /sys/bus/i2c/devices/0-0040/scratch_hardreset
-    fi
+	if [ "$ARCH" = "armv7l" ]; then
+		#set the bootmode to default
+		echo -n 00 >  /sys/bus/i2c/devices/0-0040/scratch_hardreset
+	fi
 
-    if (( $1 == 0  && $ASK_BEFORE_REBOOT == 1 )); then
-        if [[ "${PROVISION_REBOOT_METHOD}" == "reboot" ]]; then
-            reboot
-        elif [[ "${PROVISION_REBOOT_METHOD}" == "poweroff" ]]; then
-            poweroff
-        else
-            echo "Unmounting all file systems"
-            # unmounting rootfs kills /ni_provisioning right here,
-            # sync and "Dropping to shell" message will be skipped
-            umount -a -r -t norootfs,noproc,nosysfs,noefivarfs,nodevtmpfs
-            sync
+	if (( $1 == 0  && $ASK_BEFORE_REBOOT == 1 )); then
+		if [[ "${PROVISION_REBOOT_METHOD}" == "reboot" ]]; then
+			reboot
+		elif [[ "${PROVISION_REBOOT_METHOD}" == "poweroff" ]]; then
+			poweroff
+		else
+			echo "Unmounting all file systems"
+			# unmounting rootfs kills /ni_provisioning right here,
+			# sync and "Dropping to shell" message will be skipped
+			umount -a -r -t norootfs,noproc,nosysfs,noefivarfs,nodevtmpfs
+			sync
 
-            echo "Dropping to shell"
-        fi
-    fi
+			echo "Dropping to shell"
+		fi
+	fi
 
-    exit $1
+	exit $1
 }
 
 die()
 {
-    echo -e "${RED}\n***Error: $1\nPROVISIONING FAILED!${NC}"
-    cleanup_and_exit 1
+	echo -e "${RED}\n***Error: $1\nPROVISIONING FAILED!${NC}"
+	cleanup_and_exit 1
 }
 
 if [ -e /disk_config ]; then
-    source /disk_config
+	source /disk_config
 else
-    die "disk_config not found!"
+	die "disk_config not found!"
 fi
 
 if [ "$ARCH" = "armv7l" ]; then
 
-    die "Architecture $ARCH not supported."
+	die "Architecture $ARCH not supported."
 
 elif [ "$ARCH" = "x86_64" ]; then
 
-    show_help()
-    {
-        >&3 echo -e "\nUsage: $0 [-hav] [-t DEVICE] [-r y|n] [-c y|n] [-b SECONDS] [-F RESTART_OPTION]\n"
-        >&3 echo -e "Options\n"
-        >&3 echo "   -h : Show help."
-        >&3 echo "   -a : Ask at every error if continue. Default is N, so at the first error abort."
-        >&3 echo "   -v : Verbose mode."
-        >&3 echo "   -t DEVICE : DEVICE is the device name for the disk to update. (e.g /dev/sda)"
-        >&3 echo "               If DEVICE is not specificed, the first non-removable block device"
-        >&3 echo "               that is not the recovery tool is used."
-        >&3 echo "   -r y|n : Force use of initramfs style boot for runmode (compatible 2018 and later)."
-        >&3 echo "            Also enables bootflag.d directory for bootmode selection. Determined"
-        >&3 echo "            automatically when unspecified."
-        >&3 echo "   -c y|n : Initial value of the console out enable flag."
-        >&3 echo "   -b SECONDS : Initial value of bootdelay -- how long (seconds) to show boot menu."
-        >&3 echo "   -F RESTART_OPTION : Force provisioning (surpress the promts). RESTART_OPTION specifies"
-        >&3 echo "                       what should be done after a succesful provisioning and can have the"
-        >&3 echo "                       following values: reboot, poweroff or shell."
-    }
+	show_help()
+	{
+		>&3 echo -e "\nUsage: $0 [-hav] [-t DEVICE] [-r y|n] [-c y|n] [-b SECONDS] [-F RESTART_OPTION]\n"
+		>&3 echo -e "Options\n"
+		>&3 echo "   -h : Show help."
+		>&3 echo "   -a : Ask at every error if continue. Default is N, so at the first error abort."
+		>&3 echo "   -v : Verbose mode."
+		>&3 echo "   -t DEVICE : DEVICE is the device name for the disk to update. (e.g /dev/sda)"
+		>&3 echo "               If DEVICE is not specificed, the first non-removable block device"
+		>&3 echo "               that is not the recovery tool is used."
+		>&3 echo "   -r y|n : Force use of initramfs style boot for runmode (compatible 2018 and later)."
+		>&3 echo "            Also enables bootflag.d directory for bootmode selection. Determined"
+		>&3 echo "            automatically when unspecified."
+		>&3 echo "   -c y|n : Initial value of the console out enable flag."
+		>&3 echo "   -b SECONDS : Initial value of bootdelay -- how long (seconds) to show boot menu."
+		>&3 echo "   -F RESTART_OPTION : Force provisioning (surpress the promts). RESTART_OPTION specifies"
+		>&3 echo "                       what should be done after a succesful provisioning and can have the"
+		>&3 echo "                       following values: reboot, poweroff or shell."
+	}
 
-    # For a given block device (represented by sysfs path $1 and block device path
-    # $2), return zero if suitable for provisioning. If $3 is not True, skip MMC
-    # block devices.
-    check_block_device () {
-        local path=$1
-        local block=$2
-        local mmc_ok=${3:-false}
+	# For a given block device (represented by sysfs path $1 and block device path
+	# $2), return zero if suitable for provisioning. If $3 is not True, skip MMC
+	# block devices.
+	check_block_device () {
+		local path=$1
+		local block=$2
+		local mmc_ok=${3:-false}
 
-        if ! (( $? == 0 )); then
-            (( verbose_mode )) && echo "SKIPPED $path_abbrev: udevadm failed" >&2
-            return 1
-        fi
+		if ! (( $? == 0 )); then
+			(( verbose_mode )) && echo "SKIPPED $path_abbrev: udevadm failed" >&2
+			return 1
+		fi
 
-        # Skip zero-size devices. This catches unattached loop*.
-        if ! (( $(<$path/size) > 0 )); then
-            (( verbose_mode )) && echo "SKIPPED $path_abbrev: size==0" >&2
-            return 1
-        fi
+		# Skip zero-size devices. This catches unattached loop*.
+		if ! (( $(<$path/size) > 0 )); then
+			(( verbose_mode )) && echo "SKIPPED $path_abbrev: size==0" >&2
+			return 1
+		fi
 
-        # Skip removable devices; we're only interested in internal disks. This
-        # catches USBs and CDs.
-        if ! (( $(<$path/removable) == 0 )); then
-            (( verbose_mode )) && echo "SKIPPED $path_abbrev: removable!=0" >&2
-            return 1
-        fi
+		# Skip removable devices; we're only interested in internal disks. This
+		# catches USBs and CDs.
+		if ! (( $(<$path/removable) == 0 )); then
+			(( verbose_mode )) && echo "SKIPPED $path_abbrev: removable!=0" >&2
+			return 1
+		fi
 
-        # Skip read-only devices. This catches mmcblk*boot*, but *not*
-        # CDs, unless a read-only CD is present in the drive.
-        if ! (( $(<$path/ro) == 0 )); then
-            (( verbose_mode )) && echo "SKIPPED $path_abbrev: ro!=0" >&2
-            return 1
-        fi
+		# Skip read-only devices. This catches mmcblk*boot*, but *not*
+		# CDs, unless a read-only CD is present in the drive.
+		if ! (( $(<$path/ro) == 0 )); then
+			(( verbose_mode )) && echo "SKIPPED $path_abbrev: ro!=0" >&2
+			return 1
+		fi
 
-        # Skip purely virtual devices. This catches zram* and loop* (again).
-        if ! [[ -d $path/device ]]; then
-            (( verbose_mode )) && echo "SKIPPED $path_abbrev: no device/" >&2
-            return 1
-        fi
+		# Skip purely virtual devices. This catches zram* and loop* (again).
+		if ! [[ -d $path/device ]]; then
+			(( verbose_mode )) && echo "SKIPPED $path_abbrev: no device/" >&2
+			return 1
+		fi
 
-        # $path/device/block must exist. This catches mmcblk*boot* (again).
-        if ! ( [[ -d $path/device/block/ ]] || [[ -d $path/device/${path##*/} ]] ); then
-            (( verbose_mode )) && echo "SKIPPED $path_abbrev: no device/block/" >&2
-            return 1
-        fi
+		# $path/device/block must exist. This catches mmcblk*boot* (again).
+		if ! ( [[ -d $path/device/block/ ]] || [[ -d $path/device/${path##*/} ]] ); then
+			(( verbose_mode )) && echo "SKIPPED $path_abbrev: no device/block/" >&2
+			return 1
+		fi
 
-        # Some devices have onboard or removable MMC devices which should be
-        # skipped, unless the system's architect has added it to the MMC
-        # whitelist.
-        if ! $mmc_ok; then
-                if [[ "${path##*/}" =~ ^mmc.* ]]; then
-                        (( verbose_mode )) && echo "SKIPPED: $path_abbrev: mmc block device && MMC provisioning is not permitted for this device." >&2
-                        return 1
-                fi
-        fi
+		# Some devices have onboard or removable MMC devices which should be
+		# skipped, unless the system's architect has added it to the MMC
+		# whitelist.
+		if ! $mmc_ok; then
+				if [[ "${path##*/}" =~ ^mmc.* ]]; then
+						(( verbose_mode )) && echo "SKIPPED: $path_abbrev: mmc block device && MMC provisioning is not permitted for this device." >&2
+						return 1
+				fi
+		fi
 
-        # Skip the recovery partition itself. Scan all partitions that might be present
-        # at/underneath the given block device.
-        if [[ "$restore" != "migrate" && "$restore" != "backward-migrate" ]] ; then
-            for p in ${block}*; do
-                local label=`lsblk $p -n -o LABEL 2>/dev/null`
-                if [[ "$label" == "NIRECOVERY" ]]; then
-                    (( verbose_mode )) && echo "SKIPPED $path_abbrev: contains NIRECOVERY" >&2
-                    return 1
-                fi
-                if [[ "$label" == "NIRECOVERY-CD" ]]; then
-                    (( verbose_mode )) && echo "SKIPPED $path_abbrev: contains NIRECOVERY-CD" >&2
-                    return 1
-                fi
-            done
-        fi
+		# Skip the recovery partition itself. Scan all partitions that might be present
+		# at/underneath the given block device.
+		if [[ "$restore" != "migrate" && "$restore" != "backward-migrate" ]] ; then
+			for p in ${block}*; do
+				local label=`lsblk $p -n -o LABEL 2>/dev/null`
+				if [[ "$label" == "NIRECOVERY" ]]; then
+					(( verbose_mode )) && echo "SKIPPED $path_abbrev: contains NIRECOVERY" >&2
+					return 1
+				fi
+				if [[ "$label" == "NIRECOVERY-CD" ]]; then
+					(( verbose_mode )) && echo "SKIPPED $path_abbrev: contains NIRECOVERY-CD" >&2
+					return 1
+				fi
+			done
+		fi
 
-        return 0
-    }
+		return 0
+	}
 
-    find_target_block_device()
-    {
-        local selected_block=""
-        local mmc_ok=false
+	find_target_block_device()
+	{
+		local selected_block=""
+		local mmc_ok=false
 
-        # Check if the machine's DeviceCode is in the MMC device whitelist.
-        if [ -e "${MMC_DEVICE_ALLOW_PATH}" ]; then
-                device_code=$(fw_printenv -n DeviceCode 2>/dev/null)
-                [ -n "$device_code" ] && \
-                        grep -iq -E "^\s*(0x)?${device_code}\s*(#.*)?$" "${MMC_DEVICE_ALLOW_PATH}" && \
-                        mmc_ok=true
-        else
-                (( verbose_mode )) && echo "Warning: eMMC device whitelist not found. eMMC block devices will be disqualified from provisioning." >&2
-        fi
+		# Check if the machine's DeviceCode is in the MMC device whitelist.
+		if [ -e "${MMC_DEVICE_ALLOW_PATH}" ]; then
+				device_code=$(fw_printenv -n DeviceCode 2>/dev/null)
+				[ -n "$device_code" ] && \
+						grep -iq -E "^\s*(0x)?${device_code}\s*(#.*)?$" "${MMC_DEVICE_ALLOW_PATH}" && \
+						mmc_ok=true
+		else
+				(( verbose_mode )) && echo "Warning: eMMC device whitelist not found. eMMC block devices will be disqualified from provisioning." >&2
+		fi
 
 
-        for path in /sys/block/*; do
-            path_abbrev=${path##/sys/block/}
-            local block=$(udevadm info -r --query=name --path=$path)
-            check_block_device $path $block $mmc_ok || continue
+		for path in /sys/block/*; do
+			path_abbrev=${path##/sys/block/}
+			local block=$(udevadm info -r --query=name --path=$path)
+			check_block_device $path $block $mmc_ok || continue
 
-            # Looks good. Select the first device we see.
-            if [[ $selected_block ]]; then
-                (( verbose_mode )) && echo "SKIPPED block device $path_abbrev" >&2
-            else
-                selected_block=$block
-                (( verbose_mode )) && echo "SELECTED block device $path_abbrev" >&2
-            fi
-        done
+			# Looks good. Select the first device we see.
+			if [[ $selected_block ]]; then
+				(( verbose_mode )) && echo "SKIPPED block device $path_abbrev" >&2
+			else
+				selected_block=$block
+				(( verbose_mode )) && echo "SELECTED block device $path_abbrev" >&2
+			fi
+		done
 
-        if [[ $selected_block ]]; then
-            echo "$selected_block"
-        else
-            return 1
-        fi
-    }
+		if [[ $selected_block ]]; then
+			echo "$selected_block"
+		else
+			return 1
+		fi
+	}
 
-    restore_runmode_image()
-    {
-        # TODO
-        die "Not supported yet"
+	restore_runmode_image()
+	{
+		# TODO
+		die "Not supported yet"
 
-        local nilrt_path="$1" uuid="$2" nilrt_label="$3"
+		local nilrt_path="$1" uuid="$2" nilrt_label="$3"
 
-        NILRT_MOUNTPOINT=/var/volatile/nilrt
-        mkdir -p $NILRT_MOUNTPOINT
-        if [[ -z "$nilrt_path" ]]; then
-            echo "Formatting $TARGET_DISK $NILRT_LABEL partition..."
-            do_silent partition_format $TARGET_DISK $NILRT_LABEL
-            nilrt_path=`lsblk -rpn $TARGET_DISK -o NAME,LABEL | grep " $NILRT_LABEL"'$'  | tail -1 | cut -d' ' -f1`
-        else
-            echo "Formatting $nilrt_path partition..."
-            existing_nilrt_partition_format "$nilrt_path" "$uuid" "$nilrt_label"
-        fi
+		NILRT_MOUNTPOINT=/var/volatile/nilrt
+		mkdir -p $NILRT_MOUNTPOINT
+		if [[ -z "$nilrt_path" ]]; then
+			echo "Formatting $TARGET_DISK $NILRT_LABEL partition..."
+			do_silent partition_format $TARGET_DISK $NILRT_LABEL
+			nilrt_path=`lsblk -rpn $TARGET_DISK -o NAME,LABEL | grep " $NILRT_LABEL"'$'  | tail -1 | cut -d' ' -f1`
+		else
+			echo "Formatting $nilrt_path partition..."
+			existing_nilrt_partition_format "$nilrt_path" "$uuid" "$nilrt_label"
+		fi
 
-        do_silent echo "Mounting $nilrt_path partition..."
-        NILRT_ERROR=`mount "$nilrt_path" $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
+		do_silent echo "Mounting $nilrt_path partition..."
+		NILRT_ERROR=`mount "$nilrt_path" $NILRT_MOUNTPOINT` || die "$NILRT_ERROR"
 
-        echo "Deploying $IMAGE_DISPLAY_NAME image..."
+		echo "Deploying $IMAGE_DISPLAY_NAME image..."
 
-        # NOTE: `--numeric-owner` option: always use numbers for user/group names (ignore symbolic names)
-        TAR_ERROR="`tar -x -j --numeric-owner -f /payload/factory-image.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1`" || die "$TAR_ERROR"
+		# NOTE: `--numeric-owner` option: always use numbers for user/group names (ignore symbolic names)
+		TAR_ERROR="`tar -x -j --numeric-owner -f /payload/factory-image.tar.bz2 -C $NILRT_MOUNTPOINT 2>&1`" || die "$TAR_ERROR"
 
-        # Set hostname, if configured
-        if [ -n "$PROVISION_HOSTNAME" ]; then
-            echo "$PROVISION_HOSTNAME" >"$NILRT_MOUNTPOINT/etc/hostname"
-            chown 0:0 "$NILRT_MOUNTPOINT/etc/hostname"
-            chmod u=rw,go=r "$NILRT_MOUNTPOINT/etc/hostname"
-        fi
+		# Set hostname, if configured
+		if [ -n "$PROVISION_HOSTNAME" ]; then
+			echo "$PROVISION_HOSTNAME" >"$NILRT_MOUNTPOINT/etc/hostname"
+			chown 0:0 "$NILRT_MOUNTPOINT/etc/hostname"
+			chmod u=rw,go=r "$NILRT_MOUNTPOINT/etc/hostname"
+		fi
 
-        nilrt_part_uuid=`lsblk -rn $nilrt_path -o PARTUUID`
-        if [[ -n "$nilrt_part_uuid" ]]; then
-            # grub from nilrt partition needs PARTUUID to boot kernel from same partition
-            root_partition_value="PARTUUID=$nilrt_part_uuid"
-        else
-            root_partition_value="$nilrt_path"
-        fi
+		nilrt_part_uuid=`lsblk -rn $nilrt_path -o PARTUUID`
+		if [[ -n "$nilrt_part_uuid" ]]; then
+			# grub from nilrt partition needs PARTUUID to boot kernel from same partition
+			root_partition_value="PARTUUID=$nilrt_part_uuid"
+		else
+			root_partition_value="$nilrt_path"
+		fi
 
-        mkdir -p $NILRT_MOUNTPOINT/boot/grub
-        grub-editenv $NILRT_MOUNTPOINT/boot/grub/grubenv set root_partition_name="$root_partition_value"
-        sync
-        umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
+		mkdir -p $NILRT_MOUNTPOINT/boot/grub
+		grub-editenv $NILRT_MOUNTPOINT/boot/grub/grubenv set root_partition_name="$root_partition_value"
+		sync
+		umount $NILRT_MOUNTPOINT || die "Failed to umount $NILRT_MOUNTPOINT"
 
-        echo "Image deployed."
-        ASK_BEFORE_REBOOT=1
-    }
+		echo "Image deployed."
+		ASK_BEFORE_REBOOT=1
+	}
 
-    prune_efi_crash_vars()
-    {
-        # Previous kernels may have stored kernel crash information in EFI.
-        # Unfortunately if we have a backlog, this can prevent us from adding
-        # additional boot entries, since those are also EFI variables. Since
-        # we're (re)provisioning a target, we don't care about prior state,
-        # so just delete them.
-        LINUX_EFI_CRASH_GUID="cfc8fc79-be2e-4ddc-97f0-9f98bfe298a0"
-        find /sys/firmware/efi/efivars -name "*-${LINUX_EFI_CRASH_GUID}" -exec /bin/rm {} +
-    }
+	prune_efi_crash_vars()
+	{
+		# Previous kernels may have stored kernel crash information in EFI.
+		# Unfortunately if we have a backlog, this can prevent us from adding
+		# additional boot entries, since those are also EFI variables. Since
+		# we're (re)provisioning a target, we don't care about prior state,
+		# so just delete them.
+		LINUX_EFI_CRASH_GUID="cfc8fc79-be2e-4ddc-97f0-9f98bfe298a0"
+		find /sys/firmware/efi/efivars -name "*-${LINUX_EFI_CRASH_GUID}" -exec /bin/rm {} +
+	}
 
-    provision_target()
-    {
-        echo "Partitioning $TARGET_DISK..."
-        do_silent disk_setup "$TARGET_DISK"
+	provision_target()
+	{
+		echo "Partitioning $TARGET_DISK..."
+		do_silent disk_setup "$TARGET_DISK"
 
-        prune_efi_crash_vars
+		prune_efi_crash_vars
 
-        # XXX Find niboota and nibootb partlabels on TARGET_DISK and
-        # link as needed by RAUC
-        echo "Finding niboot partitions..."
-        local niboota_device=$(lsblk -rpn "$TARGET_DISK" -o NAME,PARTLABEL | grep " niboota$" | cut -d" " -f1)
-        local nibootb_device=$(lsblk -rpn "$TARGET_DISK" -o NAME,PARTLABEL | grep " nibootb$" | cut -d" " -f1)
-        mkdir -p /dev/niboot/
-        ln -sf "$niboota_device" "/dev/niboot/niboota"
-        ln -sf "$nibootb_device" "/dev/niboot/nibootb"
+		# XXX Find niboota and nibootb partlabels on TARGET_DISK and
+		# link as needed by RAUC
+		echo "Finding niboot partitions..."
+		local niboota_device=$(lsblk -rpn "$TARGET_DISK" -o NAME,PARTLABEL | grep " niboota$" | cut -d" " -f1)
+		local nibootb_device=$(lsblk -rpn "$TARGET_DISK" -o NAME,PARTLABEL | grep " nibootb$" | cut -d" " -f1)
+		mkdir -p /dev/niboot/
+		ln -sf "$niboota_device" "/dev/niboot/niboota"
+		ln -sf "$nibootb_device" "/dev/niboot/nibootb"
 
-        local run_rauc="rauc --no-signatures"
-        (( verbose_mode )) && run_rauc="$run_rauc --debug"
+		local run_rauc="rauc --no-signatures"
+		(( verbose_mode )) && run_rauc="$run_rauc --debug"
 
-        if [ "$PROVISION_BOOT_SCHEME" == "efi-ab" ]; then
-            echo "Configuring EFI for A/B image boot..."
+		if [ "$PROVISION_BOOT_SCHEME" == "efi-ab" ]; then
+			echo "Configuring EFI for A/B image boot..."
 
-            # Delete existing NILRT entries with "-B" option
-            for ENTRY in $(efibootmgr | egrep -i '(LabVIEW RT)|(niboota)|(nibootb)' | egrep -o '[0-9A-Fa-f]{4}' || true);
-            do
-                do_silent echo "Drop entry $ENTRY"
-                EFIMGR=$(efibootmgr -b "$ENTRY" -B 2>&1) || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
-            done
+			# Delete existing NILRT entries with "-B" option
+			for ENTRY in $(efibootmgr | egrep -i '(LabVIEW RT)|(niboota)|(nibootb)' | egrep -o '[0-9A-Fa-f]{4}' || true);
+			do
+				do_silent echo "Drop entry $ENTRY"
+				EFIMGR=$(efibootmgr -b "$ENTRY" -B 2>&1) || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
+			done
 
-            # Add nibootX entries with "-c" option
-            do_silent efibootmgr -c -d "$TARGET_DISK" -p 1 -L 'niboota' -l '\efi\nilrt\bootx64.efi'
-            do_silent efibootmgr -c -d "$TARGET_DISK" -p 2 -L 'nibootb' -l '\efi\nilrt\bootx64.efi'
+			# Add nibootX entries with "-c" option
+			do_silent efibootmgr -c -d "$TARGET_DISK" -p 1 -L 'niboota' -l '\efi\nilrt\bootx64.efi'
+			do_silent efibootmgr -c -d "$TARGET_DISK" -p 2 -L 'nibootb' -l '\efi\nilrt\bootx64.efi'
 
-            echo "Deploying bundles to niboota and nibootb slots..."
+			echo "Deploying bundles to niboota and nibootb slots..."
 
-            # Override niboota to install to nibootb slot
-            $run_rauc --override-boot-slot=niboota install /payload/niboot.raucb 2>&1 || die "RAUC failed to install bundle to nibootb"
-            # Mark-good nibootb to install them at front of EFI BootOrder
-            $run_rauc --override-boot-slot=nibootb status mark-good niboot.1 2>&1 || die "RAUC failed to mark-good niboot.1 (nibootb)"
+			# Override niboota to install to nibootb slot
+			$run_rauc --override-boot-slot=niboota install /payload/niboot.raucb 2>&1 || die "RAUC failed to install bundle to nibootb"
+			# Mark-good nibootb to install them at front of EFI BootOrder
+			$run_rauc --override-boot-slot=nibootb status mark-good niboot.1 2>&1 || die "RAUC failed to mark-good niboot.1 (nibootb)"
 
-            # Override nibootb to install to niboota slot
-            $run_rauc --override-boot-slot=nibootb install /payload/niboot.raucb 2>&1 || die "RAUC failed to install bundle to niboota"
-            # Mark-good niboota to install them at front of EFI BootOrder
-            $run_rauc --override-boot-slot=niboota status mark-good niboot.0 2>&1 || die "RAUC failed to mark-good niboot.0 (niboota)"
+			# Override nibootb to install to niboota slot
+			$run_rauc --override-boot-slot=nibootb install /payload/niboot.raucb 2>&1 || die "RAUC failed to install bundle to niboota"
+			# Mark-good niboota to install them at front of EFI BootOrder
+			$run_rauc --override-boot-slot=niboota status mark-good niboot.0 2>&1 || die "RAUC failed to mark-good niboot.0 (niboota)"
 
-            # Finally, mark-active niboota to ensure it's EFI BootNext
-            $run_rauc --override-boot-slot=niboota status mark-active niboot.0 2>&1 || die "RAUC failed to mark-active niboot.0 (niboota)"
+			# Finally, mark-active niboota to ensure it's EFI BootNext
+			$run_rauc --override-boot-slot=niboota status mark-active niboot.0 2>&1 || die "RAUC failed to mark-active niboot.0 (niboota)"
 
-            sync
+			sync
 
-            efi_boot_config=$(efibootmgr -v)
+			efi_boot_config=$(efibootmgr -v)
 
-            echo "EFI boot configuration:"
-            echo "$efi_boot_config"
-            echo "---"
+			echo "EFI boot configuration:"
+			echo "$efi_boot_config"
+			echo "---"
 
-            # Post install sanity check: Verify niboota and nibootb are
-            #  first two boot entries and niboota is BootNext
-            echo -n "Check EFI boot configuration: "
+			# Post install sanity check: Verify niboota and nibootb are
+			#  first two boot entries and niboota is BootNext
+			echo -n "Check EFI boot configuration: "
 
-            boot_order=$(echo "$efi_boot_config" | egrep "^BootOrder: [0-9,]+" | cut -d" " -f2)
-            boot_A_numb=$(echo "$boot_order" | cut -d"," -f1)
-            boot_B_numb=$(echo "$boot_order" | cut -d"," -f2)
+			boot_order=$(echo "$efi_boot_config" | egrep "^BootOrder: [0-9,]+" | cut -d" " -f2)
+			boot_A_numb=$(echo "$boot_order" | cut -d"," -f1)
+			boot_B_numb=$(echo "$boot_order" | cut -d"," -f2)
 
-            if ! echo "$efi_boot_config" | egrep -q "^Boot${boot_A_numb}.* niboota"$'\t'"+HD\(1,"; then
-                die "niboota is not at Boot${boot_A_numb}, boot_order=$boot_order"
-            fi
+			if ! echo "$efi_boot_config" | egrep -q "^Boot${boot_A_numb}.* niboota"$'\t'"+HD\(1,"; then
+				die "niboota is not at Boot${boot_A_numb}, boot_order=$boot_order"
+			fi
 
-            if ! echo "$efi_boot_config" | egrep -q "^Boot${boot_B_numb}.* nibootb"$'\t'"+HD\(2,"; then
-                die "nibootb is not at Boot${boot_B_numb}, boot_order=$boot_order"
-            fi
+			if ! echo "$efi_boot_config" | egrep -q "^Boot${boot_B_numb}.* nibootb"$'\t'"+HD\(2,"; then
+				die "nibootb is not at Boot${boot_B_numb}, boot_order=$boot_order"
+			fi
 
-            boot_next=$(echo "$efi_boot_config" | egrep "^BootNext: [0-9]+ *$" | cut -d" " -f2)
-            [ "$boot_next" == "$boot_A_numb" ] || die "BootNext=$boot_next, expecting niboota at $boot_A_numb"
+			boot_next=$(echo "$efi_boot_config" | egrep "^BootNext: [0-9]+ *$" | cut -d" " -f2)
+			[ "$boot_next" == "$boot_A_numb" ] || die "BootNext=$boot_next, expecting niboota at $boot_A_numb"
 
-            echo "OK"
+			echo "OK"
 
-        elif [ "$PROVISION_BOOT_SCHEME" == "efi-auto" ]; then
-            echo "Installing automatic EFI boot loader..."
+		elif [ "$PROVISION_BOOT_SCHEME" == "efi-auto" ]; then
+			echo "Installing automatic EFI boot loader..."
 
-            mkdir /mnt/efi-auto /mnt/efi-auto/bundle /mnt/efi-auto/niboota
+			mkdir /mnt/efi-auto /mnt/efi-auto/bundle /mnt/efi-auto/niboota
 
-            # Write image to slot 0 (niboota)
-            mount -o ro /payload/niboot.raucb /mnt/efi-auto/bundle
-            mount -o rw /dev/niboot/niboota /mnt/efi-auto/niboota
+			# Write image to slot 0 (niboota)
+			mount -o ro /payload/niboot.raucb /mnt/efi-auto/bundle
+			mount -o rw /dev/niboot/niboota /mnt/efi-auto/niboota
 
-            local img_written=false
-            for imgname in "minimal-nilrt-bundle-image-x64.tar.bz2" "lvcomms-nilrt-bundle-image-x64.tar.bz2"; do
-                local imgpath="/mnt/efi-auto/bundle/$imgname"
+			local img_written=false
+			for imgname in "minimal-nilrt-bundle-image-x64.tar.bz2" "lvcomms-nilrt-bundle-image-x64.tar.bz2"; do
+				local imgpath="/mnt/efi-auto/bundle/$imgname"
 
-                if [ -e "$imgpath" ]; then
-                    echo "Installing $imgpath"
-                    tar -xf "$imgpath" -C "/mnt/efi-auto/niboota/"
+				if [ -e "$imgpath" ]; then
+					echo "Installing $imgpath"
+					tar -xf "$imgpath" -C "/mnt/efi-auto/niboota/"
 
-                    img_written=true
-                    break
-                fi
-            done
-            if ! $img_written; then
-                die "Failed to find an image file in bundle"
-            fi
+					img_written=true
+					break
+				fi
+			done
+			if ! $img_written; then
+				die "Failed to find an image file in bundle"
+			fi
 
-            # Move boot loader image to auto-discoverable /efi/boot/
-            mkdir /mnt/efi-auto/niboota/efi/boot
-            mv /mnt/efi-auto/niboota/efi/nilrt/bootx64.efi /mnt/efi-auto/niboota/efi/boot/bootx64.efi
+			# Move boot loader image to auto-discoverable /efi/boot/
+			mkdir /mnt/efi-auto/niboota/efi/boot
+			mv /mnt/efi-auto/niboota/efi/nilrt/bootx64.efi /mnt/efi-auto/niboota/efi/boot/bootx64.efi
 
-            umount /mnt/efi-auto/niboota
-            umount /mnt/efi-auto/bundle
+			umount /mnt/efi-auto/niboota
+			umount /mnt/efi-auto/bundle
 
-            sync
+			sync
 
-        else
-            die "Invalid PROVISION_BOOT_SCHEME"
-        fi
+		else
+			die "Invalid PROVISION_BOOT_SCHEME"
+		fi
 
-        provision_successfull
-        ASK_BEFORE_REBOOT=1
-    }
+		provision_successfull
+		ASK_BEFORE_REBOOT=1
+	}
 fi
 
 #common functions for both architectures with little differences
 
 print_verbose()
 {
-    if [[ $verbose_mode -eq 1 ]]; then
-        echo -e $@
-    fi
+	if [[ $verbose_mode -eq 1 ]]; then
+		echo -e $@
+	fi
 }
 
 print_warning()
 {
-    print_verbose "${YELLOW}\n***Warning: $1\n${NC}"
+	print_verbose "${YELLOW}\n***Warning: $1\n${NC}"
 }
 
 install_default_error_handler()
 {
-    trap 'handle_err ${BASH_SOURCE} ${LINENO} ${FUNCNAME:-unknown} $? "$BASH_COMMAND"' ERR
+	trap 'handle_err ${BASH_SOURCE} ${LINENO} ${FUNCNAME:-unknown} $? "$BASH_COMMAND"' ERR
 }
 
 handle_err()
 {
-    TMP_EVAL=`eval echo $5`
-    die "$1:$2 (fn=$3): Unexpected status code $4, while running command: '$TMP_EVAL'"
+	TMP_EVAL=`eval echo $5`
+	die "$1:$2 (fn=$3): Unexpected status code $4, while running command: '$TMP_EVAL'"
 }
 
 get_time_delta()
 {
-    local offset="$1"
-    local timestamp=$(date +%s)
-    timestamp=$(( $timestamp - $offset ))
-    echo "$timestamp"
+	local offset="$1"
+	local timestamp=$(date +%s)
+	timestamp=$(( $timestamp - $offset ))
+	echo "$timestamp"
 }
 
 early_setup()
 {
-    install_default_error_handler
+	install_default_error_handler
 
-    exec 3>&1
-    exec 4>&2
+	exec 3>&1
+	exec 4>&2
 
-    LOG_LEVEL=`cut -f1 /proc/sys/kernel/printk`
+	LOG_LEVEL=`cut -f1 /proc/sys/kernel/printk`
 
-    OPTIND=1
+	OPTIND=1
 
-    while getopts "havt:r:c:b:F:" opt; do
-        case "$opt" in
-            h)  show_help
-                exit 1
-                ;;
-            a)  ask_at_every_error="y"
-                ;;
-            v)  verbose_mode=1
-                >&3 echo "Verbose mode..."
-                ;;
-            t)  TARGET_DISK="$OPTARG"
-                ;;
-            r)  if [ "$OPTARG" == "y" -o "$OPTARG" == "Y" ]; then
-                    use_ramfs=true
-                elif [ "$OPTARG" == "n" -o "$OPTARG" == "N" ]; then
-                    use_ramfs=false
-                else
-                    die "Must specify '-r y' or '-r n'"
-                fi
-                ;;
-            c)  if [ "$OPTARG" == "y" -o "$OPTARG" == "Y" ]; then
-                    grubenv_consoleoutenable="True"
-                elif [ "$OPTARG" == "n" -o "$OPTARG" == "N" ]; then
-                    grubenv_consoleoutenable="False"
-                else
-                    die "Must specify '-c y' or '-c n'"
-                fi
-                ;;
-            b)  grubenv_bootdelay="$OPTARG"
-                ;;
-            F)  FORCE_PROVISIONING=1
-                if [ $OPTARG == "reboot" -o  "$OPTARG" == "poweroff" -o "$OPTARG" == "shell" ]; then
-                    RESTART_OPTION="$OPTARG"
-                else
-                    die "RESTART_OPTION can have the following values: reboot, poweroff or shell"
-                fi
-                ;;
-            *)  show_help
-                exit 1
-                ;;
-        esac
-    done
+	while getopts "havt:r:c:b:F:" opt; do
+		case "$opt" in
+			h)  show_help
+				exit 1
+				;;
+			a)  ask_at_every_error="y"
+				;;
+			v)  verbose_mode=1
+				>&3 echo "Verbose mode..."
+				;;
+			t)  TARGET_DISK="$OPTARG"
+				;;
+			r)  if [ "$OPTARG" == "y" -o "$OPTARG" == "Y" ]; then
+					use_ramfs=true
+				elif [ "$OPTARG" == "n" -o "$OPTARG" == "N" ]; then
+					use_ramfs=false
+				else
+					die "Must specify '-r y' or '-r n'"
+				fi
+				;;
+			c)  if [ "$OPTARG" == "y" -o "$OPTARG" == "Y" ]; then
+					grubenv_consoleoutenable="True"
+				elif [ "$OPTARG" == "n" -o "$OPTARG" == "N" ]; then
+					grubenv_consoleoutenable="False"
+				else
+					die "Must specify '-c y' or '-c n'"
+				fi
+				;;
+			b)  grubenv_bootdelay="$OPTARG"
+				;;
+			F)  FORCE_PROVISIONING=1
+				if [ $OPTARG == "reboot" -o  "$OPTARG" == "poweroff" -o "$OPTARG" == "shell" ]; then
+					RESTART_OPTION="$OPTARG"
+				else
+					die "RESTART_OPTION can have the following values: reboot, poweroff or shell"
+				fi
+				;;
+			*)  show_help
+				exit 1
+				;;
+		esac
+	done
 
-    shift $((OPTIND-1))
+	shift $((OPTIND-1))
 
-    [ "$1" = "--" ] && shift
+	[ "$1" = "--" ] && shift
 
-    if [[ $verbose_mode -eq 1 ]]; then
-        VERBOSE_ARGS="-v"
-        MKFS_ARGS="$VERBOSE_ARGS -F"
-    fi
+	if [[ $verbose_mode -eq 1 ]]; then
+		VERBOSE_ARGS="-v"
+		MKFS_ARGS="$VERBOSE_ARGS -F"
+	fi
 
-    if [[ -z $TARGET_DISK ]]; then
-        local search_begin="`get_time_delta 0`"
-        while [ "`get_time_delta "$search_begin"`" -le "$TARGET_DISK_SEARCH_TIME" ]; do
-            (( verbose_mode )) && echo "Searching for TARGET_DISK..." >&2
-            TARGET_DISK="`find_target_block_device`" || TARGET_DISK=""
-            if [[ -z $TARGET_DISK ]]; then
-                (( verbose_mode )) && echo "not found" >&2
-                sleep 1
-            else
-                (( verbose_mode )) && echo "found TARGET_DISK=$TARGET_DISK" >&2
-                break
-            fi
-        done
+	if [[ -z $TARGET_DISK ]]; then
+		local search_begin="`get_time_delta 0`"
+		while [ "`get_time_delta "$search_begin"`" -le "$TARGET_DISK_SEARCH_TIME" ]; do
+			(( verbose_mode )) && echo "Searching for TARGET_DISK..." >&2
+			TARGET_DISK="`find_target_block_device`" || TARGET_DISK=""
+			if [[ -z $TARGET_DISK ]]; then
+				(( verbose_mode )) && echo "not found" >&2
+				sleep 1
+			else
+				(( verbose_mode )) && echo "found TARGET_DISK=$TARGET_DISK" >&2
+				break
+			fi
+		done
 
-        if [[ -z $TARGET_DISK ]]; then
-            die "No target device found for installation after $TARGET_DISK_SEARCH_TIME seconds."
-        fi
-    else
-        if [[ ! -e $TARGET_DISK ]]; then
-        >&4 echo -e ${red}"Error: DEVICE $TARGET_DISK does not exist."${NC}
-            show_help
-            exit 1
-        fi
-    fi
+		if [[ -z $TARGET_DISK ]]; then
+			die "No target device found for installation after $TARGET_DISK_SEARCH_TIME seconds."
+		fi
+	else
+		if [[ ! -e $TARGET_DISK ]]; then
+		>&4 echo -e ${red}"Error: DEVICE $TARGET_DISK does not exist."${NC}
+			show_help
+			exit 1
+		fi
+	fi
 
-    # separate partition number from block device names ending in a digit
-    PART_SEPARATOR=''
-    if [[ "${TARGET_DISK: -1}" =~ [0-9] ]]; then
-        PART_SEPARATOR='p'
-    fi
+	# separate partition number from block device names ending in a digit
+	PART_SEPARATOR=''
+	if [[ "${TARGET_DISK: -1}" =~ [0-9] ]]; then
+		PART_SEPARATOR='p'
+	fi
 
-    if [[ ! -d "/sys/firmware/efi" ]]; then
-        die "Legacy booting is not supported, please reboot and select UEFI instead."
-    fi
+	if [[ ! -d "/sys/firmware/efi" ]]; then
+		die "Legacy booting is not supported, please reboot and select UEFI instead."
+	fi
 }
 
 function read_file() {
-    local filename="$1"
-    local maxsize="$2"
-    local value=""
+	local filename="$1"
+	local maxsize="$2"
+	local value=""
 
-    if [ -e "$filename" ]; then
-        value=$(head -c "$maxsize" "$filename") || value=""
-    fi
+	if [ -e "$filename" ]; then
+		value=$(head -c "$maxsize" "$filename") || value=""
+	fi
 
-    echo "$value"
+	echo "$value"
 }
 
 in_recovery_mode()
 {
-    local res=false
+	local res=false
 
-    for file in /sys/bus/acpi/drivers/nirtfeatures/*/recovery_mode; do
-        status=$(read_file "$file" 10)
-        if [ "$status" == "1" ]; then
-            res=true
-        fi
-    done
+	for file in /sys/bus/acpi/drivers/nirtfeatures/*/recovery_mode; do
+		status=$(read_file "$file" 10)
+		if [ "$status" == "1" ]; then
+			res=true
+		fi
+	done
 
-    $res
+	$res
 }
 
 check_answer_file()
 {
-    local filePath="$1"
-    if [ -r "$filePath" ]; then
-        # Answer file may only contain lines beginning with '#' or 'PROVISION_*=' variables
-        if [ "`head -1 "$filePath"`" == "#NI_PROVISIONING_ANSWERS_V1" ]; then
-            if ! egrep -q -v '(^$|^#|^PROVISION_[A-Z0-9_]+=)' "$filePath"; then
-                return 0
-            fi
-        fi
-    fi
-    return 1
+	local filePath="$1"
+	if [ -r "$filePath" ]; then
+		# Answer file may only contain lines beginning with '#' or 'PROVISION_*=' variables
+		if [ "`head -1 "$filePath"`" == "#NI_PROVISIONING_ANSWERS_V1" ]; then
+			if ! egrep -q -v '(^$|^#|^PROVISION_[A-Z0-9_]+=)' "$filePath"; then
+				return 0
+			fi
+		fi
+	fi
+	return 1
 }
 
 source_default_answer_file()
 {
-    if ! check_answer_file "/ni_provisioning.answers.default"; then
-        die "Missing or corrupt file /ni_provisioning.answers.default"
-    fi
-    source "/ni_provisioning.answers.default"
+	if ! check_answer_file "/ni_provisioning.answers.default"; then
+		die "Missing or corrupt file /ni_provisioning.answers.default"
+	fi
+	source "/ni_provisioning.answers.default"
 }
 
 source_answer_file()
 {
-    print_verbose "Searching for answer files:"
+	print_verbose "Searching for answer files:"
 
-    # first check for embedded answer file on the boot disk
-    if check_answer_file "/ni_provisioning.answers"; then
-        print_verbose "Using embedded answer file at /ni_provisioning.answers"
-        source "/ni_provisioning.answers"
-        return
-    fi
+	# first check for embedded answer file on the boot disk
+	if check_answer_file "/ni_provisioning.answers"; then
+		print_verbose "Using embedded answer file at /ni_provisioning.answers"
+		source "/ni_provisioning.answers"
+		return
+	fi
 
-    mkdir -p "$ANSWER_FILE_DISK_MOUNTPOINT"
-    for devNode in `lsblk -rpn -o NAME,TYPE,RM | grep -E 'part|rom 1$' | cut -d' ' -f1 || true`; do
-        devNodeInfo="`lsblk -n -o 'FSTYPE,SERIAL,UUID,LABEL' "$devNode" | tr -s ' '`"
-        mount -o ro "$devNode"  "$ANSWER_FILE_DISK_MOUNTPOINT"
-        if check_answer_file    "$ANSWER_FILE_DISK_MOUNTPOINT/ni_provisioning.answers"; then
-            print_verbose "Using ni_provisioning.answers on $devNode ($devNodeInfo)"
-            source              "$ANSWER_FILE_DISK_MOUNTPOINT/ni_provisioning.answers"
-            return
-        else
-            umount              "$ANSWER_FILE_DISK_MOUNTPOINT"
-            print_verbose "Skipped $devNode ($devNodeInfo)"
-            # and keep going
-        fi
-    done
+	mkdir -p "$ANSWER_FILE_DISK_MOUNTPOINT"
+	for devNode in `lsblk -rpn -o NAME,TYPE,RM | grep -E 'part|rom 1$' | cut -d' ' -f1 || true`; do
+		devNodeInfo="`lsblk -n -o 'FSTYPE,SERIAL,UUID,LABEL' "$devNode" | tr -s ' '`"
+		mount -o ro "$devNode"  "$ANSWER_FILE_DISK_MOUNTPOINT"
+		if check_answer_file	"$ANSWER_FILE_DISK_MOUNTPOINT/ni_provisioning.answers"; then
+			print_verbose "Using ni_provisioning.answers on $devNode ($devNodeInfo)"
+			source "$ANSWER_FILE_DISK_MOUNTPOINT/ni_provisioning.answers"
+			return
+		else
+			umount "$ANSWER_FILE_DISK_MOUNTPOINT"
+			print_verbose "Skipped $devNode ($devNodeInfo)"
+			# and keep going
+		fi
+	done
 
-    print_verbose "No answer file found; using default configuration"
+	print_verbose "No answer file found; using default configuration"
 }
 
 prompt_user()
 {
-    local question="$1"
-    local answerPattern="$2"
-    local defaultAnswer="$3"
-    local -n var="$4"
-    if [[ $var == "?" ]]; then
-        while [[ ! $var =~ $answerPattern ]]; do
-            read -p "$question: " var
-            var="${var,,}"  #lowercase var
-            if [[ -z "$var" ]]; then
-                var="$defaultAnswer"
-            fi
-        done
-    else
-        echo "$question: $var (auto)"
-    fi
+	local question="$1"
+	local answerPattern="$2"
+	local defaultAnswer="$3"
+	local -n var="$4"
+	if [[ $var == "?" ]]; then
+		while [[ ! $var =~ $answerPattern ]]; do
+			read -p "$question: " var
+			var="${var,,}"  #lowercase var
+			if [[ -z "$var" ]]; then
+				var="$defaultAnswer"
+			fi
+		done
+	else
+		echo "$question: $var (auto)"
+	fi
 }
 

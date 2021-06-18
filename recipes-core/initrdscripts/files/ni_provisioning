@@ -4,19 +4,19 @@ INVALID_NILRT_ID_MSG="Invalid value for PROVISION_PART_NILRT_ID. Use UUID=<value
 
 # verify required tools are installed
 for toolName in poweroff reboot mount umount sync ls rm ln mkdir cp echo printf dirname basename find grep egrep tar bzip2 bunzip2 lsblk cut udevadm date sleep head; do
-    if ! type "$toolName" >/dev/null; then
-        printf "\n***Error: Missing $toolName\n"
-        printf "PROVISIONING FAILED!"
-        exit 1
-    fi
+	if ! type "$toolName" >/dev/null; then
+		printf "\n***Error: Missing $toolName\n"
+		printf "PROVISIONING FAILED!"
+		exit 1
+	fi
 done
 
 if [ -e /ni_provisioning.common ]; then
-    source /ni_provisioning.common
+	source /ni_provisioning.common
 else
-    printf "\n***Error: File ni_provisioning.common not found!\n"
-    printf "PROVISIONING FAILED!"
-    exit 1
+	printf "\n***Error: File ni_provisioning.common not found!\n"
+	printf "PROVISIONING FAILED!"
+	exit 1
 fi
 
 early_setup "$@"
@@ -25,93 +25,93 @@ early_setup "$@"
 source_default_answer_file
 
 if in_recovery_mode; then
-    echo "Automatic provision and reboot in recovery mode"
-    PROVISION_REPARTITION_TARGET="y"
-    PROVISION_REBOOT_METHOD="reboot"
+	echo "Automatic provision and reboot in recovery mode"
+	PROVISION_REPARTITION_TARGET="y"
+	PROVISION_REBOOT_METHOD="reboot"
 fi
 
 if [[ $restore == "provision-safe" ]]; then
-    # source user's answer file, if present
-    source_answer_file
-    echo
+	# source user's answer file, if present
+	source_answer_file
+	echo
 
-    if [[ "$PROVISION_REPARTITION_TARGET" != "y" ]]; then
-        ask_for_continue
-    fi
+	if [[ "$PROVISION_REPARTITION_TARGET" != "y" ]]; then
+		ask_for_continue
+	fi
 
-    if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
-        source /ni_provisioning.safemode
-        if [[ "${FORCE_PROVISIONING}" -eq 1 ]]; then
-            PROVISION_REBOOT_METHOD=${RESTART_OPTION}
-        fi
-        ASK_BEFORE_REBOOT=1
-    fi
+	if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
+		source /ni_provisioning.safemode
+		if [[ "${FORCE_PROVISIONING}" -eq 1 ]]; then
+			PROVISION_REBOOT_METHOD=${RESTART_OPTION}
+		fi
+		ASK_BEFORE_REBOOT=1
+	fi
 elif [[ $restore == "backward-migrate" ]]; then
-    source /ni_provisioning.safemode
-    ASK_BEFORE_REBOOT=1
-    PROVISION_REBOOT_METHOD="reboot"
+	source /ni_provisioning.safemode
+	ASK_BEFORE_REBOOT=1
+	PROVISION_REBOOT_METHOD="reboot"
 elif [[ $restore == "provision" ]]; then
-    # source user's answer file, if present
-    source_answer_file
-    echo
+	# source user's answer file, if present
+	source_answer_file
+	echo
 
-    if [[ "$PROVISION_PART_NILRT_ID" = "auto" ]]; then
-        ask_for_continue
+	if [[ "$PROVISION_PART_NILRT_ID" = "auto" ]]; then
+		ask_for_continue
 
-        if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
-            provision_target usb
-        fi
-    else
-        # TODO
-        die "Not supported yet"
+		if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
+			provision_target usb
+		fi
+	else
+		# TODO
+		die "Not supported yet"
 
-        case "$PROVISION_PART_NILRT_ID" in
-            LABEL=*)
-                ;;
-            UUID=*)
-                ;;
-            PARTUUID=*)
-                ;;
-            *)
-                die "$INVALID_NILRT_ID_MSG"
-                ;;
-        esac
+		case "$PROVISION_PART_NILRT_ID" in
+			LABEL=*)
+				;;
+			UUID=*)
+				;;
+			PARTUUID=*)
+				;;
+			*)
+				die "$INVALID_NILRT_ID_MSG"
+				;;
+		esac
 
-        column=${PROVISION_PART_NILRT_ID%%=*}
-        nilrt_id=${PROVISION_PART_NILRT_ID##*=}
-        if [[ -z "$nilrt_id" ]]; then
-            die "$INVALID_NILRT_ID_MSG"
-        fi
-        if [[ "$column" = "LABEL" ]]; then
-            grep_options=""
-        else
-            grep_options="-i"
-        fi
-        nilrt_path=`lsblk -rnpo NAME,"$column" | grep $grep_options "$nilrt_id" | cut -d' ' -f1`
-        if [[ -z "$nilrt_path" ]]; then
-            die "Partition with "$PROVISION_PART_NILRT_ID" not found."
-        fi
+		column=${PROVISION_PART_NILRT_ID%%=*}
+		nilrt_id=${PROVISION_PART_NILRT_ID##*=}
+		if [[ -z "$nilrt_id" ]]; then
+			die "$INVALID_NILRT_ID_MSG"
+		fi
+		if [[ "$column" = "LABEL" ]]; then
+			grep_options=""
+		else
+			grep_options="-i"
+		fi
+		nilrt_path=`lsblk -rnpo NAME,"$column" | grep $grep_options "$nilrt_id" | cut -d' ' -f1`
+		if [[ -z "$nilrt_path" ]]; then
+			die "Partition with "$PROVISION_PART_NILRT_ID" not found."
+		fi
 
-        ask_for_continue
-        if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
-            if [[ "$column" = "UUID" ]]; then
-                uuid="$nilrt_id"
-            else
-                uuid=""
-            fi
-            restore_runmode_image "$nilrt_path" "$uuid" "$PROVISION_PART_NILRT_LABEL"
-        fi
-    fi
+		ask_for_continue
+		if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
+			if [[ "$column" = "UUID" ]]; then
+				uuid="$nilrt_id"
+			else
+				uuid=""
+			fi
+			restore_runmode_image "$nilrt_path" "$uuid" "$PROVISION_PART_NILRT_LABEL"
+		fi
+	fi
 
 elif [[ $restore == "migrate" ]]; then
-    PROVISION_REBOOT_METHOD="reboot"
-    provision_target onboard
+	PROVISION_REBOOT_METHOD="reboot"
+	provision_target onboard
 else
-    die "Invalid restore mode."
+	die "Invalid restore mode."
 fi
 
 if [[ "$ASK_BEFORE_REBOOT" -ne 0 ]] && [[ "${FORCE_PROVISIONING}" -ne 1 ]] ; then
-    prompt_user "Please eject the installation media and restart the system (Reboot, poweroff, shell)" "^(reboot|poweroff|shell)$" "reboot" PROVISION_REBOOT_METHOD
+	prompt_user "Please eject the installation media and restart the system (Reboot, poweroff, shell)" "^(reboot|poweroff|shell)$" "reboot" PROVISION_REBOOT_METHOD
 fi
 
 cleanup_and_exit 0

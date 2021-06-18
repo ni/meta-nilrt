@@ -2,87 +2,87 @@
 
 install_default_error_handler()
 {
-    trap 'handle_err ${BASH_SOURCE} ${LINENO} ${FUNCNAME:-unknown} $? "$BASH_COMMAND"' ERR
+	trap 'handle_err ${BASH_SOURCE} ${LINENO} ${FUNCNAME:-unknown} $? "$BASH_COMMAND"' ERR
 }
 
 handle_err()
 {
-    TMP_EVAL=`eval echo $5`
-    die "$1:$2 (fn=$3): Unexpected status code $4 while running command: '$TMP_EVAL'"
+	TMP_EVAL=`eval echo $5`
+	die "$1:$2 (fn=$3): Unexpected status code $4 while running command: '$TMP_EVAL'"
 }
 
 disk_partition()
 {
-    local disk="$1"
+	local disk="$1"
 
-    umount "$disk"? || true
+	umount "$disk"? || true
 
-    dd if="/dev/zero" of="$disk" bs=1M count=1
+	dd if="/dev/zero" of="$disk" bs=1M count=1
 
-    parted -s "$disk" --align optimal      \
-        mklabel "gpt"                      \
-        mkpart "niboota"       1MB  250MB  \
-        mkpart "nibootb"     250MB  500MB  \
-        mkpart "niuser"      500MB  100%
+	parted -s "$disk" --align optimal \
+		mklabel "gpt" \
+		mkpart "niboota"   1MB  250MB \
+		mkpart "nibootb" 250MB  500MB \
+		mkpart "niuser"  500MB  100%
 
-    # Per https://www.freedesktop.org/wiki/Specifications/DiscoverablePartitionsSpec/
-    #  C12A7328-F81F-11D2-BA4B-00A0C93EC93B -- EFI System Partition
-    #  4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709 -- Root Partition (x86-64)
-    sgdisk --typecode="1:C12A7328-F81F-11D2-BA4B-00A0C93EC93B" "$disk"
-    sgdisk --typecode="2:C12A7328-F81F-11D2-BA4B-00A0C93EC93B" "$disk"
-    sgdisk --typecode="3:4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709" "$disk"
+	# Per https://www.freedesktop.org/wiki/Specifications/DiscoverablePartitionsSpec/
+	#  C12A7328-F81F-11D2-BA4B-00A0C93EC93B -- EFI System Partition
+	#  4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709 -- Root Partition (x86-64)
+	sgdisk --typecode="1:C12A7328-F81F-11D2-BA4B-00A0C93EC93B" "$disk"
+	sgdisk --typecode="2:C12A7328-F81F-11D2-BA4B-00A0C93EC93B" "$disk"
+	sgdisk --typecode="3:4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709" "$disk"
 
-    partprobe -s "$disk"
+	partprobe -s "$disk"
 }
 
 partition_format()
 {
-    local disk="$1" label="$2"
+	local disk="$1" label="$2"
 
-    partitions=($(lsblk -rnpo NAME -x NAME ${disk} | tail +2))
-    disk_check "$disk"
+	partitions=($(lsblk -rnpo NAME -x NAME ${disk} | tail +2))
+	disk_check "$disk"
 
-    case "$label" in
-        niboota)
-            dd if="/dev/zero" of="${partitions[0]}" bs=1M count=1
-            mkfs.vfat -n "niboota" "${partitions[0]}"
-            ;;
-        nibootb)
-            dd if="/dev/zero" of="${partitions[1]}" bs=1M count=1
-            mkfs.vfat -n "nibootb" "${partitions[1]}"
-            ;;
-        niuser)
-            # niuser partition is managed by initramfs
-            dd if="/dev/zero" of="${partitions[2]}" bs=1M count=1
-            ;;
-        *)
-            die "Invalid or unspecified label!"
-    esac
+	case "$label" in
+		niboota)
+			dd if="/dev/zero" of="${partitions[0]}" bs=1M count=1
+			mkfs.vfat -n "niboota" "${partitions[0]}"
+			;;
+		nibootb)
+			dd if="/dev/zero" of="${partitions[1]}" bs=1M count=1
+			mkfs.vfat -n "nibootb" "${partitions[1]}"
+			;;
+		niuser)
+			# niuser partition is managed by initramfs
+			dd if="/dev/zero" of="${partitions[2]}" bs=1M count=1
+			;;
+		*)
+			die "Invalid or unspecified label!"
+	esac
 }
 
 partition_check()
 {
-    local partition="$1"
+	local partition="$1"
 
-    [[ -e "$partition" ]] || die "Invalid or unspecified partition!"
+	[[ -e "$partition" ]] || die "Invalid or unspecified partition!"
 }
 
 disk_check()
 {
-    local disk="$1"
+	local disk="$1"
 
-    [[ -b "$disk" ]] || die "Invalid or unspecified disk!"
+	[[ -b "$disk" ]] || die "Invalid or unspecified disk!"
 }
 
 disk_setup()
 {
-    local disk="$1"
+	local disk="$1"
 
-    disk_check "$disk"
+	disk_check "$disk"
 
-    disk_partition "$disk"
+	disk_partition "$disk"
 
-    partition_format "$disk" "niboota"
-    partition_format "$disk" "nibootb"
-    partition_format "$disk" "niuser"
+	partition_format "$disk" "niboota"
+	partition_format "$disk" "nibootb"
+	partition_format "$disk" "niuser"
 }

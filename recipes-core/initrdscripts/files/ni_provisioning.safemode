@@ -22,119 +22,119 @@ PART4_NAME=$PART4_LABEL
 
 print_info()
 {
-    if [ $verbose_mode -eq 1 ]; then
-        >&3 echo $1
-    else
-        >&3 echo -n $1
-    fi
+	if [ $verbose_mode -eq 1 ]; then
+		>&3 echo $1
+	else
+		>&3 echo -n $1
+	fi
 }
 
 print_error()
 {
-    >&4 echo -e ${RED}"\n***Error: $1\n"${NC}
+	>&4 echo -e ${RED}"\n***Error: $1\n"${NC}
 	local continue_on_error="N"
-    if [[ "$ask_at_every_error" == "y" ]]; then
-        exec 2>&4
-        read -p "Do you want to ignore this error?[y/N]" continue_on_error
+	if [[ "$ask_at_every_error" == "y" ]]; then
+		exec 2>&4
+		read -p "Do you want to ignore this error?[y/N]" continue_on_error
 		exec 4>&2
 	fi
 	if [[ "$continue_on_error" == "N" || "$continue_on_error" == "n" || "$continue_on_error" == "" ]]; then
-        >&4 echo -e ${RED}"PROVISIONING FAILED!"${NC}
-        cleanup_and_exit 1
-    fi
+		>&4 echo -e ${RED}"PROVISIONING FAILED!"${NC}
+		cleanup_and_exit 1
+	fi
 }
 
 die()
 {
-    >&4 echo -e ${RED}"\n***Fatal Error: $1"${NC}
-    >&4 echo -e ${RED}"PROVISIONING FAILED!"${NC}
-    cleanup_and_exit 1
+	>&4 echo -e ${RED}"\n***Fatal Error: $1"${NC}
+	>&4 echo -e ${RED}"PROVISIONING FAILED!"${NC}
+	cleanup_and_exit 1
 }
 
 print_done()
 {
-    if [ $verbose_mode -eq 0 ]; then
-        >&3 echo "Done"
-    fi
+	if [ $verbose_mode -eq 0 ]; then
+		>&3 echo "Done"
+	fi
 }
 
 disable_automount()
 {
-    echo -e $TARGET_DISK >> /etc/udev/mount.blacklist
-    AUTOMOUNT_DISABLED=1
+	echo -e $TARGET_DISK >> /etc/udev/mount.blacklist
+	AUTOMOUNT_DISABLED=1
 }
 
 enable_automount()
 {
-    sed -ie "\#$TARGET_DISK#d" /etc/udev/mount.blacklist
-    AUTOMOUNT_DISABLED=0
+	sed -ie "\#$TARGET_DISK#d" /etc/udev/mount.blacklist
+	AUTOMOUNT_DISABLED=0
 }
 #waits until the four partitions are visible
 wait_for_partitions()
 {
-    DEVICE_TMP=$1
-    for i in 1 2 3 4
-    do
-        #wait max 3 seconds for each partition
-        print_verbose "Waiting for $DEVICE_TMP$i "
-        MaxTries=30
-        while [ ! -b ${DEVICE_TMP}${PART_SEPARATOR}$i -a $MaxTries -gt 0 ];
-        do
-            print_verbose "."
-            #sleep 0.1 seconds
-            usleep 100000
-            MaxTries=$(($MaxTries - 1))
-        done
-        if [ $MaxTries -eq 0 ]; then
-            return 1
-        fi
-    done
+	DEVICE_TMP=$1
+	for i in 1 2 3 4
+	do
+		#wait max 3 seconds for each partition
+		print_verbose "Waiting for $DEVICE_TMP$i "
+		MaxTries=30
+		while [ ! -b ${DEVICE_TMP}${PART_SEPARATOR}$i -a $MaxTries -gt 0 ];
+		do
+			print_verbose "."
+			#sleep 0.1 seconds
+			usleep 100000
+			MaxTries=$(($MaxTries - 1))
+		done
+		if [ $MaxTries -eq 0 ]; then
+			return 1
+		fi
+	done
 }
 
 handle_err()
 {
-    TMP_EVAL=`eval echo $5`
-    print_error "$1:$2 (fn=$3): Unexpected status code $4, while running command: '$TMP_EVAL'" ${NC}
+	TMP_EVAL=`eval echo $5`
+	print_error "$1:$2 (fn=$3): Unexpected status code $4, while running command: '$TMP_EVAL'" ${NC}
 }
 
 check_all_used_binaries()
 {
-    commands=(awk dmidecode e2label hexdump lsblk mkfs.ext4 mkfs.vfat parted sed sfdisk sgdisk udevadm modprobe dd)
-    for ind_command in ${commands[@]}; do
-        one_command=`command -v ${ind_command}`
-        if [[ -z $one_command ]]; then
-            die "Command \"${ind_command}\" not found. Please install ${ind_command}."
-        fi
-    done
+	commands=(awk dmidecode e2label hexdump lsblk mkfs.ext4 mkfs.vfat parted sed sfdisk sgdisk udevadm modprobe dd)
+	for ind_command in ${commands[@]}; do
+		one_command=`command -v ${ind_command}`
+		if [[ -z $one_command ]]; then
+			die "Command \"${ind_command}\" not found. Please install ${ind_command}."
+		fi
+	done
 
 }
 
 override_primaryport_grubenv()
 {
-    # Add target-specific override of primary ethernet port if the lowest ifIndex is not to be used
-    local device_code=$(get_target_id)
-    # CVS-1458RT
-    if [[ x"$device_code" == x"77AA" ]]; then
-        # Set eth0 (note: renamed to eth0 via udev) as the primary port. Do not let the primary
-        # port selection logic decide since it selects the 'eth' port with the lowest ifIndex
-        # value. (Renaming the port via udev does not alter ifIndex, so eth0 is not the lowest)
-        grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "ethaddr=`cat /sys/class/net/eth0/address`"
-    fi
+	# Add target-specific override of primary ethernet port if the lowest ifIndex is not to be used
+	local device_code=$(get_target_id)
+	# CVS-1458RT
+	if [[ x"$device_code" == x"77AA" ]]; then
+		# Set eth0 (note: renamed to eth0 via udev) as the primary port. Do not let the primary
+		# port selection logic decide since it selects the 'eth' port with the lowest ifIndex
+		# value. (Renaming the port via udev does not alter ifIndex, so eth0 is not the lowest)
+		grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "ethaddr=`cat /sys/class/net/eth0/address`"
+	fi
 }
 
 add_USB_gadget_args_to_grubenv()
 {
-    local MAC=$(get_usbdev_mac)
-    local VID=$(get_usbdev_vid)
-    local PID=$(get_usbdev_pid)
-    local SN=$(get_serial_number)
-    local TID=$(get_target_id)
-    local PROD=$(get_target_name)
+	local MAC=$(get_usbdev_mac)
+	local VID=$(get_usbdev_vid)
+	local PID=$(get_usbdev_pid)
+	local SN=$(get_serial_number)
+	local TID=$(get_target_id)
+	local PROD=$(get_target_name)
 
-    if is_usbdev_target; then
+	if is_usbdev_target; then
 
-        if [ -n "$MAC" -a -n "$VID" -a -n "$PID" -a -n "$SN" -a -n "$TID" -a -n "$PROD" ]; then
-            cat << EOF > $GRUB_MOUNTPOINT/grubvar_readonly
+		if [ -n "$MAC" -a -n "$VID" -a -n "$PID" -a -n "$SN" -a -n "$TID" -a -n "$PROD" ]; then
+			cat << EOF > $GRUB_MOUNTPOINT/grubvar_readonly
 set usbgadgetethaddr=$MAC
 set USBVendorID=$VID
 set USBProductID=$PID
@@ -142,314 +142,314 @@ set SerialNum=$SN
 set USBDevice=$TID
 set USBProduct=$PROD
 EOF
-        else
-            print_error "Details required for USB device mode are missing from SMBIOS! UPGRADE your BIOS if using NI Target. USB Gadget will not be functional."
-            return
-        fi
-    fi
+		else
+			print_error "Details required for USB device mode are missing from SMBIOS! UPGRADE your BIOS if using NI Target. USB Gadget will not be functional."
+			return
+		fi
+	fi
 }
 
 set_serial_port()
 {
-    if [ -d /sys/class/tty/ttyS0 ] && [ -f /sys/class/tty/ttyS0/type ] && [ `cat /sys/class/tty/ttyS0/type` -ne 0 ]; then
-        echo "set serial_port="`cat /sys/class/tty/ttyS0/port` >> $GRUB_MOUNTPOINT/grubvar_readonly
+	if [ -d /sys/class/tty/ttyS0 ] && [ -f /sys/class/tty/ttyS0/type ] && [ `cat /sys/class/tty/ttyS0/type` -ne 0 ]; then
+		echo "set serial_port="`cat /sys/class/tty/ttyS0/port` >> $GRUB_MOUNTPOINT/grubvar_readonly
 
-        local base_clock
-        if base_clock=$(get_serial_base_clock); then
-            echo "set GRUB_SERIAL_BASE_CLOCK=$base_clock" >> $GRUB_MOUNTPOINT/grubvar_readonly
-        fi
-    fi
+		local base_clock
+		if base_clock=$(get_serial_base_clock); then
+			echo "set GRUB_SERIAL_BASE_CLOCK=$base_clock" >> $GRUB_MOUNTPOINT/grubvar_readonly
+		fi
+	fi
 
 }
 
 # Load necessary kernel modules needed to inspect the system's hardware
 load_kernel_modules ()
 {
-    for modname in "tpm_tis"; do
-        if modprobe "$modname"; then
-            print_verbose "Loaded $modname"
-        else
-            print_error "Failed to load $modname"
-        fi
-    done
+	for modname in "tpm_tis"; do
+		if modprobe "$modname"; then
+			print_verbose "Loaded $modname"
+		else
+			print_error "Failed to load $modname"
+		fi
+	done
 }
 
 # Is true if system has a TPM chip. Must not be used before
 #  load_kernel_modules() runs.
 has_tpm_chip ()
 {
-    [ -e "/dev/tpm0" ]
+	[ -e "/dev/tpm0" ]
 }
 
 check_for_tpm_chip()
 {
-    # If use_ramfs was unspecified by user, set it based on
-    #  presence of TPM chip
-    if [ -z "$use_ramfs" ]; then
-        if has_tpm_chip; then
-            use_ramfs=true
-        else
-            use_ramfs=false
-        fi
-    fi
+	# If use_ramfs was unspecified by user, set it based on
+	#  presence of TPM chip
+	if [ -z "$use_ramfs" ]; then
+		if has_tpm_chip; then
+			use_ramfs=true
+		else
+			use_ramfs=false
+		fi
+	fi
 }
 
 partitioning_disk()
 {
-    umount "$TARGET_DISK"? 2>/dev/null || true
-    print_info "Partitioning TARGET_DISK=$TARGET_DISK (PART_STYLE=$PART_STYLE)..."
-    PARTED_ERROR=`parted -s $TARGET_DISK mklabel $PART_STYLE 2>&1` || die "$PARTED_ERROR"
-    PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART1_NAME 1MB 16MB 2>&1` || die "$PARTED_ERROR"
-    PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART2_NAME 16MB 200MB 2>&1` || die "$PARTED_ERROR"
-    PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART3_NAME 200MB 216MB 2>&1` || die "$PARTED_ERROR"
-    PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART4_NAME 216MB 100% 2>&1` || die "$PARTED_ERROR"
-    print_done
+	umount "$TARGET_DISK"? 2>/dev/null || true
+	print_info "Partitioning TARGET_DISK=$TARGET_DISK (PART_STYLE=$PART_STYLE)..."
+	PARTED_ERROR=`parted -s $TARGET_DISK mklabel $PART_STYLE 2>&1` || die "$PARTED_ERROR"
+	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART1_NAME 1MB 16MB 2>&1` || die "$PARTED_ERROR"
+	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART2_NAME 16MB 200MB 2>&1` || die "$PARTED_ERROR"
+	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART3_NAME 200MB 216MB 2>&1` || die "$PARTED_ERROR"
+	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART4_NAME 216MB 100% 2>&1` || die "$PARTED_ERROR"
+	print_done
 
-    print_info "Assigning EFI System Partition..."
-    # Per https://www.freedesktop.org/wiki/Specifications/DiscoverablePartitionsSpec/
-    #  C12A7328-F81F-11D2-BA4B-00A0C93EC93B -- EFI System Partition
-    sgdisk --typecode="1:C12A7328-F81F-11D2-BA4B-00A0C93EC93B" $TARGET_DISK
-    print_done
+	print_info "Assigning EFI System Partition..."
+	# Per https://www.freedesktop.org/wiki/Specifications/DiscoverablePartitionsSpec/
+	#  C12A7328-F81F-11D2-BA4B-00A0C93EC93B -- EFI System Partition
+	sgdisk --typecode="1:C12A7328-F81F-11D2-BA4B-00A0C93EC93B" $TARGET_DISK
+	print_done
 
-    print_info "Probing partitions of TARGET_DISK=$TARGET_DISK ..."
-    partprobe -s "$TARGET_DISK"
-    print_done
+	print_info "Probing partitions of TARGET_DISK=$TARGET_DISK ..."
+	partprobe -s "$TARGET_DISK"
+	print_done
 }
 
 create_filesystems()
 {
-    print_info "Creating filesystems ..."
+	print_info "Creating filesystems ..."
 
-    MKFS_ERROR=`mkfs.vfat -n $PART1_LABEL ${TARGET_DISK}${PART_SEPARATOR}1 2>&1` || die "$MKFS_ERROR"
-    do_silent mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}${PART_SEPARATOR}2 || die "Format failed!"
-    do_silent mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}${PART_SEPARATOR}3 || die "Format failed!"
-    do_silent mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}${PART_SEPARATOR}4 || die "Format failed!"
+	MKFS_ERROR=`mkfs.vfat -n $PART1_LABEL ${TARGET_DISK}${PART_SEPARATOR}1 2>&1` || die "$MKFS_ERROR"
+	do_silent mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}${PART_SEPARATOR}2 || die "Format failed!"
+	do_silent mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}${PART_SEPARATOR}3 || die "Format failed!"
+	do_silent mkfs.ext4 $MKFS_ARGS ${TARGET_DISK}${PART_SEPARATOR}4 || die "Format failed!"
 
-    LABEL_ERROR=`e2label ${TARGET_DISK}${PART_SEPARATOR}2 $PART2_LABEL 2>&1` || die "$LABEL_ERROR"
-    LABEL_ERROR=`e2label ${TARGET_DISK}${PART_SEPARATOR}3 $PART3_LABEL 2>&1` || die "$LABEL_ERROR"
-    LABEL_ERROR=`e2label ${TARGET_DISK}${PART_SEPARATOR}4 $PART4_LABEL 2>&1` || die "$LABEL_ERROR"
+	LABEL_ERROR=`e2label ${TARGET_DISK}${PART_SEPARATOR}2 $PART2_LABEL 2>&1` || die "$LABEL_ERROR"
+	LABEL_ERROR=`e2label ${TARGET_DISK}${PART_SEPARATOR}3 $PART3_LABEL 2>&1` || die "$LABEL_ERROR"
+	LABEL_ERROR=`e2label ${TARGET_DISK}${PART_SEPARATOR}4 $PART4_LABEL 2>&1` || die "$LABEL_ERROR"
 
-    print_done
+	print_done
 }
 
 install_grub()
 {
-    GRUB_MOUNTPOINT=/var/volatile/grub
-    mkdir $GRUB_MOUNTPOINT -p
-    MOUNT_ERROR=`mount -L $PART1_LABEL $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
+	GRUB_MOUNTPOINT=/var/volatile/grub
+	mkdir $GRUB_MOUNTPOINT -p
+	MOUNT_ERROR=`mount -L $PART1_LABEL $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
 
-    print_info "Configuring EFI grub2..."
-    GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/efi/boot
-    mkdir -p $GRUB_TARGET_DIR
-    GRUB_TARGET=$(uname -m)
-    cp /boot/EFI/BOOT/bootx64.efi $GRUB_TARGET_DIR
-    # Delete existing NILRT entries with "-B" option
-    for ENTRY in $(efibootmgr | egrep -i '(LabVIEW RT)|(niboota)|(nibootb)' | egrep -o '[0-9A-Fa-f]{4}' || true);
-    do
-        print_info " Drop entry $ENTRY."
-        EFIMGR=$(efibootmgr -b "$ENTRY" -B 2>&1) || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
-    done
-    efibootmgr $VERBOSE_ARGS -c -d ${TARGET_DISK} -p 1 -L 'LabVIEW RT' -l '\efi\boot\bootx64.efi'
-    print_done
+	print_info "Configuring EFI grub2..."
+	GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/efi/boot
+	mkdir -p $GRUB_TARGET_DIR
+	GRUB_TARGET=$(uname -m)
+	cp /boot/EFI/BOOT/bootx64.efi $GRUB_TARGET_DIR
+	# Delete existing NILRT entries with "-B" option
+	for ENTRY in $(efibootmgr | egrep -i '(LabVIEW RT)|(niboota)|(nibootb)' | egrep -o '[0-9A-Fa-f]{4}' || true);
+	do
+		print_info " Drop entry $ENTRY."
+		EFIMGR=$(efibootmgr -b "$ENTRY" -B 2>&1) || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
+	done
+	efibootmgr $VERBOSE_ARGS -c -d ${TARGET_DISK} -p 1 -L 'LabVIEW RT' -l '\efi\boot\bootx64.efi'
+	print_done
 
-    print_info "Installing grub.cfg..."
+	print_info "Installing grub.cfg..."
 
-    cp $SOURCE_DIR/grub.cfg $GRUB_TARGET_DIR/grub.cfg
-    mkdir -p $GRUB_TARGET_DIR/fonts
-    cp $SOURCE_DIR/fonts/unicode.pf2 $GRUB_TARGET_DIR/fonts/
-    print_done
+	cp $SOURCE_DIR/grub.cfg $GRUB_TARGET_DIR/grub.cfg
+	mkdir -p $GRUB_TARGET_DIR/fonts
+	cp $SOURCE_DIR/fonts/unicode.pf2 $GRUB_TARGET_DIR/fonts/
+	print_done
 }
 
 install_safemode()
 {
-    print_info "Installing safemode kernel and ramdisk..."
+	print_info "Installing safemode kernel and ramdisk..."
 
-    BOOTFS_MOUNTPOINT=/var/volatile/bootfs
-    mkdir $BOOTFS_MOUNTPOINT -p
-    BOOTFS_ERROR=`mount -L $PART2_LABEL $BOOTFS_MOUNTPOINT 2>&1` || die "$BOOTFS_ERROR"
-    mkdir -p $BOOTFS_MOUNTPOINT/.safe
+	BOOTFS_MOUNTPOINT=/var/volatile/bootfs
+	mkdir $BOOTFS_MOUNTPOINT -p
+	BOOTFS_ERROR=`mount -L $PART2_LABEL $BOOTFS_MOUNTPOINT 2>&1` || die "$BOOTFS_ERROR"
+	mkdir -p $BOOTFS_MOUNTPOINT/.safe
 
-    cp "$SOURCE_DIR"/*Image       "$BOOTFS_MOUNTPOINT/.safe/"
-    cp "$SOURCE_DIR"/ramdisk.*    "$BOOTFS_MOUNTPOINT/.safe/"
-    cp "$SOURCE_DIR"/bootimage.*  "$BOOTFS_MOUNTPOINT/.safe/"
+	cp "$SOURCE_DIR"/*Image	   "$BOOTFS_MOUNTPOINT/.safe/"
+	cp "$SOURCE_DIR"/ramdisk.*	"$BOOTFS_MOUNTPOINT/.safe/"
+	cp "$SOURCE_DIR"/bootimage.*  "$BOOTFS_MOUNTPOINT/.safe/"
 
-    print_done
+	print_done
 }
 
 install_bootmode_file()
 {
-    if $use_ramfs; then
-        # create boot flags dir and configure initially for safemode boot
-        print_info "Installing bootflags.d..."
-        mkdir $BOOTFS_MOUNTPOINT/bootflags.d
-        echo -n "" >$BOOTFS_MOUNTPOINT/bootflags.d/safemode
-        print_done
-    else
-        # write initial bootmode file
-        print_info "Installing bootmode file..."
-        echo "set BOOT_MODE=safemode" >$BOOTFS_MOUNTPOINT/bootmode
-        print_done
-    fi
+	if $use_ramfs; then
+		# create boot flags dir and configure initially for safemode boot
+		print_info "Installing bootflags.d..."
+		mkdir $BOOTFS_MOUNTPOINT/bootflags.d
+		echo -n "" >$BOOTFS_MOUNTPOINT/bootflags.d/safemode
+		print_done
+	else
+		# write initial bootmode file
+		print_info "Installing bootmode file..."
+		echo "set BOOT_MODE=safemode" >$BOOTFS_MOUNTPOINT/bootmode
+		print_done
+	fi
 }
 
 install_grubenv()
 {
-    NI_TARGET="false"
+	NI_TARGET="false"
 
-    mkdir $BOOTFS_MOUNTPOINT/grub
-    touch $BOOTFS_MOUNTPOINT/grub/grubenv
-    touch $BOOTFS_MOUNTPOINT/.safe/SMBIOS_NI_vars
-    touch $BOOTFS_MOUNTPOINT/.safe/EFI_NI_vars
-    touch $BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars
-    if is_ni_device ; then
-        NI_TARGET="true"
-        cp $SOURCE_DIR/grubenv $BOOTFS_MOUNTPOINT/grub
-        cp $SOURCE_DIR/SMBIOS_NI_vars $BOOTFS_MOUNTPOINT/.safe
-        cp $SOURCE_DIR/EFI_NI_vars $BOOTFS_MOUNTPOINT/.safe
-        add_USB_gadget_args_to_grubenv
-        override_primaryport_grubenv
-    else
-        cp $SOURCE_DIR/grubenv_non_ni_target $BOOTFS_MOUNTPOINT/grub/grubenv
-    fi
+	mkdir $BOOTFS_MOUNTPOINT/grub
+	touch $BOOTFS_MOUNTPOINT/grub/grubenv
+	touch $BOOTFS_MOUNTPOINT/.safe/SMBIOS_NI_vars
+	touch $BOOTFS_MOUNTPOINT/.safe/EFI_NI_vars
+	touch $BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars
+	if is_ni_device ; then
+		NI_TARGET="true"
+		cp $SOURCE_DIR/grubenv $BOOTFS_MOUNTPOINT/grub
+		cp $SOURCE_DIR/SMBIOS_NI_vars $BOOTFS_MOUNTPOINT/.safe
+		cp $SOURCE_DIR/EFI_NI_vars $BOOTFS_MOUNTPOINT/.safe
+		add_USB_gadget_args_to_grubenv
+		override_primaryport_grubenv
+	else
+		cp $SOURCE_DIR/grubenv_non_ni_target $BOOTFS_MOUNTPOINT/grub/grubenv
+	fi
 
-    set_serial_port
+	set_serial_port
 
-    grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "BIOSBootMode=efi"
-    grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "NITarget=$NI_TARGET"
+	grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "BIOSBootMode=efi"
+	grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "NITarget=$NI_TARGET"
 
-    # If target has a TPM chip, we need to enable an alternate boot flow
-    #  involving initramfs and bootflags dir
-    if $use_ramfs; then
-        grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "enable_initramfs=1"
-    fi
+	# If target has a TPM chip, we need to enable an alternate boot flow
+	#  involving initramfs and bootflags dir
+	if $use_ramfs; then
+		grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "enable_initramfs=1"
+	fi
 
-    # Mark aforementioned grub vars read-only
-    for varname in "BIOSBootMode" "NITarget" "enable_initramfs"; do
-        echo "$varname" >> "$BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars"
-    done
+	# Mark aforementioned grub vars read-only
+	for varname in "BIOSBootMode" "NITarget" "enable_initramfs"; do
+		echo "$varname" >> "$BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars"
+	done
 
-    # save rootfs UUID for grub to reference
-    ROOTUUID=`lsblk ${TARGET_DISK}${PART_SEPARATOR}4 -n -o PARTUUID`
-    echo set rootuuid=$ROOTUUID >> $GRUB_MOUNTPOINT/grubvar_readonly
+	# save rootfs UUID for grub to reference
+	ROOTUUID=`lsblk ${TARGET_DISK}${PART_SEPARATOR}4 -n -o PARTUUID`
+	echo set rootuuid=$ROOTUUID >> $GRUB_MOUNTPOINT/grubvar_readonly
 
-    # set proper permissions on and backup firmware variable files
-    chown 0:500 $BOOTFS_MOUNTPOINT/grub/grubenv
-    chmod ug=rw,o=r $BOOTFS_MOUNTPOINT/grub/grubenv
-    cp -p $BOOTFS_MOUNTPOINT/grub/grubenv $BOOTFS_MOUNTPOINT/grub/grubenv.bak
-    chmod a=r $BOOTFS_MOUNTPOINT/.safe/SMBIOS_NI_vars
-    chmod a=r $BOOTFS_MOUNTPOINT/.safe/EFI_NI_vars
-    chmod a=r $BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars
+	# set proper permissions on and backup firmware variable files
+	chown 0:500 $BOOTFS_MOUNTPOINT/grub/grubenv
+	chmod ug=rw,o=r $BOOTFS_MOUNTPOINT/grub/grubenv
+	cp -p $BOOTFS_MOUNTPOINT/grub/grubenv $BOOTFS_MOUNTPOINT/grub/grubenv.bak
+	chmod a=r $BOOTFS_MOUNTPOINT/.safe/SMBIOS_NI_vars
+	chmod a=r $BOOTFS_MOUNTPOINT/.safe/EFI_NI_vars
+	chmod a=r $BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars
 
-    # Additional grubenv configuration, _NOT_ mirrored in grubenv.bak
+	# Additional grubenv configuration, _NOT_ mirrored in grubenv.bak
 
-    # If the target is a qemu vm, enable consoleout
-    if dmidecode |grep -qi "virtual machine" ; then
-        grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "consoleoutenable=True"
-    fi
+	# If the target is a qemu vm, enable consoleout
+	if dmidecode |grep -qi "virtual machine" ; then
+		grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "consoleoutenable=True"
+	fi
 
-    # If an initial value for console out was specified, write it to grubenv
-    if [ -n "$grubenv_consoleoutenable" ]; then
-        grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "consoleoutenable=$grubenv_consoleoutenable"
-    fi
+	# If an initial value for console out was specified, write it to grubenv
+	if [ -n "$grubenv_consoleoutenable" ]; then
+		grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "consoleoutenable=$grubenv_consoleoutenable"
+	fi
 
-    # Set quietbootdelay to show the boot menu on PXI controllers
-    #
-    # The reasoning behind this is that, for NI Linux RT support, Controller
-    # Software (the BIOS team) wants to keep the business logic out of
-    # BIOS as much as possible, and make the BIOS agnostic of the actual
-    # OS it is booting as much as possible (one exception being setting
-    # HT based on the EFI variable since this can only, practically, be
-    # handled in BIOS).
+	# Set quietbootdelay to show the boot menu on PXI controllers
+	#
+	# The reasoning behind this is that, for NI Linux RT support, Controller
+	# Software (the BIOS team) wants to keep the business logic out of
+	# BIOS as much as possible, and make the BIOS agnostic of the actual
+	# OS it is booting as much as possible (one exception being setting
+	# HT based on the EFI variable since this can only, practically, be
+	# handled in BIOS).
 
-    if [ "`get_target_class`" == "PXI" ]; then
-        grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "quietbootdelay=3"
-    fi
+	if [ "`get_target_class`" == "PXI" ]; then
+		grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "quietbootdelay=3"
+	fi
 
-    # If an initial value for bootdelay was specified, write it to grubenv
-    if [ -n "$grubenv_bootdelay" ]; then
-        grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "bootdelay=$grubenv_bootdelay"
-    fi
+	# If an initial value for bootdelay was specified, write it to grubenv
+	if [ -n "$grubenv_bootdelay" ]; then
+		grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "bootdelay=$grubenv_bootdelay"
+	fi
 }
 
 set_versions()
 {
-    BUILD_IDENTIFIER=$(get_image_info BUILD_IDENTIFIER)
-    GRUB_IDENTIFIER=$(get_image_info GRUB_VERSION)
+	BUILD_IDENTIFIER=$(get_image_info BUILD_IDENTIFIER)
+	GRUB_IDENTIFIER=$(get_image_info GRUB_VERSION)
 
-    echo "set ni_grub_version=${GRUB_IDENTIFIER}" > $BOOTFS_MOUNTPOINT/grub/grub-ni-version
-    echo "set ni_recoverytool_version=${BUILD_IDENTIFIER}" > $BOOTFS_MOUNTPOINT/grub/recoverytool-ni-version
+	echo "set ni_grub_version=${GRUB_IDENTIFIER}" > $BOOTFS_MOUNTPOINT/grub/grub-ni-version
+	echo "set ni_recoverytool_version=${BUILD_IDENTIFIER}" > $BOOTFS_MOUNTPOINT/grub/recoverytool-ni-version
 
-    chmod 444 $BOOTFS_MOUNTPOINT/grub/grub-ni-version $BOOTFS_MOUNTPOINT/grub/recoverytool-ni-version
+	chmod 444 $BOOTFS_MOUNTPOINT/grub/grub-ni-version $BOOTFS_MOUNTPOINT/grub/recoverytool-ni-version
 }
 
 fixup_configfs()
 {
-    CONFIG_MOUNTPOINT=/var/volatile/configfs
+	CONFIG_MOUNTPOINT=/var/volatile/configfs
 
-    mkdir -p $CONFIG_MOUNTPOINT
-    mount -L $PART3_LABEL $CONFIG_MOUNTPOINT
+	mkdir -p $CONFIG_MOUNTPOINT
+	mount -L $PART3_LABEL $CONFIG_MOUNTPOINT
 
-    # Set root dir ownership to lvuser:ni
-    chown 500:500 $CONFIG_MOUNTPOINT
-    chmod ug=rwx,o=rx $CONFIG_MOUNTPOINT
+	# Set root dir ownership to lvuser:ni
+	chown 500:500 $CONFIG_MOUNTPOINT
+	chmod ug=rwx,o=rx $CONFIG_MOUNTPOINT
 
-    # Set hostname, if configured
-    if [ -n "$PROVISION_HOSTNAME" ]; then
-        print_info "Setting hostname=\"$PROVISION_HOSTNAME\" in ni-rt.ini..."
+	# Set hostname, if configured
+	if [ -n "$PROVISION_HOSTNAME" ]; then
+		print_info "Setting hostname=\"$PROVISION_HOSTNAME\" in ni-rt.ini..."
 
-        echo  >$CONFIG_MOUNTPOINT/ni-rt.ini "[systemsettings]"
-        echo >>$CONFIG_MOUNTPOINT/ni-rt.ini "Host_Name=\"$PROVISION_HOSTNAME\""
+		echo  >$CONFIG_MOUNTPOINT/ni-rt.ini "[systemsettings]"
+		echo >>$CONFIG_MOUNTPOINT/ni-rt.ini "Host_Name=\"$PROVISION_HOSTNAME\""
 
-        # Set ownership to lvuser:ni
-        chown 500:500 $CONFIG_MOUNTPOINT/ni-rt.ini
-        chmod ug=rw,o=r $CONFIG_MOUNTPOINT/ni-rt.ini
+		# Set ownership to lvuser:ni
+		chown 500:500 $CONFIG_MOUNTPOINT/ni-rt.ini
+		chmod ug=rw,o=r $CONFIG_MOUNTPOINT/ni-rt.ini
 
-        print_done
-    fi
+		print_done
+	fi
 
-    umount $CONFIG_MOUNTPOINT
+	umount $CONFIG_MOUNTPOINT
 }
 
 sanity_check()
 {
-    print_info "Sanity check TARGET_DISK=$TARGET_DISK..."
+	print_info "Sanity check TARGET_DISK=$TARGET_DISK..."
 
-    # correct partition table type
-    parted -s --list "$TARGET_DISK" | grep -q "^Partition Table: $PART_STYLE" || die "Wrong partition style reported"
+	# correct partition table type
+	parted -s --list "$TARGET_DISK" | grep -q "^Partition Table: $PART_STYLE" || die "Wrong partition style reported"
 
-    attrib_list="NAME KNAME PARTUUID UUID LABEL"
-    if [[ "$PART_STYLE" == "gpt" ]]; then
-        attrib_list="$attrib_list PARTLABEL"
-    fi
+	attrib_list="NAME KNAME PARTUUID UUID LABEL"
+	if [[ "$PART_STYLE" == "gpt" ]]; then
+		attrib_list="$attrib_list PARTLABEL"
+	fi
 
-    # unique attributes
-    for attrib_name in $attrib_list; do
-        sanity_list="`lsblk -nro "$attrib_name" "$TARGET_DISK"`"
-        sanity_list_len="`echo "$sanity_list" | wc -l`"
-        sanity_list_uniq_len="`echo "$sanity_list" | uniq | wc -l`"
-        [ "$sanity_list_len" -eq 5 ] || die "There should be 4 $attrib_name's (+1 blank line) on TARGET_DISK=$TARGET_DISK; found $sanity_list_len"
-        [ "$sanity_list_len" -eq "$sanity_list_uniq_len" ] || die "$attrib_name's not unique on TARGET_DISK=$TARGET_DISK; $sanity_list_len != $sanity_list_uniq_len"
-    done
+	# unique attributes
+	for attrib_name in $attrib_list; do
+		sanity_list="`lsblk -nro "$attrib_name" "$TARGET_DISK"`"
+		sanity_list_len="`echo "$sanity_list" | wc -l`"
+		sanity_list_uniq_len="`echo "$sanity_list" | uniq | wc -l`"
+		[ "$sanity_list_len" -eq 5 ] || die "There should be 4 $attrib_name's (+1 blank line) on TARGET_DISK=$TARGET_DISK; found $sanity_list_len"
+		[ "$sanity_list_len" -eq "$sanity_list_uniq_len" ] || die "$attrib_name's not unique on TARGET_DISK=$TARGET_DISK; $sanity_list_len != $sanity_list_uniq_len"
+	done
 
-    # can search by file system label
-    for fs_label in "$PART1_LABEL" "$PART2_LABEL" "$PART3_LABEL" "$PART4_LABEL"; do
-        fs_node_name="`lsblk -nro LABEL,NAME "$TARGET_DISK" | grep "^$fs_label " | cut -d" " -f2`"
-        [ "`echo "$fs_node_name" | wc -l`" -eq 1 ] || die "Invalid number of devnodes found"
-        [ -e "/dev/$fs_node_name" ] || die "No devnode for LABEL $fs_label"
-    done
+	# can search by file system label
+	for fs_label in "$PART1_LABEL" "$PART2_LABEL" "$PART3_LABEL" "$PART4_LABEL"; do
+		fs_node_name="`lsblk -nro LABEL,NAME "$TARGET_DISK" | grep "^$fs_label " | cut -d" " -f2`"
+		[ "`echo "$fs_node_name" | wc -l`" -eq 1 ] || die "Invalid number of devnodes found"
+		[ -e "/dev/$fs_node_name" ] || die "No devnode for LABEL $fs_label"
+	done
 
-    # can search by partition label, on gpt only
-    if [ "$PART_STYLE" == "gpt" ]; then
-        for part_label in "$PART1_NAME" "$PART2_NAME" "$PART3_NAME" "$PART4_NAME"; do
-            part_node_name="`lsblk -nro PARTLABEL,NAME "$TARGET_DISK" | grep "^$part_label " | cut -d" " -f2`"
-            [ "`echo "$part_node_name" | wc -l`" -eq 1 ] || die "Invalid number of devnodes found"
-            [ -e "/dev/$part_node_name" ] || die "No devnode for PARTLABEL $part_label"
-        done
-    fi
+	# can search by partition label, on gpt only
+	if [ "$PART_STYLE" == "gpt" ]; then
+		for part_label in "$PART1_NAME" "$PART2_NAME" "$PART3_NAME" "$PART4_NAME"; do
+			part_node_name="`lsblk -nro PARTLABEL,NAME "$TARGET_DISK" | grep "^$part_label " | cut -d" " -f2`"
+			[ "`echo "$part_node_name" | wc -l`" -eq 1 ] || die "Invalid number of devnodes found"
+			[ -e "/dev/$part_node_name" ] || die "No devnode for PARTLABEL $part_label"
+		done
+	fi
 
-    # just in case meta-data is updated
-    sync
-    print_done
+	# just in case meta-data is updated
+	sync
+	print_done
 }
 
 check_all_used_binaries
