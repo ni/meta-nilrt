@@ -17,6 +17,7 @@ RDEPENDS_${PN}_append = "\
     hwclock-init-ptest \
     kernel-tests-ptest \
     opkg-ptest \
+    pstore-save-ptest \
     rt-tests-ptest \
     run-postinsts-ptest \
 "
