@@ -237,7 +237,7 @@ elif [ "$ARCH" = "x86_64" ]; then
         if [ -e "${MMC_DEVICE_ALLOW_PATH}" ]; then
                 device_code=$(fw_printenv -n DeviceCode 2>/dev/null)
                 [ -n "$device_code" ] && \
-                        grep -iq -E "^\s*(0x)?${device_code}\s*$" "${MMC_DEVICE_ALLOW_PATH}" && \
+                        grep -iq -E "^\s*(0x)?${device_code}\s*(#.*)?$" "${MMC_DEVICE_ALLOW_PATH}" && \
                         mmc_ok=true
         else
                 (( verbose_mode )) && echo "Warning: eMMC device whitelist not found. eMMC block devices will be disqualified from provisioning." >&2
