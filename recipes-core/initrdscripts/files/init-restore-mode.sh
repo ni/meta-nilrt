@@ -70,7 +70,8 @@ show_console() {
 start_serial_console() {
 	SERIAL_TTY="ttyS0"
 	if [ -c /dev/${SERIAL_TTY} ]; then
-		if [ $(cat /sys/devices/virtual/tty/console/active) != "${SERIAL_TTY}" ]; then
+		active_consoles=$(cat /sys/devices/virtual/tty/console/active)
+		if [[ ! "${active_consoles[@]}" =~ "${SERIAL_TTY}" ]]; then
 			while true; do
 				/usr/bin/setsid /sbin/getty 115200 ${SERIAL_TTY} --noclear -a root --login-options "-p -- \u"
 
