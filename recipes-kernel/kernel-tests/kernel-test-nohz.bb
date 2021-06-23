@@ -31,4 +31,25 @@ do_install_ptest_append() {
     install -m 0755 ${S}/nohz_test ${D}${PTEST_PATH}
 }
 
+pkg_postinst_ontarget_${PN}-ptest_append() {
+    CPUS=`nproc`
+    ISOLATED_CPU=$((CPUS - 1))
+    OTHBOOTARGS=`fw_printenv othbootargs 2>/dev/null | sed -e "s/^othbootargs=//g" | sed -e "s/isolcpus=[^ ]*[ ]*\|nohz_full=[^ ]*[ ]*//g"`
+
+    if [ $ISOLATED_CPU -gt 0 ]; then
+        fw_setenv othbootargs $OTHBOOTARGS 'isolcpus='$ISOLATED_CPU' nohz_full='$ISOLATED_CPU
+    else
+        echo "[kernel-test-nohz:error] This test requires a system with 2 or more CPUs"
+        exit 1
+    fi
+
+    echo "[kernel-test-nohz:info] This test requires a reboot after install for kernel changes to take effect"
+}
+
+pkg_postrm_${PN}-ptest_append() {
+    OTHBOOTARGS=`fw_printenv othbootargs 2>/dev/null | sed -e "s/^othbootargs=//g" | sed -e "s/isolcpus=[^ ]*[ ]*\|nohz_full=[^ ]*[ ]*//g"`
+    fw_setenv othbootargs $OTHBOOTARGS
+    echo "[kernel-test-nohz:info] This test requires a reboot after uninstall for kernel changes to take effect"
+}
+
 PACKAGE_ARCH = "${MACHINE_ARCH}"
