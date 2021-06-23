@@ -313,7 +313,7 @@ static void test(uint64_t duration, bool warmup)
 		error_exit("Failed to allocate space for histogram data");
 
 	clock_gettime(CLOCK_MONOTONIC, &prev_ts);
-	end_sec = prev_ts.tv_sec + test_duration;
+	end_sec = prev_ts.tv_sec + duration;
 
 	while (prev_ts.tv_sec < end_sec) {
 		clock_gettime(CLOCK_MONOTONIC, &ts);
