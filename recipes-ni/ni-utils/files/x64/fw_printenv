@@ -43,7 +43,7 @@ show_variable_grub(){
 			key=$(echo "$line" | cut -d "=" -f 1)
 			#if the $1 matches exactly the key, extract the value
 			if [ "$key" = "$1" ] ; then
-				value_tmp=$(echo "$line" | cut -d "=" -f 2)
+				value_tmp=$(echo "$line" | cut -d "=" -f 2-)
 				echo "$value_tmp"
 				break
 			fi
