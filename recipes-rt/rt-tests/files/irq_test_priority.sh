@@ -34,7 +34,7 @@ function test_priority() {
 			ptest_fail
 		fi
 
-		irq_pids[$dev_irq]=`ps -o pid,comm | grep "irq\/$dev_irq" | awk -F' ' '{print $1}'`
+		irq_pids[$dev_irq]=`ps -o pid,comm | grep "irq\/$dev_irq-$active_network_if" | awk -F' ' '{print $1}'`
 
 		(( dev_prio=$(get_prio_for_task ${irq_pids[$dev_irq]}) ))
 		let dev_prio++
@@ -68,7 +68,7 @@ function test_priority() {
 
 	let priority_preserved=0
 	for dev_irq in $dev_irqs; do
-		irq_pid=`ps -o pid,comm | grep "irq\/$dev_irq" | awk -F' ' '{print $1}'`
+		irq_pid=`ps -o pid,comm | grep "irq\/$dev_irq-$active_network_if" | awk -F' ' '{print $1}'`
 		if [ ${new_prios[$dev_irq]} -eq `awk '{print $40}' /proc/$irq_pid/stat` ]; then
 			let priority_preserved=1
 		fi
