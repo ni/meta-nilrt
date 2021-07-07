@@ -62,7 +62,7 @@ function panic_and_reboot() {
 trap panic_and_reboot EXIT
 
 ORIG_KMSG_CONFIG=$(cat "/proc/sys/kernel/printk_devkmsg")
-echo on			  > "/proc/sys/kernel/printk_devkmsg"
+echo on > "/proc/sys/kernel/printk_devkmsg"
 status "Set printk_devkmsg=on (previous: $ORIG_KMSG_CONFIG)"
 
 ARCH=$(uname -m)
