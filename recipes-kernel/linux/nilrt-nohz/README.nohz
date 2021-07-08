@@ -3,19 +3,19 @@ NI Linux Real-Time NOHZ Kernel
 ==============================
 
 This document describes the recommended application design, configuration
-options and boot parameters required for obtaining increased real-time (RT)
-performance when using the NILRT nohz kernel.
+options, and boot parameters required for optimizing real-time (RT) performance
+when using the NILRT nohz kernel.
 
 The nohz kernel provided by 'packagegroup-ni-nohz-kernel' is a Linux kernel
 configured to omit scheduling-clock interrupts on CPUs that are either idle or
 that have only one runnable task (CONFIG_NO_HZ_FULL=y). This avoids the OS
-induced jitter caused by processing scheduling interrupts at the cost of
-increased user/kernel transitions among other things.
+jitter caused by processing scheduling interrupts at the cost of slower
+user/kernel transitions, among other things.
 
-Using this kernel configuration is advantageous for application designs where RT
-threads are assigned to dedicated CPU cores and spend most of their execution
-time in user-space running polling loops. Consult the full kernel
-documentation on this topic[1] for a list of pros/cons.
+Using this kernel configuration is advantageous for application designs in which
+RT threads are assigned to dedicated CPU cores and spend most of their execution
+time in user-space running polling loops. Consult the full kernel documentation
+on this topic[1] for a list of pros/cons.
 
 
 Installation
@@ -33,18 +33,18 @@ Application Design Considerations
 
   * Use a single RT thread per reserved CPU.
 
-  * Use warm-up interrations. These are "dry-run" iterations where the
+  * Use warm-up iterations. These are "dry-run" iterations in which the
     processing done by the RT threads is disregarded. This allows the kernel to
     load all the data and code from disk into RAM and warm-up the CPU caches.
 
-  * Isolate the CPUs reserved for critical RT threads and mark them available
+  * Isolate the CPUs reserved for critical RT threads, and mark them available
     for adaptive-ticks by setting the 'isolcpus' and 'nohz_full' kernel boot
     parameters.[2]
     e.g.
       fw_setenv othbootargs isolcpus=6,7 nohz_full=6,7
 
-    Note: On NI Linux Real-Time (NILRT) systems CPU 0 is configured to handle
-    general interrupts, kernel, and system tasks and should not be reserved for
+    Note: On NI Linux Real-Time (NILRT) systems, CPU 0 is configured to handle
+    general interrupts, kernel and system tasks, and should not be reserved for
     critical RT tasks.
 
   * Use CPU pools (also known as cgroup cpu sets) to configure CPUs reserved for
@@ -80,7 +80,7 @@ Application Design Considerations
 
 Additional considerations for C applications:
 
-  * For each RT thread set the RT scheduler and priority to use
+  * For each RT thread, set the RT scheduler and priority to use
     e.g.
 	struct sched_param schedp;
 	memset(&schedp, 0, sizeof(schedp));
