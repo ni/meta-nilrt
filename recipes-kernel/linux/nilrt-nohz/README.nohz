@@ -39,8 +39,8 @@ Application Design Considerations
 
   * Isolate the CPUs reserved for critical RT threads, and mark them available
     for adaptive-ticks by setting the 'isolcpus' and 'nohz_full' kernel boot
-    parameters.[2]
-    e.g.
+    parameters[2]. For example:
+
       fw_setenv othbootargs isolcpus=6,7 nohz_full=6,7
 
     Note: On NI Linux Real-Time (NILRT) systems, CPU 0 is configured to handle
@@ -55,41 +55,43 @@ Application Design Considerations
 
       - when designing RT applications that are not LabVIEW based this can be
         accomplished by setting the CPU mask of the 'system_set' and
-        'LabVIEW_tl_set'.
-	e.g.
-	  echo 0-5 > /dev/cgroup/cpuset/system_set/cpus
+        'LabVIEW_tl_set'. For example:
+
+          echo 0-5 > /dev/cgroup/cpuset/system_set/cpus
           echo 6-7 > /dev/cgroup/cpuset/LabVIEW_tl_set/cpus
 
-  * Set the CPU mask for kernel work queues /sys/devices/virtual/workqueue/*
-    e.g.
+  * Set the CPU mask for kernel work queues /sys/devices/virtual/workqueue/*.
+    Example follows,
+
 	for file in `find /sys/devices/virtual/workqueue -name "cpumask"`; do
 		echo 1 > "$file" 2>/dev/null
 	done
 
-  * Delay the VM statistics timer.
-    e.g.
+  * Delay the VM statistics timer. For example:
+
 	sysctl vm.stat_interval=120
 
     Note: This operation requires the full-featured sysctl utility which can be
     installed with 'opkg install procps'.
 
-  * Disable any tracing that might be active.
-    e.g.
+  * Disable any tracing that might be active. Example follows,
+
 	echo 0 > "/sys/kernel/debug/tracing/tracing_on"
 
 
 Additional considerations for C applications:
 
-  * For each RT thread, set the RT scheduler and priority to use
-    e.g.
+  * For each RT thread, set the RT scheduler and priority to use. Example
+    follows,
+
 	struct sched_param schedp;
 	memset(&schedp, 0, sizeof(schedp));
 	schedp.sched_priority = priority;
 	return sched_setscheduler(0, SCHED_FIFO, &schedp);
 
   * Lock current and future memory allocations in RAM to prevent page faults and
-    the associated slow disk access.
-    e.g.
+    the associated slow disk access. For example:
+
 	mlockall(MCL_CURRENT | MCL_FUTURE);
 
 --
