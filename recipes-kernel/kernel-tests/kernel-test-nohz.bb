@@ -10,7 +10,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-files:"
 
 S = "${WORKDIR}"
 
-RDEPENDS_${PN}-ptest += "bash procps rt-tests"
+RDEPENDS_${PN}-ptest += "bash coreutils procps rt-tests"
 RDEPENDS_${PN}-ptest_append_x64 += "packagegroup-ni-nohz-kernel"
 ALLOW_EMPTY_${PN} = "1"
 
@@ -32,7 +32,7 @@ do_install_ptest_append() {
 }
 
 pkg_postinst_ontarget_${PN}-ptest_append() {
-    CPUS=`nproc`
+    CPUS=`nproc --all`
     ISOLATED_CPU=$((CPUS - 1))
     OTHBOOTARGS=`fw_printenv othbootargs 2>/dev/null | sed -e "s/^othbootargs=//g" | sed -e "s/isolcpus=[^ ]*[ ]*\|nohz_full=[^ ]*[ ]*//g"`
 
