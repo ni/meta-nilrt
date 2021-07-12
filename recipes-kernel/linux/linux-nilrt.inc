@@ -46,6 +46,8 @@ SRC_URI = "\
 SRCREV ?= "${AUTOREV}"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 
+LIC_FILES_CHKSUM = "file://COPYING;md5=6bc538ed5bd9a7fc9398086aedcd7e46"
+
 # This checks ${PV} == version from kernel sources which our PV/AUTOREV breaks, so skip it.
 KERNEL_VERSION_SANITY_SKIP="1"
 
