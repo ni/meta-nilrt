@@ -1,6 +1,7 @@
 DESCRIPTION = "NILRT linux kernel debug build"
 NI_RELEASE_VERSION = "master"
 LINUX_VERSION = "5.10"
+LINUX_VERSION_xilinx-zynq = "4.14"
 LINUX_KERNEL_TYPE = "debug"
 
 require linux-nilrt-alternate.inc
