@@ -1,8 +1,6 @@
 UBOOT_BRANCH ?= "nizynq/21.0/v2017.03"
 UBOOT_MACHINE ?= "ni_elvisiii_defconfig"
 
-SRCREV = "653fc09e01ff78e08f9683e1585f4fac05f289d9"
-
 LIC_FILES_CHKSUM = "\
 	file://Licenses/bsd-2-clause.txt;md5=6a31f076f5773aabd8ff86191ad6fdd5; \
 	file://Licenses/bsd-3-clause.txt;md5=4a1190eac56a9db675d58ebe86eaf50c; \
@@ -15,3 +13,6 @@ LIC_FILES_CHKSUM = "\
 	file://Licenses/OFL.txt;md5=33b7c08863f9722a012141a11fb0e40a; \
 	file://Licenses/x11.txt;md5=b46f176c847b8742db02126fb8af92e2; \
 "
+
+SRC_URI = "${NILRT_GIT}/u-boot.git;protocol=git;branch=${UBOOT_BRANCH}"
+SRCREV = "653fc09e01ff78e08f9683e1585f4fac05f289d9"
