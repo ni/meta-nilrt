@@ -2,10 +2,6 @@ require nilrt-u-boot.inc
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
-SRC_URI = "\
-        ${NILRT_GIT}/u-boot.git;protocol=git;branch=${UBOOT_BRANCH} \
-"
-
 SRC_URI_append_arm = "\
         file://fw_env-${MACHINE}.config \
 "
