@@ -1,7 +1,6 @@
 require nilrt-u-boot.inc
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
-LIC_FILES_CHKSUM = "file://COPYING;md5=1707d6db1d42237583f50183a5651ecb"
 
 SRC_URI = "\
         ${NILRT_GIT}/u-boot.git;protocol=git;branch=${UBOOT_BRANCH} \
