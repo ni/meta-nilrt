@@ -18,6 +18,7 @@
 #include <getopt.h>
 #include <ctype.h>
 #include <signal.h>
+#include <linux/limits.h>
 
 #define TEST_PRIO	98
 
@@ -26,11 +27,19 @@
 
 #define RT_CPU_SET	"/dev/cgroup/cpuset/LabVIEW_tl_set"
 #define SYSTEM_CPU_SET	"/dev/cgroup/cpuset/system_set"
+#define LOG_DIR	"/var/local/ptest-results/kernel-test-nohz"
 
 static uint64_t max_latency = 0;
 static uint64_t percentile_99_999 = 0;
 static uint64_t percentile_99_9999 = 0;
 static uint64_t test_duration = 60;
+
+struct histogram_data {
+	uint64_t cnt;
+	uint64_t max;
+	uint64_t size;
+	uint64_t *data;
+};
 
 static void error_exit(char* msg)
 {
@@ -266,51 +275,29 @@ static inline uint64_t tsdiff(struct timespec *start, struct timespec *end)
 	return t2 - t1;
 }
 
-static void check_percentiles(uint64_t *data, uint64_t data_sz, uint64_t total_count)
+static uint64_t get_percentile(double percent, struct histogram_data *h)
 {
 	uint64_t i;
 	uint64_t sum;
-	double p_99_999;
-	double p_99_9999;
+	double pval;
 
-	p_99_999 = (double)total_count * 0.99999;
-	for (i = 0, sum = 0; i < data_sz; i++) {
-		sum += data[i];
-		if (sum >= p_99_999)
+	pval = (double)h->cnt * (percent / 100.0);
+
+	for (i = 0, sum = 0; i < h->size; i++) {
+		sum += h->data[i];
+
+		if (sum >= pval)
 			break;
 	}
-	printf("99.999%%: %lu ns\n", i);
-	if (i > percentile_99_999)
-		error_exit("99.999%% threshold exceeded");
-
-	p_99_9999 = (double)total_count * 0.999999;
-	/* the 99.9999% treshold is always greather than the 99.999%
-	 * treshold so we can continue where we've left off */
-	for (i=i+1; i < data_sz; i++) {
-		sum += data[i];
-		if (sum >= p_99_9999)
-			break;
-	}
-	printf("99.9999%%: %lu ns\n", i);
-	if (i > percentile_99_9999)
-		error_exit("99.9999%% threshold exceeded");
+	return i;
 }
 
-static void test(uint64_t duration, bool warmup)
+static void test(uint64_t duration, struct histogram_data *h)
 {
-	static uint64_t *hist_data;
-	static uint64_t hist_cnt;
 	struct timespec prev_ts;
 	struct timespec ts;
 	time_t end_sec;
-	uint64_t max_dt;
 	uint64_t dt;
-
-	max_dt = 0;
-	hist_cnt = 0;
-	hist_data = (uint64_t*)calloc(max_latency, sizeof(uint64_t));
-	if (!hist_data)
-		error_exit("Failed to allocate space for histogram data");
 
 	clock_gettime(CLOCK_MONOTONIC, &prev_ts);
 	end_sec = prev_ts.tv_sec + duration;
@@ -319,37 +306,105 @@ static void test(uint64_t duration, bool warmup)
 		clock_gettime(CLOCK_MONOTONIC, &ts);
 		dt = tsdiff(&prev_ts, &ts);
 
-		if (dt > max_dt)
-			max_dt = dt;
-		if (!warmup) {
-			if (dt >= max_latency) {
-				printf("maximum latency: %lu ns\n", dt);
-				error_exit("Maximum latency exceeded");
-			}
-			hist_data[dt]++;
+		if (h) {
+			if (dt > h->max)
+				h->max = dt;
+
+			if (dt >= max_latency)
+				break;
+
+			h->data[dt]++;
+			h->cnt++;
 		}
-		hist_cnt++;
 		prev_ts = ts;
 	}
+}
 
-	if (!warmup) {
-		printf("Maximum latency: %lu ns\n", max_dt);
-		check_percentiles(hist_data, max_latency, hist_cnt);
+static int log_results(struct histogram_data *h)
+{
+	FILE *log;
+	uint64_t i;
+	char path[PATH_MAX];
+	time_t t = time(NULL);
+	struct tm tm = *localtime(&t);
+
+	if (!h)
+		return -1;
+
+	snprintf(path, PATH_MAX,
+		 "%s/histogram-%d_%02d_%02d-%02d_%02d_%02d.log",
+		 LOG_DIR,
+		 tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+		 tm.tm_hour, tm.tm_min, tm.tm_sec);
+	log = fopen(path, "w");
+	if (!log) {
+		perror("error: failed to open log file");
+		return -1;
 	}
-	free(hist_data);
+
+	fprintf(log, "# NO_HZ_FULL polling test histogram log\n");
+	fprintf(log, "# date: %d-%02d-%02d %02d:%02d:%02d\n",
+		tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+		tm.tm_hour, tm.tm_min, tm.tm_sec);
+	fprintf(log, "#\n");
+	fprintf(log, "ns\tcount\n");
+
+	for (i = 0; i < h->size && i < h->max; i++)
+		fprintf(log, "%lu\t%lu\n", i, h->data[i]);
+
+	fprintf(log, "# total count: %lu (samples)\n", h->cnt);
+	fprintf(log, "# histogram max latency: %lu (ns)\n", h->max);
+	fprintf(log, "# 99.999 percentile: %lu (ns)\n", get_percentile(99.999, h));
+	fprintf(log, "# 99.9999 percentile: %lu (ns)\n", get_percentile(99.9999, h));
+	fclose(log);
+}
+
+static void validate_results(struct histogram_data *h)
+{
+	uint64_t p_99_999;
+	uint64_t p_99_9999;
+
+	if (!h)
+		error_exit("Results validation failed; no histogram data");
+
+	p_99_999 = get_percentile(99.999, h);
+	p_99_9999 = get_percentile(99.9999, h);
+
+	printf("Total count: %lu (samples)\n", h->cnt);
+	printf("Maximum latency: %lu (ns)\n", h->max);
+	printf("99.999 percentile: %lu (ns)\n", p_99_999);
+	printf("99.9999 percentile: %lu (ns)\n", p_99_9999);
+
+	if (h->max > max_latency)
+		error_exit("Maximum latency exceeded");
+	if (p_99_999 > percentile_99_999)
+		error_exit("99.999%% threshold exceeded");
+	if (p_99_9999 > percentile_99_9999)
+		error_exit("99.9999%% threshold exceeded");
+
+	success_exit();
 }
 
 int main(int argc, char *argv[])
 {
+	struct histogram_data histogram;
+
 	if (parse_options(argc, argv) < 0)
 		error_exit("Failed to parse arguments\n");
+
+	histogram.cnt = 0;
+	histogram.max = 0;
+	histogram.size = max_latency;
+	histogram.data = (uint64_t*)calloc(histogram.size, sizeof(uint64_t));
+	if (!histogram.data)
+		error_exit("Failed to allocate space for histogram data");
 
 	setup();
 
 	/* 60 seconds warm-up */
-	test(60, true);
+	test(60, NULL);
 
-	test(test_duration, false);
-
-	success_exit();
+	test(test_duration, &histogram);
+	log_results(&histogram);
+	validate_results(&histogram);
 }
