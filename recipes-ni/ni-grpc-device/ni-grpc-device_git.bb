@@ -17,8 +17,7 @@ DEPENDS += "\
 	python3-native \
 "
 
-BPV = "1.1"
-PV = "${BPV}+git${SRCPV}"
+PV = "1.1.0"
 
 SRC_URI = "\
 	git://github.com/ni/grpc-device.git;name=grpc-device;branch=${SRCBRANCH} \
@@ -27,7 +26,7 @@ SRC_URI = "\
 "
 
 SRCBRANCH = "main"
-SRCREV_grpc-device = "${AUTOREV}"
+SRCREV_grpc-device = "15508bba63a6c289a32445ffb7f8986c99a2f286"
 
 SRCREV_FORMAT = "grpc-device"
 
