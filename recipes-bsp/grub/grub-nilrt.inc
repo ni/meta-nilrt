@@ -11,6 +11,7 @@ SRC_URI = "\
 "
 
 S = "${WORKDIR}/git"
+GRUB_BRANCH = "nilrt/19.0"
 
 # Grub always try to force soft float in recent grub versions, even on x64, and this
 # conflicts with how the x64 OE toolchain is set up. The only solution is to cache
