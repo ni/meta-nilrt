@@ -39,7 +39,10 @@ do_install() {
 	cp ${WORKDIR}/grubenv_non_ni_target	${D}/payload
 	cp ${WORKDIR}/unicode.pf2		${D}/payload/fonts
 
+	GRUB_VERSION=$(echo ${GRUB_BRANCH} | cut -d "/" -f 2)
+
 	echo "BUILD_IDENTIFIER=${BUILD_IDENTIFIER}" > ${D}/payload/imageinfo
+	echo "GRUB_VERSION=${GRUB_VERSION}.0" >> ${D}/payload/imageinfo
 }
 
 sysroot_stage_all_append() {
