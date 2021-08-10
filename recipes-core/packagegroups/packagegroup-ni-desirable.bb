@@ -18,7 +18,6 @@ RDEPENDS_${PN}_append_x64 = "\
 	packagegroup-ni-mono-extra \
 	kernel-test-nohz \
 	florence \
-	ni-grpc-device \
 "
 
 RDEPENDS_${PN} += "\
