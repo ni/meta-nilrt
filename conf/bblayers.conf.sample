@@ -10,7 +10,6 @@ BBLAYERS ?= " \
 	${GIT_REPODIR}/meta-cloud-services/meta-openstack \
 	${GIT_REPODIR}/meta-ivi/meta-ivi \
 	${GIT_REPODIR}/meta-java \
-	${GIT_REPODIR}/meta-measured \
 	${GIT_REPODIR}/meta-mingw \
 	${GIT_REPODIR}/meta-mono \
 	${GIT_REPODIR}/meta-nilrt \
