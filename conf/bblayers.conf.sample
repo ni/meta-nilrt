@@ -40,3 +40,7 @@ BBLAYERS_NON_REMOVABLE ?= " \
 # Avoid meta-openstack complaining that we are using recipes from it without
 # declaring 'openstack' in our DISTRO_FEATURES.
 SKIP_META_OPENSTACK_SANITY_CHECK ?= "1"
+
+# Avoid meta-rauc complaining that we aren't declaring `rauc` in our image
+# features.
+SKIP_META_RAUC_FEATURE_CHECK ?= "1"
