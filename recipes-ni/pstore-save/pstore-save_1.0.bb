@@ -12,7 +12,7 @@ SRC_URI = "\
     file://pstore-save \
     file://initscript \
     file://run-ptest \
-    file://testdata/* \
+    file://testdata/ \
 "
 
 INITSCRIPT_NAME = "pstore-save"
