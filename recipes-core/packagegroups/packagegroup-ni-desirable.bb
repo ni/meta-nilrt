@@ -39,6 +39,7 @@ RDEPENDS_${PN} += "\
 	ltrace \
 	ntpdate \
 	openssl-dev \
+	perf \
 	python3-nose \
 	python3-pip \
 	python3-psutil \
