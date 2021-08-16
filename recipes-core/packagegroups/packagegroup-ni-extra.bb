@@ -230,7 +230,6 @@ RDEPENDS_${PN} += "\
 	linux-firmware \
 	makedumpfile \
 	oprofile \
-	perf \
 	powertop \
 	sysprof \
 	systemtap \
