@@ -8,7 +8,6 @@ LDCONFIGDEPEND = ""
 # NI infrastructure packages to be installed in the image
 NI_PROPRIETARY_BASE_PACKAGES += "\
         libnitargetcfg \
-        ni-arch-gen \
         ni-auth \
         ni-auth-webservice \
         ni-avahi-client \
@@ -26,9 +25,6 @@ NI_PROPRIETARY_BASE_PACKAGES += "\
         ni-sysapi \
         ni-sysapi-remote \
         ni-sysapi-webservice \
-        ni-sysmgmt-auth-utils \
-        ni-sysmgmt-salt-minion-support \
-        ni-sysmgmt-sysapi-expert \
         ni-system-webserver \
         ni-traceengine \
         ni-webdav-system-webserver-support \
@@ -41,7 +37,14 @@ NI_PROPRIETARY_BASE_PACKAGES += "\
         nirtcfg \
         nirtmdnsd \
         nissl \
-        python3-ni-systemlink-sdk \
         sysconfig-settings \
         sysconfig-settings-ui \
+"
+
+NI_PROPRIETARY_RUNMODE_PACKAGES += "\
+        ni-arch-gen \
+        ni-sysmgmt-auth-utils \
+        ni-sysmgmt-salt-minion-support \
+        ni-sysmgmt-sysapi-expert \
+        python3-ni-systemlink-sdk \
 "
