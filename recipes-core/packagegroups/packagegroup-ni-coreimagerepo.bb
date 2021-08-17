@@ -11,6 +11,7 @@ RDEPENDS_${PN} = "\
 	packagegroup-ni-ptest \
 	packagegroup-ni-restoremode \
 	packagegroup-ni-runmode \
+	packagegroup-ni-safemode \
 	packagegroup-ni-transconf \
 	packagegroup-ni-tzdata \
 	packagegroup-ni-wifi \
