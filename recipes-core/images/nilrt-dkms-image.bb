@@ -14,6 +14,7 @@ require nilrt-proprietary.inc
 
 IMAGE_INSTALL_NODEPS += "\
 	${NI_PROPRIETARY_BASE_PACKAGES} \
+	${NI_PROPRIETARY_RUNMODE_PACKAGES} \
 "
 
 IMAGE_FSTYPES += "squashfs"
