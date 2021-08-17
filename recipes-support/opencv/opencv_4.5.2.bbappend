@@ -1,3 +1,3 @@
-EXTRA_OECMAKE =+ "-DWITH_GPHOTO2=OFF"
+PACKAGECONFIG_remove = "gphoto2"
 
 ALLOW_EMPTY_${PN}-java = "1"
