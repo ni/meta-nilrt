@@ -8,7 +8,6 @@ RDEPENDS_${PN} += "dosfstools e2fsprogs bzip2"
 
 SRC_URI += " \
     file://rauc-mark-good \
-    file://0001-rauc-Add-command-line-option-to-skip-bundle-verifica.patch \
 "
 
 RDEPENDS_${PN}-mark-good += "${PN} bash transconf"
