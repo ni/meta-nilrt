@@ -1,6 +1,7 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 PACKAGECONFIG_remove += "network json service"
 
+INSANE_SKIP_${PN} += "native-last"
 inherit update-rc.d
 
 RDEPENDS_${PN} += "dosfstools e2fsprogs bzip2"
