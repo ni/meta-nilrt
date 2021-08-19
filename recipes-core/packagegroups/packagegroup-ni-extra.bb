@@ -60,7 +60,6 @@ RDEPENDS_${PN} = "\
 	packagegroup-core-sdk \
 	packagegroup-core-standalone-sdk-target \
 	packagegroup-core-basic \
-	packagegroup-core-device-devel \
 	packagegroup-core-buildessential \
 	packagegroup-core-tools-debug \
 	packagegroup-core-security \
