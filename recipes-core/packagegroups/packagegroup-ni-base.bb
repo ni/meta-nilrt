@@ -93,7 +93,6 @@ RDEPENDS_${PN} = "\
 	cronie \
 	curl \
 	daemonize \
-	dhcp-client \
 	dpkg-start-stop \
 	ethtool \
 	gptfdisk-sgdisk \
