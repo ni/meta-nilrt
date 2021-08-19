@@ -30,7 +30,7 @@ do_install () {
 
 inherit ptest
 
-RDEPENDS_${PN}-ptest += "${PN}"
+RDEPENDS_${PN}-ptest += "${PN} bash"
 
 do_install_ptest_append () {
     install -d ${D}${PTEST_PATH}/src
