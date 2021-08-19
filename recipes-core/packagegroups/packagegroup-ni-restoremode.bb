@@ -46,7 +46,6 @@ RDEPENDS_${PN}_append_x64 = "\
 RDEPENDS_${PN}_append_xilinx-zynqhf = "\
     mtd-utils           \
     mtd-utils-ubifs     \
-    u-boot-fw-utils     \
     "
 
 RRECOMMENDS_${PN}_x64 = "\
