@@ -17,7 +17,6 @@ MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS ?= ""
 
 ALL_DISTRO_ARM_PACKAGES = "\
 	mtd-utils \
-	u-boot-fw-utils \
 "
 
 ALL_DISTRO_x64_PACKAGES = "\
