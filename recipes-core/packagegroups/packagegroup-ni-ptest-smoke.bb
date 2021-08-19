@@ -14,7 +14,6 @@ RDEPENDS_${PN} = "ptest-runner"
 # ptest packages
 RDEPENDS_${PN}_append = "\
     glibc-tests-ptest \
-    hwclock-init-ptest \
     kernel-tests-ptest \
     opkg-ptest \
     pstore-save-ptest \
