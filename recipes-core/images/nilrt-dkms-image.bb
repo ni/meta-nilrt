@@ -17,4 +17,4 @@ IMAGE_INSTALL_NODEPS += "\
 	${NI_PROPRIETARY_RUNMODE_PACKAGES} \
 "
 
-IMAGE_FSTYPES += "squashfs"
+IMAGE_FSTYPES += "squashfs tar.gz"
