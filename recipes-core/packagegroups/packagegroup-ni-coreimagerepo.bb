@@ -31,4 +31,5 @@ RDEPENDS_${PN}_append_x64 = "\
 	rauc-mark-good \
 	init-nilrt-ramfs \
 	nilrt-grub-safemode \
+	init-runmode-ramfs \
 "
