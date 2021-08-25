@@ -1,0 +1,107 @@
+#!/bin/bash
+#
+# Copyright (c) 2013,2017 National Instruments
+#
+
+# Something in base is installing /etc/natinst/share/uninstall that may not be
+# getting installed for SystemLink. nisid will fail if this directory doesn't
+# install, so this component ought to install /etc/natinst/share/uninstall
+# itself, regardless of if some other component ultimately will too.
+mkdir -p -m 755 /mnt/userfs/etc/natinst/share/uninstall
+
+# Enable ssh by default when installing SystemLink.
+/usr/local/natinst/bin/nirtcfg -s section=systemsettings,token=sshd.enabled,value=True
+
+# Add the memory reservation for Base. We assert that if the section exists,
+# it's already been added.
+if ! grep -q 'RtLinuxMemReserve' /mnt/userfs/etc/natinst/share/ni-rt.ini; then
+	cat >> /mnt/userfs/etc/natinst/share/ni-rt.ini <<EOF
+[RtLinuxMemReserve]
+Base=24
+EOF
+fi
+
+# Artemis introduced a new type of design which combined the use of zynq with an
+# ext4 filesystem drive as its main disk. Hence, some configurations are needed
+# for the systemlink software installation to be executed properly.
+
+# check for artemis compatibility from devicetree
+if grep -qs artemis /sys/firmware/devicetree/base/compatible ; then
+
+    # configure the partitions to mount by label in fstab
+    sed -i '/ubifs/d' /mnt/userfs/etc/fstab
+    echo LABEL=nibootfs         /boot                ext4       sync           0  0 >>/mnt/userfs/etc/fstab
+    echo LABEL=niconfig         /etc/natinst/share   ext4       sync           0  0 >>/mnt/userfs/etc/fstab
+    mkdir -p /etc/natinst/share
+
+    # configure the path for fw_printenv to read environmental variables from u-boot
+    # replace /dev/mtd4 and /dev/mtd5 with /boot/uboot/uboot.env
+    sed -i '/mtd/d' /mnt/userfs/etc/fw_env.config
+    echo /boot/uboot/uboot.env         0x0000         0x20000 >>/mnt/userfs/etc/fw_env.config
+
+fi
+
+arch="`uname -m`"
+mount_point="/boot"
+class="`/sbin/fw_printenv -n TargetClass`"
+
+if [ "$arch" = "armv7l" ]; then
+	kernel="/mnt/userfs/boot/tmp/linux_runmode.itb"
+elif [ "$arch" = "x86_64" ]; then
+	kernel="/mnt/userfs/boot/tmp/runmode"
+else
+	echo >&2 "ERROR: Unsupported platform"
+	exit 1
+fi
+
+# in normal operation, /boot better exist
+awk '{print $2;}' < /proc/mounts | grep -q /boot || exit 1
+
+# Remove OE getty lines for serial terminal and replace with consolegetty
+sed -i'' -e"s/\/s\?bin\/\(start_\)\?getty \(-L \)\?[0-9]\+ tty[OPS]\+[0-9]\+/\/etc\/init.d\/consolegetty tty2/g" /mnt/userfs/etc/inittab
+grep -q "/etc/init.d/consolegetty" /mnt/userfs/etc/inittab || exit 1
+
+# Give hwclock CAP_SYS_TIME capabilties
+/usr/sbin/setcap CAP_SYS_TIME+ep /mnt/userfs/sbin/hwclock.util-linux
+
+# install the kernel
+[ "$arch" = "x86_64" ] && rm -rf /boot/runmode
+if mv "$kernel" "$mount_point"; then
+	# Remove the tmp path from the rootfs
+	rmdir "`dirname "$kernel"`"
+else
+	exit 1
+fi
+
+# Use persistent names on PXI, not on any other targets
+[ "$class" = "PXI" ] || touch /mnt/userfs/etc/udev/rules.d/80-net-name-slot.rules
+
+# Enable core dumps on PXI, not on any other targets
+[ "$class" = "PXI" ] && echo "* soft core unlimited" > /etc/security/limits.d/allow-core-dumps.conf
+
+# update module dependencies
+RUNMODE_KERNEL_VERSION=$(/bin/ls -1 /mnt/userfs/lib/modules | head -n 1)
+if ! /usr/sbin/chroot /mnt/userfs /sbin/depmod -a "${RUNMODE_KERNEL_VERSION}"; then
+	exit 1
+fi
+
+# select the system settings for this target (only on install for persisted files)
+/usr/sbin/chroot /mnt/userfs /etc/natinst/niselectsystemsettings postinst
+
+# Hack for bug 975962, put /boot back to a+rw
+if [ "$arch" = "armv7l" ]; then
+	chmod 0777 /boot
+fi
+
+# Import NI signing key for subsequent opkg operations
+/usr/sbin/chroot /mnt/userfs/ opkg-key populate
+
+# Find the gpg-agent process launched as a result of the previous command under
+# /mnt/userfs and kill it to prevent a lock on the root file system (BUG 1107561)
+for pid in $(pidof gpg-agent); do
+	root_dir=$(readlink "/proc/${pid}/root")
+	if [ "$root_dir" = "/mnt/userfs" ]; then
+		kill ${pid}
+		break
+	fi
+done
