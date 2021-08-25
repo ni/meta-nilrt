@@ -26,6 +26,33 @@ IMAGE_INSTALL_NODEPS += "\
 	${NI_PROPRIETARY_BASE_PACKAGES} \
 "
 
+BAD_RECOMMENDATIONS += "shared-mime-info"
+
+# Remove alsa, it pulls in a bunch of stuff and we don't need sound in
+# safemode.
+# TODO: this gets pulled in by packagegroup-base (!)
+remove_alsa () {
+	opkg -o ${IMAGE_ROOTFS} -f ${IPKGCONF_TARGET} --force-depends remove \
+		alsa-conf alsa-state alsa-states alsa-ucm-conf \
+		alsa-utils-alsactl alsa-utils-alsamixer libasound2
+}
+
+# Radeon firmware is huge. Remove it from safemode and blacklist the module.
+# TODO: Maybe we should have a list of modules to install instead of getting
+#       the kernel-modules metapackage and then having to remove things
+#       individually?
+#       we probably don't need things like infiniband either...
+remove_radeon () {
+	opkg -o ${IMAGE_ROOTFS} -f ${IPKGCONF_TARGET} --force-depends remove \
+		linux-firmware-radeon
+	echo "blacklist radeon" > "${IMAGE_ROOTFS}/etc/modprobe.d/blacklist_radeon.conf"
+}
+
+# Do not allow python to be installed into safemode ramdisk due to size
+PACKAGE_EXCLUDE += "python-core python3-core"
+
+PACKAGE_EXCLUDE += "rauc-mark-good"
+
 bootimg_fixup () {
 	# TODO: os-common does this but is this necessary?
 	cp "${IMAGE_ROOTFS}/sbin/init.sysvinit" "${IMAGE_ROOTFS}/init"
@@ -50,7 +77,7 @@ bootimg_fixup () {
 	opkg -o ${IMAGE_ROOTFS} -f ${IPKGCONF_TARGET} clean
 }
 
-IMAGE_PREPROCESS_COMMAND += " bootimg_fixup; "
+IMAGE_PREPROCESS_COMMAND += " remove_alsa; remove_radeon; bootimg_fixup; "
 
 addtask image_build_test before do_rootfs
 
