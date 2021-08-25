@@ -4,6 +4,7 @@ IMAGE_INSTALL = "\
 	packagegroup-ni-runmode \
 	packagegroup-ni-wifi \
 	dkms \
+	nilrt-grub-runmode \
 	"
 
 require niconsole-image.inc
