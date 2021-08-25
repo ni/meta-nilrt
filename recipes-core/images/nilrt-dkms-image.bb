@@ -18,4 +18,7 @@ IMAGE_INSTALL_NODEPS += "\
 	${NI_PROPRIETARY_RUNMODE_PACKAGES} \
 "
 
+# Ensure that rauc does not end up in this image.
+PACKAGE_EXCLUDE += "rauc rauc-mark-good"
+
 IMAGE_FSTYPES += "squashfs tar.gz"
