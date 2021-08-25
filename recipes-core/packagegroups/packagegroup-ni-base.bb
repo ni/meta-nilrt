@@ -50,8 +50,6 @@ NILRT_x64_PACKAGES = "\
 
 NILRT_NXG_PACKAGES = "\
 	modutils-initscripts \
-	rauc \
-	rauc-mark-good \
 	packagegroup-ni-minimal-transconf \
 	rtctl \
 	salt-minion \
@@ -121,7 +119,6 @@ RDEPENDS_${PN} = "\
 	openssh-sftp-server \
 	openssh-ssh \
 	opkg \
-	opkg-utils \
 	opkg-keyrings \
 	os-release \
 	run-postinsts \
