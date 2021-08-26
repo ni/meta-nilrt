@@ -33,7 +33,6 @@ SRC_URI = "\
            file://populateconfig \
            file://run-ptest \
            file://cleanvarcache \
-           file://modules_autoload \
            file://nidisablecstates \
            file://nisetembeddeduixml \
            file://nicheckbiosconfig \
@@ -73,7 +72,6 @@ do_install () {
 	install -m 0755 ${WORKDIR}/nisetreboottype       ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/wirelesssetdomain     ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/cleanvarcache         ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/modules_autoload      ${D}${sysconfdir}/init.d
 
 	install -d ${D}${sysconfdir}/natinst
 	install -m 0644 ${WORKDIR}/iso3166-translation.txt ${D}${sysconfdir}/natinst
@@ -86,7 +84,6 @@ do_install () {
 	update-rc.d -r ${D} nipopulateconfigdir   start 36 S .
 	update-rc.d -r ${D} populateconfig        start 36 S . start 30 0 6 .
 	update-rc.d -r ${D} wirelesssetdomain     start 36 S .
-	update-rc.d -r ${D} modules_autoload      start 37 S .
 	update-rc.d -r ${D} cleanvarcache         start 38 0 6 S .
 	update-rc.d -r ${D} firewall              start 39 S .
 	update-rc.d -r ${D} mountdebugfs          start 82 S .
