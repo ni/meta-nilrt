@@ -1,6 +1,15 @@
 #!/bin/sh
+### BEGIN INIT INFO
+# Provides:          nisafemodereason
+# Required-Start:    $mountall
+# Required-Stop:
+# Default-Start:     S
+# Default-Stop:
+# Short-Description: nisafemodereason
+# Description:       Compute the reason for being in safe mode.
+### END INIT INFO
 #
-# Copyright (c) 2013 National Instruments
+# Copyright (c) 2013-2021 National Instruments
 #
 # Display on console and LED blink code reason for safe mode, and record
 # the state for use by system config tools.
@@ -9,7 +18,7 @@ REASON_FILE=/etc/natinst/share/safemode_reason
 SYSTEM_STATE_FILE=/tmp/ni_system_state
 CONFIG_OLD=/etc/natinst/share/config.old
 CONFIG_CDF=/etc/natinst/share/config.cdf
-STATUS_LED=/usr/local/natinst/bin/status_led
+STATUS_LED=/usr/bin/status_led
 RESTOREMODE_FLAG=/etc/natinst/restoremode
 SMBIOS_HELPER=/usr/share/nisysinfo/smbios_helper
 
@@ -46,8 +55,10 @@ else
 	elif [ -r $SMBIOS_HELPER ]; then
 	# Try to determine from SMBIOS
 		source $SMBIOS_HELPER
-		if get_forced_safemode; then
-			RESET_SOURCE="button"
+		if is_ni_device; then
+			if get_forced_safemode; then
+				RESET_SOURCE="button"
+			fi
 		fi
 	fi
 
