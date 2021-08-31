@@ -24,12 +24,17 @@ do_install () {
 
 	install -d ${D}${sysconfdir}/init.d
 	install -m 0755 ${S}/nitargetinfo ${D}${sysconfdir}/init.d/
+
+    # legacy symlink location
+    install -d ${D}/usr/local/natinst/bin
+    ln -sf ${bindir}/nisystemformat ${D}/usr/local/natinst/bin/nisystemformat
 }
 
 
 FILES_${PN} += "\
 	${bindir}/nisystemformat \
 	${sysconfdir}/init.d/nitargetinfo \
+	/usr/local/natinst/bin/nisystemformat \
 "
 
 inherit update-rc.d
