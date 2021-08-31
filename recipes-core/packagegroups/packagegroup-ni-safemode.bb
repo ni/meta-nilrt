@@ -15,6 +15,7 @@ RDEPENDS_${PN} = " \
 	e2fsprogs-e2fsck \
 	e2fsprogs-mke2fs \
 	e2fsprogs-tune2fs \
+	ni-netcfgutil \
 "
 
 RDEPENDS_${PN}_append_armv7a = " \
