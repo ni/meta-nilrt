@@ -1,0 +1,27 @@
+#!/bin/bash
+# Bail out on first error
+set -e -u -o pipefail
+
+NINETCFGUTIL=/usr/local/natinst/bin/ninetcfgutil
+
+print_usage() {
+	echo 'Usage: niresetip'
+	echo "Resets IP configruation of the primary network interface adapter"
+	echo ''
+}
+
+if [ -z "$*" ]; then
+	NETCFG_TMP=`mktemp -d /tmp/niresetip-XXXXXXX`
+	$NINETCFGUTIL pulldefault -d $NETCFG_TMP -g primary
+	rm -rf $NETCFG_TMP
+	echo "IP reset complete."
+elif [ "$1" = '--help' -o "$1" = '-h' ]; then
+	print_usage
+	exit 1
+else
+	echo "Error - invalid usage"
+	echo ''
+	print_usage
+	exit 1
+fi
+
