@@ -1,0 +1,134 @@
+# NI System Web server configuration file.
+#  for Linux RT run-mode
+#
+# Global Directives
+#
+ErrorLog /var/local/natinst/log/SystemWebServer.log, backup=1, size=10K
+
+LoadModulePath "/usr/local/natinst/share/NIWebServer"
+LoadModule niSessionManagerModule mod_nisessmgr
+LoadModule niAuthModule mod_niauth
+LoadModule EspModule mod_niesp
+LoadModule niSslInitModule mod_nissl
+LoadModule sslModule mod_ssl
+LoadModule WSRuntime mod_niws
+LoadModule niWebDavModule mod_nidav
+
+Listen 80
+Listen 443
+
+#
+# Directives that apply to the default server
+#
+NI.ServerName "NI System Web Server"
+InactivityTimeout 60
+LimitRequestBody 100000000
+LimitRequestForm 100000000
+LimitUrl 1024
+ThreadStack 64K
+WorkerLimit 10
+
+DocumentRoot /var/local/natinst/www
+DirectoryIndex LandingPage.html
+TypesConfig /etc/natinst/mime.types
+
+#
+# Pipeline Definition
+#
+SetConnector netConnector
+
+AddHandler niAuthHandler
+AddHandler WSRuntime
+AddHandler niWebDavOptionsHandler
+AddHandler dirHandler
+AddHandler fileHandler ""
+
+AddOutputFilter chunkFilter
+
+DAVOptions On
+
+NI.WSRuntime.Configuration system
+
+<Route ^/safemode(/|$)>
+    DocumentRoot /
+    Prefix /safemode
+    DAV Files
+    DAVOptions Off
+
+    Options Indexes
+    LimitRequestBody 0
+
+    AuthName NIAuth
+    AuthMethod NIAuth
+    AuthType Digest
+    AuthDigestQop auth
+
+    Require valid-user
+    NI.Auth.Require OPTIONS PROPFIND GET permission FSRead
+    NI.Auth.Require PROPPATCH PUT MKCOL permission FSWrite
+    NI.Auth.Require DELETE COPY MOVE LOCK UNLOCK permission FSRead FSWrite
+
+    Reset pipeline
+    AddHandler niAuthPermHandler
+    AddHandler niWebDavHandler
+    AddHandler fileHandler ""
+
+    AddOutputFilter chunkFilter
+
+    Require group administrators
+</Route>
+
+<Route ^/files(/|$)>
+    DocumentRoot /mnt/userfs
+    Prefix /files
+    DAV Files
+    DAVOptions Off
+
+    Options Indexes
+    LimitRequestBody 0
+
+    AuthName NIAuth
+    AuthMethod NIAuth
+    AuthType Digest
+    AuthDigestQop auth
+
+    Require valid-user
+    NI.Auth.Require OPTIONS PROPFIND GET permission FSRead
+    NI.Auth.Require PROPPATCH PUT MKCOL permission FSWrite
+    NI.Auth.Require DELETE COPY MOVE LOCK UNLOCK permission FSRead FSWrite
+
+    Reset pipeline
+    AddHandler niAuthPermHandler
+    AddHandler niWebDavHandler
+    AddHandler fileHandler ""
+
+    AddOutputFilter chunkFilter
+
+    <Route ^/files/etc/natinst/appweb(/|$)>
+        Require group administrators
+    </Route>
+    <Route ^/files/etc/natinst/share/certstore(/|$)>
+        Require group administrators
+    </Route>
+    <Route ^/files/var/local/natinst/certstore(/|$)>
+        Require group administrators
+    </Route>
+</Route>
+
+# Route internet explorer to the original WIF if it is installed.
+  <Route ^/$>
+    Condition match ${header:User-Agent} (MSIE|Trident)
+    Condition exists WIF.html
+    Target run WIF.html
+  </Route>
+
+<VirtualHost *:443>
+#ServerName "SSL"
+SSLEngine on
+SSLCipherSuite ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA
+SSLProtocol all -SSLv2 -SSLv3
+SSLCertificateFile "/var/local/natinst/certstore/server_certs/server_0.cer"
+SSLCertificateKeyFile "/var/local/natinst/certstore/server_certs/server_0.key"
+NI.WSRuntime.Configuration system
+</VirtualHost>
+
