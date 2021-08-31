@@ -1,0 +1,58 @@
+#!/bin/sh
+# Copyright (c) 2012-2013 National Instruments.
+# All rights reserved.
+
+partition_label="boot-config"
+volume_label="config"
+volume_number="3"
+mount_point="/etc/natinst/share"
+mount_args="-o sync"
+RESTORECON="/sbin/restorecon"
+
+if [ -e /etc/init.d/mountutils ] ; then
+	# include common utilities
+	. /etc/init.d/mountutils
+fi
+
+# Bail out on first error
+set -o errexit
+
+mount_config()
+{
+	# Don't mount if already mounted
+	if ! grep -q " $mount_point " /proc/self/mounts; then
+		if cat /sys/class/mtd/mtd*/name 2>/dev/null | grep -q ^$partition_label\$
+		then
+			# If an mtd partition has this partition label, use
+			# mount_ubi_volume
+			mount_ubi_volume "$partition_label" "$volume_label" \
+				"$volume_number" "$mount_point" "$mount_args"
+		elif grep -q "[ \\t]$mount_point[ \\t]" /etc/fstab
+		then
+			# If the mount point is in fstab, use that
+			mount $mount_point
+		else
+			echo "ERROR: Unable to mount config partition" >&2
+			exit 1
+		fi
+	fi
+
+	chown lvuser:ni $mount_point
+	chmod ug=rwx,o=rx $mount_point
+	[ -e ${RESTORECON} ] && ${RESTORECON} -R ${mount_point} || true
+}
+
+unmount_config()
+{
+	# Don't try to umount if not already mounted
+	if grep -q " $mount_point " /proc/self/mounts; then
+		umount $mount_point
+	fi
+}
+
+case "$1" in
+	start) mount_config;;
+	stop) unmount_config;;
+esac
+
+exit 0

@@ -1,0 +1,25 @@
+#!/bin/sh
+# Copyright (c) 2012-2013 National Instruments.
+# All rights reserved.
+
+# Mounts a "/C" and "/c" directory to support legacy
+# projects which may be dumping files here
+
+# Bail out on first error
+set -o errexit
+
+mount_compat()
+{
+	[ -d /c -a ! -L /c ] && rmdir /c
+	ln -sf /mnt/userfs/c /
+
+	[ -d /C -a ! -L /C ] && rmdir /C
+	ln -sf /mnt/userfs/C /
+}
+
+case "$1" in
+  start) mount_compat;;
+  stop) ;;
+esac
+
+exit 0
