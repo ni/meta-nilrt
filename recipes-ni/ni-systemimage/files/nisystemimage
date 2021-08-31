@@ -1,0 +1,838 @@
+#!/bin/bash
+#
+# Copyright (c) 2013 National Instruments
+#
+set -eEu -o pipefail
+shopt -s dotglob nullglob
+
+. /etc/natinst/networking/functions.common
+
+##
+## Globals
+##
+
+declare -i VERBOSE=0
+declare -r BASENAME=${0##*/}
+
+declare -r ORIG_PWD="$PWD"
+
+# The stdout fd is moved out of the way to FD_STDOUT, and is then redirected to
+# stderr. This should help keep stdout clean, so that if we are writing `tar`
+# output to stdout, it will not get corrupted by some other utility's output.
+FD_STDOUT=
+
+# `tar`'s I/O goes through FD_IMAGE. On get, FD_IMAGE is either FD_STDOUT or 
+# a file. On set, FD_IMAGE is either stdin or a file.
+FD_IMAGE=
+
+# MODE determines the image operation to be performed
+declare -r MODE="${1:-}"
+
+# Specifies what to do with primary network adapter configurations
+PRIMARY_SETTING=
+
+# Specifies what to do with secondary network adapter configurations
+SECONDARY_SETTING=
+
+# "type" of image file to handle.
+IMAGE_TYPE=
+
+# If non-empty, don't modify anything on disk. Exceptions:
+# - ninetcfgutil always gets run, but NOEXEC is propagated to it via '-n'.
+# - Working directories for ninetcfg (NETCFG_DIR) are always created/deleted.
+#   Otherwise ninetcfgutil won't run.
+NOEXEC=
+
+# List of files containing blacklisted paths to pass to `tar`
+BLACKLIST_LISTS=()
+
+# Blacklisted paths to pass to `tar`
+# XXX var/local/natinst/tracelogs/*.log ?? or ini?
+BLACKLIST_PATHS=(
+	# syslog-ng socket (sockets can't be tar'd)
+	/var/syslog-ng.ctl
+	# Safe mode
+	/boot/.safe
+	# Grub variables
+	/boot/grub
+	# Default bitfile
+	/boot/.defbit
+	# User bitfile
+	/boot/user.bit*
+	/var/volatile
+	# Restore-mode fail-safe files
+	/.restore
+	# Systemlink Configuration Files
+	/etc/salt/minion_id
+	/etc/salt/pki
+)
+
+# All excludes to pass to `tar`. Includes BLACKLIST_PATHS and contents of all
+# files in BLACKLIST_LISTS. The contents of EXCLUDES are paths relative to
+# /mnt/userfs; the contents of BLACKLIST_PATHS and the contents of the files in
+# BLACKLIST_LISTS are all absolute (and refer to the userfs).
+EXCLUDES=()
+
+# Files to delete in do_wipe
+FILES_TO_DELETE=()
+FILES_TO_DELETE_LIST=/tmp/nisystemimage.files_to_delete
+EXCLUDE_MATCHES_LIST=/tmp/nisystemimage.exclude_matches
+
+# Image file, if specified by user (don't set if user wants stdin/stdout)
+IMAGE_FILE=
+
+# Write the image to a temporary location, then rename it to IMAGE_FILE
+# when complete
+IMAGE_FILE_TEMP=
+
+# To better control what files/directories/filesystems are seen by `tar`,
+# we don't actually manipulate anything under /mnt/userfs -- there's a lot
+# of stuff mounted under that which we don't want (/c, /var/volatile, etc.)
+# Instead, we use mount --bind to create a new, temporary mountpoint under
+# /mnt/.userfs.tmp/, and mount precisely what we want (bootfs/configfs) under
+# that.
+ORIG_USERFS=/mnt/userfs
+ORIG_BOOTFS=/boot
+ORIG_CONFIGFS=/etc/natinst/share
+WORKING_USERFS=/mnt/.userfs.tmp
+WORKING_BOOTFS=${WORKING_USERFS}${ORIG_BOOTFS}
+WORKING_CONFIGFS=${WORKING_USERFS}${ORIG_CONFIGFS}
+
+# tar xattr extract defaults to only extract user xattrs, not system xattrs.
+# Override this with --xattrs-include=*.
+#
+# User-supplied blacklist files are nominally not quoted, and `printf %q` deals
+# with quoting paths as necessary, so use --no-unquote to keep tar from
+# doing its own quoting.
+BASE_TAR_OPTS=(--xattrs --xattrs-include=\* --no-selinux --no-acls --anchored --no-unquote)
+
+# Temporary directory used by ninetcfgutil to save/restore/reset network
+# configuration
+NETCFG_DIR="/tmp/.netcfg.$$"
+DELETE_NETCFG_DIR_ON_EXIT=1
+
+# If set, remount the rootfs/bootfs read-only during image get
+RO_ON_GET=
+
+# If the system gzip implementation is "real" gzip or busybox gzip, using pigz
+# can result in a 2-5x performance improvement
+COMPRESS=/bin/gzip
+[[ ! -f $COMPRESS ]] && COMPRESS=/usr/bin/gzip
+
+# Path to `ninetcfgutil`
+NINETCFGUTIL="/usr/local/natinst/bin/ninetcfgutil"
+
+# Paths to override source scripts
+SCRIPT_ROOTFS=/etc/default/nisystemimage
+SCRIPT_PRE=/etc/natinst/share/nisystemimage_pre
+SCRIPT_POST=/etc/natinst/share/nisystemimage_post
+
+##
+## Utility functions
+##
+
+print_help () {
+cat <<EOF
+Usage:
+
+$BASENAME get -x <format> [-hnv] [-b <file>] [-B <path>] [-f <file>]
+
+$BASENAME set -x <format> [-hnv] [-b <file>] [-B <path>] [-f <file>]
+	-p reset|preserve|apply -s reset|preserve|apply
+
+EOF
+}
+
+declare -Ar EXITCODES=(
+	[UNKNOWN]=1
+	[INVALID_ARGUMENT]=10
+	[FILE_NOT_FOUND]=11
+	[FS_PREP_FAILED]=12
+	[NETCFG_FAIL]=13
+        [ILLTIMED]=14
+)
+
+# $@: text
+die_with_help () {
+	echo -e "ERROR: $BASENAME: $@\n" >&2
+	print_help >&2
+	exit ${EXITCODES[INVALID_ARGUMENT]}
+}
+
+# $1: exit code (key from EXITCODES)
+# ${@:2}: text
+die () {
+	RET=${EXITCODES[$1]}
+	echo -e "$(date '+%T') ERROR: $BASENAME[$$]:${BASH_LINENO[1]}: ${@:2}" >&2
+	exit $RET
+}
+
+# $1: required verbosity level
+# ${@:2}: text
+#
+# $2 will be unescaped; ${@:2} won't
+echo_verbose () {
+	if (( $VERBOSE >= $1 )); then
+		echo -e "$BASENAME[$$]:${BASH_LINENO[1]}: ${FUNCNAME[1]:-unknown}: $2" >&2
+		(($# > 2)) && printf '\t%s\n' "${@:3}" >&2
+	fi
+	return 0
+}
+
+# $1: ${BASH_SOURCE}
+# $2: ${LINENO}
+# $3: ${FUNCNAME}
+handle_err () {
+	echo -e "$1:$2: $3: Unhandled error (status=$4) encountered, exiting." >&2
+	if (( $VERBOSE >= 2 )); then
+		echo_verbose 2 "fd configuration:"
+		lsof | grep "\(pipe\$\|^$BASENAME\)" \
+			| grep -vi '^\(nisvcloc\|TracePrun\|grep\|sort\|lsof\|TraceLogg\)' \
+			| grep -vi '^\(AppWeb_MP\|SystemWeb\|udhcpc\|WSRunt\.\.\.\|syslog-ng\)' \
+			| sort -t$'\n' -k1.64,1.75 >&2 || true
+	fi
+	cleanup || true
+}
+
+is_set () {
+	[[ "${MODE}" == "set" ]]
+}
+
+# $1: mount point
+is_mounted () {
+	if (( $VERBOSE >= 2 )); then
+		if grep -q " $1 " /proc/mounts; then
+			echo_verbose 2 "$1: yes"
+		else
+			echo_verbose 2 "$1: no"
+		fi
+	fi
+	grep -q " $1 " /proc/mounts
+}
+
+run_cmd () {
+	echo_verbose 1 "${FUNCNAME[1]:-unknown}:" "$*"
+	[[ $NOEXEC ]] || "$@"
+}
+
+run_cmd_always () {
+	echo_verbose 1 "${FUNCNAME[1]:-unknown}:" "$*"
+	"$@"
+}
+
+run_hook () {
+	[[ "$(type -t $1)" == "function" ]] && $@ || true
+}
+
+# Prevent errant stdout writes from potentially corrupting a streamed tar
+# output.
+#
+# Globals: FD_STDOUT
+protect_stdout () {
+	exec {FD_STDOUT}>&1 1>&2
+}
+
+in_safemode () {
+	[[ -f /etc/natinst/safemode ]]
+}
+
+##
+## Network configuration management
+##
+
+# Helper function for running ninetcfgutil
+#
+# $1: setting class to match (preserve, apply, reset, all)
+# $2: operation
+# $3: working dir
+do_netcfg () {
+	local -r CLASS="$1" OP="$2" DIR="$3"
+	echo_verbose 1 "starting" "CLASS='$CLASS'" "OP='$OP'" "DIR='$DIR'"
+	if [[ $PRIMARY_SETTING != $CLASS && $SECONDARY_SETTING != $CLASS ]]; then
+		echo_verbose 1 "no interface groups matched; returning"
+		return 0
+	fi
+	local -a CMDLINE=("$NINETCFGUTIL" "$OP" -d "$DIR")
+	[[ all == $CLASS ]] && CMDLINE+=(-g primary -g secondary)
+	[[ $PRIMARY_SETTING == $CLASS ]] && CMDLINE+=(-g primary)
+	[[ $SECONDARY_SETTING == $CLASS ]] && CMDLINE+=(-g secondary)
+	[[ $NOEXEC ]] && CMDLINE+=(-n)
+	for (( i=1; i<=$VERBOSE; i++ )); do CMDLINE+=(-v); done
+	echo_verbose 1 "${CMDLINE[*]}"
+	"${CMDLINE[@]}"
+	echo_verbose 2 "finished"
+}
+
+# Applying a network configuration from the image:
+# - Before imaging, erase the on-disk configuration, to avoid conflicts
+# - After imaging, push the on-disk configuration to flash
+#
+# Additionally, if apply+reset or reset+apply, then just erase everything,
+# in order to trigger AUTO_KITCHENSINK.
+netcfg_pre_apply_reset () {
+	echo_verbose 2 "starting"
+	rm -rf "$NETCFG_DIR-apply"
+	mkdir "$NETCFG_DIR-apply"
+	case "$PRIMARY_SETTING $SECONDARY_SETTING" in
+		"apply reset"|"reset apply")
+			do_netcfg all erase "$NETCFG_DIR-apply" ;;
+		*)
+			do_netcfg apply erase "$NETCFG_DIR-apply" ;;
+	esac
+	echo_verbose 2 "finished"
+}
+
+netcfg_apply () {
+	echo_verbose 2 "starting"
+	rm -rf "$NETCFG_DIR-apply"
+	mkdir "$NETCFG_DIR-apply"
+	do_netcfg apply push "$NETCFG_DIR-apply"
+	echo_verbose 2 "finished"
+}
+
+# Preserving an existing configuration:
+# - before imaging, save the on-disk configuration
+# - after imaging, erase the on-disk configuration, in case the image contained
+#   a conflicting configuration; then restore the saved configuration
+netcfg_pre_preserve () {
+	echo_verbose 2 "starting"
+	rm -rf "$NETCFG_DIR-preserve"
+	mkdir "$NETCFG_DIR-preserve"
+	do_netcfg preserve save "$NETCFG_DIR-preserve"
+	echo_verbose 2 "finished"
+}
+
+netcfg_preserve () {
+	echo_verbose 2 "starting"
+	# Restore the network settings we saved off previously. We used to have
+	# an erase here as well, but in 2014 we changed the semantics of a
+	# restore to also delete any extra settings or files that may be
+	# present.
+	#
+	# The change in semantics and removing the erase was motivated as
+	# a band-aid work-around for CAR #476288. In the future when we
+	# discover the actual cause of that CAR we can revert to the
+	# previous behavior.
+	do_netcfg preserve restore "$NETCFG_DIR-preserve"
+	echo_verbose 2 "finished"
+}
+
+# Resetting a network configuration:
+# - After imaging, and after netcfg_preserve: erase the configuration
+netcfg_reset () {
+	echo_verbose 2 "starting"
+	rm -rf "${NETCFG_DIR}-erase"
+	mkdir "${NETCFG_DIR}-erase"
+	do_netcfg reset erase "${NETCFG_DIR}-erase"
+	rm -rf "${NETCFG_DIR}-erase"
+	mkdir "${NETCFG_DIR}-erase"
+	do_netcfg reset pulldefault "${NETCFG_DIR}-erase"
+	echo_verbose 2 "finished"
+}
+
+cleanup_netcfg () {
+	if [[ $DELETE_NETCFG_DIR_ON_EXIT ]]; then
+		rm -rf "${NETCFG_DIR}"
+		rm -rf "${NETCFG_DIR}-apply"
+		rm -rf "${NETCFG_DIR}-erase"
+		rm -rf "${NETCFG_DIR}-preserve"
+	fi
+}
+
+##
+## Get Image
+##
+
+image_get_tgz () {
+	echo_verbose 2 "starting"
+	local -a CMDLINE=(tar c "${BASE_TAR_OPTS[@]}" -I "$COMPRESS")
+	(( $VERBOSE >= 2 )) && CMDLINE+=(-v)
+	(( ${#EXCLUDES[@]} )) && CMDLINE+=("${EXCLUDES[@]/#/--exclude=}")
+
+	cd $WORKING_USERFS
+	CMDLINE+=(*)
+	run_cmd "${CMDLINE[@]}" 1>&"$FD_IMAGE"
+	echo_verbose 2 "finished"
+}
+
+init_fs_get () {
+	if [[ $RO_ON_GET ]]; then
+		if ! run_cmd_always mount -o remount,ro $WORKING_USERFS; then
+			die FS_PREP_FAILED "Couldn't remount $WORKING_USERFS read-only"
+		fi
+		if ! run_cmd_always mount -o remount,ro $WORKING_BOOTFS; then
+			die FS_PREP_FAILED "Couldn't remount $WORKING_BOOTFS read-only"
+		fi
+	else
+		echo_verbose 2 "Skipping remounting filesystems read-only."
+	fi
+}
+
+init_fd_get () {
+	if [[ $IMAGE_FILE ]] ; then
+		rm -f -- "$IMAGE_FILE" || die UNKNOWN "Couldn't clear '$IMAGE_FILE'"
+		rm -f -- "$IMAGE_FILE_TEMP" || die UNKNOWN "Couldn't clear '$IMAGE_FILE_TEMP'"
+		exec {FD_IMAGE}>"$IMAGE_FILE_TEMP" \
+			|| die FILE_NOT_FOUND "Couldn't open image file '$IMAGE_FILE_TEMP'"
+	else
+		exec {FD_IMAGE}>&$FD_STDOUT
+	fi
+}
+
+image_get () {
+	image_get_${IMAGE_TYPE}
+	if [[ $IMAGE_FILE ]]; then
+		mv "$IMAGE_FILE_TEMP" "$IMAGE_FILE" || die UNKNOWN \
+			"Couldn't move image from '$IMAGE_FILE_TEMP' to final destination '$IMAGE_FILE'"
+	fi
+}
+
+##
+## Set Image
+##
+
+build_files_to_delete () {
+	local firstiteration
+	local -a cmdline
+
+	echo_verbose 2 "starting"
+
+	rm -f "$FILES_TO_DELETE_LIST"
+	rm -f "$EXCLUDE_MATCHES_LIST"
+
+	(( ${#EXCLUDES[@]} )) || return 0
+
+	local OLDPWD="$PWD"
+	cd $WORKING_USERFS
+
+	# Construct the call to `find` to identify the files to delete.
+	#
+	# We don't use -delete, because that implies -depth, which is difficult
+	# to reconcile with blacklist entries as supplied by users. Typically,
+	# they *exactly* match a file or directory, but may contain wildcards;
+	# but if we're finding with -depth, we'd more or less need to tack on a
+	# "*" to the end of every blacklist entry — except that would mistakenly
+	# match, e.g. "/foo/barbaz/" for the blacklist entry "/foo/bar". So
+	# working around that would probably require converting the blacklist
+	# entries to regexes. This gets very messy very quickly.
+	#
+	# We don't use -exec rm -rf {} \;, because if its exit status is nonzero,
+	# `find` cannot reliably propagate that back to us.
+
+	# Get parent directories for all blacklist entries
+	cmdline=(find * '(')
+	firstiteration=1
+	for b in "${EXCLUDES[@]:+${EXCLUDES[@]}}"; do
+		[[ $firstiteration == 1 ]] || cmdline+=( -o )
+		firstiteration=
+		cmdline+=(-path "$b")
+	done
+	cmdline+=(')' -prune -print0)
+	echo_verbose 1 "${cmdline[*]}"
+
+	"${cmdline[@]}" > "$EXCLUDE_MATCHES_LIST"
+
+	local -a exclude_matches=()
+	while IFS= read -r -d $'\0' f; do
+		exclude_matches+=("$f")
+	done < "$EXCLUDE_MATCHES_LIST"
+
+	local -A parentdirs=()
+	# Find all bind mounts under /mnt/userfs and make sure we don't try to
+	# delete them
+	local fsname dir type opts freq passno subdir
+	while read -r fsname dir type opts freq passno; do
+		[[ $dir =~ ^/mnt/userfs/(.+) ]] || continue
+		subdir="${BASH_REMATCH[1]}"
+		parentdirs["$subdir"]=1
+		exclude_matches+=("$subdir")
+	done < /proc/self/mounts
+	echo_verbose 2 "Found bind mounts:" "${!parentdirs[@]}"
+
+	for f in "${exclude_matches[@]:+${exclude_matches[@]}}"; do
+		while [[ $f =~ (.+)/.* ]]; do
+			f="${BASH_REMATCH[1]}"
+			parentdirs["$f"]=1
+		done
+	done
+	echo_verbose 2 "Got parentdirs: ${parentdirs[@]:+${!parentdirs[@]}}"
+
+	# Construct a `find` command to match everything to delete:
+	cmdline=(find * '(')
+
+	# First, prune out anything that matches a blacklist entry. If a
+	# directory is matched, exclude everything underneath it.
+	firstiteration=1
+	for b in "${EXCLUDES[@]:+${EXCLUDES[@]}}"; do
+		[[ $firstiteration == 1 ]] || cmdline+=( -o )
+		firstiteration=
+		cmdline+=(-path "$b")
+	done
+	cmdline+=( ')' -prune )
+
+	# Second, don't delete the parent directories of blacklist entries.
+	cmdline+=( -o -not '(' )
+	firstiteration=1
+	for b in "${parentdirs[@]:+${!parentdirs[@]}}"; do
+		[[ $firstiteration == 1 ]] || cmdline+=( -o )
+		firstiteration=
+		cmdline+=(-path "$b")
+	done
+	cmdline+=(')' -prune -print0)
+
+	echo_verbose 1 "${cmdline[*]}"
+	"${cmdline[@]}" > "$FILES_TO_DELETE_LIST"
+	while IFS= read -r -d $'\0' f; do
+		FILES_TO_DELETE+=("$f")
+	done < "$FILES_TO_DELETE_LIST"
+	echo_verbose 2 "Files to delete:" \
+		"${FILES_TO_DELETE[@]:+${FILES_TO_DELETE[@]}}"
+	cd "$OLDPWD"
+
+}
+
+wipe_fs () {
+	build_files_to_delete
+	(( ${#FILES_TO_DELETE[@]} )) || return 0
+
+	local OLDPWD="$PWD"
+	cd $WORKING_USERFS
+
+	run_cmd xargs -0 -r -s 64000 rm -rf < "$FILES_TO_DELETE_LIST"
+	# Don't delete $FILES_TO_DELETE_LIST — it's useful to keep it around for
+	# testing
+
+	cd "$OLDPWD"
+
+	echo_verbose 2 "finished"
+}
+
+image_set_tgz () {
+	echo_verbose 2 "starting"
+	local -a CMDLINE=(tar x "${BASE_TAR_OPTS[@]}" -C "$WORKING_USERFS" -I "$COMPRESS")
+	(( $VERBOSE >= 2 )) && CMDLINE+=(-v)
+	(( ${#EXCLUDES[@]} )) && CMDLINE+=("${EXCLUDES[@]/#/--exclude=}")
+	echo_verbose 1 "command line:" "${CMDLINE[*]}"
+
+	cd $WORKING_USERFS
+	if [[ ! $NOEXEC ]]; then
+		"${CMDLINE[@]}" 0<&"$FD_IMAGE"
+	else
+		if (( $VERBOSE > 0 )); then
+			echo_verbose 1 "skipping extraction; 'tar t' output:"
+			CMDLINE[1]=t
+			"${CMDLINE[@]}" 0<&"$FD_IMAGE" 1>&2 || true
+		fi
+	fi
+	echo_verbose 2 "finish"
+}
+
+image_set () {
+	netcfg_pre_apply_reset
+	netcfg_pre_preserve
+	wipe_fs
+	image_set_${IMAGE_TYPE}
+	netcfg_apply
+	netcfg_preserve
+	netcfg_reset
+}
+
+init_fd_set () {
+	if [[ $IMAGE_FILE ]] ; then
+		exec {FD_IMAGE}<"$IMAGE_FILE" \
+			|| die FILE_NOT_FOUND "Couldn't open '$IMAGE_FILE'"
+	else
+		exec {FD_IMAGE}<&0
+	fi
+}
+
+init_fs_set () {
+	# working mountpts will inherit the ro-ness of the bound mountpoint, so
+	# make sure everything is rw
+	if ! run_cmd_always mount -o remount,rw $WORKING_USERFS; then
+		die FS_PREP_FAILED "Couldn't remount $WORKING_USERFS read-only"
+	fi
+	if ! run_cmd_always mount -o remount,rw $WORKING_BOOTFS; then
+		die FS_PREP_FAILED "Couldn't remount $WORKING_BOOTFS read-only"
+	fi
+	if ! run_cmd_always mount -o remount,rw $WORKING_CONFIGFS; then
+		die FS_PREP_FAILED "Couldn't remount $WORKING_CONFIGFS read-only"
+	fi
+}
+
+# Undocumented debugging mode: Print NUL-delimited list of files that would get
+# deleted on set
+image_wipelist () {
+	build_files_to_delete
+	cat "$FILES_TO_DELETE_LIST" >&$FD_STDOUT
+}
+init_fd_wipelist () {
+	init_fd_set
+}
+init_fs_wipelist () {
+	init_fs_set
+}
+
+
+##
+## Initialization
+##
+
+init_fd () {
+	init_fd_$MODE
+}
+
+init_fs () {
+	# If the util did not previously exit cleanly, it's possible that the
+	# working mount points didn't get unmount them. To avoid double-mounts,
+	# try to unmount them first
+	is_mounted $WORKING_BOOTFS && run_cmd_always umount -f $WORKING_BOOTFS || true
+	is_mounted $WORKING_CONFIGFS && run_cmd_always umount -f $WORKING_CONFIGFS || true
+	is_mounted $WORKING_USERFS && run_cmd_always umount -f $WORKING_USERFS || true
+
+	run_cmd_always mkdir -p $WORKING_USERFS
+	run_cmd_always mount --bind $ORIG_USERFS $WORKING_USERFS \
+		|| die FS_PREP_FAILED "Couldn't rebind $ORIG_USERFS to $WORKING_USERFS"
+	run_cmd_always mkdir -p $WORKING_BOOTFS
+	run_cmd_always mount --bind $ORIG_BOOTFS $WORKING_BOOTFS \
+		|| die FS_PREP_FAILED "Couldn't rebind $ORIG_BOOTFS to $WORKING_BOOTFS"
+	run_cmd_always mkdir -p $WORKING_CONFIGFS
+	run_cmd_always mount --bind $ORIG_CONFIGFS $WORKING_CONFIGFS \
+		|| die FS_PREP_FAILED "Couldn't rebind $ORIG_CONFIGFS to $WORKING_CONFIGFS"
+
+	init_fs_$MODE
+}
+
+##
+## Cleanup
+##
+cleanup_fs () {
+	cd $ORIG_PWD || true
+	echo_verbose 1 "starting fs cleanup: PWD=$PWD"
+
+	# For set, mount -o mount,rw appears to have the indirect effect
+	# of forcing a sync
+	run_cmd_always mount -o remount,rw $ORIG_USERFS || true
+	run_cmd_always mount -o remount,rw $ORIG_BOOTFS || true
+
+	is_mounted $WORKING_BOOTFS && run_cmd_always umount -f $WORKING_BOOTFS || true
+	is_mounted $WORKING_CONFIGFS && run_cmd_always umount -f $WORKING_CONFIGFS || true
+	is_mounted $WORKING_USERFS && run_cmd_always umount -f $WORKING_USERFS || true
+	[[ -d $WORKING_USERFS ]] && run_cmd_always rmdir $WORKING_USERFS || true
+	[[ -f $IMAGE_FILE_TEMP ]] && run_cmd_always rm -f "$IMAGE_FILE_TEMP" || true
+
+	echo_verbose 1 "finished"
+}
+
+cleanup () {
+	cleanup_netcfg
+	cleanup_fs
+}
+
+##
+## Settings/options processing
+##
+
+dump_settings () {
+	echo_verbose 1 \
+		"MODE=$MODE" \
+		"PRIMARY_SETTING=$PRIMARY_SETTING" \
+		"SECONDARY_SETTING=$SECONDARY_SETTING" \
+		"IMAGE_TYPE=$IMAGE_TYPE" \
+		"NOEXEC=$NOEXEC" \
+		"IMAGE_FILE=$IMAGE_FILE" \
+		"IMAGE_FILE_TEMP=$IMAGE_FILE_TEMP" \
+		"BLACKLIST_PATHS=(${BLACKLIST_PATHS[*]:+${BLACKLIST_PATHS[*]}})" \
+		"BLACKLIST_LISTS=(${BLACKLIST_LISTS[*]:+${BLACKLIST_LISTS[*]}})" \
+		"EXCLUDES=(${EXCLUDES[*]:+${EXCLUDES[*]}})" \
+		"FD_STDOUT=$FD_STDOUT" \
+		"FD_IMAGE=$FD_IMAGE"
+
+	for f in "${BLACKLIST_LISTS[@]:+${BLACKLIST_LISTS[@]}}"; do
+		mapfile -t CONTENTS < "$f"
+		echo_verbose 1 "\nContents of '$f':" \
+			"${CONTENTS[@]:+${CONTENTS[@]}}" \
+			"---"
+	done
+}
+
+parse_settings () {
+	while getopts :b:B:f:hnp:s:vx: opt ; do
+		case $opt in
+			b) BLACKLIST_LISTS+=("$OPTARG") ;;
+			B) BLACKLIST_PATHS+=("$OPTARG") ;;
+			f) IMAGE_FILE="$OPTARG" ;;
+			h) print_help; exit 0 ;;
+			n) NOEXEC=1 ;;
+			p) PRIMARY_SETTING="$OPTARG" ;;
+			s) SECONDARY_SETTING="$OPTARG" ;;
+			v) VERBOSE+=1 ;;
+			x) IMAGE_TYPE="$OPTARG" ;;
+			\?) die_with_help "Invalid option '$OPTARG'" ;;
+		esac
+	done
+}
+
+check_settings () {
+	case "$MODE" in
+		get|set|wipelist) ;;
+		"-h") print_help; exit 0 ;;
+		"") die_with_help "Mode must be specified" ;;
+		*) die_with_help "Unknown mode '$MODE'";;
+	esac
+
+	if ! is_set; then
+		if [[ $PRIMARY_SETTING || $SECONDARY_SETTING ]]; then
+			die_with_help "-p, -s only allowed on nisystemimage set"
+		fi
+	else
+		case "$PRIMARY_SETTING" in 
+			reset|preserve|apply) ;;
+			"") die_with_help "-p setting is required" ;;
+			*) die_with_help "Unknown '-p $PRIMARY_SETTING'" ;;
+		esac
+
+		case "$SECONDARY_SETTING" in 
+			reset|preserve|apply) ;;
+			"") die_with_help "-s setting is required" ;;
+			*) die_with_help "Unknown '-s $SECONDARY_SETTING'" ;;
+		esac
+	fi
+
+	case "$IMAGE_TYPE" in
+		tgz) ;;
+		"") die_with_help "Format setting (-x) is required" ;;
+		*) die_with_help "Unknown format setting '$IMAGE_TYPE'" ;;
+	esac
+
+
+	if ! is_set && [[ $IMAGE_FILE ]]; then
+		# Convert relative image path to absolute path
+		[[ "$IMAGE_FILE" =~ ^/ ]] \
+			|| IMAGE_FILE="$PWD/$IMAGE_FILE"
+
+		# Write the image to a temporary location first, to mitigate
+		# partial image writes
+		IMAGE_FILE_TEMP="${IMAGE_FILE}.tmp"
+
+		# We need to add IMAGE_FILE to the blacklist if it would
+		# otherwise be included in the image. So, figure out if it's
+		# located in the userfs, configfs or bootfs, and if so, add it
+		# to BLACKLIST_PATHS in a suitable, relative-pathname form.
+		#
+		# We DO NOT add the image file to the blacklist on set, because
+		# we really do want it to get deleted during the set. (By the
+		# time it's deleted in wipe_fs(), we've already opened a fd for
+		# it in init_fd_set().)
+		local image_filename=$(basename "$IMAGE_FILE")
+
+		local imagedir=$(dirname "$IMAGE_FILE")
+		[[ -d "$imagedir" ]] || die INVALID_ARGUMENT \
+			"Image directory $imagedir does not exist"
+
+		imagedir=$(readlink -f "$imagedir")
+
+		local needs_blacklist=1
+		if [[ $imagedir =~ ^/mnt/userfs ]]; then
+			imagedir="${imagedir#/mnt/userfs}"
+			imagedir="${imagedir#/}"
+		elif [[ $imagedir =~ ^/(etc/natinst/share|boot) ]]
+		then
+			imagedir="${imagedir#/}"
+		else
+			needs_blacklist=0
+		fi
+
+		local canonicalImagePath="$imagedir/$image_filename"
+		echo_verbose 1 "Canonicalized image file '$IMAGE_FILE' to '$canonicalImagePath'"
+
+		if (( $needs_blacklist == 1 )); then
+			BLACKLIST_PATHS+=("$canonicalImagePath"
+				"${canonicalImagePath}.tmp")
+			echo_verbose 1 "Image file requires blacklisting."
+		else
+			echo_verbose 1 "Image file does NOT require blacklisting."
+		fi
+	fi
+
+	# NOTE: "Set Image" under run mode is guaranteed to fail. "Get Image" is
+	# merely unsupported and probably won't work.
+	if ! in_safemode; then ORIG_USERFS=/; fi
+
+	local -a escaped_excludes=()
+	escaped_excludes+=("${BLACKLIST_PATHS[@]:+${BLACKLIST_PATHS[@]#/}}")
+
+	for f in "${BLACKLIST_LISTS[@]:+${BLACKLIST_LISTS[@]}}"; do
+		[[ -f $f ]] || die_with_help "Blacklist file $f not found"
+		mapfile -t < "$f"
+		escaped_excludes+=("${MAPFILE[@]:+${MAPFILE[@]#/}}")
+	done
+
+	for e in "${escaped_excludes[@]:+${escaped_excludes[@]}}"; do
+		local tmp
+		printf -v tmp '%b' "$e"
+		EXCLUDES+=("$tmp")
+	done
+}
+
+##
+## Execution starts here
+##
+protect_stdout
+
+trap cleanup EXIT
+trap 'handle_err ${BASH_SOURCE} ${LINENO} ${FUNCNAME:-unknown} $?' ERR
+
+[[ -f $SCRIPT_ROOTFS ]] && . "$SCRIPT_ROOTFS"
+[[ -f $SCRIPT_PRE ]] && . "$SCRIPT_PRE"
+
+case "$(runlevel)" in
+*\ 6|*\ 0) die ILLTIMED "Called during shutdown; aborting." ;;
+esac
+
+# Process settings
+run_hook hook_settings_pre
+parse_settings "${@:2}"
+echo_verbose 1 "starting, command line: $0 $*"
+check_settings
+dump_settings
+run_hook hook_settings_post
+
+# Initialize filesystem and file descriptor state
+init_fs
+init_fd
+
+# Perform the image operation
+run_hook hook_image_${MODE}_pre
+image_${MODE}
+run_hook hook_image_${MODE}_post
+
+if is_set; then
+	# Unseal safemode key into runmode key slot for reseal on next boot
+	echo_verbose 2 "starting runmode key unseal"
+
+	CONFIGFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^niconfig '| tr -s ' ' | cut -d' ' -f2)" || true
+	ROOTFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^nirootfs '| tr -s ' ' | cut -d' ' -f2)" || true
+
+	if [ -n "$CONFIGFS_DEV" -a -n "$ROOTFS_DEV" ]; then
+		if /usr/sbin/nilrtdiskcrypt_canopen -d "$ROOTFS_DEV" -d "$CONFIGFS_DEV"; then
+			if ! /usr/sbin/nilrtdiskcrypt_unseal -s 0 -d 1; then
+				exit 1
+			fi
+		else
+			echo_verbose 2 "partitions not encrypted, skipping"
+		fi
+	else
+		echo_verbose 2 "no PARTLABELs, skipping"
+	fi
+
+	unset ROOTFS_DEV
+	unset CONFIGFS_DEV
+
+	echo_verbose 2 "finished"
+fi
+
+# If a $SCRIPT_POST was installed (i.e. through setting an image), run it
+[[ -f $SCRIPT_POST ]] && . "$SCRIPT_POST"
+
+exit 0
