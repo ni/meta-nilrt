@@ -80,6 +80,11 @@ bootimg_fixup () {
 	sed -i 's/setcap /# setcap /;' "${IMAGE_ROOTFS}/var/lib/opkg/info/ni-system-webserver.postinst"
 	sed -i 's/setcap /# setcap /;' "${IMAGE_ROOTFS}/var/lib/opkg/info/ni-webservices-webserver-support.postinst"
 
+	# Override NISystemWebServer config with one for safemode
+	rm -f ${IMAGE_ROOTFS}/etc/natinst/appweb/NISystemWebServer.conf
+	install -m 0644 "${THISDIR}/files/NISystemWebServer.conf.safemode" \
+		"${IMAGE_ROOTFS}/etc/natinst/appweb/NISystemWebServer.conf"
+
 	# opkg cleanup
 	opkg -o ${IMAGE_ROOTFS} -f ${IPKGCONF_TARGET} clean
 }
