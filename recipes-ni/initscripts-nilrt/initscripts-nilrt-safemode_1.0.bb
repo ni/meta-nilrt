@@ -12,6 +12,8 @@ SRC_URI = " \
 "
 
 SRC_URI_append_x64 = " \
+	file://mountcompatibility \
+	file://mountuserfs \
 	file://nisafemodereason \
 	file://niselectnetnaming \
 "
@@ -24,8 +26,12 @@ do_install () {
 
 do_install_append_x64 () {
 	install -m 0755   ${WORKDIR}/niselectnetnaming      ${D}${sysconfdir}/init.d
-	update-rc.d -r ${D} niselectnetnaming start 3 S .
-
 	install -m 0755   ${WORKDIR}/nisafemodereason       ${D}${sysconfdir}/init.d
+	install -m 0755   ${WORKDIR}/mountuserfs            ${D}${sysconfdir}/init.d
+	install -m 0755   ${WORKDIR}/mountcompatibility     ${D}${sysconfdir}/init.d
+
+	update-rc.d -r ${D} niselectnetnaming start 3 S .
 	update-rc.d -r ${D} nisafemodereason start 60 S .
+	update-rc.d -r ${D} mountuserfs start 82 S .
+	update-rc.d -r ${D} mountcompatibility start 97 S .
 }

@@ -1,0 +1,112 @@
+#!/bin/sh
+# Copyright (c) 2012-2021 National Instruments.
+# All rights reserved.
+
+partition_label="root"
+volume_label="rootfs"
+volume_number="0"
+userfs_mount_point="/mnt/userfs"
+shared_mount_point="/etc/natinst/share"
+volatile_mount_point="/var/volatile"
+var_natinst_dir="/var/local/natinst"
+webservices_dir="/var/local/natinst/webservices"
+
+if [ -e /etc/init.d/mountutils ] ; then
+	# include common utilities
+	. /etc/init.d/mountutils
+fi
+
+# Bail out on first error
+set -o errexit
+
+try_mount_bind () {
+	from_dir="$1"
+	to_dir="$2"
+	mkdir -p "$to_dir"
+	if ! mountpoint -q "$to_dir"; then
+		mount -o bind "$from_dir" "$to_dir" || return
+	fi
+}
+
+try_unmount_bind () {
+	dir="$1"
+	# Opening through symlinks doesn't lock the symlink-containing filesystem, and
+	# the symlink destination can (and does in the case of very old safemodes)
+	# symlink to places we don't want to unmount anyway. So skip symlinks.
+	if [ -L "$1" ]; then
+		echo "umount $1 skipped (symbolic link)." >&2
+		return
+	fi
+	while mountpoint -q "$dir"; do
+		umount "$dir" || return
+	done
+}
+
+mount_userfs()
+{
+	# Don't mount if already mounted
+	if ! mountpoint -q "$userfs_mount_point"; then
+		if cat /sys/class/mtd/mtd*/name 2>/dev/null | grep -q ^$partition_label\$
+		then
+			# If an mtd partition has this partition label, use
+			# mount_ubi_volume
+			mount_ubi_volume "$partition_label" "$volume_label" \
+				"$volume_number" "$userfs_mount_point"
+		elif grep -q "[ \\t]$mount_point[ \\t]" /etc/fstab
+		then
+			# If the mount point is in fstab, use that
+			mount $userfs_mount_point
+		else
+			echo "ERROR: Unable to mount userfs partition" >&2
+			exit 1
+		fi
+	fi
+
+	mkdir -p $userfs_mount_point/.syscfg-action
+	chown lvuser:ni $userfs_mount_point/.syscfg-action
+	chmod ug=rwx,o=rx $userfs_mount_point/.syscfg-action
+
+	# bind shared mount point
+	try_mount_bind $shared_mount_point $userfs_mount_point$shared_mount_point
+	try_mount_bind $volatile_mount_point $userfs_mount_point$volatile_mount_point
+
+	# bind /boot, /proc, /dev, /run and /sys into userfs
+	try_mount_bind /boot $userfs_mount_point/boot
+	try_mount_bind /proc $userfs_mount_point/proc
+	try_mount_bind /dev $userfs_mount_point/dev
+	try_mount_bind /run $userfs_mount_point/run
+	try_mount_bind /sys $userfs_mount_point/sys
+
+	# Create the webservices folder in runmode and modify its permissions
+	mkdir -p $userfs_mount_point$webservices_dir/temp
+	chown lvuser:ni $userfs_mount_point$var_natinst_dir
+	chmod g+w,u+w $userfs_mount_point$var_natinst_dir
+	chown webserv:ni $userfs_mount_point$webservices_dir
+	chmod 700 $userfs_mount_point$webservices_dir
+	chown webserv:root $userfs_mount_point$webservices_dir/temp
+	chmod 700 $userfs_mount_point$webservices_dir/temp
+	if [ -d $webservices_dir ]; then
+		# this won't exist in restore mode and that's okay, otherwise,
+		# make safemode's webservices temp dir point to runmode
+		ln -sf $userfs_mount_point$webservices_dir/temp $webservices_dir/temp
+	fi
+}
+
+unmount_userfs()
+{
+	try_unmount_bind $userfs_mount_point/dev || return
+	try_unmount_bind $userfs_mount_point/proc || return
+	try_unmount_bind $userfs_mount_point/run || return
+	try_unmount_bind $userfs_mount_point/sys || return
+	try_unmount_bind $userfs_mount_point/boot || return
+	try_unmount_bind $userfs_mount_point$volatile_mount_point || return
+	try_unmount_bind $userfs_mount_point$shared_mount_point || return
+	try_unmount_bind $userfs_mount_point || return
+}
+
+case "$1" in
+	start) mount_userfs || exit ;;
+	stop) unmount_userfs || exit ;;
+esac
+
+exit 0

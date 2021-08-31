@@ -16,6 +16,7 @@ RDEPENDS_${PN}_append_x64 = " nilrtdiskcrypt "
 
 SRC_URI = "\
            file://firewall \
+           file://mountconfig \
            file://mountdebugfs \
            file://nicleanefivars \
            file://nicleanstalelinks \
@@ -60,6 +61,7 @@ do_install () {
 		! egrep '^[a-zA-Z0-9]*_CONF=.*$' ${D}${sysconfdir}/init.d/firewall | egrep -v '^(IPTABLES_CONF)|(IP6TABLES_CONF)=.*$'
 	fi
 
+	install -m 0755 ${WORKDIR}/mountconfig           ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/mountdebugfs          ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nisetembeddeduixml    ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nicleanstalelinks     ${D}${sysconfdir}/init.d
@@ -82,6 +84,7 @@ do_install () {
 	update-rc.d -r ${D} nicleanstalelinks     start 5  S .
 	update-rc.d -r ${D} nisetembeddeduixml    start 20 5 .
 	update-rc.d -r ${D} nipopulateconfigdir   start 36 S .
+	update-rc.d -r ${D} mountconfig           start 36 S .
 	update-rc.d -r ${D} populateconfig        start 36 S . start 30 0 6 .
 	update-rc.d -r ${D} wirelesssetdomain     start 36 S .
 	update-rc.d -r ${D} cleanvarcache         start 38 0 6 S .
