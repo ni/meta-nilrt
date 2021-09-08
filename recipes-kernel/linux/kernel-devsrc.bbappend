@@ -1,8 +1,4 @@
-pkg_postinst_ontarget_kernel-devsrc () {
-   cd /lib/modules/${KERNEL_VERSION}/build
-   make prepare
-   make modules_prepare
-}
+require kernel-devsrc-nilrt.inc
 
 # "make prepare" skips building objtool if elfutils-dev is not installed at
 # postinst time; however if you install elfutils-dev later, then when dkms
