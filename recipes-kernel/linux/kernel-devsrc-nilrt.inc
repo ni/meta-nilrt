@@ -8,6 +8,7 @@ do_install_append() {
 
 pkg_postinst_ontarget_${PN} () {
    cd /lib/modules/${KERNEL_VERSION}/build
+   find ./ -exec touch -m {} \;
    make prepare
    make modules_prepare
 
