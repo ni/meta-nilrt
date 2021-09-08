@@ -22,3 +22,5 @@ pkg_prerm_${PN} () {
       run-parts /etc/kernel/prerm.d -a ${KERNEL_VERSION}
    fi
 }
+
+RDEPENDS_${PN}_append += "gcc-symlinks binutils"
