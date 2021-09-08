@@ -1,10 +1,5 @@
-require recipes-kernel/linux/kernel-devsrc.inc
-
-do_install_append() {
-   # Remove the symlink so it doesn't conflict with other
-   # kernel-devsrc packages
-   rm -f ${D}/usr/src/kernel
-}
+# This includes file contains content common to all NI implementations of the
+# kernel-devsrc package.
 
 pkg_postinst_ontarget_${PN} () {
    cd /lib/modules/${KERNEL_VERSION}/build
@@ -23,4 +18,10 @@ pkg_prerm_${PN} () {
    fi
 }
 
-RDEPENDS_${PN}_append += "gcc-symlinks binutils"
+RDEPENDS_${PN}_append += "binutils gcc-symlinks"
+
+# "make prepare" skips building objtool if elfutils-dev is not installed at
+# postinst time; however if you install elfutils-dev later, then when dkms
+# tries to build modules it expects objtool to be available, but it's not.
+# Depending on elfutils-dev forces it to be there during postinst.
+RDEPENDS_${PN}_append += "${@bb.utils.contains('ARCH', 'x86', 'elfutils-dev', '', d)}"
