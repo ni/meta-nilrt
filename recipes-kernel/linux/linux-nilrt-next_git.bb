@@ -1,5 +1,5 @@
 DESCRIPTION = "NILRT linux kernel next development build"
-NI_RELEASE_VERSION = "master"
+NI_RELEASE_VERSION = "21.3"
 LINUX_VERSION = "5.10"
 LINUX_KERNEL_TYPE = "next"
 
