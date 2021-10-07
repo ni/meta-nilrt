@@ -1,3 +1,5 @@
 EXTRA_OECMAKE =+ "-DWITH_GPHOTO2=OFF"
 
 ALLOW_EMPTY_${PN}-java = "1"
+
+PV="3.3"
