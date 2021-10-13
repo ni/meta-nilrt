@@ -279,7 +279,6 @@ RDEPENDS_${PN} += "\
 	rfkill \
 	samba \
 	ser2net \
-	ti-wifi-utils \
 	tiptop \
 	umip \
 	usbmuxd \
