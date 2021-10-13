@@ -15,6 +15,5 @@ RDEPENDS_${PN} = "\
 	libnl \
 	openssl \
 	rfkill \
-	ti-wifi-utils \
 	wpa-supplicant \
 	wireless-regdb"
