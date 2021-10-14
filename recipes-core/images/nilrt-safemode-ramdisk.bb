@@ -3,11 +3,7 @@ DESCRIPTION = "NI LinuxRT Safemode RAM disk for x64 Targets"
 require nilrt-proprietary.inc
 require include/licenses.inc
 
-# TODO: Right now I'm setting PV to be the same as the distro version
-#       as that's the closest to the os-common versioning, but it loses
-#       the "incrementing build number" aspect from os-common.
 PV = "${DISTRO_VERSION}"
-SAFEMODE_VERSION = "${PV}-${BUILDNAME}"
 
 # useradd and groupadd need to be on sysroot
 do_rootfs[depends] += "shadow-native:do_populate_sysroot"
@@ -48,7 +44,7 @@ bootimg_fixup () {
 	echo "LABEL=nirootfs /mnt/userfs ext4 sync 0 0" >> "${IMAGE_ROOTFS}/etc/fstab"
 
 	# Add safemode marker
-	echo ${SAFEMODE_VERSION} > "${IMAGE_ROOTFS}/etc/natinst/safemode"
+	echo "safemode" > "${IMAGE_ROOTFS}/etc/natinst/safemode"
 
 	# opkg cleanup
 	opkg -o ${IMAGE_ROOTFS} -f ${IPKGCONF_TARGET} clean
