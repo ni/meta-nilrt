@@ -46,9 +46,8 @@ bootimg_fixup() {
 	rm -f "${IMAGE_ROOTFS}/boot/bzImage"
 	mv "${IMAGE_ROOTFS}/${CUSTOM_KERNEL_PATH}/bzImage.real" "${IMAGE_ROOTFS}/boot/bzImage"
 
-	SAFEMODE_VERSION=$(xz -cd "${IMAGE_ROOTFS}/boot/ramdisk.xz" | cpio --to-stdout --quiet -i "etc/natinst/safemode")
 	install -m 0644 "${THISDIR}/files/bootimage.ini" "${IMAGE_ROOTFS}/boot/bootimage.ini"
-	sed -i "s/%component_version%/$SAFEMODE_VERSION/" "${IMAGE_ROOTFS}/boot/bootimage.ini"
+	sed -i "s/%component_version%/${BUILDNAME}/" "${IMAGE_ROOTFS}/boot/bootimage.ini"
 
 	# We've assembled everything we want under /boot.
 	# We now want to get rid of everything else.
