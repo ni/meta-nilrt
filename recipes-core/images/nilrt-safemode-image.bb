@@ -23,7 +23,7 @@ IMAGE_INSTALL += "\
 RAMDISK_IMAGE = "nilrt-safemode-ramdisk"
 do_rootfs[depends] += "${RAMDISK_IMAGE}:do_image_complete"
 
-CUSTOM_KERNEL_PATH ?= "/boot"
+CUSTOM_KERNEL_PATH ?= "/boot/runmode"
 
 bootimg_fixup() {
 	install -m 0644 "${DEPLOY_DIR_IMAGE}/${RAMDISK_IMAGE}-${MACHINE}.cpio.xz" "${IMAGE_ROOTFS}/boot/ramdisk.xz"
