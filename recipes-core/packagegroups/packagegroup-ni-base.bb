@@ -123,6 +123,8 @@ RDEPENDS_${PN} = "\
 	os-release \
 	run-postinsts \
 	sudo \
+	sysconfig-settings \
+	sysconfig-settings-ui \
 	syslog-ng \
 	sysvinit \
 	tar \
