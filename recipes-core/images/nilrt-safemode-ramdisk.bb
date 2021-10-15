@@ -54,9 +54,6 @@ PACKAGE_EXCLUDE += "python-core python3-core"
 PACKAGE_EXCLUDE += "rauc-mark-good"
 
 bootimg_fixup () {
-	# TODO: os-common does this but is this necessary?
-	cp "${IMAGE_ROOTFS}/sbin/init.sysvinit" "${IMAGE_ROOTFS}/init"
-
 	# Empty out /boot. The kernel and grub are added to the exterior
 	# image and not this ramdisk container.
 	rm -rf "${IMAGE_ROOTFS}/boot"
