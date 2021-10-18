@@ -114,7 +114,6 @@ RDEPENDS_${PN} += "\
 	python3-terminal \
 	python3-threading \
 	python3-tornado \
-	python3-typing \
 	python3-typing-extensions \
 	python3-unittest \
 	python3-unixadmin \
