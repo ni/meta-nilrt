@@ -37,8 +37,6 @@ NI_PROPRIETARY_BASE_PACKAGES += "\
         nirtcfg \
         nirtmdnsd \
         nissl \
-        sysconfig-settings \
-        sysconfig-settings-ui \
 "
 
 NI_PROPRIETARY_RUNMODE_PACKAGES += "\
