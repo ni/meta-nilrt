@@ -82,7 +82,8 @@ do_install () {
 	install -m 0644 ${WORKDIR}/nisetlocale.sh ${D}${sysconfdir}/profile.d/
 
 	# add sysctl.conf file to adjust system configuration parameters
-	install -m 0644 ${WORKDIR}/sysctl.conf ${D}${sysconfdir}/
+	# FIXME: Add sysctl.conf after conflict with procps-sysctl is resolved
+	#install -m 0644 ${WORKDIR}/sysctl.conf ${D}${sysconfdir}/
 
 	# add machine-info and allow System Web Server to modify it
 	install -m 0664 -g ${LVRT_GROUP} ${WORKDIR}/machine-info ${D}${sysconfdir}/
