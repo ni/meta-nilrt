@@ -12,7 +12,8 @@ SRC_URI = " \
 "
 
 SRC_URI_append_x64 = " \
-                      file://niselectnetnaming \
+	file://nisafemodereason \
+	file://niselectnetnaming \
 "
 
 S = "${WORKDIR}"
@@ -24,4 +25,7 @@ do_install () {
 do_install_append_x64 () {
 	install -m 0755   ${WORKDIR}/niselectnetnaming      ${D}${sysconfdir}/init.d
 	update-rc.d -r ${D} niselectnetnaming start 3 S .
+
+	install -m 0755   ${WORKDIR}/nisafemodereason       ${D}${sysconfdir}/init.d
+	update-rc.d -r ${D} nisafemodereason start 60 S .
 }

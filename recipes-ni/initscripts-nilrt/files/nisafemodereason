@@ -1,0 +1,112 @@
+#!/bin/sh
+#
+# Copyright (c) 2013 National Instruments
+#
+# Display on console and LED blink code reason for safe mode, and record
+# the state for use by system config tools.
+
+REASON_FILE=/etc/natinst/share/safemode_reason
+SYSTEM_STATE_FILE=/tmp/ni_system_state
+CONFIG_OLD=/etc/natinst/share/config.old
+CONFIG_CDF=/etc/natinst/share/config.cdf
+STATUS_LED=/usr/local/natinst/bin/status_led
+RESTOREMODE_FLAG=/etc/natinst/restoremode
+SMBIOS_HELPER=/usr/share/nisysinfo/smbios_helper
+
+arch=`uname -m`
+if [ "$arch" = "armv7l" ]; then
+	RESET_SOURCE_LOCATION=/sys/bus/i2c/devices/0-0040/reset_source
+elif [ "$arch" = "x86_64" ]; then
+	RESET_SOURCE_LOCATION=/dev/nirtfeatures/reset_source
+fi
+
+if [ -f $RESTOREMODE_FLAG ]; then
+	MODE=Restore
+else
+	MODE=Safe
+fi
+
+# known reasons
+IMPROPER="$MODE Mode (Improper Installation)"
+NO_SW="$MODE Mode (No Software Installed)"
+DIRECTED="$MODE Mode (User Directed)"
+SW_ERROR="$MODE Mode (Software Error)"
+INSTALL="Install Mode"
+
+# switch LED watchdog from boot mode to user mode, and turn off the LED
+$STATUS_LED init
+
+if [ -r $REASON_FILE -a -s $REASON_FILE ]; then
+	read REASON < $REASON_FILE
+	rm $REASON_FILE
+else
+	# previous boot didn't leave us a breadcrumb, try to figure it out
+	if [ -r $RESET_SOURCE_LOCATION ]; then
+		read RESET_SOURCE < $RESET_SOURCE_LOCATION 2>/dev/null
+	elif [ -r $SMBIOS_HELPER ]; then
+	# Try to determine from SMBIOS
+		source $SMBIOS_HELPER
+		if get_forced_safemode; then
+			RESET_SOURCE="button"
+		fi
+	fi
+
+	if [ "$RESET_SOURCE" == "button" ]; then
+		REASON=$DIRECTED
+	elif [ -s $CONFIG_OLD ]; then
+		# non-empty config.old means an install failed
+		REASON=$IMPROPER
+	else
+		if [ -s $CONFIG_CDF ]; then
+			# no config.old, non-empty config.cdf --
+			# maybe this was user-directed (see below),
+			# but if not, something's wrong
+			REASON=$SW_ERROR
+		else
+			# missing/empty config.cdf means no software installed
+			REASON=$NO_SW
+		fi
+	fi
+fi
+
+arch=`uname -m`
+
+if [ "$arch" = "armv7l" ]; then
+	dip_enable_path=/sys/bus/i2c/devices/0-0040/safe_mode
+elif [ "$arch" = "x86_64" ]; then
+	dip_enable_path=/sys/bus/acpi/devices/NIC775D\:00/safe_mode
+fi
+
+if [ ! -z $dip_enable_path -a -f $dip_enable_path ]; then
+	dip_enable=`head -n1 $dip_enable_path`
+else
+	dip_enable=0
+fi
+
+if [ $dip_enable -eq 1 ]; then
+	# DIP/HW switch overrides
+	REASON=$DIRECTED
+fi
+
+enable=`/usr/local/natinst/bin/nirtcfg --get section=SystemSettings,token=SafeMode.enabled,value="true" |tr "[:upper:]" "[:lower:]"`
+if [ "$enable" != "false" ]; then
+	# DIP switch overrides any other reason we might be here
+	REASON=$DIRECTED
+fi
+
+echo "System state:" $REASON
+echo $REASON > $SYSTEM_STATE_FILE
+case $REASON in
+  $IMPROPER|$NO_SW)
+	$STATUS_LED blink_count 2
+	;;
+  $INSTALL|$DIRECTED|*)
+	$STATUS_LED blink_count 3
+	;;
+  $SW_ERROR)
+	# this is normally a run-mode error (LabVIEW crashed repeatedly),
+	# in safe mode it essentially means we don't know why we're here
+	$STATUS_LED blink_count 4
+	;;
+esac
+
