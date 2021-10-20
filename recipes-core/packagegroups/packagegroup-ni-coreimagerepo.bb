@@ -26,10 +26,11 @@ RDEPENDS_${PN} = "\
 "
 
 RDEPENDS_${PN}_append_x64 = "\
-	${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'packagegroup-ni-xfce', '', d)} \
+	init-nilrt-ramfs \
+	init-runmode-ramfs \
 	rauc \
 	rauc-mark-good \
-	init-nilrt-ramfs \
+	nilrt-grub-runmode \
 	nilrt-grub-safemode \
-	init-runmode-ramfs \
+	${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'packagegroup-ni-xfce', '', d)} \
 "
