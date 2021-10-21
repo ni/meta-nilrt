@@ -23,8 +23,6 @@ IMAGE_INSTALL += "\
 RAMDISK_IMAGE = "nilrt-safemode-ramdisk"
 do_rootfs[depends] += "${RAMDISK_IMAGE}:do_image_complete"
 
-CUSTOM_KERNEL_PATH ?= "/boot/runmode"
-
 bootimg_fixup() {
 	install -m 0644 "${DEPLOY_DIR_IMAGE}/${RAMDISK_IMAGE}-${MACHINE}.cpio.xz" "${IMAGE_ROOTFS}/boot/ramdisk.xz"
 
@@ -42,9 +40,9 @@ bootimg_fixup() {
 	# The kernel was installed with a symbolic link from 'bzImage'
 	# to the actual versioned file. Remove the redirection so that
 	# we just have a 'bzImage'
-	mv "$(realpath ${IMAGE_ROOTFS}/${CUSTOM_KERNEL_PATH}/bzImage)" "${IMAGE_ROOTFS}/${CUSTOM_KERNEL_PATH}/bzImage.real"
+	mv "$(realpath ${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/bzImage)" "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/bzImage.real"
 	rm -f "${IMAGE_ROOTFS}/boot/bzImage"
-	mv "${IMAGE_ROOTFS}/${CUSTOM_KERNEL_PATH}/bzImage.real" "${IMAGE_ROOTFS}/boot/bzImage"
+	mv "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/bzImage.real" "${IMAGE_ROOTFS}/boot/bzImage"
 
 	install -m 0644 "${THISDIR}/files/bootimage.ini" "${IMAGE_ROOTFS}/boot/bootimage.ini"
 	sed -i "s/%component_version%/${BUILDNAME}/" "${IMAGE_ROOTFS}/boot/bootimage.ini"
