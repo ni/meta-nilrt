@@ -30,15 +30,21 @@ if grep -qs artemis /sys/firmware/devicetree/base/compatible ; then
 
     # configure the partitions to mount by label in fstab
     sed -i '/ubifs/d' /mnt/userfs/etc/fstab
-    echo LABEL=nibootfs         /boot                ext4       sync           0  0 >>/mnt/userfs/etc/fstab
-    echo LABEL=niconfig         /etc/natinst/share   ext4       sync           0  0 >>/mnt/userfs/etc/fstab
+    echo LABEL=nibootfs         /boot                ext4       sync           0  0 >> /mnt/userfs/etc/fstab
+    echo LABEL=niconfig         /etc/natinst/share   ext4       sync           0  0 >> /mnt/userfs/etc/fstab
     mkdir -p /etc/natinst/share
 
     # configure the path for fw_printenv to read environmental variables from u-boot
     # replace /dev/mtd4 and /dev/mtd5 with /boot/uboot/uboot.env
     sed -i '/mtd/d' /mnt/userfs/etc/fw_env.config
-    echo /boot/uboot/uboot.env         0x0000         0x20000 >>/mnt/userfs/etc/fw_env.config
+    echo /boot/uboot/uboot.env         0x0000         0x20000 >> /mnt/userfs/etc/fw_env.config
 
+fi
+
+if [ "$arch" = "x86_64" ]; then
+    echo "" >> /mnt/userfs/etc/fstab
+    echo LABEL=nibootfs         /boot                ext4       sync           0  0 >> /mnt/userfs/etc/fstab
+    echo LABEL=niconfig         /etc/natinst/share   ext4       sync           0  0 >> /mnt/userfs/etc/fstab
 fi
 
 arch="`uname -m`"
