@@ -12,7 +12,6 @@ SRC_URI = "file://README_File_Paths.txt \
 	   file://local_libs.conf \
 	   file://ulimit.sh \
 	   file://nisetlocale.sh \
-	   file://sysctl.conf \
 	   file://machine-info \
 "
 
@@ -80,10 +79,6 @@ do_install () {
 
 	# script for setting locale when a user logs in
 	install -m 0644 ${WORKDIR}/nisetlocale.sh ${D}${sysconfdir}/profile.d/
-
-	# add sysctl.conf file to adjust system configuration parameters
-	# FIXME: Add sysctl.conf after conflict with procps-sysctl is resolved
-	#install -m 0644 ${WORKDIR}/sysctl.conf ${D}${sysconfdir}/
 
 	# add machine-info and allow System Web Server to modify it
 	install -m 0664 -g ${LVRT_GROUP} ${WORKDIR}/machine-info ${D}${sysconfdir}/
