@@ -52,8 +52,4 @@ ROOTFS_POSTPROCESS_COMMAND += "\
     install_additional_feeds; \
 "
 
-# on older NILRT distro flavors the kernel is installed in non-standard paths
-# for backward compatibility
-CUSTOM_KERNEL_PATH ?= "/boot/tmp/runmode/"
-
 require nilrt-image-common.inc
