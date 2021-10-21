@@ -32,6 +32,7 @@ S = "${WORKDIR}"
 
 ARCH_ABI_EXT="${ABIEXTENSION}${@bb.utils.contains('TUNE_FEATURES','callconvention-hard','hf','',d)}"
 
+RDEPENDS_${PN} += "procps"
 DEPENDS += "niacctbase"
 
 do_install () {
