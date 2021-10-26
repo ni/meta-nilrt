@@ -41,15 +41,15 @@ if grep -qs artemis /sys/firmware/devicetree/base/compatible ; then
 
 fi
 
+arch="`uname -m`"
+mount_point="/boot"
+class="`/sbin/fw_printenv -n TargetClass`"
+
 if [ "$arch" = "x86_64" ]; then
     echo "" >> /mnt/userfs/etc/fstab
     echo LABEL=nibootfs         /boot                ext4       sync           0  0 >> /mnt/userfs/etc/fstab
     echo LABEL=niconfig         /etc/natinst/share   ext4       sync           0  0 >> /mnt/userfs/etc/fstab
 fi
-
-arch="`uname -m`"
-mount_point="/boot"
-class="`/sbin/fw_printenv -n TargetClass`"
 
 if [ "$arch" = "armv7l" ]; then
 	kernel="/mnt/userfs/boot/tmp/linux_runmode.itb"
