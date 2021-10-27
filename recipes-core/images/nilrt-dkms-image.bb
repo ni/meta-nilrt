@@ -1,5 +1,9 @@
 DESCRIPTION = "Runmode image for ethernet-based NI Linux Real-Time targets running XFCE (DKMS)."
 
+SRC_URI += "\
+	file://bootimage.ini \
+"
+
 IMAGE_INSTALL = "\
 	packagegroup-ni-runmode \
 	packagegroup-ni-wifi \
@@ -26,6 +30,9 @@ PACKAGE_EXCLUDE += "rauc rauc-mark-good"
 CUSTOM_KERNEL_PATH ?= "/boot/tmp/runmode"
 
 bootimg_fixup() {
+	install -m 0644 "${THISDIR}/files/bootimage.ini" "${IMAGE_ROOTFS}/boot/runmode/bootimage.ini"
+	sed -i "s/%component_version%/${BUILDNAME}/" "${IMAGE_ROOTFS}/boot/runmode/bootimage.ini"
+
 	# Postinst script is going to want this all in /boot/tmp/runmode
 	install -d `dirname "${IMAGE_ROOTFS}/${CUSTOM_KERNEL_PATH}"`
 	mv "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}" "${IMAGE_ROOTFS}/${CUSTOM_KERNEL_PATH}"
