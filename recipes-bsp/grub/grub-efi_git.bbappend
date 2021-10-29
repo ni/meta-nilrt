@@ -8,7 +8,7 @@ GRUB_BUILDIN += "smbios chain multiboot efi_uga font gfxterm gfxmenu terminal \
 # Downstream NI-branch code quality is not yet ready to build with -Werror
 CFLAGS_append += "-Wno-error"
 
-PACKAGES_prepend = "${PN}-nilrt"
+PACKAGES_prepend = "${PN}-nilrt "
 
 do_install_append_class-target() {
 
