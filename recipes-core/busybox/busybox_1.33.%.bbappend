@@ -19,6 +19,10 @@ SRC_URI_append_x64 += "file://enable_ar_create_fragment.cfg"
 SRC_URI_remove += "file://syslog.cfg"
 INITSCRIPT_PACKAGES_remove += "${PN}-syslog"
 
+# Do not perform update-rc.d actions on the hwclock.sh initscript in this
+# package. We only wish to call hwclock.sh from /etc/init.d/bootmisc manually.
+INITSCRIPT_PACKAGES_remove = "${PN}-hwclock"
+
 PACKAGES =+ " ${PN}-ifplugd"
 PACKAGES =+ " ${PN}-acpid"
 PACKAGES =+ " ${PN}-zcip"
