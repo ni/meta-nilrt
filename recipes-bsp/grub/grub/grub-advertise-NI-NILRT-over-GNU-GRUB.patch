@@ -1,0 +1,56 @@
+From 83f4667406917c3ea089f7cbb4da3f6e8a48c1fe Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+Date: Thu, 15 Dec 2016 14:04:40 +0200
+Subject: [PATCH] grub: advertise NI NILRT over GNU GRUB
+
+Also don't prompt the more advanced commands to the user, even though
+they can be entered anyway. Presumably advanced users already know about
+them and can use them without being told and this discourages behaviour
+like "uu what does this button do?" from unknowledgeable users.
+
+Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+---
+ grub-core/normal/main.c      | 2 +-
+ grub-core/normal/menu_text.c | 8 ++------
+ 2 files changed, 3 insertions(+), 7 deletions(-)
+
+diff --git a/grub-core/normal/main.c b/grub-core/normal/main.c
+index 78a70a8bf..0a93eef30 100644
+--- a/grub-core/normal/main.c
++++ b/grub-core/normal/main.c
+@@ -208,7 +208,7 @@ grub_normal_init_page (struct grub_term_output *term,
+  
+   grub_term_cls (term);
+ 
+-  msg_formatted = grub_xasprintf (_("GNU GRUB  version %s"), PACKAGE_VERSION);
++  msg_formatted = grub_xasprintf (_("NI Linux Real-Time Boot Options"));
+   if (!msg_formatted)
+     return;
+  
+diff --git a/grub-core/normal/menu_text.c b/grub-core/normal/menu_text.c
+index e22bb91f6..d2411750b 100644
+--- a/grub-core/normal/menu_text.c
++++ b/grub-core/normal/menu_text.c
+@@ -181,17 +181,13 @@ command-line or ESC to discard edits and return to the GRUB menu."),
+       if (nested)
+ 	{
+ 	  ret += grub_print_message_indented_real
+-	    (_("Press enter to boot the selected OS, "
+-	       "`e' to edit the commands before booting "
+-	       "or `c' for a command-line. ESC to return previous menu."),
++	    (_("Press enter to boot the selected OS. "),
+ 	     STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
+ 	}
+       else
+ 	{
+ 	  ret += grub_print_message_indented_real
+-	    (_("Press enter to boot the selected OS, "
+-	       "`e' to edit the commands before booting "
+-	       "or `c' for a command-line."),
++	    (_("Press enter to boot the selected OS. "),
+ 	     STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
+ 	}	
+     }
+-- 
+2.25.1
+

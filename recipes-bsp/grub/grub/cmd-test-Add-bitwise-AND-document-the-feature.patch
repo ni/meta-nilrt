@@ -1,0 +1,56 @@
+From 1dfdfdfa97910081e50e70df9b3e78162987130a Mon Sep 17 00:00:00 2001
+From: Brad Mouring <brad.mouring@ni.com>
+Date: Thu, 8 Dec 2016 11:03:42 -0600
+Subject: [PATCH] cmd: test: Add bitwise AND, document the feature
+
+Currently, there is not a good way to control script flow based on
+bitwise values. This initially led to NI adding the ability to read
+a specific bit from a port-mapped register to control bootflow.
+
+Here, we add a more generic ability to test the bitwise AND of a
+value available to the grub scripting environment. This obviates the
+need for the inbit command.
+
+Signed-off-by: Brad Mouring <brad.mouring@ni.com>
+---
+ docs/grub.texi            |  2 ++
+ grub-core/commands/test.c | 10 ++++++++++
+ 2 files changed, 12 insertions(+)
+
+diff --git a/docs/grub.texi b/docs/grub.texi
+index f829684ec..37aef949b 100644
+--- a/docs/grub.texi
++++ b/docs/grub.texi
+@@ -5034,6 +5034,8 @@ the strings are not equal
+ @var{integer1} is less than @var{integer2}
+ @item @var{integer1} @code{-ne} @var{integer2}
+ @var{integer1} is not equal to @var{integer2}
++@item @var{integer1} @code{-bwa} @var{integer2}
++Performs a bitwise AND between @var{integer1} and @var{integer2}
+ @item @var{prefix}@var{integer1} @code{-pgt} @var{prefix}@var{integer2}
+ @var{integer1} is greater than @var{integer2} after stripping off common non-numeric @var{prefix}.
+ @item @var{prefix}@var{integer1} @code{-plt} @var{prefix}@var{integer2}
+diff --git a/grub-core/commands/test.c b/grub-core/commands/test.c
+index 5f06642f6..af4fad728 100644
+--- a/grub-core/commands/test.c
++++ b/grub-core/commands/test.c
+@@ -290,6 +290,16 @@ test_parse (char **args, int *argn, int argc)
+ 	      continue;
+ 	    }
+ 
++	  /* GRUB extension: bitwise AND */
++	  if (grub_strcmp (args[*argn + 1], "-bwa") == 0)
++	    {
++	      update_val (grub_strtoul (args[*argn], 0, 0)
++			  & grub_strtoul (args[*argn + 2], 0, 0), &ctx);
++	      (*argn) += 3;
++	      continue;
++	    }
++
++
+ 	  /* -nt and -ot tests. GRUB extension: when doing -?t<bias> bias
+ 	     will be added to the first mtime. */
+ 	  if (grub_memcmp (args[*argn + 1], "-nt", 3) == 0
+-- 
+2.25.1
+
