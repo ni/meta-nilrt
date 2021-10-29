@@ -1,4 +1,7 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+LICENSE = "MIT"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
+
+PACKAGES_remove = "${PN}-dev ${PN}-staticdev ${PN}-dbg"
 
 SRC_URI_append = "\
     file://ptest-format.sh \
@@ -7,10 +10,6 @@ SRC_URI_append = "\
 "
 
 inherit ptest
-
-# Do not perform update-rc.d actions on the hwclock.sh initscript in this
-# package. We only wish to call hwclock.sh from /etc/init.d/bootmisc manually.
-INITSCRIPT_PACKAGES_remove = "${PN}"
 
 do_install_ptest() {
     install -m 0644 ${WORKDIR}/ptest-format.sh ${D}${PTEST_PATH}
