@@ -6,7 +6,7 @@ SRC_URI += " \
     file://grub.d \
 "
 
-PACKAGES_prepend = "${PN}-nilrt"
+PACKAGES_prepend = "${PN}-nilrt "
 
 FILES_${PN}-nilrt      += "/boot/efi/nilrt/grub.cfg /boot/grub/grubenv /boot/bootimage.cfg.d/*.cfg"
 CONFFILES_${PN}-nilrt  += "/boot/efi/nilrt/grub.cfg /boot/grub/grubenv /boot/bootimage.cfg.d/*.cfg"
