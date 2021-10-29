@@ -2,7 +2,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
 DEPENDS_append_class-target += "shadow-native pseudo-native"
 
-RDEPENDS_${PN}-hwclock_append += "niacctbase"
+RDEPENDS_${PN}-hwclock_append += "niacctbase busybox-hwclock"
 
 pkg_postinst_${PN}-hwclock () {
 	chmod 4550 $D${base_sbindir}/hwclock.${BPN}
