@@ -14,5 +14,5 @@ LIC_FILES_CHKSUM = "\
 	file://Licenses/x11.txt;md5=b46f176c847b8742db02126fb8af92e2; \
 "
 
-SRC_URI = "${NILRT_GIT}/u-boot.git;protocol=git;branch=${UBOOT_BRANCH}"
+SRC_URI = "${NILRT_GIT}/u-boot.git;protocol=https;branch=${UBOOT_BRANCH}"
 SRCREV = "653fc09e01ff78e08f9683e1585f4fac05f289d9"

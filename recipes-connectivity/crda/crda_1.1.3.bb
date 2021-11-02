@@ -12,7 +12,7 @@ RDEPENDS_${PN} = "\
 
 S = "${WORKDIR}/git"
 
-SRC_URI = "https://github.com/mcgrof/crda.git;protocol=git;tag=v1.1.3"
+SRC_URI = "git://github.com/mcgrof/crda.git;protocol=https;tag=v1.1.3"
 
 CFLAGS_append =" -DCONFIG_LIBNL32 -I${STAGING_INCDIR}/libnl3"
 LDFLAGS_append =" -lnl-3 -lnl-genl-3 -lm"

@@ -1,4 +1,4 @@
-SRC_URI = "${NILRT_GIT}/ni-refpolicy.git;branch=nilrt/17.0/krogoth \
+SRC_URI = "${NILRT_GIT}/ni-refpolicy.git;branch=nilrt/17.0/krogoth;protocol=https \
            file://customizable_types \
            file://setrans-mls.conf \
            file://setrans-mcs.conf \

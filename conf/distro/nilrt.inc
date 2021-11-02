@@ -129,7 +129,7 @@ RRECOMMENDS_libdevmapper_remove_class-target = "lvm2-udevrules"
 BBMASK += "meta-cloud-services/meta-openstack/recipes-kernel"
 
 # Base URI to NI Linux RT's Git repository
-NILRT_GIT ?= "https://github.com/ni"
+NILRT_GIT ?= "git://github.com/ni"
 
 # Creates ``*-lic`` subpackages for all OE recipes if enabled
 LICENSE_CREATE_PACKAGE ?= "1"
