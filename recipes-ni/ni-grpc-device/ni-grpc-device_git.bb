@@ -20,7 +20,7 @@ DEPENDS += "\
 PV = "1.1.0"
 
 SRC_URI = "\
-	https://github.com/ni/grpc-device.git;name=grpc-device;branch=${SRCBRANCH} \
+	git://github.com/ni/grpc-device.git;name=grpc-device;branch=${SRCBRANCH};protocol=https \
 	file://0001-CMakeLists.txt-remove-local-protobuf-includes.patch \
 	file://ptest \
 "
