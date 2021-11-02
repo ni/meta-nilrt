@@ -2,7 +2,7 @@ DESCRIPTION="FMI Library (FMIL) is a software package written in C that enables 
 HOMEPAGE = "https://github.com/svn2github/FMILibrary"
 SECTION = "libs"
 
-SRC_URI = "git://github.com/svn2github/FMILibrary.git"
+SRC_URI = "https://github.com/svn2github/FMILibrary.git"
 SRCREV = "d49ed3ff2dabc6e17cc4a0c6f3fa6d2ae64a1683"
 
 S = "${WORKDIR}/git"
