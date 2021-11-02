@@ -4,7 +4,7 @@ PV = "2.02+git${SRCPV}"
 SRCREV = "61a02ce279575ea846e6ee7f8c9fb686fd54328c"
 
 SRC_URI = "\
-	${NILRT_GIT}/grub.git;branch=${GRUB_BRANCH} \
+	${NILRT_GIT}/grub.git;branch=${GRUB_BRANCH};protocol=https \
 	file://grub.cfg \
 	file://cfg \
 	file://grub.d \
