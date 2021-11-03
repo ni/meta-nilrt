@@ -6,7 +6,12 @@
 LDCONFIGDEPEND = ""
 
 # NI infrastructure packages to be installed in the image
-NI_PROPRIETARY_BASE_PACKAGES += "\
+
+NI_PROPRIETARY_SAFEMODE_PACKAGES += "\
+        ni-software-installation-daemon \
+"
+
+NI_PROPRIETARY_COMMON_PACKAGES += "\
         libnitargetcfg \
         ni-auth \
         ni-auth-webservice \
