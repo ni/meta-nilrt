@@ -13,20 +13,20 @@ float to allow normal curl objects to be linked in.
 Upstream-Status: Inappropriate [workarounds for wacky builds]
 
 diff --git a/tests/libtest/Makefile.inc b/tests/libtest/Makefile.inc
-index 2c9c66539..c7fe065af 100644
+index 5618952..659322e 100644
 --- a/tests/libtest/Makefile.inc
 +++ b/tests/libtest/Makefile.inc
-@@ -61,9 +61,7 @@ noinst_PROGRAMS = chkhostname libauthretry libntlmconnect                \
-  lib1900 lib1905 lib1906 lib1907 lib1908 lib1910 \
-  lib2033 lib3010
+@@ -63,9 +63,7 @@ noinst_PROGRAMS = chkhostname libauthretry libntlmconnect                \
+          lib1915 lib1916 lib1917 lib1918 lib1933 lib1934 lib1935 lib1936 \
+          lib3010
  
 -chkdecimalpoint_SOURCES = chkdecimalpoint.c ../../lib/mprintf.c \
 - ../../lib/curl_ctype.c  ../../lib/dynbuf.c ../../lib/strdup.c
 -chkdecimalpoint_LDADD =
 +chkdecimalpoint_SOURCES = chkdecimalpoint.c
  chkdecimalpoint_CPPFLAGS = $(AM_CPPFLAGS) -DCURL_STATICLIB \
-  -DCURLX_NO_MEMORY_CALLBACKS
+  -DCURLX_NO_MEMORY_CALLBACKS -DBUILDING_LIBCURL
  
 -- 
-2.28.0
+2.25.1
 

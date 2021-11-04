@@ -11,38 +11,36 @@ which does not exist on Phar Lap.
 Upstream-Status: Inappropriate [wacky builds]
 Signed-off-by: Richard Tollerton <rich.tollerton@ni.com>
 ---
- lib/Makefile.inc |  4 +--
+ lib/Makefile.inc |  2 --
  lib/cookie.c     | 28 +++++++++++++++++--
  lib/rename.c     | 71 ------------------------------------------------
  lib/rename.h     | 27 ------------------
- 4 files changed, 28 insertions(+), 102 deletions(-)
+ 4 files changed, 26 insertions(+), 102 deletions(-)
  delete mode 100644 lib/rename.c
  delete mode 100644 lib/rename.h
 
 diff --git a/lib/Makefile.inc b/lib/Makefile.inc
-index ae3f961cf..0316e03b6 100644
+index e8d2259..9f3989f 100644
 --- a/lib/Makefile.inc
 +++ b/lib/Makefile.inc
-@@ -56,7 +56,7 @@ LIB_CFILES = altsvc.c amigaos.c asyn-ares.c asyn-thread.c base64.c            \
-   http_ntlm.c http_proxy.c idn_win32.c if2ip.c imap.c inet_ntop.c inet_pton.c \
-   krb5.c ldap.c llist.c md4.c md5.c memdebug.c mime.c mprintf.c mqtt.c        \
-   multi.c netrc.c non-ascii.c nonblock.c openldap.c parsedate.c pingpong.c    \
--  pop3.c progress.c psl.c doh.c rand.c rename.c rtsp.c security.c select.c    \
-+  pop3.c progress.c psl.c doh.c rand.c rtsp.c security.c select.c             \
-   sendf.c setopt.c sha256.c share.c slist.c smb.c smtp.c socketpair.c socks.c \
-   socks_gssapi.c socks_sspi.c speedcheck.c splay.c strcase.c strdup.c         \
-   strerror.c strtok.c strtoofft.c system_win32.c telnet.c tftp.c timeval.c    \
-@@ -75,7 +75,7 @@ LIB_HFILES = altsvc.h amigaos.h arpa_telnet.h asyn.h conncache.h connect.h    \
-   http2.h http_chunks.h http_digest.h http_negotiate.h http_ntlm.h            \
-   http_proxy.h if2ip.h imap.h inet_ntop.h inet_pton.h llist.h memdebug.h      \
-   mime.h mqtt.h multihandle.h multiif.h netrc.h non-ascii.h nonblock.h        \
--  parsedate.h pingpong.h pop3.h progress.h psl.h doh.h quic.h rand.h rename.h \
-+  parsedate.h pingpong.h pop3.h progress.h psl.h doh.h quic.h rand.h          \
-   rtsp.h select.h sendf.h setopt.h setup-vms.h share.h sigpipe.h slist.h      \
-   smb.h smtp.h sockaddr.h socketpair.h socks.h speedcheck.h splay.h strcase.h \
-   strdup.h strerror.h strtok.h strtoofft.h system_win32.h telnet.h tftp.h     \
+@@ -175,7 +175,6 @@ LIB_CFILES =         \
+   progress.c         \
+   psl.c              \
+   rand.c             \
+-  rename.c           \
+   rtsp.c             \
+   select.c           \
+   sendf.c            \
+@@ -295,7 +294,6 @@ LIB_HFILES =         \
+   psl.h              \
+   quic.h             \
+   rand.h             \
+-  rename.h           \
+   rtsp.h             \
+   select.h           \
+   sendf.h            \
 diff --git a/lib/cookie.c b/lib/cookie.c
-index cb7d94b10..e3746850c 100644
+index 09fd092..203c4a5 100644
 --- a/lib/cookie.c
 +++ b/lib/cookie.c
 @@ -98,7 +98,6 @@ Example set of cookies:
@@ -53,7 +51,7 @@ index cb7d94b10..e3746850c 100644
  
  /* The last 3 #include files should be in this order */
  #include "curl_printf.h"
-@@ -1494,6 +1493,31 @@ static char *get_netscape_format(const struct Cookie *co)
+@@ -1503,6 +1502,31 @@ static char *get_netscape_format(const struct Cookie *co)
      co->value?co->value:"");
  }
  
@@ -85,7 +83,7 @@ index cb7d94b10..e3746850c 100644
  /*
   * cookie_output()
   *
-@@ -1581,7 +1605,7 @@ static int cookie_output(struct Curl_easy *data,
+@@ -1590,7 +1614,7 @@ static int cookie_output(struct Curl_easy *data,
    if(!use_stdout) {
      fclose(out);
      out = NULL;
@@ -96,7 +94,7 @@ index cb7d94b10..e3746850c 100644
      }
 diff --git a/lib/rename.c b/lib/rename.c
 deleted file mode 100644
-index fe5f95d0d..000000000
+index f858d43..0000000
 --- a/lib/rename.c
 +++ /dev/null
 @@ -1,71 +0,0 @@
@@ -111,7 +109,7 @@ index fe5f95d0d..000000000
 - *
 - * This software is licensed as described in the file COPYING, which
 - * you should have received as part of this distribution. The terms
-- * are also available at https://curl.haxx.se/docs/copyright.html.
+- * are also available at https://curl.se/docs/copyright.html.
 - *
 - * You may opt to use, copy, modify, merge, publish, distribute and/or sell
 - * copies of the Software, and permit persons to whom the Software is
@@ -126,8 +124,8 @@ index fe5f95d0d..000000000
 -
 -#include "curl_setup.h"
 -
--#if (!defined(CURL_DISABLE_HTTP) && !defined(CURL_DISABLE_COOKIES)) ||  \
--  defined(USE_ALTSVC)
+-#if (!defined(CURL_DISABLE_HTTP) || !defined(CURL_DISABLE_COOKIES)) || \
+-  !defined(CURL_DISABLE_ALTSVC)
 -
 -#include "curl_multibyte.h"
 -#include "timeval.h"
@@ -173,7 +171,7 @@ index fe5f95d0d..000000000
 -#endif
 diff --git a/lib/rename.h b/lib/rename.h
 deleted file mode 100644
-index d7442c844..000000000
+index 534f747..0000000
 --- a/lib/rename.h
 +++ /dev/null
 @@ -1,27 +0,0 @@
@@ -190,7 +188,7 @@ index d7442c844..000000000
 - *
 - * This software is licensed as described in the file COPYING, which
 - * you should have received as part of this distribution. The terms
-- * are also available at https://curl.haxx.se/docs/copyright.html.
+- * are also available at https://curl.se/docs/copyright.html.
 - *
 - * You may opt to use, copy, modify, merge, publish, distribute and/or sell
 - * copies of the Software, and permit persons to whom the Software is
@@ -205,5 +203,5 @@ index d7442c844..000000000
 -
 -#endif /* HEADER_CURL_RENAME_H */
 -- 
-2.30.0
+2.25.1
 

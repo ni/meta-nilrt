@@ -9,7 +9,7 @@ may be used in applications compiled with /Gz (__stdcall).
 Upstream-Status: Pending [Needs clean-up]
 
 diff --git a/include/curl/curl.h b/include/curl/curl.h
-index 5aeaca91d..490b83297 100644
+index 71204ee..99ba370 100644
 --- a/include/curl/curl.h
 +++ b/include/curl/curl.h
 @@ -112,6 +112,12 @@ typedef void CURLSH;
@@ -209,8 +209,8 @@ index 5aeaca91d..490b83297 100644
         (CURL *handle,      /* the handle/transfer this concerns */
          curl_infotype type, /* what kind of data */
          char *data,        /* points to the data */
-@@ -690,14 +697,15 @@ typedef enum {
- #endif /*!CURL_NO_OLDIES*/
+@@ -733,14 +740,15 @@ typedef enum {
+ } CURLproxycode;
  
  /* This prototype applies to all conversion callbacks */
 -typedef CURLcode (*curl_conv_callback)(char *buffer, size_t length);
@@ -232,7 +232,7 @@ index 5aeaca91d..490b83297 100644
  
  typedef enum {
    CURLPROXY_HTTP = 0,   /* added in 7.10, new in 7.19.4 default is to use
-@@ -800,12 +808,12 @@ enum curl_khmatch {
+@@ -845,12 +853,12 @@ enum curl_khmatch {
    CURLKHMATCH_LAST      /* not for use, only a marker for last-in-list */
  };
  
@@ -251,7 +251,7 @@ index 5aeaca91d..490b83297 100644
  
  /* parameter for the CURLOPT_USE_SSL option */
  typedef enum {
-@@ -2123,8 +2131,9 @@ typedef enum {
+@@ -2230,8 +2238,9 @@ typedef enum {
  
  /* curl_strequal() and curl_strnequal() are subject for removal in a future
     release */
@@ -263,7 +263,7 @@ index 5aeaca91d..490b83297 100644
  
  /* Mime/form handling support. */
  typedef struct curl_mime      curl_mime;      /* Mime context. */
-@@ -2138,7 +2147,7 @@ typedef struct curl_mimepart  curl_mimepart;  /* Mime part context. */
+@@ -2245,7 +2254,7 @@ typedef struct curl_mimepart  curl_mimepart;  /* Mime part context. */
   * Create a mime context and return its handle. The easy parameter is the
   * target handle.
   */
@@ -272,7 +272,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_mime_free()
-@@ -2147,7 +2156,7 @@ CURL_EXTERN curl_mime *curl_mime_init(CURL *easy);
+@@ -2254,7 +2263,7 @@ CURL_EXTERN curl_mime *curl_mime_init(CURL *easy);
   *
   * release a mime handle and its substructures.
   */
@@ -281,7 +281,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_mime_addpart()
-@@ -2157,7 +2166,7 @@ CURL_EXTERN void curl_mime_free(curl_mime *mime);
+@@ -2264,7 +2273,7 @@ CURL_EXTERN void curl_mime_free(curl_mime *mime);
   * Append a new empty part to the given mime context and return a handle to
   * the created part.
   */
@@ -290,7 +290,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_mime_name()
-@@ -2166,7 +2175,8 @@ CURL_EXTERN curl_mimepart *curl_mime_addpart(curl_mime *mime);
+@@ -2273,7 +2282,8 @@ CURL_EXTERN curl_mimepart *curl_mime_addpart(curl_mime *mime);
   *
   * Set mime/form part name.
   */
@@ -300,7 +300,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_mime_filename()
-@@ -2175,7 +2185,7 @@ CURL_EXTERN CURLcode curl_mime_name(curl_mimepart *part, const char *name);
+@@ -2282,7 +2292,7 @@ CURL_EXTERN CURLcode curl_mime_name(curl_mimepart *part, const char *name);
   *
   * Set mime part remote file name.
   */
@@ -309,7 +309,7 @@ index 5aeaca91d..490b83297 100644
                                          const char *filename);
  
  /*
-@@ -2185,7 +2195,8 @@ CURL_EXTERN CURLcode curl_mime_filename(curl_mimepart *part,
+@@ -2292,7 +2302,8 @@ CURL_EXTERN CURLcode curl_mime_filename(curl_mimepart *part,
   *
   * Set mime part type.
   */
@@ -319,7 +319,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_mime_encoder()
-@@ -2194,8 +2205,8 @@ CURL_EXTERN CURLcode curl_mime_type(curl_mimepart *part, const char *mimetype);
+@@ -2301,8 +2312,8 @@ CURL_EXTERN CURLcode curl_mime_type(curl_mimepart *part, const char *mimetype);
   *
   * Set mime data transfer encoder.
   */
@@ -330,7 +330,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_mime_data()
-@@ -2204,8 +2215,9 @@ CURL_EXTERN CURLcode curl_mime_encoder(curl_mimepart *part,
+@@ -2311,8 +2322,9 @@ CURL_EXTERN CURLcode curl_mime_encoder(curl_mimepart *part,
   *
   * Set mime part data source from memory data,
   */
@@ -342,7 +342,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_mime_filedata()
-@@ -2214,8 +2226,8 @@ CURL_EXTERN CURLcode curl_mime_data(curl_mimepart *part,
+@@ -2321,8 +2333,8 @@ CURL_EXTERN CURLcode curl_mime_data(curl_mimepart *part,
   *
   * Set mime part data source from named file.
   */
@@ -353,7 +353,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_mime_data_cb()
-@@ -2224,12 +2236,12 @@ CURL_EXTERN CURLcode curl_mime_filedata(curl_mimepart *part,
+@@ -2331,12 +2343,12 @@ CURL_EXTERN CURLcode curl_mime_filedata(curl_mimepart *part,
   *
   * Set mime part data source from callback function.
   */
@@ -372,7 +372,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_mime_subparts()
-@@ -2238,8 +2250,8 @@ CURL_EXTERN CURLcode curl_mime_data_cb(curl_mimepart *part,
+@@ -2345,8 +2357,8 @@ CURL_EXTERN CURLcode curl_mime_data_cb(curl_mimepart *part,
   *
   * Set mime part data source from subparts.
   */
@@ -383,7 +383,7 @@ index 5aeaca91d..490b83297 100644
  /*
   * NAME curl_mime_headers()
   *
-@@ -2247,9 +2259,9 @@ CURL_EXTERN CURLcode curl_mime_subparts(curl_mimepart *part,
+@@ -2354,9 +2366,9 @@ CURL_EXTERN CURLcode curl_mime_subparts(curl_mimepart *part,
   *
   * Set mime part headers.
   */
@@ -396,7 +396,7 @@ index 5aeaca91d..490b83297 100644
  
  typedef enum {
    CURLFORM_NOTHING,        /********* the first one is unused ************/
-@@ -2325,9 +2337,10 @@ typedef enum {
+@@ -2432,9 +2444,10 @@ typedef enum {
   * adds one part that together construct a full post. Then use
   * CURLOPT_HTTPPOST to send it off to libcurl.
   */
@@ -410,7 +410,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * callback function for curl_formget()
-@@ -2337,8 +2350,8 @@ CURL_EXTERN CURLFORMcode curl_formadd(struct curl_httppost **httppost,
+@@ -2444,8 +2457,8 @@ CURL_EXTERN CURLFORMcode curl_formadd(struct curl_httppost **httppost,
   * Should return the buffer length passed to it as the argument "len" on
   *   success.
   */
@@ -421,7 +421,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_formget()
-@@ -2350,8 +2363,8 @@ typedef size_t (*curl_formget_callback)(void *arg, const char *buf,
+@@ -2457,8 +2470,8 @@ typedef size_t (*curl_formget_callback)(void *arg, const char *buf,
   * the curl_formget_callback function.
   * Returns 0 on success.
   */
@@ -432,7 +432,7 @@ index 5aeaca91d..490b83297 100644
  /*
   * NAME curl_formfree()
   *
-@@ -2359,7 +2372,7 @@ CURL_EXTERN int curl_formget(struct curl_httppost *form, void *arg,
+@@ -2466,7 +2479,7 @@ CURL_EXTERN int curl_formget(struct curl_httppost *form, void *arg,
   *
   * Free a multipart formpost previously built with curl_formadd().
   */
@@ -441,7 +441,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_getenv()
-@@ -2369,7 +2382,7 @@ CURL_EXTERN void curl_formfree(struct curl_httppost *form);
+@@ -2476,7 +2489,7 @@ CURL_EXTERN void curl_formfree(struct curl_httppost *form);
   * Returns a malloc()'ed string that MUST be curl_free()ed after usage is
   * complete. DEPRECATED - see lib/README.curlx
   */
@@ -450,7 +450,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_version()
-@@ -2378,7 +2391,7 @@ CURL_EXTERN char *curl_getenv(const char *variable);
+@@ -2485,7 +2498,7 @@ CURL_EXTERN char *curl_getenv(const char *variable);
   *
   * Returns a static ascii string of the libcurl version.
   */
@@ -459,7 +459,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_easy_escape()
-@@ -2389,12 +2402,12 @@ CURL_EXTERN char *curl_version(void);
+@@ -2496,12 +2509,12 @@ CURL_EXTERN char *curl_version(void);
   * %XX versions). This function returns a new allocated string or NULL if an
   * error occurred.
   */
@@ -474,7 +474,7 @@ index 5aeaca91d..490b83297 100644
                                int length);
  
  
-@@ -2409,13 +2422,13 @@ CURL_EXTERN char *curl_escape(const char *string,
+@@ -2516,13 +2529,13 @@ CURL_EXTERN char *curl_escape(const char *string,
   * Conversion Note: On non-ASCII platforms the ASCII %XX codes are
   * converted into the host encoding.
   */
@@ -490,7 +490,7 @@ index 5aeaca91d..490b83297 100644
                                  int length);
  
  /*
-@@ -2426,7 +2439,7 @@ CURL_EXTERN char *curl_unescape(const char *string,
+@@ -2533,7 +2546,7 @@ CURL_EXTERN char *curl_unescape(const char *string,
   * Provided for de-allocation in the same translation unit that did the
   * allocation. Added in libcurl 7.10
   */
@@ -499,7 +499,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_global_init()
-@@ -2438,7 +2451,7 @@ CURL_EXTERN void curl_free(void *p);
+@@ -2545,7 +2558,7 @@ CURL_EXTERN void curl_free(void *p);
   *
   * This function is not thread-safe!
   */
@@ -508,7 +508,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_global_init_mem()
-@@ -2453,12 +2466,12 @@ CURL_EXTERN CURLcode curl_global_init(long flags);
+@@ -2560,12 +2573,12 @@ CURL_EXTERN CURLcode curl_global_init(long flags);
   * callback routines will be invoked by this library instead of the system
   * memory management routines like malloc, free etc.
   */
@@ -527,7 +527,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_global_cleanup()
-@@ -2468,7 +2481,7 @@ CURL_EXTERN CURLcode curl_global_init_mem(long flags,
+@@ -2575,7 +2588,7 @@ CURL_EXTERN CURLcode curl_global_init_mem(long flags,
   * curl_global_cleanup() should be invoked exactly once for each application
   * that uses libcurl
   */
@@ -536,7 +536,7 @@ index 5aeaca91d..490b83297 100644
  
  /* linked-list structure for the CURLOPT_QUOTE option (and other) */
  struct curl_slist {
-@@ -2515,8 +2528,10 @@ typedef enum {
+@@ -2622,8 +2635,10 @@ typedef enum {
    CURLSSLSET_NO_BACKENDS /* libcurl was built without any SSL support */
  } CURLsslset;
  
@@ -549,7 +549,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_slist_append()
-@@ -2526,8 +2541,9 @@ CURL_EXTERN CURLsslset curl_global_sslset(curl_sslbackend id, const char *name,
+@@ -2633,8 +2648,9 @@ CURL_EXTERN CURLsslset curl_global_sslset(curl_sslbackend id, const char *name,
   * Appends a string to a linked list. If no list exists, it will be created
   * first. Returns the new list, after appending.
   */
@@ -561,7 +561,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_slist_free_all()
-@@ -2536,7 +2552,7 @@ CURL_EXTERN struct curl_slist *curl_slist_append(struct curl_slist *,
+@@ -2643,7 +2659,7 @@ CURL_EXTERN struct curl_slist *curl_slist_append(struct curl_slist *,
   *
   * free a previously built curl_slist.
   */
@@ -570,7 +570,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_getdate()
-@@ -2547,7 +2563,8 @@ CURL_EXTERN void curl_slist_free_all(struct curl_slist *);
+@@ -2654,7 +2670,8 @@ CURL_EXTERN void curl_slist_free_all(struct curl_slist *);
   * the first argument. The time argument in the second parameter is unused
   * and should be set to NULL.
   */
@@ -580,7 +580,7 @@ index 5aeaca91d..490b83297 100644
  
  /* info about the certificate chain, only for OpenSSL, GnuTLS, Schannel, NSS
     and GSKit builds. Asked for with CURLOPT_CERTINFO / CURLINFO_CERTINFO */
-@@ -2699,13 +2716,13 @@ typedef enum {
+@@ -2807,13 +2824,13 @@ typedef enum {
    CURL_LOCK_ACCESS_LAST        /* never use */
  } curl_lock_access;
  
@@ -601,7 +601,7 @@ index 5aeaca91d..490b83297 100644
  
  
  typedef enum {
-@@ -2729,9 +2746,9 @@ typedef enum {
+@@ -2837,9 +2854,9 @@ typedef enum {
    CURLSHOPT_LAST  /* never use */
  } CURLSHoption;
  
@@ -614,7 +614,7 @@ index 5aeaca91d..490b83297 100644
  
  /****************************************************************************
   * Structures for querying information about the curl library at runtime.
-@@ -2850,7 +2867,7 @@ typedef struct curl_version_info_data curl_version_info_data;
+@@ -2962,7 +2979,7 @@ typedef struct curl_version_info_data curl_version_info_data;
   * This function returns a pointer to a static copy of the version info
   * struct. See above.
   */
@@ -623,7 +623,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_easy_strerror()
-@@ -2861,7 +2878,7 @@ CURL_EXTERN curl_version_info_data *curl_version_info(CURLversion);
+@@ -2973,7 +2990,7 @@ CURL_EXTERN curl_version_info_data *curl_version_info(CURLversion);
   * into the equivalent human readable error string.  This is useful
   * for printing meaningful error messages.
   */
@@ -632,7 +632,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_share_strerror()
-@@ -2872,7 +2889,7 @@ CURL_EXTERN const char *curl_easy_strerror(CURLcode);
+@@ -2984,7 +3001,7 @@ CURL_EXTERN const char *curl_easy_strerror(CURLcode);
   * into the equivalent human readable error string.  This is useful
   * for printing meaningful error messages.
   */
@@ -641,7 +641,7 @@ index 5aeaca91d..490b83297 100644
  
  /*
   * NAME curl_easy_pause()
-@@ -2883,7 +2900,7 @@ CURL_EXTERN const char *curl_share_strerror(CURLSHcode);
+@@ -2995,7 +3012,7 @@ CURL_EXTERN const char *curl_share_strerror(CURLSHcode);
   * state by setting the bitmask, use the convenience defines below.
   *
   */
@@ -651,7 +651,7 @@ index 5aeaca91d..490b83297 100644
  #define CURLPAUSE_RECV      (1<<0)
  #define CURLPAUSE_RECV_CONT (0)
 diff --git a/include/curl/easy.h b/include/curl/easy.h
-index 9aef13396..a667ef0c7 100644
+index 2dbfb26..2c0ff4f 100644
 --- a/include/curl/easy.h
 +++ b/include/curl/easy.h
 @@ -36,10 +36,11 @@ struct curl_blob {
@@ -728,7 +728,7 @@ index 9aef13396..a667ef0c7 100644
  #ifdef  __cplusplus
  }
 diff --git a/include/curl/multi.h b/include/curl/multi.h
-index b911ba92d..04191a79f 100644
+index 37f9829..a7da074 100644
 --- a/include/curl/multi.h
 +++ b/include/curl/multi.h
 @@ -124,7 +124,7 @@ struct curl_waitfd {
@@ -981,5 +981,5 @@ index b911ba92d..04191a79f 100644
  #ifdef __cplusplus
  } /* end of extern "C" */
 -- 
-2.28.0
+2.25.1
 
