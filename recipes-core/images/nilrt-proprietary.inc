@@ -35,6 +35,7 @@ NI_PROPRIETARY_COMMON_PACKAGES += "\
         ni-webdav-system-webserver-support \
         ni-webserver-libs \
         ni-webservices-webserver-support \
+        ni-wif-landingpage \
         ni-wifibledd \
         ni-wireless-ath6kl \
         ni-wireless-cert-storage \
