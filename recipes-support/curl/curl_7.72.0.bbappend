@@ -10,22 +10,6 @@ SRC_URI += " \
 	file://0007-Made-curl_global_init-thread-safe.patch \
 	file://0008-Made-curl_global_cleanup-thread-safe.patch \
 	file://0009-Made-curl_easy_init-thread-safe.patch \
-	file://0010-Updated-verifyconnect-for-PharLAP.patch \
-	file://0011-Excluding-HAVE_WINSOCK2_H-and-HAVE_WS2TCPIP_H-on-Pha.patch \
-	file://0012-Excluding-HAVE_RAND_SCREEN-on-PharLAP.patch \
-	file://0013-Don-t-use-wincrypt.h-on-PharLap.patch \
-	file://0014-Fixup-lib1529-test.patch \
-	file://0015-config-win32.h-Disable-Win32-crypto-API-on-Phar-Lap-.patch \
-	file://0016-Decorate-API-functions-on-Windows-with-__cdecl.patch \
-	file://0017-curl-system.h-define-CURL_SIZEOF_CURL_OFF_T.patch \
-	file://0018-Revert-global_init-ignore-CURL_GLOBAL_SSL-s-absense.patch \
-	file://0019-win32-disable-USE_UNIX_SOCKETS-entirely.patch \
-	file://0020-transfer.c-avoid-WSAIoctl-on-PHARLAP.patch \
-	file://0021-chkdecimalpoint-use-default-libs.patch \
-	file://0022-Revert-digest-Do-not-quote-algorithm-in-HTTP-authori.patch \
-	file://0023-Revert-altsvc-make-saving-the-cache-an-atomic-operat.patch \
-	file://0024-Revert-rename-a-new-file-for-Curl_rename.patch \
-	file://0025-Revert-cookies-make-saving-atomic-with-a-rename.patch \
 "
 
 SELECTED_OPTIMIZATION += "-Wno-deprecated-declarations"
