@@ -36,10 +36,12 @@ RDEPENDS_${PN}_append_x64 = "\
     efivar              \
     fw-printenv         \
     grub                \
+    grub-efi            \
     grub-editenv        \
     eudev               \
     ni-smbios-helper    \
     nilrtdiskcrypt      \
+    safemode-image      \
     "
 
 RDEPENDS_${PN}_append_xilinx-zynqhf = "\
