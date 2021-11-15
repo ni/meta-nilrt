@@ -41,7 +41,6 @@ RDEPENDS_${PN}_append_x64 = "\
     eudev               \
     ni-smbios-helper    \
     nilrtdiskcrypt      \
-    safemode-image      \
     "
 
 RDEPENDS_${PN}_append_xilinx-zynqhf = "\
