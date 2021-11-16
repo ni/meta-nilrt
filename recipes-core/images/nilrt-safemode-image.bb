@@ -43,6 +43,7 @@ bootimg_fixup() {
 	mv "$(realpath ${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/bzImage)" "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/bzImage.real"
 	rm -f "${IMAGE_ROOTFS}/boot/bzImage"
 	mv "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/bzImage.real" "${IMAGE_ROOTFS}/boot/bzImage"
+	rm -rf "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}"
 
 	install -m 0644 "${THISDIR}/files/bootimage.ini" "${IMAGE_ROOTFS}/boot/bootimage.ini"
 	sed -i "s/%component_version%/${BUILDNAME}/" "${IMAGE_ROOTFS}/boot/bootimage.ini"
