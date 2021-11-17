@@ -15,6 +15,7 @@ i x  |     * nilrt-dkms-image.bb            [nilrt x64 runmode w/ dkms]
      |     * minimal-nilrt-image.bb         [nilrt-nxg minimal image]
      |       * lvcomms-nilrt-image.bb       [nilrt-nxg runmode]
   x  |       * xfce-nilrt-image.bb          [nilrt-nxg minimal + xfce]
+     | * nilrt-recovery-image.bb            [NILRT installation/recovery ISO]
      |   * restore-mode-image.inc
      |     * restore-mode-image.bb          [nilrt-nxg provisioning img - installs minimal-nilrt-image from a USB key]
      |     * lvcomms-restore-mode-image.bb  [ " - installs lvcomms-nilrt-image]
