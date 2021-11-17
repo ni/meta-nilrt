@@ -63,10 +63,6 @@ fi
 # in normal operation, /boot better exist
 awk '{print $2;}' < /proc/mounts | grep -q /boot || exit 1
 
-# Remove OE getty lines for serial terminal and replace with consolegetty
-sed -i'' -e"s/\/s\?bin\/\(start_\)\?getty \(-L \)\?[0-9]\+ tty[OPS]\+[0-9]\+/\/etc\/init.d\/consolegetty tty2/g" /mnt/userfs/etc/inittab
-grep -q "/etc/init.d/consolegetty" /mnt/userfs/etc/inittab || exit 1
-
 # Give hwclock CAP_SYS_TIME capabilties
 /usr/sbin/setcap CAP_SYS_TIME+ep /mnt/userfs/sbin/hwclock.util-linux
 
