@@ -1,9 +1,0 @@
-# short-description: Create a hybrid ISO image
-# long-description: Creates an EFI and legacy bootable hybrid ISO image
-# which can be used on optical media as well as USB media.
-
-part /boot --source isoimage-isohybrid --sourceparams="esp_label=NIRECOVERY,esp_extra_blocks=5000,loader=grub-efi,image_name=lvcomms-restore-mode-image.x64" --ondisk cd --label NIRECOVERY-CD
-
-# note that --append is ignored by grub when using a configfile
-# and only processed by syslinux as configured below
-bootloader --configfile="grub.cfg" --append="restore=provision console=ttyS0"
