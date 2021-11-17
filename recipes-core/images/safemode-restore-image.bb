@@ -1,4 +1,4 @@
-DESCRIPTION = "Tiny initramfs image intended to run restore mode operations for old NILinux RT, uses safemode-image"
+DESCRIPTION = "Tiny initramfs image intended to run recovery and install operations for NILinux RT"
 
 IMAGE_FSTYPES = "${INITRAMFS_FSTYPES} tar.bz2 wic"
 
