@@ -13,11 +13,9 @@ Images:
 ikx  |     * nixfce-image.bb                [nilrt x64 runmode w/ nikms]
 i x  |     * nilrt-dkms-image.bb            [nilrt x64 runmode w/ dkms]
      |     * minimal-nilrt-image.bb         [nilrt-nxg minimal image]
-     |       * lvcomms-nilrt-image.bb       [nilrt-nxg runmode]
   x  |       * xfce-nilrt-image.bb          [nilrt-nxg minimal + xfce]
      | * nilrt-recovery-image.bb            [NILRT installation/recovery ISO]
      | * minimal-nilrt-bundle-image.bb      [nilrt system partition image booting nilrt-nxg minimal image]
-     |   * lvcomms-nilrt-bundle-image.bb
      |   * minimal-nilrt-bundle.bb          [rauc bundle to deploy nilrt system partition image booting nilrt-nxg minimal image]
      | * nilrt-dkms-bundle-image.bb         [image containing nilrt x64 runmode w/ dkms for rauc bundle]
      |   * nilrt-dkms-bundle.bb             [rauc bundle to deploy nilrt x64 runmode w/ dkms]
