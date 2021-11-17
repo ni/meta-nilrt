@@ -101,6 +101,11 @@ if [[ $ARCH == "x86_64" ]]; then
 	# support VMWare image keyboard
 	modprobe atkbd 2> /dev/null
 	modprobe i8042 2> /dev/null
+	modprobe hv_vmbus 2> /dev/null
+	modprobe hv_balloon 2> /dev/null
+	modprobe hv_storvsc 2> /dev/null
+	modprobe hv_utils 2> /dev/null
+	modprobe hyperv-keyboard 2> /dev/null
 	remove_bootmode 2> /dev/null
 fi
 

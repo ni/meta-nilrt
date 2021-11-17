@@ -51,5 +51,10 @@ RDEPENDS_${PN}_append_xilinx-zynqhf = "\
 RRECOMMENDS_${PN}_x64 = "\
     kernel-module-tpm-tis \
     kernel-module-atkbd   \
+    kernel-module-hyperv-keyboard \
+    kernel-module-hv-storvsc \
+    kernel-module-hv-vmbus \
+    kernel-module-hv-utils \
+    kernel-module-hv-balloon \
     kernel-module-i8042   \
 "
