@@ -38,14 +38,9 @@ remove_alsa () {
 		alsa-utils-alsactl alsa-utils-alsamixer libasound2
 }
 
-# Radeon firmware is huge. Remove it from safemode and blacklist the module.
-# TODO: Maybe we should have a list of modules to install instead of getting
-#       the kernel-modules metapackage and then having to remove things
-#       individually?
-#       we probably don't need things like infiniband either...
+# Radeon firmware is huge and is not included in the safemode.
+# Blacklist the kernel module that gets automatically included.
 remove_radeon () {
-	opkg -o ${IMAGE_ROOTFS} -f ${IPKGCONF_TARGET} --force-depends remove \
-		linux-firmware-radeon
 	echo "blacklist radeon" > "${IMAGE_ROOTFS}/etc/modprobe.d/blacklist_radeon.conf"
 }
 
