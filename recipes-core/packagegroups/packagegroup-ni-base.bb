@@ -21,7 +21,6 @@ ALL_DISTRO_ARM_PACKAGES = "\
 
 ALL_DISTRO_x64_PACKAGES = "\
 	linux-firmware-i915 \
-	linux-firmware-radeon \
 	dmidecode \
 	efivar \
 	fw-printenv \

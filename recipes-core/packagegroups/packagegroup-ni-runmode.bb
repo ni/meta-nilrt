@@ -21,6 +21,7 @@ RDEPENDS_${PN} = "\
 	glibc-gconv-iso8859-1 \
 	iproute2-tc \
 	librtpi \
+	linux-firmware-radeon \
 	lldpd \
 	niwatchdogpet \
 	opkg-utils-shell-tools \
