@@ -29,15 +29,6 @@ IMAGE_INSTALL_NODEPS += "\
 
 BAD_RECOMMENDATIONS += "shared-mime-info"
 
-# Remove alsa, it pulls in a bunch of stuff and we don't need sound in
-# safemode.
-# TODO: this gets pulled in by packagegroup-base (!)
-remove_alsa () {
-	opkg -o ${IMAGE_ROOTFS} -f ${IPKGCONF_TARGET} --force-depends remove \
-		alsa-conf alsa-state alsa-states alsa-ucm-conf \
-		alsa-utils-alsactl alsa-utils-alsamixer libasound2
-}
-
 # Radeon firmware is huge and is not included in the safemode.
 # Blacklist the kernel module that gets automatically included.
 remove_radeon () {
@@ -82,7 +73,7 @@ bootimg_fixup () {
 	opkg -o ${IMAGE_ROOTFS} -f ${IPKGCONF_TARGET} clean
 }
 
-IMAGE_PREPROCESS_COMMAND += " remove_alsa; remove_radeon; bootimg_fixup; "
+IMAGE_PREPROCESS_COMMAND += " remove_radeon; bootimg_fixup; "
 
 addtask image_build_test before do_rootfs
 
