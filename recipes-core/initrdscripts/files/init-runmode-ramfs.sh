@@ -44,6 +44,12 @@ ARCH="`uname -m`"
 status "Running init process on ARCH=$ARCH"
 
 if [ "$ARCH" == "x86_64" ]; then
+	status "Running depmod"
+	depmod -a
+
+	modprobe hv_vmbus
+	modprobe hv_storvsc
+
 	# Root device which is detected asynchronously may not show up
 	#  early, so continously polling for it until it is available
 	#  or 10s timeout.
