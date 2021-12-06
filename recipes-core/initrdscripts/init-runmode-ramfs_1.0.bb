@@ -18,6 +18,8 @@ RDEPENDS_${PN} += "\
 	nilrtdiskcrypt-reseal \
 	kernel-module-tpm-tis \
 	kernel-module-dm-crypt \
+	kernel-module-hv-storvsc \
+	kernel-module-hv-vmbus \
 "
 
 do_install() {
