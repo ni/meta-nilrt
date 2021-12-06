@@ -8,9 +8,6 @@ SRC_URI += " \
             file://gpg.conf \
             file://run-ptest \
             file://0001-opkg-key-add-keys-even-if-creation-date-is-in-the-fu.patch \
-            file://0001-opkg_conf.c-Verify-directory-exists-before-delete.patch \
-            file://0001-opkg_conf-add-pid-suffix-to-volatile-cache-dir.patch \
-            file://0001-opkg_archive-output-libarchive-s-errno-wherever-we-o.patch \
 "
 
 SRC_URI_append_armv7a = " \
