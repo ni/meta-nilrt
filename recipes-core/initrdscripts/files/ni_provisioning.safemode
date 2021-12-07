@@ -181,12 +181,14 @@ has_tpm_chip ()
 	[ -e "/dev/tpm0" ]
 }
 
-check_for_tpm_chip()
+check_if_ramfs_required()
 {
 	# If use_ramfs was unspecified by user, set it based on
-	#  presence of TPM chip
+	#  presence of TPM chip or Hyper-V
 	if [ -z "$use_ramfs" ]; then
 		if has_tpm_chip; then
+			use_ramfs=true
+		elif lsmod | grep hv_storvsc &> /dev/null; then
 			use_ramfs=true
 		else
 			use_ramfs=false
@@ -317,8 +319,8 @@ install_grubenv()
 	grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "BIOSBootMode=efi"
 	grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "NITarget=$NI_TARGET"
 
-	# If target has a TPM chip, we need to enable an alternate boot flow
-	#  involving initramfs and bootflags dir
+	# If target has a TPM chip or runs on Hyper-V, we need to enable an alternate boot flow
+	# involving initramfs and bootflags dir
 	if $use_ramfs; then
 		grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "enable_initramfs=1"
 	fi
@@ -454,7 +456,7 @@ sanity_check()
 
 check_all_used_binaries
 load_kernel_modules
-check_for_tpm_chip
+check_if_ramfs_required
 
 echo "Installing safemode to: $TARGET_DISK."
 echo 6 > /proc/sys/kernel/printk
