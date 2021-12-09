@@ -52,7 +52,7 @@ bootimg_fixup () {
 
 	echo "LABEL=nibootfs /boot ext4 sync 0 0" >> "${IMAGE_ROOTFS}/etc/fstab"
 	echo "LABEL=niconfig /etc/natinst/share ext4 sync 0 0" >> "${IMAGE_ROOTFS}/etc/fstab"
-	echo "LABEL=nirootfs /mnt/userfs ext4 sync 0 0" >> "${IMAGE_ROOTFS}/etc/fstab"
+	echo "LABEL=nirootfs /mnt/userfs ext4 defaults 0 0" >> "${IMAGE_ROOTFS}/etc/fstab"
 
 	# Add safemode marker
 	echo "safemode" > "${IMAGE_ROOTFS}/etc/natinst/safemode"
