@@ -434,7 +434,6 @@ RDEPENDS_${PN} += "\
 	mg \
 	mime-support \
 	mariadb \
-	mysql-python \
 	multipath-tools \
 	nano \
 	nmon \
