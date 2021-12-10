@@ -1,4 +1,4 @@
-SUMMARY = "Bag of goodies for NI Linux Realtime distribution"
+SUMMARY = "Potentially useful, but unsupported, packages for NI Linux RT"
 LICENSE = "MIT"
 
 inherit packagegroup
