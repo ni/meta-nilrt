@@ -30,7 +30,6 @@ RDEPENDS_${PN}_append_x64 = "\
 		openjdk-7-jre \
 		openbox \
 		onboard \
-		polkit \
 		sessreg \
 		setxkbmap \
 		sysconfig-settings-ui \
