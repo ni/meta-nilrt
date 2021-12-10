@@ -590,7 +590,6 @@ RDEPENDS_${PN} += "\
 RDEPENDS_${PN} += "\
 	python3-future \
 	python3-gsocketpool \
-	python3-mprpc \
 	python3-pycrypto \
 	python3-feedparser \
 	python3-requests \
