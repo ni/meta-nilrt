@@ -408,7 +408,6 @@ RDEPENDS_${PN} += "\
 	eject \
 	enca \
 	espeak \
-	eventlog \
 	fbset \
 	fbset-modes \
 	fftw \
