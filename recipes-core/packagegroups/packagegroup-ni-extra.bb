@@ -408,7 +408,6 @@ RDEPENDS_${PN} += "\
 	dfu-util \
 	eject \
 	enca \
-	engine-pkcs11 \
 	espeak \
 	eventlog \
 	fbset \
