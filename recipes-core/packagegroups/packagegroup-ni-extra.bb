@@ -694,8 +694,6 @@ RDEPENDS_${PN} += "\
 	python3-memcached \
 	python3-mimeparse \
 	python3-mock \
-	python3-mox \
-	python3-mox3 \
 	python3-msgpack \
 	python3-netaddr \
 	python3-netifaces \
