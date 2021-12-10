@@ -561,7 +561,6 @@ RDEPENDS_${PN} += "\
 	geoip \
 	ifenslave \
 	iftop \
-	ipsec-tools \
 	macchanger \
 	memcached \
 	mtr \
