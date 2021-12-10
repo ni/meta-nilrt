@@ -33,7 +33,6 @@ RDEPENDS_${PN}_append_x64 = "\
 		polkit \
 		sessreg \
 		setxkbmap \
-		sip \
 		sysconfig-settings-ui \
 		toscoterm \
 		tk \
