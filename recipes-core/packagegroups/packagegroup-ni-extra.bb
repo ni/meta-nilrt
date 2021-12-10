@@ -630,13 +630,11 @@ RDEPENDS_${PN} += "\
 # meta-openembedded/meta-webserver
 RDEPENDS_${PN} += "\
 	apache2 \
-	cherokee \
 	fcgi \
 	spawn-fcgi \
 	hiawatha \
 	monkey \
 	nginx \
-	nostromo \
 	phpmyadmin \
 	sthttpd \
 "
