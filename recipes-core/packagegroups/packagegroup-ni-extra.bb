@@ -587,7 +587,6 @@ RDEPENDS_${PN} += "\
 	python3-future \
 	python3-gsocketpool \
 	python3-pycrypto \
-	python3-feedparser \
 	python3-requests \
 	python3-pyzmq \
 	python3-m2crypto \
