@@ -470,7 +470,6 @@ RDEPENDS_${PN} += "\
 	smem \
 	soci \
 	spitools \
-	start-stop-daemon \
 	strongswan \
 	system-config-keyboard \
 	libtalloc \
