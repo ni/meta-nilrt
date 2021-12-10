@@ -219,7 +219,6 @@ RDEPENDS_${PN} += "\
 	makedumpfile \
 	oprofile \
 	powertop \
-	sysprof \
 	systemtap \
 	trace-cmd \
 "
