@@ -132,7 +132,6 @@ RDEPENDS_${PN} += "\
 	i2c-tools \
 	mmc-utils \
 	mtd-utils \
-	ossp-uuid \
 	patchelf \
 	pax-utils \
 	prelink \
@@ -279,7 +278,6 @@ RDEPENDS_${PN} += "\
 	umip \
 	usbmuxd \
 	zeromq \
-	wireless-tools \
 "
 
 # meta-openembedded/meta-oe/recipes-core
