@@ -38,7 +38,6 @@ RDEPENDS_${PN}_append_x64 = "\
 		toscoterm \
 		tk \
 		twm \
-		udisks \
 		upower \
 		vte \
 		x11vnc \
