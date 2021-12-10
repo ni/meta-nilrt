@@ -833,7 +833,7 @@ RDEPENDS_${PN}_append_x64 += "\
 
 # Shared libraries needed to run FireFox
 RDEPENDS_${PN} += "\
-    alsa-lib \
+	alsa-lib \
 "
 
 # meta-security
