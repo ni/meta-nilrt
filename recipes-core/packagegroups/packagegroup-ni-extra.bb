@@ -269,7 +269,6 @@ RDEPENDS_${PN} += "\
 	samba \
 	ser2net \
 	tiptop \
-	umip \
 	usbmuxd \
 	zeromq \
 "
