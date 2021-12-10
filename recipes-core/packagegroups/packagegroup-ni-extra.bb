@@ -554,7 +554,6 @@ RDEPENDS_${PN} += "\
 	arptables \
 	bridge-utils \
 	dnsmasq \
-	dnssec-conf \
 	dovecot \
 	drbd-utils \
 	esmtp \
