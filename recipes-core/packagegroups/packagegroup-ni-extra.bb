@@ -605,7 +605,6 @@ RDEPENDS_${PN} += "\
 	python3-markupsafe \
 	python3-jinja2 \
 	python3-pexpect \
-	python3-webdav \
 	python3-dateutil \
 	python3-ldap \
 	python3-epydoc \
