@@ -607,7 +607,6 @@ RDEPENDS_${PN} += "\
 	python3-cheetah \
 	python3-configparser \
 	python3-lxml \
-	python3-numeric \
 	python3-matplotlib \
 	python3-pyudev \
 	python3-pyalsaaudio \
@@ -622,10 +621,8 @@ RDEPENDS_${PN} += "\
 	python3-gevent \
 	python3-cython \
 	python3-smbus \
-	python3-snakefood \
 	python3-psutil \
 	python3-msgpack \
-	python3-vobject \
 	python3-twisted \
 	python3-pyserial \
 	python3-slip-dbus \
@@ -735,7 +732,6 @@ RDEPENDS_${PN} += "\
 	python3-ply \
 	python3-posix-ipc \
 	python3-prettytable \
-	python3-psycopg2 \
 	python3-py \
 	python3-pyasn1 \
 	python3-pycrypto \
@@ -744,7 +740,6 @@ RDEPENDS_${PN} += "\
 	python3-pyparsing \
 	python3-pyscss \
 	python3-pysnmp \
-	python3-pysqlite \
 	python3-pytest \
 	python3-pytz \
 	python3-pyudev \
@@ -774,7 +769,6 @@ RDEPENDS_${PN} += "\
 	python3-warlock \
 	python3-websockify \
 	python3-webtest \
-	python3-wsgiref \
 	python3-wsme \
 	python3-xattr \
 "
