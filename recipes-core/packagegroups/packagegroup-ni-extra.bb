@@ -133,7 +133,6 @@ RDEPENDS_${PN} += "\
 	pax-utils \
 	prelink \
 	python3-dbus \
-	python3-distribute \
 	python3-imaging \
 	python3-setuptools \
 	python3-docutils \
@@ -607,7 +606,6 @@ RDEPENDS_${PN} += "\
 	python3-pexpect \
 	python3-dateutil \
 	python3-ldap \
-	python3-epydoc \
 	python3-gevent \
 	python3-cython \
 	python3-smbus \
@@ -616,7 +614,6 @@ RDEPENDS_${PN} += "\
 	python3-twisted \
 	python3-pyserial \
 	python3-slip-dbus \
-	python3-gdata \
 	pyrtm \
 	python3-sqlalchemy \
 	python3-pyyaml \
@@ -710,7 +707,6 @@ RDEPENDS_${PN} += "\
 	python3-netifaces \
 	python3-networkx \
 	python3-requests \
-	python3-oauth2 \
 	python3-oauthlib \
 	python3-pam \
 	python3-paramiko \
@@ -743,7 +739,6 @@ RDEPENDS_${PN} += "\
 	python3-sqlalchemy \
 	python3-stevedore \
 	python3-subunit \
-	python3-suds \
 	python3-sysv-ipc \
 	python3-taskflow \
 	python3-tempita \
