@@ -35,7 +35,6 @@ RDEPENDS_${PN}_append_x64 = "\
 		setxkbmap \
 		sip \
 		sysconfig-settings-ui \
-		t1lib \
 		toscoterm \
 		tk \
 		twm \
