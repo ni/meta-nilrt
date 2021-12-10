@@ -161,7 +161,6 @@ RDEPENDS_${PN} += "\
 	blktool \
 	byacc \
 	cups \
-	foomatic-filters \
 	ghostscript \
 	iputils \
 	libarchive \
