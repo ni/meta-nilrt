@@ -304,7 +304,6 @@ RDEPENDS_${PN} += "\
 	php \
 	pm-qa \
 	protobuf \
-	python3-futures \
 	python3-pyopenssl \
 	python3-simplejson \
 	python3-tornado \
@@ -671,7 +670,6 @@ RDEPENDS_${PN} += "\
 	python3-falcon \
 	python3-fixtures \
 	python3-flake8 \
-	python3-futures \
 	python3-greenlet \
 	python3-html5lib \
 	python3-httplib2 \
