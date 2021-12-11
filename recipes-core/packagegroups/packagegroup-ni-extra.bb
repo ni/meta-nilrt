@@ -18,7 +18,6 @@ RDEPENDS_${PN}_append_x64 = "\
 		gnuradio \
 		gtk+3 \
 		iceauth \
-		florence \
 		fltk \
 		libvncserver \
 		libwmf \
