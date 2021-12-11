@@ -42,4 +42,4 @@ do_install_ptest() {
 # We only want to build the -ptest package
 PACKAGES_remove = "${PN}-dev ${PN}-staticdev ${PN}-dbg"
 
-RDEPENDS_${PN}-ptest_append = "bash"
+RDEPENDS_${PN}-ptest_append = " bash"
