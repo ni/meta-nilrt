@@ -61,3 +61,4 @@ logcheck:x:351:
 ni:x:500:
 openvpn:x:499:
 niwscerts:x:498:
+radiusd:x:301:
