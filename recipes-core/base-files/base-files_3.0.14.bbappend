@@ -46,3 +46,10 @@ do_install_append () {
 
 	install -m 0644 ${WORKDIR}/nsswitch.conf ${D}${sysconfdir}/nsswitch.conf
 }
+
+pkg_postinst_ontarget_${PN} () {
+	if `grep -q "BOOT_IMAGE=/runmode/bzImage" /proc/cmdline`; then
+		sed -i "s/safe mode/run mode/g" /etc/issue
+		sed -i "s/safe mode/run mode/g" /etc/issue.net
+	fi
+}
