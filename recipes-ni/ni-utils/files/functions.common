@@ -685,23 +685,7 @@ update_interface_info () {
     ) 9>$lock_dir
 }
 
-cleanup_all_interface_info () {
-    local issue_file="/etc/issue"
-    local issue_template="/etc/issue.template"
-    local lock_dir="/var/lock/issue.lock"
-
-    (
-    # try to claim the lock
-    flock --timeout 1 9 || return
-
-    # clean the /etc/issue file
-    cp -f "$issue_template" "$issue_file"
-    ) 9>$lock_dir
-}
-
 update_all_interface_info () {
-    cleanup_all_interface_info
-
     for f in /sys/class/net/*; do
         dev=`basename $f`
         case "$dev" in
