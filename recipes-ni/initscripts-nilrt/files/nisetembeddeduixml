@@ -9,7 +9,6 @@ check_and_remove() {
 		return
 	fi
 	rm -f /var/local/natinst/systemsettings/ui_enable.ini
-	sed -i '/^.*embedded UI/,/^[ \t]*$/d' /etc/issue.template
 }
 
 case $1 in

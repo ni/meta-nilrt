@@ -6,7 +6,6 @@ SECTION = "base"
 
 SRC_URI = "file://README_File_Paths.txt \
 	   file://README_File_Transfer.txt \
-	   file://issue.template \
 	   file://LICENSES \
 	   file://natinst_libs.conf \
 	   file://local_libs.conf \
@@ -36,6 +35,7 @@ RDEPENDS_${PN} += "procps"
 DEPENDS += "niacctbase"
 
 do_install () {
+	install -d ${D}${sysconfdir}/
 	install -d -m 0755 -o ${LVRT_USER} -g ${LVRT_GROUP} ${D}${sysconfdir}/natinst/share/
 
 	# boot loader/init configuration directory
@@ -44,10 +44,6 @@ do_install () {
 	# README's
 	install -m 0644 ${WORKDIR}/README_File_Paths.txt ${D}
 	install -m 0644 ${WORKDIR}/README_File_Transfer.txt ${D}
-
-	# /etc/issue
-	install -d ${D}${sysconfdir}/
-	install -m 0644 ${WORKDIR}/issue.template ${D}${sysconfdir}/
 
 	# /usr/natinst/local directories
 	install -d -m 0755 ${D}/usr/local/natinst
