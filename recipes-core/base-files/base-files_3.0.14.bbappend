@@ -7,9 +7,13 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 hostname = ""
 
 SRC_URI += "\
+	file://issue \
+	file://issue.net \
 	file://natinst-path.sh \
 	file://safemode-ps1.sh \
 "
+
+BASEFILESISSUEINSTALL = ""
 
 do_install_append () {
 	install -d ${D}/usr/local/natinst/lib/
@@ -27,6 +31,7 @@ do_install_append () {
 	install -d ${D}${sysconfdir}/profile.d/
 	install -m 0644 ${WORKDIR}/natinst-path.sh ${D}${sysconfdir}/profile.d/
 
+	install -m 644 ${WORKDIR}/issue ${D}${sysconfdir}
 	install -m 644 ${WORKDIR}/issue.net  ${D}${sysconfdir}
 
 	install ${WORKDIR}/safemode-ps1.sh ${D}${sysconfdir}/profile.d/
