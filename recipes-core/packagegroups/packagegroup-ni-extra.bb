@@ -148,7 +148,6 @@ RDEPENDS_${PN} += "\
 	python3-nose \
 	python3-numpy \
 	python3-pyiface \
-	python3 \
 	python3-setuptools \
 	rpm \
 	rsync \
