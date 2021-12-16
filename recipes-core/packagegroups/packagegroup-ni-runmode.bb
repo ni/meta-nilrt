@@ -42,7 +42,7 @@ RDEPENDS_${PN} += "\
 	libpython3 \
 	libyaml \
 	mpfr \
-	python3 \
+	python3-modules \
 	python3-aiodns \
 	python3-aiohttp \
 	python3-asn1crypto \
