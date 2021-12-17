@@ -1,5 +1,5 @@
 DESCRIPTION = "NILRT linux kernel full dynamic ticks (NO_HZ_FULL) build"
-NI_RELEASE_VERSION = "master"
+NI_RELEASE_VERSION = "21.5"
 LINUX_VERSION = "5.10"
 LINUX_KERNEL_TYPE = "nohz"
 
@@ -19,4 +19,4 @@ do_install_append() {
 
 # This is the place to overwrite the source AUTOREV from linux-nilrt.inc, if
 # the kernel recipe requires a particular ref.
-#SRCREV = ""
+SRCREV = "b064c0bd013c6590e7e87c31a4dffbd18b0b3e6e"
