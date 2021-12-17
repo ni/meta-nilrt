@@ -82,9 +82,6 @@ RDEPENDS_${PN} += "\
 	avahi \
 	bind \
 	cifs-utils \
-	dhcp-server \
-	dhcp-client \
-	dhcp-omshell \
 	libpcap \
 	ofono \
 	ppp \
