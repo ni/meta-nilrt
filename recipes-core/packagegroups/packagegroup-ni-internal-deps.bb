@@ -15,3 +15,9 @@ RDEPENDS_${PN} += "\
 RDEPENDS_${PN} += "\
 	ni-grpc-device \
 "
+
+# Required components for Veristand.
+# Engineering contact: Marcelo Izaguirre
+RDEPENDS_${PN} += "\
+	libfmi \
+"
