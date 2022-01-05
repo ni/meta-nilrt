@@ -624,7 +624,6 @@ RDEPENDS_${PN} += "\
 
 # meta-openembedded/meta-webserver
 RDEPENDS_${PN} += "\
-	apache2 \
 	fcgi \
 	spawn-fcgi \
 	hiawatha \

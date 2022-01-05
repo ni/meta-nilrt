@@ -20,9 +20,6 @@ RDEPENDS_${PN} = "\
 	${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'packagegroup-core-x11', '', d)} \
 	packagegroup-core-standalone-sdk-target \
 	packagegroup-kernel-module-build \
-	apache2 \
-	apache-websocket \
-	apr-iconv \
 	dkms \
 	ni-grpc-device \
 "
