@@ -65,6 +65,7 @@ RDEPENDS_${PN} = "\
 # meta-nilrt
 RDEPENDS_${PN} += "\
 	packagegroup-ni-debug-kernel \
+	packagegroup-ni-desirable \
 	packagegroup-ni-selinux \
 "
 
