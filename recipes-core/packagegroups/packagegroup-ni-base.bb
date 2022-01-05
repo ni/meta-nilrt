@@ -15,32 +15,16 @@ inherit packagegroup
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS ?= ""
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS ?= ""
 
-ALL_DISTRO_x64_PACKAGES = "\
-	linux-firmware-i915 \
-	dmidecode \
-	efivar \
-	fw-printenv \
-"
-
-NILRT_NXG_x64_PACKAGES = "\
-	efibootmgr \
-"
-
 NILRT_x64_PACKAGES = "\
+	dmidecode \
 	e2fsprogs \
 	e2fsprogs-mke2fs \
+	efivar \
+	fw-printenv \
+	linux-firmware-i915 \
+	nilrtdiskcrypt \
 	phc2sys \
 	pstore-save \
-	nilrtdiskcrypt \
-"
-
-NILRT_NXG_PACKAGES = "\
-	modutils-initscripts \
-	packagegroup-ni-minimal-transconf \
-	rtctl \
-	salt-minion \
-	connman \
-	${NILRT_NXG_x64_PACKAGES} \
 "
 
 NILRT_PACKAGES = "\
@@ -119,8 +103,5 @@ RDEPENDS_${PN} = "\
 	util-linux-runuser \
 	${VIRTUAL-RUNTIME_mountpoint} \
 	${MACHINE_ESSENTIAL_EXTRA_RDEPENDS} \
-	${ALL_DISTRO_x64_PACKAGES} \
-	${@oe.utils.conditional('DISTRO', 'nilrt-nxg', \
-		'${NILRT_NXG_PACKAGES}', \
-		'${NILRT_PACKAGES}', d)} \
+	${NILRT_PACKAGES} \
 "
