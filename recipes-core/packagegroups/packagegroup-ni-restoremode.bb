@@ -10,16 +10,26 @@ RDEPENDS_${PN} += "\
 	bash \
 	bzip2 \
 	coreutils \
+	dmidecode \
 	dosfstools \
 	e2fsprogs \
 	e2fsprogs-mke2fs \
 	e2fsprogs-tune2fs \
+	efibootmgr \
+	efivar \
+	eudev \
 	findutils \
+	fw-printenv \
 	gawk \
 	gptfdisk-sgdisk \
 	grep \
+	grub \
+	grub-editenv \
+	grub-efi \
 	init-restore-mode \
 	kmod \
+	ni-smbios-helper \
+	nilrtdiskcrypt \
 	parted \
 	procps \
 	sed \
@@ -28,19 +38,6 @@ RDEPENDS_${PN} += "\
 	util-linux \
 	util-linux-agetty \
 	vim-tiny \
-"
-
-RDEPENDS_${PN}_append_x64 = "\
-	dmidecode \
-	efibootmgr \
-	efivar \
-	eudev \
-	fw-printenv \
-	grub \
-	grub-editenv \
-	grub-efi \
-	ni-smbios-helper \
-	nilrtdiskcrypt \
 "
 
 RRECOMMENDS_${PN}_x64 = "\
