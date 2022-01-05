@@ -32,9 +32,3 @@ RDEPENDS_${PN}_append_x64 = "\
 	nilrt-grub-safemode \
 	${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'packagegroup-ni-xfce', '', d)} \
 "
-
-# Required components for Veristand.
-# Engineering contact: Marcelo Izaguirre
-RDEPENDS_${PN}_append = "\
-	libfmi \
-"
