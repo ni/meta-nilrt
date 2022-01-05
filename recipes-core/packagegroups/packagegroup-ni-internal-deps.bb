@@ -10,3 +10,8 @@ RDEPENDS_${PN} += "\
 	apache2 \
 	apr-iconv \
 "
+
+# ni-sync
+RDEPENDS_${PN} += "\
+	ni-grpc-device \
+"
