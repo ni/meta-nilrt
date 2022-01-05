@@ -52,21 +52,17 @@ RDEPENDS_${PN}_append_x64 = "\
 "
 
 RDEPENDS_${PN} = "\
-	packagegroup-core-sdk \
-	packagegroup-core-standalone-sdk-target \
 	packagegroup-core-basic \
 	packagegroup-core-buildessential \
-	packagegroup-core-tools-debug \
+	packagegroup-core-sdk \
 	packagegroup-core-security \
-	packagegroup-tpm2 \
+	packagegroup-core-standalone-sdk-target \
+	packagegroup-core-tools-debug \
 	packagegroup-fonts-truetype \
-"
-
-# meta-nilrt
-RDEPENDS_${PN} += "\
 	packagegroup-ni-debug-kernel \
 	packagegroup-ni-desirable \
 	packagegroup-ni-selinux \
+	packagegroup-tpm2 \
 "
 
 # kernel regression tests
