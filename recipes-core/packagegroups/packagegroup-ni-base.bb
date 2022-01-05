@@ -15,56 +15,46 @@ inherit packagegroup
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS ?= ""
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS ?= ""
 
-NILRT_x64_PACKAGES = "\
-	dmidecode \
-	e2fsprogs \
-	e2fsprogs-mke2fs \
-	efivar \
-	fw-printenv \
-	linux-firmware-i915 \
-	nilrtdiskcrypt \
-	phc2sys \
-	pstore-save \
-"
-
-NILRT_PACKAGES = "\
-	busybox-ifplugd \
-	busybox-udhcpd \
-	busybox-zcip \
-	glibc-gconv-utf-16 \
-	init-ifupdown \
-	libstdc++ \
-	logrotate \
-	niwatchdogpet \
-	openvpn \
-	pigz \
-	usbutils \
-	${@bb.utils.contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
-	${NILRT_x64_PACKAGES} \
-"
 
 RDEPENDS_${PN} = "\
+	${MACHINE_ESSENTIAL_EXTRA_RDEPENDS} \
+	${VIRTUAL-RUNTIME_mountpoint} \
+"
+
+RDEPENDS_${PN} += "\
+	${@bb.utils.contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
+	${@bb.utils.contains('MACHINE_FEATURES', 'acpi', 'busybox-acpid', '', d)} \
+	${@bb.utils.contains('MACHINE_FEATURES', 'keyboard', 'keymaps', '', d)} \
 	avahi-daemon \
 	base-files \
 	base-files-nilrt \
 	base-passwd \
-	${@bb.utils.contains('MACHINE_FEATURES', 'keyboard', 'keymaps', '', d)} \
 	busybox \
-	${@bb.utils.contains('MACHINE_FEATURES', 'acpi', 'busybox-acpid', '', d)} \
+	busybox-ifplugd \
+	busybox-udhcpd \
+	busybox-zcip \
 	coreutils-hostname \
 	crio-support-scripts \
 	cronie \
 	curl \
 	daemonize \
+	dmidecode \
 	dpkg-start-stop \
+	e2fsprogs \
+	e2fsprogs-mke2fs \
+	efivar \
 	ethtool \
+	eudev \
+	fw-printenv \
+	glibc-gconv-utf-16 \
 	gptfdisk-sgdisk \
+	init-ifupdown \
 	initscripts \
 	initscripts-nilrt \
 	iproute2 \
 	iptables \
-	kmod \
 	kernel-modules \
+	kmod \
 	libavahi-client \
 	libavahi-common \
 	libavahi-core \
@@ -72,21 +62,30 @@ RDEPENDS_${PN} = "\
 	libnss-mdns \
 	libpam \
 	librtpi \
+	libstdc++ \
+	linux-firmware-i915 \
+	logrotate \
 	lsbinitscripts \
 	netbase \
-	niacctbase \
 	ni-hw-scripts \
-	ni-utils \
 	ni-safemode-utils \
 	ni-shutdown-guard \
 	ni-systemformat \
-	openssh-sshd \
+	ni-utils \
+	niacctbase \
+	nilrtdiskcrypt \
+	niwatchdogpet \
 	openssh-scp \
 	openssh-sftp-server \
 	openssh-ssh \
+	openssh-sshd \
+	openvpn \
 	opkg \
 	opkg-keyrings \
 	os-release \
+	phc2sys \
+	pigz \
+	pstore-save \
 	run-postinsts \
 	sudo \
 	sysconfig-settings \
@@ -94,14 +93,11 @@ RDEPENDS_${PN} = "\
 	syslog-ng \
 	sysvinit \
 	tar \
-	eudev \
 	udev-extraconf \
+	usbutils \
 	util-linux-agetty \
 	util-linux-hwclock \
 	util-linux-mount \
-	util-linux-umount \
 	util-linux-runuser \
-	${VIRTUAL-RUNTIME_mountpoint} \
-	${MACHINE_ESSENTIAL_EXTRA_RDEPENDS} \
-	${NILRT_PACKAGES} \
+	util-linux-umount \
 "
