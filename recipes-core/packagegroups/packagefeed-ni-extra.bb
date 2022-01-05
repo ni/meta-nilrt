@@ -1,4 +1,4 @@
-SUMMARY = "Potentially useful, but unsupported, packages for NI Linux RT"
+SUMMARY = "Package feed of potentially useful, but unsupported, packages for NI Linux RT"
 LICENSE = "MIT"
 
 inherit packagegroup
