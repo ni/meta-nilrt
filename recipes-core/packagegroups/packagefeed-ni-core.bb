@@ -8,6 +8,7 @@ RDEPENDS_${PN} = "\
 	packagegroup-core-boot \
 	packagegroup-ni-base \
 	packagegroup-ni-crio \
+	packagegroup-ni-internal-deps \
 	packagegroup-ni-nohz-kernel \
 	packagegroup-ni-ptest \
 	packagegroup-ni-restoremode \
