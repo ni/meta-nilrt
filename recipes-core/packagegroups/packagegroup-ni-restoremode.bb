@@ -43,11 +43,6 @@ RDEPENDS_${PN}_append_x64 = "\
     nilrtdiskcrypt      \
     "
 
-RDEPENDS_${PN}_append_xilinx-zynqhf = "\
-    mtd-utils           \
-    mtd-utils-ubifs     \
-    "
-
 RRECOMMENDS_${PN}_x64 = "\
     kernel-module-tpm-tis \
     kernel-module-atkbd   \

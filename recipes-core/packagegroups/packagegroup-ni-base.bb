@@ -15,10 +15,6 @@ inherit packagegroup
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS ?= ""
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS ?= ""
 
-ALL_DISTRO_ARM_PACKAGES = "\
-	mtd-utils \
-"
-
 ALL_DISTRO_x64_PACKAGES = "\
 	linux-firmware-i915 \
 	dmidecode \
@@ -26,17 +22,8 @@ ALL_DISTRO_x64_PACKAGES = "\
 	fw-printenv \
 "
 
-NILRT_NXG_ARM_PACKAGES = "\
-	kernel-devicetree \
-"
-
 NILRT_NXG_x64_PACKAGES = "\
 	efibootmgr \
-"
-
-NILRT_ARM_PACKAGES = "\
-	jitterentropy-rngd \
-	mtd-utils-ubifs \
 "
 
 NILRT_x64_PACKAGES = "\
@@ -53,9 +40,7 @@ NILRT_NXG_PACKAGES = "\
 	rtctl \
 	salt-minion \
 	connman \
-	${@bb.utils.contains('TARGET_ARCH', 'arm', \
-		'${NILRT_NXG_ARM_PACKAGES}', \
-		'${NILRT_NXG_x64_PACKAGES}', d)} \
+	${NILRT_NXG_x64_PACKAGES} \
 "
 
 NILRT_PACKAGES = "\
@@ -71,9 +56,7 @@ NILRT_PACKAGES = "\
 	pigz \
 	usbutils \
 	${@bb.utils.contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
-	${@bb.utils.contains('TARGET_ARCH', 'arm', \
-		'${NILRT_ARM_PACKAGES}', \
-		'${NILRT_x64_PACKAGES}', d)} \
+	${NILRT_x64_PACKAGES} \
 "
 
 RDEPENDS_${PN} = "\
@@ -136,9 +119,7 @@ RDEPENDS_${PN} = "\
 	util-linux-runuser \
 	${VIRTUAL-RUNTIME_mountpoint} \
 	${MACHINE_ESSENTIAL_EXTRA_RDEPENDS} \
-	${@bb.utils.contains('TARGET_ARCH', 'arm', \
-		'${ALL_DISTRO_ARM_PACKAGES}', \
-		'${ALL_DISTRO_x64_PACKAGES}', d)} \
+	${ALL_DISTRO_x64_PACKAGES} \
 	${@oe.utils.conditional('DISTRO', 'nilrt-nxg', \
 		'${NILRT_NXG_PACKAGES}', \
 		'${NILRT_PACKAGES}', d)} \
