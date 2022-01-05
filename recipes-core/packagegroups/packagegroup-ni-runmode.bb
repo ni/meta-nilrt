@@ -127,3 +127,9 @@ RDEPENDS_${PN} += "\
 	sysconfig-settings \
 	sysconfig-settings-ui \
 "
+
+# Required components for Veristand.
+# Engineering contact: Marcelo Izaguirre
+RDEPENDS_${PN}_append = "\
+	libfmi-dev \
+"
