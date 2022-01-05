@@ -1,4 +1,4 @@
-SUMMARY = "Packagegroup that contains all of the components required for building the OE feeds"
+SUMMARY = "Package feed which contains all packages which are supported by NI."
 LICENSE = "MIT"
 
 inherit packagegroup
