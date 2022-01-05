@@ -21,7 +21,6 @@ RDEPENDS_${PN} = "\
 	packagegroup-core-standalone-sdk-target \
 	packagegroup-kernel-module-build \
 	dkms \
-	ni-grpc-device \
 "
 
 RDEPENDS_${PN}_append_x64 = "\
