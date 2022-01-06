@@ -9,6 +9,10 @@ DEPENDS = "\
            python3-markupsafe \
 "
 
+DEPENDS += "\
+           python3-distro-native \
+"
+
 PACKAGECONFIG ??= "zeromq"
 PACKAGECONFIG[zeromq] = ",,python3-pyzmq python3-pycrypto,"
 PACKAGECONFIG[tcp] = ",,python3-pycrypto"
