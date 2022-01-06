@@ -1,7 +1,7 @@
-DESCRIPTION ?= "Small initramfs for booting NILRT NXG targets"
+DESCRIPTION ?= "Initramfs for booting NI LinuxRT"
 LICENSE = "MIT"
 
-PACKAGE_INSTALL = "init-nilrt-ramfs"
+PACKAGE_INSTALL = "init-runmode-ramfs"
 
 BAD_RECOMMENDATIONS += "shared-mime-info ca-certificates"
 
