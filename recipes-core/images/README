@@ -1,17 +1,29 @@
-Basic NI Images hierarchy:
+# NI Images hierarchy
 
 Mix-ins:
-i    | nilrt-initramfs.inc
- k   | nilrt-nikms.inc
-  x  | nilrt-xfce.inc
+c     | nilrt-image-common.inc  # common rules for all NILRT images
+cn    | niconsole-image.inc     # bootable rootfs w/ package management
+  i   | nilrt-initramfs.inc     # install niconsole-initramfs as INITRAMFS
+   x  | nilrt-xfce.inc          # install pkggrp-ni-xfce and enable X11
+    p | nilrt-proprietary.inc   # define NI-proprietary packages
+
 Images:
-     | * nilrt-image-common.inc
-     |   * niconsole-image-safe.bb          [nilrt safemode]
-     |   * niconsole-image.inc
- k   |     * niconsole-image.bb             [nilrt ARM runmode w/ nikms]
-     |     * niconsole-dkms-image.bb        [nilrt ARM runmode w/ dkms]
-ikx  |     * nixfce-image.bb                [nilrt x64 runmode w/ nikms]
-i x  |     * nilrt-dkms-image.bb            [nilrt x64 runmode w/ dkms]
-     | * nilrt-recovery-image.bb            [NILRT installation/recovery ISO]
-     | * nilrt-dkms-bundle-image.bb         [image containing nilrt x64 runmode w/ dkms for rauc bundle]
-     |   * nilrt-dkms-bundle.bb             [rauc bundle to deploy nilrt x64 runmode w/ dkms]
+c     | * niconsole-initramfs.bb         # NILRT common initramfs
+cnixp | * nilrt-dkms-image.bb            # NILRT runmode initramfs
+      | * nilrt-runmode-system-image.bb  # NILRT runmode rootfs
+c   p | * nilrt-safemode-ramdisk.bb      # NILRT safemode initramfs
+      | * nilrt-safemode-image.bb        # NILRT safemode (firmware) rootfs
+      | * nilrt-recovery-image.bb        # NILRT installation/recovery ISO
+
+RAUC Bundles: *DEPRECATED; do not build*
+cn    | * nilrt-base-image.bb           # consolidated base image for RAUC-enabled targets
+c     | * nilrt-initramfs.bb            # nilrt-nxg initramfs for RAUC images
+      | * nilrt-dkms-bundle-image.bb    # image containing nilrt x64 runmode w/ dkms for RAUC bundle
+      |   * nilrt-dkms-bundle.bb        # RAUC bundle to deploy nilrt x64 runmode w/ dkms
+
+NI Kernel Module System (NIKMS): *DEPRECATED; do not build*
+k  | nilrt-nikms.inc     # create a rootfs with the module-tools and module-headers
+ s | squashfs-image.inc  # disables features that are not needed in squashfses
+----
+ s | module-tools.bb     # squashfs of kernel module tools 
+ s | module-headers.bb   # squashfs of kernel module headers
