@@ -1,7 +1,7 @@
 HOMEPAGE = "http://saltstack.com/"
 SECTION = "admin"
 LICENSE = "Apache-2.0"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=fb92f464675f6b5df90f540d60237915"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=c996f5a78d858a52c894fa3f4bec68c1"
 DEPENDS = "\
            python3-msgpack \
            python3-pyyaml \
@@ -13,7 +13,7 @@ PACKAGECONFIG ??= "zeromq"
 PACKAGECONFIG[zeromq] = ",,python3-pyzmq python3-pycrypto,"
 PACKAGECONFIG[tcp] = ",,python3-pycrypto"
 
-SRC_URI = "https://files.pythonhosted.org/packages/source/s/${PN}/${PN}-${PV}.tar.gz \
+SRC_URI = "git://github.com/ni/salt.git;protocol=https;branch=ni/master/3000.2 \
            file://set_python_location_hashbang.patch \
            file://minion \
            file://salt-minion \
@@ -27,8 +27,7 @@ SRC_URI = "https://files.pythonhosted.org/packages/source/s/${PN}/${PN}-${PV}.ta
            file://roster \
 "
 
-SRC_URI[md5sum] = "b6ec271b59554b9af7ff4005028434b5"
-SRC_URI[sha256sum] = "a0a45d22fdf6961542a419b7e09568a3118e2b019ffe7bab9dee5aeb55b56b31"
+SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/${PN}-${PV}"
 
