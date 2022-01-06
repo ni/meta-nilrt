@@ -29,7 +29,7 @@ SRC_URI = "git://github.com/ni/salt.git;protocol=https;branch=ni/master/3000.2 \
 
 SRCREV = "${AUTOREV}"
 
-S = "${WORKDIR}/${PN}-${PV}"
+S = "${WORKDIR}/git"
 
 inherit setuptools3 update-rc.d
 
