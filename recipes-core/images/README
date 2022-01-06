@@ -20,10 +20,3 @@ cn    | * nilrt-base-image.bb           # consolidated base image for RAUC-enabl
 c     | * nilrt-initramfs.bb            # nilrt-nxg initramfs for RAUC images
       | * nilrt-dkms-bundle-image.bb    # image containing nilrt x64 runmode w/ dkms for RAUC bundle
       |   * nilrt-dkms-bundle.bb        # RAUC bundle to deploy nilrt x64 runmode w/ dkms
-
-NI Kernel Module System (NIKMS): *DEPRECATED; do not build*
-k  | nilrt-nikms.inc     # create a rootfs with the module-tools and module-headers
- s | squashfs-image.inc  # disables features that are not needed in squashfses
-----
- s | module-tools.bb     # squashfs of kernel module tools 
- s | module-headers.bb   # squashfs of kernel module headers
