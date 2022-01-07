@@ -1,7 +1,7 @@
 DESCRIPTION = "NI LinuxRT Safemode RAM disk for x64 Targets"
 
-require nilrt-proprietary.inc
-require include/licenses.inc
+require includes/nilrt-proprietary.inc
+require includes/licenses.inc
 
 PV = "${DISTRO_VERSION}"
 
@@ -77,7 +77,7 @@ do_image_build_test() {
 	fi
 }
 
-require nilrt-image-common.inc
+require includes/nilrt-image-common.inc
 
 IMAGE_FSTYPES = "cpio.xz"
 IMAGE_NAME_SUFFIX = ""
