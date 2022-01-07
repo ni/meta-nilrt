@@ -14,11 +14,11 @@ PV = "${DISTRO_VERSION}"
 
 CDFGUID = "4C0005F7-54D1-492B-A7E7-C1E58BD9B972"
 
-RAMDISK_IMAGE = "nilrt-dkms-image"
-do_rootfs[depends] += "${RAMDISK_IMAGE}:do_image_complete"
+ROOTFS_IMAGE = "nilrt-runmode-image"
+do_rootfs[depends] += "${ROOTFS_IMAGE}:do_image_complete"
 
 bootimg_fixup() {
-	install -m 0644 "${DEPLOY_DIR_IMAGE}/${RAMDISK_IMAGE}-${MACHINE}.tar.gz" "${IMAGE_ROOTFS}/data.tar.gz"
+	install -m 0644 "${DEPLOY_DIR_IMAGE}/${ROOTFS_IMAGE}-${MACHINE}.tar.gz" "${IMAGE_ROOTFS}/data.tar.gz"
 	install -m 0755 "${THISDIR}/files/${BPN}.postinst" "${IMAGE_ROOTFS}/postinst"
 
 	# Remove everything that is not data.tar.gz nor the postinst
