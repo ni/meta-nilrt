@@ -11,11 +11,11 @@ IMAGE_INSTALL = "\
 	nilrt-grub-runmode \
 	"
 
-require niconsole-image.inc
-require nilrt-xfce.inc
-require nilrt-initramfs.inc
-require include/licenses.inc
-require nilrt-proprietary.inc
+require includes/niconsole-image.inc
+require includes/nilrt-xfce.inc
+require includes/nilrt-initramfs.inc
+require includes/licenses.inc
+require includes/nilrt-proprietary.inc
 
 IMAGE_INSTALL_NODEPS += "\
 	${NI_PROPRIETARY_COMMON_PACKAGES} \

@@ -21,8 +21,8 @@ IMAGE_INSTALL += "\
 	dkms \
 "
 
-require niconsole-image.inc
-require nilrt-initramfs.inc
-require include/licenses.inc
+require includes/niconsole-image.inc
+require includes/nilrt-initramfs.inc
+require includes/licenses.inc
 
 IMAGE_FSTYPES += "squashfs"
