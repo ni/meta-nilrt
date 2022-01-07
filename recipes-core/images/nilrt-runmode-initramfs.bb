@@ -1,4 +1,4 @@
-DESCRIPTION ?= "Small initramfs for booting older NILRT runmode targets"
+DESCRIPTION ?= "initramfs for NI LinuxRT runmode images"
 LICENSE = "MIT"
 
 PACKAGE_INSTALL = "init-runmode-ramfs"
