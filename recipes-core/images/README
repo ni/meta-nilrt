@@ -1,6 +1,6 @@
 # NI Images hierarchy
 
-includes/:
+## includes/
 c     | nilrt-image-common.inc  # common rules for all NILRT images
 cn    | niconsole-image.inc     # bootable rootfs w/ package management
   i   | nilrt-initramfs.inc     # install nilrt-runmode-initramfs as INITRAMFS
@@ -8,15 +8,16 @@ cn    | niconsole-image.inc     # bootable rootfs w/ package management
     p | nilrt-proprietary.inc   # define NI-proprietary packages
      l| licenses.inc            # tar open-source licenses
 
-Images:
+## Images
+      | * nilrt-recovery-image.bb        # NILRT installation/recovery ISO
 c     | * nilrt-runmode-initramfs.bb
 cnixpl| * nilrt-runmode-rootfs.bb
       | * nilrt-runmode-system-image.bb
 c   pl| * nilrt-safemode-ramdisk.bb      # NILRT safemode initramfs
       | * nilrt-safemode-image.bb        # NILRT safemode (firmware) rootfs
-      | * nilrt-recovery-image.bb        # NILRT installation/recovery ISO
 
-RAUC Bundles: *DEPRECATED; do not build*
+## rauc/
+*DEPRECATED; do not build*
 cn   l| * nilrt-base-image.bb           # consolidated base image for RAUC-enabled targets
 c     | * nilrt-initramfs.bb            # nilrt-nxg initramfs for RAUC images
       | * nilrt-dkms-bundle-image.bb    # image containing nilrt x64 runmode w/ dkms for RAUC bundle
