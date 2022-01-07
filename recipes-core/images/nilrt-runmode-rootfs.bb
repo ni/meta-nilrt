@@ -1,4 +1,4 @@
-DESCRIPTION = "Runmode image for ethernet-based NI Linux Real-Time targets running XFCE (DKMS)."
+DESCRIPTION = "Runmode rootfs for NI Linux Real-Time"
 
 SRC_URI += "\
 	file://bootimage.ini \

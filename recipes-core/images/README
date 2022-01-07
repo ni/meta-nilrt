@@ -8,8 +8,8 @@ cn    | niconsole-image.inc     # bootable rootfs w/ package management
     p | nilrt-proprietary.inc   # define NI-proprietary packages
 
 Images:
-cnixp | * nilrt-dkms-image.bb            # NILRT runmode rootfs
 c     | * nilrt-runmode-initramfs.bb
+cnixp | * nilrt-runmode-rootfs.bb
       | * nilrt-runmode-system-image.bb
 c   p | * nilrt-safemode-ramdisk.bb      # NILRT safemode initramfs
       | * nilrt-safemode-image.bb        # NILRT safemode (firmware) rootfs
