@@ -1,4 +1,4 @@
-INITRAMFS_IMAGE = "niconsole-initramfs"
+INITRAMFS_IMAGE = "nilrt-runmode-initramfs"
 
 do_rootfs[depends] += "${INITRAMFS_IMAGE}:do_image_complete"
 
