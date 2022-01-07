@@ -55,6 +55,37 @@ PACKAGES += "\
            ${PN}-bash-completion \
 "
 
+RDEPENDS_${PN}-minion_append += "\
+    python3-aiodns \
+    python3-aiohttp \
+    python3-avahi \
+    python3-mmap \
+    python3-pyinotify \
+    python3-pyroute2 \
+    python3-pika \
+    python3-psutil \
+"
+
+# these dependencies should NOT be added to the salt bb recipe as they're added
+# here in the bbappend for the NIFeeds ni-skyline packages. In the future these
+# will be removed and skyline packages made to depend on them directly.
+RDEPENDS_${PN}-common_append += " \
+    python3-configparser \
+    python3-dateutil \
+    python3-difflib \
+    python3-distutils \
+    python3-misc \
+    python3-multiprocessing \
+    python3-profile \
+    python3-pyiface \
+    python3-resource \
+    python3-terminal \
+    python3-unixadmin \
+    python3-xmlrpc \
+"
+
+INITSCRIPT_PARAMS_${PN}-minion = "defaults 93 7"
+
 do_install_append() {
         install -d ${D}${sysconfdir}/bash_completion.d/
         install -m 0644 ${WORKDIR}/salt-common.bash_completion ${D}${sysconfdir}/bash_completion.d/${PN}-common
