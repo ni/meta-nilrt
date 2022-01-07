@@ -13,8 +13,7 @@ DEPENDS += "\
            python3-distro-native \
 "
 
-PACKAGECONFIG ??= "zeromq"
-PACKAGECONFIG[zeromq] = ",,python3-pyzmq python3-pycrypto,"
+PACKAGECONFIG = "tcp"
 PACKAGECONFIG[tcp] = ",,python3-pycrypto"
 
 SRC_URI = "git://github.com/ni/salt.git;protocol=https;branch=ni/master/3000.2 \
