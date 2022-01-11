@@ -801,6 +801,7 @@ RDEPENDS_${PN} += "\
 # meta-security
 RDEPENDS_${PN} += "\
 	clamav \
+	ecryptfs-utils \
 	libhtp \
 	python3-pycrypto \
 	samhain-server \
