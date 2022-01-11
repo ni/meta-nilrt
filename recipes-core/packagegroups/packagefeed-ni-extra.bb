@@ -26,7 +26,6 @@ RDEPENDS_${PN}_append_x64 = "\
 		modemmanager \
 		networkmanager \
 		numlockx \
-		openjdk-7-jre \
 		openbox \
 		onboard \
 		sessreg \
