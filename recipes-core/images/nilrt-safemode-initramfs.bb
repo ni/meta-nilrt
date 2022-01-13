@@ -77,7 +77,7 @@ do_image_build_test() {
 	fi
 }
 
-require includes/nilrt-image-common.inc
+require includes/nilrt-core-image.inc
 
 IMAGE_FSTYPES = "cpio.xz"
 IMAGE_NAME_SUFFIX = ""

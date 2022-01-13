@@ -1,7 +1,7 @@
 # NI Images hierarchy
 
 ## includes/
-c     | nilrt-image-common.inc  # common rules for all NILRT images
+c     | nilrt-core-image.inc    # NI-specific modifications to the core-image class
 cb    | nilrt-image-base.inc    # bootable rootfs w/ package management
    x  | nilrt-xfce.inc          # install pkggrp-ni-xfce and enable X11
     p | nilrt-proprietary.inc   # define NI-proprietary packages

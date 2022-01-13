@@ -52,4 +52,4 @@ ROOTFS_POSTPROCESS_COMMAND += "\
     install_additional_feeds; \
 "
 
-require nilrt-image-common.inc
+require nilrt-core-image.inc
