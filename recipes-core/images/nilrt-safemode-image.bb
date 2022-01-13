@@ -20,7 +20,7 @@ IMAGE_INSTALL += "\
 	nilrt-grub-safemode \
 "
 
-RAMDISK_IMAGE = "nilrt-safemode-ramdisk"
+RAMDISK_IMAGE = "nilrt-safemode-initramfs"
 do_rootfs[depends] += "${RAMDISK_IMAGE}:do_image_complete"
 
 bootimg_fixup() {

@@ -1,4 +1,4 @@
-DESCRIPTION = "NI LinuxRT Safemode RAM disk for x64 Targets"
+DESCRIPTION = "NI LinuxRT safemode initramfs"
 
 require includes/nilrt-proprietary.inc
 require includes/licenses.inc

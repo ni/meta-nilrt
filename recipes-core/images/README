@@ -13,7 +13,7 @@ cn    | niconsole-image.inc     # bootable rootfs w/ package management
 c     | * nilrt-runmode-initramfs.bb
 cnixpl| * nilrt-runmode-rootfs.bb
       | * nilrt-runmode-system-image.bb
-c   pl| * nilrt-safemode-ramdisk.bb      # NILRT safemode initramfs
+c   pl| * nilrt-safemode-initramfs.bb
       | * nilrt-safemode-image.bb        # NILRT safemode (firmware) rootfs
 
 ## rauc/
