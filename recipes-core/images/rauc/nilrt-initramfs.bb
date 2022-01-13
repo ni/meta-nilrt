@@ -5,4 +5,4 @@ PACKAGE_INSTALL = "init-nilrt-ramfs"
 
 BAD_RECOMMENDATIONS += "shared-mime-info ca-certificates"
 
-require includes/nilrt-image-common.inc
+require includes/nilrt-core-image.inc
