@@ -14,7 +14,7 @@ PV = "${DISTRO_VERSION}"
 
 CDFGUID = "4C0005F7-54D1-492B-A7E7-C1E58BD9B972"
 
-ROOTFS_IMAGE = "nilrt-runmode-image"
+ROOTFS_IMAGE = "nilrt-runmode-rootfs"
 do_rootfs[depends] += "${ROOTFS_IMAGE}:do_image_complete"
 
 bootimg_fixup() {
