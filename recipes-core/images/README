@@ -3,7 +3,6 @@
 ## includes/
 c     | nilrt-image-common.inc  # common rules for all NILRT images
 cn    | niconsole-image.inc     # bootable rootfs w/ package management
-  i   | nilrt-initramfs.inc     # install nilrt-runmode-initramfs as INITRAMFS
    x  | nilrt-xfce.inc          # install pkggrp-ni-xfce and enable X11
     p | nilrt-proprietary.inc   # define NI-proprietary packages
      l| licenses.inc            # tar open-source licenses
@@ -11,7 +10,7 @@ cn    | niconsole-image.inc     # bootable rootfs w/ package management
 ## Images
       | * nilrt-recovery-image.bb        # NILRT installation/recovery ISO
 c     | * nilrt-runmode-initramfs.bb
-cnixpl| * nilrt-runmode-rootfs.bb
+cn xpl| * nilrt-runmode-rootfs.bb
       | * nilrt-runmode-system-image.bb
 c   pl| * nilrt-safemode-initramfs.bb
       | * nilrt-safemode-image.bb        # NILRT safemode (firmware) rootfs
