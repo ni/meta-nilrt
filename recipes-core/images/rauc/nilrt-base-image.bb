@@ -21,7 +21,7 @@ IMAGE_INSTALL += "\
 	dkms \
 "
 
-require includes/niconsole-image.inc
+require includes/nilrt-image-base.inc
 require includes/nilrt-initramfs.inc
 require includes/licenses.inc
 

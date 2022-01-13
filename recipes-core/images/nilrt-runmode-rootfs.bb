@@ -11,7 +11,7 @@ IMAGE_INSTALL = "\
 	nilrt-grub-runmode \
 	"
 
-require includes/niconsole-image.inc
+require includes/nilrt-image-base.inc
 require includes/nilrt-xfce.inc
 
 
