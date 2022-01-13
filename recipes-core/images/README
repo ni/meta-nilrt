@@ -13,7 +13,7 @@ c     | * nilrt-runmode-initramfs.bb
 cn xpl| * nilrt-runmode-rootfs.bb
       | * nilrt-runmode-system-image.bb
 c   pl| * nilrt-safemode-initramfs.bb
-      | * nilrt-safemode-image.bb        # NILRT safemode (firmware) rootfs
+      | * nilrt-safemode-rootfs.bb
 
 ## rauc/
 *DEPRECATED; do not build*
