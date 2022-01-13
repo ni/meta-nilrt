@@ -23,7 +23,7 @@ SRC_URI += "\
 	file://unicode.pf2 \
 "
 
-SAFEMODE_IMAGE = "nilrt-safemode-image"
+SAFEMODE_IMAGE = "nilrt-safemode-rootfs"
 do_rootfs[depends] += "${SAFEMODE_IMAGE}:do_image_complete"
 
 bootimg_fixup() {
