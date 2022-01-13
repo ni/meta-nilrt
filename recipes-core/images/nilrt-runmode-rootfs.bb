@@ -13,7 +13,25 @@ IMAGE_INSTALL = "\
 
 require includes/niconsole-image.inc
 require includes/nilrt-xfce.inc
-require includes/nilrt-initramfs.inc
+
+
+# INITRAMFS #
+
+INITRAMFS_IMAGE = "nilrt-runmode-initramfs"
+
+do_rootfs[depends] += "${INITRAMFS_IMAGE}:do_image_complete"
+
+install_initramfs() {
+	install -d ${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}
+	install -m 0644 ${DEPLOY_DIR_IMAGE}/${INITRAMFS_IMAGE}-${MACHINE}.cpio.gz \
+		${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/runmode_initramfs.gz
+}
+
+ROOTFS_POSTPROCESS_COMMAND += "install_initramfs;"
+
+
+# ROOTFS #
+
 require includes/licenses.inc
 require includes/nilrt-proprietary.inc
 
