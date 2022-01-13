@@ -5,6 +5,19 @@ LOG_DIR="/var/local/ptest-results/kernel-test-nohz"
 # redirect all stderr to stdout to maintain ordering of output
 exec 2>&1
 
+# default test parameters based on PXIe-8880 numbers
+MAX_LATENCY=6000
+P3NINES=250
+P4NINES=3000
+
+# load device specific test parameters
+DEVICE=$(fw_printenv DeviceDesc | sed 's/DeviceDesc=//')
+if source "./$DEVICE.conf" 2>/dev/null ; then
+    echo "test parameters loaded from $DEVICE.conf"
+else
+    echo "warning: $DEVICE.conf not found; using default test parameters"
+fi
+
 # disable tracing
 echo 0 > "/sys/kernel/debug/tracing/tracing_on"
 
@@ -23,7 +36,7 @@ mkdir -p "$LOG_DIR"
 hackbench -l 36000000 -g 10 > /dev/null &
 
 # run test
-./nohz_test --max=6000 --p3nines=250 --p4nines=3000 --duration=24h | tee "$LOG_DIR/output-`date +'%Y_%m_%d-%H_%M_%S'`.log"
+./nohz_test --max="$MAX_LATENCY" --p3nines="$P3NINES" --p4nines="$P4NINES" --duration=24h | tee "$LOG_DIR/output-`date +'%Y_%m_%d-%H_%M_%S'`.log"
 RESULT=${PIPESTATUS[0]}
 
 # cleanup
