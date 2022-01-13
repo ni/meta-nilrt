@@ -17,6 +17,8 @@ ALLOW_EMPTY_${PN} = "1"
 SRC_URI += "\
     file://run-ptest \
     file://nohz_test.c \
+    file://PXIe-8880.conf \
+    file://PXIe-8881.conf \
 "
 
 LDFLAGS += "-lpthread"
@@ -29,6 +31,8 @@ do_compile_ptest_append() {
 do_install_ptest_append() {
     install -m 0755 ${S}/run-ptest ${D}${PTEST_PATH}
     install -m 0755 ${S}/nohz_test ${D}${PTEST_PATH}
+    install -m 0644 ${S}/PXIe-8880.conf ${D}${PTEST_PATH}
+    install -m 0644 ${S}/PXIe-8881.conf ${D}${PTEST_PATH}
 }
 
 pkg_postinst_ontarget_${PN}-ptest_append() {
