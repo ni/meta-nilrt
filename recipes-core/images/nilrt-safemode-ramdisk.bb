@@ -57,13 +57,6 @@ bootimg_fixup () {
 	# Add safemode marker
 	echo "safemode" > "${IMAGE_ROOTFS}/etc/natinst/safemode"
 
-	# TODO: dumb hack! the postinst scripts should be fixed at their source!
-	#       In the case of these two, the initscripts for the webserver
-	#       already run it via a capsh wrapper in safemode. They really
-	#       should be reworked to do that all the time.
-	sed -i 's/setcap /# setcap /;' "${IMAGE_ROOTFS}/var/lib/opkg/info/ni-system-webserver.postinst"
-	sed -i 's/setcap /# setcap /;' "${IMAGE_ROOTFS}/var/lib/opkg/info/ni-webservices-webserver-support.postinst"
-
 	# Override NISystemWebServer config with one for safemode
 	rm -f ${IMAGE_ROOTFS}/etc/natinst/appweb/NISystemWebServer.conf
 	install -m 0644 "${THISDIR}/files/NISystemWebServer.conf.safemode" \
