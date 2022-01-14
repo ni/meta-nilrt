@@ -1,44 +1,41 @@
 DESCRIPTION = "NI LinuxRT safemode initramfs"
 
+require includes/nilrt-image-base.inc
+
+# It is inappropriate for an initramfs to install external opkg feed confs.
+ROOTFS_POSTPROCESS_COMMAND_remove = "install_additional_feeds;"
+
+
 require includes/nilrt-proprietary.inc
 require includes/licenses.inc
 
+
 PV = "${DISTRO_VERSION}"
 
-# useradd and groupadd need to be on sysroot
-do_rootfs[depends] += "shadow-native:do_populate_sysroot"
-
-# kernel recipe requires depmodwrapper to populate modules.dep
-do_rootfs[depends] += "depmodwrapper-cross:do_populate_sysroot"
-
-IMAGE_FEATURES += "\
-	package-management \
-"
 
 IMAGE_INSTALL += "\
-	packagegroup-ni-base \
-	packagegroup-ni-tzdata \
-	packagegroup-ni-wifi \
 	packagegroup-ni-safemode \
+	packagegroup-ni-wifi \
 "
 
 IMAGE_INSTALL_NODEPS += "\
-	${NI_PROPRIETARY_SAFEMODE_PACKAGES} \
 	${NI_PROPRIETARY_COMMON_PACKAGES} \
+	${NI_PROPRIETARY_SAFEMODE_PACKAGES} \
 "
 
-BAD_RECOMMENDATIONS += "shared-mime-info"
+BAD_RECOMMENDATIONS_append_pn-${PN} += "shared-mime-info"
+
+# Do not allow python to be installed into safemode ramdisk due to size
+PACKAGE_EXCLUDE += "python-core python3-core"
+
+PACKAGE_EXCLUDE += "rauc-mark-good"
+
 
 # Radeon firmware is huge and is not included in the safemode.
 # Blacklist the kernel module that gets automatically included.
 remove_radeon () {
 	echo "blacklist radeon" > "${IMAGE_ROOTFS}/etc/modprobe.d/blacklist_radeon.conf"
 }
-
-# Do not allow python to be installed into safemode ramdisk due to size
-PACKAGE_EXCLUDE += "python-core python3-core"
-
-PACKAGE_EXCLUDE += "rauc-mark-good"
 
 bootimg_fixup () {
 	# Empty out /boot. The kernel and grub are added to the exterior
@@ -68,7 +65,6 @@ bootimg_fixup () {
 
 IMAGE_PREPROCESS_COMMAND += " remove_radeon; bootimg_fixup; "
 
-addtask image_build_test before do_rootfs
 
 # We always want package-management support in this image, fail if not enabled
 do_image_build_test() {
@@ -77,7 +73,8 @@ do_image_build_test() {
 	fi
 }
 
-require includes/nilrt-core-image.inc
+addtask image_build_test before do_rootfs
+
 
 IMAGE_FSTYPES = "cpio.xz"
 IMAGE_NAME_SUFFIX = ""

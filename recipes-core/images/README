@@ -12,7 +12,7 @@ c     | * nilrt-recovery-image.bb        # NILRT installation/recovery ISO
 c     | * nilrt-runmode-initramfs.bb
 cb xpl| * nilrt-runmode-rootfs.bb
       | * nilrt-runmode-system-image.bb
-c   pl| * nilrt-safemode-initramfs.bb
+cb  pl| * nilrt-safemode-initramfs.bb
       | * nilrt-safemode-rootfs.bb
 
 ## rauc/
