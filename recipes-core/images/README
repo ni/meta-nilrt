@@ -8,7 +8,7 @@ cb    | nilrt-image-base.inc    # bootable rootfs w/ package management
      l| licenses.inc            # tar open-source licenses
 
 ## Images
-      | * nilrt-recovery-image.bb        # NILRT installation/recovery ISO
+c     | * nilrt-recovery-image.bb        # NILRT installation/recovery ISO
 c     | * nilrt-runmode-initramfs.bb
 cb xpl| * nilrt-runmode-rootfs.bb
       | * nilrt-runmode-system-image.bb
