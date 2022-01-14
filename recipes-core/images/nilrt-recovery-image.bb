@@ -1,6 +1,6 @@
 DESCRIPTION = "Tiny initramfs image intended to run recovery and install operations for NILinux RT"
 
-IMAGE_FSTYPES = "${INITRAMFS_FSTYPES} tar.bz2 wic"
+IMAGE_FSTYPES = "wic"
 
 PACKAGE_INSTALL = "${ROOTFS_BOOTSTRAP_INSTALL} \
                    packagegroup-ni-restoremode \
@@ -48,4 +48,4 @@ ROOTFS_POSTPROCESS_COMMAND += "symlink_iso;"
 
 IMAGE_PREPROCESS_COMMAND += " bootimg_fixup; "
 
-inherit core-image
+require includes/nilrt-core-image.inc
