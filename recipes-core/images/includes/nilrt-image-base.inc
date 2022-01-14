@@ -26,14 +26,6 @@ do_image_build_test() {
 	fi
 }
 
-install_dtbs() {
-	if [ "${ARCH}" = "arm" ]; then
-		for f in ${DEPLOY_DIR_IMAGE}/ni-*.dtb; do
-			install -m 0644 "$f" "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/$(basename $f)"
-		done
-	fi
-}
-
 python install_additional_feeds() {
     for source_name, uri in d.getVarFlags('PACKAGE_FEED_URIS_ADDITIONAL').items():
         source_conf = os.path.join(d.getVar('IMAGE_ROOTFS'), 'etc', 'opkg', ('%s.conf' % source_name))
@@ -48,7 +40,6 @@ python install_additional_feeds() {
 }
 
 ROOTFS_POSTPROCESS_COMMAND += "\
-    ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', '', 'install_dtbs;', d)} \
     install_additional_feeds; \
 "
 
