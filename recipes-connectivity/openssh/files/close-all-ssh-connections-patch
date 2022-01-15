@@ -1,0 +1,10 @@
+--- a/init
++++ b/init
+@@ -53,6 +53,7 @@
+   stop)
+ 	echo -n "Stopping OpenBSD Secure Shell server: sshd"
+ 	start-stop-daemon -K -p $PIDFILE -x /usr/sbin/sshd
++	$(readlink -q $0 > /dev/null 2>&1) && killall sshd
+ 	echo "."
+ 	;;
+ 
