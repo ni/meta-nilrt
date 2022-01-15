@@ -1,5 +1,20 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
+SRC_URI += " \
+	file://close-all-ssh-connections-patch \
+"
+
+addtask patch_oe_source after do_patch before do_configure
+
+do_patch_oe_source () {
+    # Patch sysvinit file to close all open ssh connections on shutdown or reboot
+    #
+    # The typical do_patch logic will not work for this file since the do_patch logic is designed to
+    # patch the source code for openssh, and the file being patched is part of the recipe that builds
+    # the openssh IPK.
+    patch -u ${WORKDIR}/init -i ${WORKDIR}/close-all-ssh-connections-patch
+}
+
 do_install_append () {
     # this logic is only for nilrt and nilrt-xfce, not for nilrt-nxg
     if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'false', 'true', d)}; then
