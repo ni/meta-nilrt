@@ -9,10 +9,10 @@ c     = nilrt-core-image.inc       # NI-specific modifications to the core-image
      l= licenses.inc               # tar open-source licenses
 
 ## Images
-c     | nilrt-recovery-image.bb        # NILRT installation/recovery ISO
+c     | nilrt-recovery-image.bb        # NILRT installation/recovery media ISO
 c i   | nilrt-runmode-initramfs.bb
 cb xpl| nilrt-runmode-rootfs.bb
-      | nilrt-runmode-system-image.bb
+      | nilrt-runmode-system-image.bb  # NILRT base system image archive and CDF
 cbi pl| nilrt-safemode-initramfs.bb
       | nilrt-safemode-rootfs.bb
 
