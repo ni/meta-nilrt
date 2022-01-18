@@ -1,18 +1,19 @@
 # NI Images hierarchy
 
 ## includes/
-c     | nilrt-core-image.inc    # NI-specific modifications to the core-image class
-cb    | nilrt-image-base.inc    # bootable rootfs w/ package management
-   x  | nilrt-xfce.inc          # install pkggrp-ni-xfce and enable X11
-    p | nilrt-proprietary.inc   # define NI-proprietary packages
-     l| licenses.inc            # tar open-source licenses
+c     | nilrt-core-image.inc       # NI-specific modifications to the core-image class
+cb    | nilrt-image-base.inc       # bootable rootfs w/ package management
+  i   | nilrt-image-initramfs.inc  # rules common to initramfs images
+   x  | nilrt-xfce.inc             # install pkggrp-ni-xfce and enable X11
+    p | nilrt-proprietary.inc      # define NI-proprietary packages
+     l| licenses.inc               # tar open-source licenses
 
 ## Images
 c     | * nilrt-recovery-image.bb        # NILRT installation/recovery ISO
-c     | * nilrt-runmode-initramfs.bb
+c i   | * nilrt-runmode-initramfs.bb
 cb xpl| * nilrt-runmode-rootfs.bb
       | * nilrt-runmode-system-image.bb
-cb  pl| * nilrt-safemode-initramfs.bb
+cbi pl| * nilrt-safemode-initramfs.bb
       | * nilrt-safemode-rootfs.bb
 
 ## rauc/
