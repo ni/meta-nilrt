@@ -5,6 +5,7 @@ require includes/nilrt-image-base.inc
 # It is inappropriate for an initramfs to install external opkg feed confs.
 ROOTFS_POSTPROCESS_COMMAND_remove = "install_additional_feeds;"
 
+require includes/nilrt-image-initramfs.inc
 
 require includes/nilrt-proprietary.inc
 require includes/licenses.inc
@@ -22,8 +23,6 @@ IMAGE_INSTALL_NODEPS += "\
 	${NI_PROPRIETARY_COMMON_PACKAGES} \
 	${NI_PROPRIETARY_SAFEMODE_PACKAGES} \
 "
-
-BAD_RECOMMENDATIONS_append_pn-${PN} += "shared-mime-info"
 
 # Do not allow python to be installed into safemode ramdisk due to size
 PACKAGE_EXCLUDE += "python-core python3-core"
