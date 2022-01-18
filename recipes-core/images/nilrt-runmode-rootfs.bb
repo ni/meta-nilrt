@@ -1,4 +1,4 @@
-DESCRIPTION = "Runmode rootfs for NI Linux Real-Time"
+DESCRIPTION = "NI Linux RT runmode rootfs archive"
 
 SRC_URI += "\
 	file://bootimage.ini \

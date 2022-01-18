@@ -1,4 +1,4 @@
-DESCRIPTION = "Tiny initramfs image intended to run recovery and install operations for NILinux RT"
+DESCRIPTION = "NI Linux RT installation/recovery media ISO"
 
 IMAGE_FSTYPES = "wic"
 

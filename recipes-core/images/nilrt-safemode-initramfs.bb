@@ -1,4 +1,4 @@
-DESCRIPTION = "NI LinuxRT safemode initramfs"
+DESCRIPTION = "NI Linux RT safemode initramfs"
 
 require includes/nilrt-image-base.inc
 
