@@ -9,16 +9,16 @@ c     = nilrt-core-image.inc       # NI-specific modifications to the core-image
      l= licenses.inc               # tar open-source licenses
 
 ## Images
-c     | * nilrt-recovery-image.bb        # NILRT installation/recovery ISO
-c i   | * nilrt-runmode-initramfs.bb
-cb xpl| * nilrt-runmode-rootfs.bb
-      | * nilrt-runmode-system-image.bb
-cbi pl| * nilrt-safemode-initramfs.bb
-      | * nilrt-safemode-rootfs.bb
+c     | nilrt-recovery-image.bb        # NILRT installation/recovery ISO
+c i   | nilrt-runmode-initramfs.bb
+cb xpl| nilrt-runmode-rootfs.bb
+      | nilrt-runmode-system-image.bb
+cbi pl| nilrt-safemode-initramfs.bb
+      | nilrt-safemode-rootfs.bb
 
 ## rauc/
 *DEPRECATED; do not build*
-cb   l| * nilrt-base-image.bb           # consolidated base image for RAUC-enabled targets
-c     | * nilrt-initramfs.bb            # nilrt-nxg initramfs for RAUC images
-      | * nilrt-dkms-bundle-image.bb    # image containing nilrt x64 runmode w/ dkms for RAUC bundle
-      |   * nilrt-dkms-bundle.bb        # RAUC bundle to deploy nilrt x64 runmode w/ dkms
+cb   l| nilrt-base-image.bb           # consolidated base image for RAUC-enabled targets
+      | nilrt-dkms-bundle.bb          # RAUC bundle to deploy nilrt x64 runmode w/ dkms
+      | nilrt-dkms-bundle-image.bb    # image containing nilrt x64 runmode w/ dkms for RAUC bundle
+c     | nilrt-initramfs.bb            # nilrt-nxg initramfs for RAUC images
