@@ -3,31 +3,32 @@ SECTION = "admin"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=c996f5a78d858a52c894fa3f4bec68c1"
 DEPENDS = "\
-           python3-msgpack \
-           python3-pyyaml \
-           python3-jinja2 \
-           python3-markupsafe \
+    python3-msgpack \
+    python3-pyyaml \
+    python3-jinja2 \
+    python3-markupsafe \
 "
 
 DEPENDS += "\
-           python3-distro-native \
+    python3-distro-native \
 "
 
 PACKAGECONFIG = "tcp"
 PACKAGECONFIG[tcp] = ",,python3-pycrypto"
 
-SRC_URI = "git://github.com/ni/salt.git;protocol=https;branch=ni/master/3000.2 \
-           file://set_python_location_hashbang.patch \
-           file://minion \
-           file://salt-minion \
-           file://salt-common.bash_completion \
-           file://salt-common.logrotate \
-           file://salt-api \
-           file://salt-master \
-           file://master \
-           file://salt-syndic \
-           file://cloud \
-           file://roster \
+SRC_URI = "\
+    git://github.com/ni/salt.git;protocol=https;branch=ni/master/3000.2 \
+    file://set_python_location_hashbang.patch \
+    file://minion \
+    file://salt-minion \
+    file://salt-common.bash_completion \
+    file://salt-common.logrotate \
+    file://salt-api \
+    file://salt-master \
+    file://master \
+    file://salt-syndic \
+    file://cloud \
+    file://roster \
 "
 
 SRCREV = "${AUTOREV}"
@@ -43,15 +44,15 @@ INSANE_SKIP_${PN}-tests += "staticdev"
 # Note ${PN}-tests must be before ${PN}-common in the PACKAGES variable
 # in order for ${PN}-tests to own the correct FILES.
 PACKAGES += "\
-           ${PN}-tests \
-           ${PN}-api \
-           ${PN}-cloud \
-           ${PN}-common \
-           ${PN}-master \
-           ${PN}-minion \
-           ${PN}-ssh \
-           ${PN}-syndic \
-           ${PN}-bash-completion \
+    ${PN}-tests \
+    ${PN}-api \
+    ${PN}-cloud \
+    ${PN}-common \
+    ${PN}-master \
+    ${PN}-minion \
+    ${PN}-ssh \
+    ${PN}-syndic \
+    ${PN}-bash-completion \
 "
 
 RDEPENDS_${PN}-minion_append += "\
@@ -86,24 +87,24 @@ RDEPENDS_${PN}-common_append += " \
 INITSCRIPT_PARAMS_${PN}-minion = "defaults 93 7"
 
 do_install_append() {
-        install -d ${D}${sysconfdir}/bash_completion.d/
-        install -m 0644 ${WORKDIR}/salt-common.bash_completion ${D}${sysconfdir}/bash_completion.d/${PN}-common
-        install -d ${D}${sysconfdir}/logrotate.d/
-        install -m 0644 ${WORKDIR}/salt-common.logrotate ${D}${sysconfdir}/logrotate.d/${PN}-common
-        install -d ${D}${sysconfdir}/init.d/
-        install -m 0755 ${WORKDIR}/salt-minion ${D}${sysconfdir}/init.d/${PN}-minion
-        install -m 0755 ${WORKDIR}/salt-api ${D}${sysconfdir}/init.d/${PN}-api
-        install -m 0755 ${WORKDIR}/salt-master ${D}${sysconfdir}/init.d/${PN}-master
-        install -m 0755 ${WORKDIR}/salt-syndic ${D}${sysconfdir}/init.d/${PN}-syndic
-        install -d ${D}${sysconfdir}/${PN}/
-        install -m 0644 ${WORKDIR}/minion ${D}${sysconfdir}/${PN}/minion
-        install -m 0644 ${WORKDIR}/master ${D}${sysconfdir}/${PN}/master
-        install -m 0644 ${WORKDIR}/cloud ${D}${sysconfdir}/${PN}/cloud
-        install -m 0644 ${WORKDIR}/roster ${D}${sysconfdir}/${PN}/roster
-        install -d ${D}${sysconfdir}/${PN}/cloud.conf.d ${D}${sysconfdir}/${PN}/cloud.profiles.d ${D}${sysconfdir}/${PN}/cloud.providers.d
+    install -d ${D}${sysconfdir}/bash_completion.d/
+    install -m 0644 ${WORKDIR}/salt-common.bash_completion ${D}${sysconfdir}/bash_completion.d/${PN}-common
+    install -d ${D}${sysconfdir}/logrotate.d/
+    install -m 0644 ${WORKDIR}/salt-common.logrotate ${D}${sysconfdir}/logrotate.d/${PN}-common
+    install -d ${D}${sysconfdir}/init.d/
+    install -m 0755 ${WORKDIR}/salt-minion ${D}${sysconfdir}/init.d/${PN}-minion
+    install -m 0755 ${WORKDIR}/salt-api ${D}${sysconfdir}/init.d/${PN}-api
+    install -m 0755 ${WORKDIR}/salt-master ${D}${sysconfdir}/init.d/${PN}-master
+    install -m 0755 ${WORKDIR}/salt-syndic ${D}${sysconfdir}/init.d/${PN}-syndic
+    install -d ${D}${sysconfdir}/${PN}/
+    install -m 0644 ${WORKDIR}/minion ${D}${sysconfdir}/${PN}/minion
+    install -m 0644 ${WORKDIR}/master ${D}${sysconfdir}/${PN}/master
+    install -m 0644 ${WORKDIR}/cloud ${D}${sysconfdir}/${PN}/cloud
+    install -m 0644 ${WORKDIR}/roster ${D}${sysconfdir}/${PN}/roster
+    install -d ${D}${sysconfdir}/${PN}/cloud.conf.d ${D}${sysconfdir}/${PN}/cloud.profiles.d ${D}${sysconfdir}/${PN}/cloud.providers.d
 
-        install -d ${D}${PYTHON_SITEPACKAGES_DIR}/${PN}-tests/
-        cp -r ${S}/tests/ ${D}${PYTHON_SITEPACKAGES_DIR}/${PN}-tests/
+    install -d ${D}${PYTHON_SITEPACKAGES_DIR}/${PN}-tests/
+    cp -r ${S}/tests/ ${D}${PYTHON_SITEPACKAGES_DIR}/${PN}-tests/
 }
 
 ALLOW_EMPTY_${PN} = "1"
