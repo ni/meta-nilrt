@@ -1,6 +1,6 @@
 DESCRIPTION = "NI Linux RT installation/recovery media ISO"
 
-IMAGE_FSTYPES = "wic"
+IMAGE_FSTYPES_append = " wic"
 
 PACKAGE_INSTALL = "${ROOTFS_BOOTSTRAP_INSTALL} \
                    packagegroup-ni-restoremode \
