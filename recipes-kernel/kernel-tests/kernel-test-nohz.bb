@@ -38,10 +38,10 @@ do_install_ptest_append() {
 pkg_postinst_ontarget_${PN}-ptest_append() {
     CPUS=`nproc --all`
     ISOLATED_CPU=$((CPUS - 1))
-    OTHBOOTARGS=`fw_printenv othbootargs 2>/dev/null | sed -e "s/^othbootargs=//g" | sed -e "s/isolcpus=[^ ]*[ ]*\|nohz_full=[^ ]*[ ]*//g"`
 
     if [ $ISOLATED_CPU -gt 0 ]; then
-        fw_setenv othbootargs $OTHBOOTARGS 'isolcpus='$ISOLATED_CPU' nohz_full='$ISOLATED_CPU
+        echo 'set otherbootargs="${otherbootargs} isolcpus='$ISOLATED_CPU' nohz_full='$ISOLATED_CPU' mitigations=off intel_pstate=disable intel_idle.max_cstate=0 processor.max_cstate=0 nosoftlockup mce=ignore_ce audit=0 tsc=nowatchdog"' > /boot/runmode/no-hz-full-params.cfg
+        grep -qsxF 'source /runmode/no-hz-full-params.cfg' /boot/runmode/bootimage.cfg || echo 'source /runmode/no-hz-full-params.cfg' >> /boot/runmode/bootimage.cfg
     else
         echo "[kernel-test-nohz:error] This test requires a system with 2 or more CPUs"
         exit 1
@@ -51,8 +51,8 @@ pkg_postinst_ontarget_${PN}-ptest_append() {
 }
 
 pkg_postrm_${PN}-ptest_append() {
-    OTHBOOTARGS=`fw_printenv othbootargs 2>/dev/null | sed -e "s/^othbootargs=//g" | sed -e "s/isolcpus=[^ ]*[ ]*\|nohz_full=[^ ]*[ ]*//g"`
-    fw_setenv othbootargs $OTHBOOTARGS
+    sed -i '/^source \/runmode\/no-hz-full-params\.cfg/d' /boot/runmode/bootimage.cfg
+    rm -f /boot/runmode/no-hz-full-params.cfg
     echo "[kernel-test-nohz:info] This test requires a reboot after uninstall for kernel changes to take effect"
 }
 
