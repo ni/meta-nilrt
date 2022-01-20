@@ -3,5 +3,6 @@ LICENSE = "MIT"
 
 PACKAGE_INSTALL = "init-runmode-ramfs"
 
+BAD_RECOMMENDATIONS += "shared-mime-info ca-certificates"
+
 require includes/nilrt-core-image.inc
-require includes/nilrt-image-initramfs.inc
