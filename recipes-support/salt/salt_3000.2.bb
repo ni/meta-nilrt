@@ -29,13 +29,14 @@ SRC_URI = "\
     file://salt-syndic \
     file://cloud \
     file://roster \
+    file://run-ptest \
 "
 
 SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
-inherit setuptools3 update-rc.d
+inherit setuptools3 update-rc.d ptest
 
 # Avoid a QA Warning triggered by the test package including a file
 # with a .a extension
@@ -192,8 +193,10 @@ FILES_${PN}-cloud = "${bindir}/${PN}-cloud ${sysconfdir}/${PN}/cloud.conf.d/ ${s
 
 SUMMARY_${PN}-tests = "salt stack test suite"
 DESCRIPTION_${PN}-tests ="${DESCRIPTION_COMMON} This particular package provides the salt unit test suite."
-RDEPENDS_${PN}-tests = "${PN}-common python3-pytest-salt python3-tests python3-image bash"
+RDEPENDS_${PN}-tests = "${PN}-common python3-pytest-salt python3-pyzmq python3-six python3-tests python3-image bash"
 FILES_${PN}-tests = "${PYTHON_SITEPACKAGES_DIR}/salt-tests/tests/"
+
+RDEPENDS_${PN}-ptest += "salt-tests python3-distro python3-mock"
 
 FILES_${PN}-bash-completion = "${sysconfdir}/bash_completion.d/${PN}-common"
 
