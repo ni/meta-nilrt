@@ -8,6 +8,7 @@ RDEPENDS_${PN} = "\
 	packagegroup-core-boot \
 	packagegroup-ni-base \
 	packagegroup-ni-crio \
+	packagegroup-ni-graphical \
 	packagegroup-ni-internal-deps \
 	packagegroup-ni-nohz-kernel \
 	packagegroup-ni-ptest \
@@ -17,7 +18,7 @@ RDEPENDS_${PN} = "\
 	packagegroup-ni-transconf \
 	packagegroup-ni-tzdata \
 	packagegroup-ni-wifi \
-	${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'packagegroup-core-x11', '', d)} \
+	packagegroup-core-x11 \
 	packagegroup-core-standalone-sdk-target \
 	packagegroup-kernel-module-build \
 	dkms \
@@ -30,5 +31,4 @@ RDEPENDS_${PN}_append_x64 = "\
 	rauc-mark-good \
 	nilrt-grub-runmode \
 	nilrt-grub-safemode \
-	${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'packagegroup-ni-xfce', '', d)} \
 "
