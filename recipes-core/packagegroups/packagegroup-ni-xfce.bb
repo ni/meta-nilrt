@@ -24,7 +24,6 @@ RDEPENDS_${PN} = "\
 	mousepad \
 	ttf-pt-sans \
 	xserver-xorg-udev-rules \
-	onboard \
 "
 RDEPENDS_${PN}_append_x64 += "\
 	xf86-video-ati \
