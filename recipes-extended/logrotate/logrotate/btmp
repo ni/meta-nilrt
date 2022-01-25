@@ -1,0 +1,5 @@
+# no packages own btmp -- we'll rotate it here
+/var/log/btmp {
+	create 0600 root utmp
+	rotate 1
+}
