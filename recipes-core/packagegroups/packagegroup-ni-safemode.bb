@@ -17,6 +17,7 @@ RDEPENDS_${PN} = " \
 	e2fsprogs-tune2fs \
 	ni-netcfgutil \
 	ni-systemimage \
+	sysconfig-settings-ssh \
 "
 
 RDEPENDS_${PN}_append_armv7a = " \
