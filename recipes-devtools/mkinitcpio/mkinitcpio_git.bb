@@ -8,7 +8,7 @@ BRANCH="nilrt/18.0"
 PV = "v23+git${SRCPV}"
 
 SRC_URI = "\
-	${NILRT_GIT}/mkinitcpio.git;protocol=git;branch=${BRANCH} \
+	${NILRT_GIT}/mkinitcpio.git;protocol=https;branch=${BRANCH} \
 	file://0001-Makefile-don-t-check-asciidoc-output.patch \
 	file://0002-Makefile-don-t-preserve-ownership-on-install.patch \
 "
