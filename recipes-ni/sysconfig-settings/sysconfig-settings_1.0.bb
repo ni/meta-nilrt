@@ -62,8 +62,5 @@ pkg_postinst_ontarget_${PN} () {
 	# Add the memory reservation for Base
 	/usr/local/natinst/bin/nirtcfg -s section=RtLinuxMemReserve,token=Base,value=24
 
-	# Enable ssh by default
-	/usr/local/natinst/bin/nirtcfg -s section=systemsettings,token=sshd.enabled,value=True
-
 	${sysconfdir}/natinst/niselectsystemsettings postinst
 }
