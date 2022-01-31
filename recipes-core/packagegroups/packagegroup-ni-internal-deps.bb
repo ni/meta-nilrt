@@ -3,6 +3,12 @@ LICENSE = "MIT"
 
 inherit packagegroup
 
+# NI-RFSA/G
+# Contact: Dharaniprakash Kurdimath <dharaniprakash.kurdimath@ni.com>
+RDEPENDS_${PN} += "\
+	tbb \
+"
+
 # nissl and nissleay
 # Contact: Haris Okanovic <haris.okanovic@ni.com>
 RDEPENDS_${PN} += "\
