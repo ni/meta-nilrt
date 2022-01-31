@@ -23,13 +23,18 @@ IMAGE_INSTALL_NODEPS += "\
 	${NI_PROPRIETARY_SAFEMODE_PACKAGES} \
 "
 
+COPY_LIC_DIRS_SKIP_PKGS = "\
+        ${NI_PROPRIETARY_SAFEMODE_PACKAGES} \
+        ${NI_PROPRIETARY_COMMON_PACKAGES} \
+        ni-sysdetails-webservice \
+"
+
 BAD_RECOMMENDATIONS_append_pn-${PN} += "shared-mime-info"
 
 # Do not allow python to be installed into safemode ramdisk due to size
 PACKAGE_EXCLUDE += "python-core python3-core"
 
 PACKAGE_EXCLUDE += "rauc-mark-good"
-
 
 # Radeon firmware is huge and is not included in the safemode.
 # Blacklist the kernel module that gets automatically included.

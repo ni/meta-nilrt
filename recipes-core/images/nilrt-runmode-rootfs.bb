@@ -40,6 +40,12 @@ IMAGE_INSTALL_NODEPS += "\
 	${NI_PROPRIETARY_RUNMODE_PACKAGES} \
 "
 
+COPY_LIC_DIRS_SKIP_PKGS = "\
+        ${NI_PROPRIETARY_COMMON_PACKAGES} \
+	${NI_PROPRIETARY_RUNMODE_PACKAGES} \
+        ni-sysdetails-webservice \
+"
+
 # Ensure that rauc does not end up in this image.
 PACKAGE_EXCLUDE += "rauc rauc-mark-good"
 
