@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<item>
+    <group id="startupsettings" caption="{startupsettings}" weight="100" order="0">
+        <property id="consoleout" caption="{consoleout}" sysattr="219541504" writable="true" order="200" />
+    </group>
+</item>

@@ -9,6 +9,14 @@ SRC_URI = "file://niselectsystemsettings \
            file://systemsettings/fpga_target.ini \
            file://systemsettings/rt_target.ini \
            file://systemsettings/target_common.ini \
+           file://uixml/nilinuxrt.console_enable.binding.xml \
+           file://uixml/nilinuxrt.console_enable.const.xml \
+           file://uixml/nilinuxrt.console_enable.const.de.xml \
+           file://uixml/nilinuxrt.console_enable.const.fr.xml \
+           file://uixml/nilinuxrt.console_enable.const.ja.xml \
+           file://uixml/nilinuxrt.console_enable.const.ko.xml \
+           file://uixml/nilinuxrt.console_enable.const.zh-CN.xml \
+           file://uixml/nilinuxrt.console_enable.def.xml \
            file://uixml/nilinuxrt.rtprotocol_enable.binding.xml \
            file://uixml/nilinuxrt.rtprotocol_enable.const.xml \
            file://uixml/nilinuxrt.rtprotocol_enable.const.de.xml \
@@ -39,6 +47,7 @@ FILES_${PN} = "/etc/natinst/niselectsystemsettings \
                /var/local/natinst/systemsettings/fpga_target.ini \
                /var/local/natinst/systemsettings/rt_target.ini \
                /var/local/natinst/systemsettings/target_common.ini \
+               /usr/local/natinst/share/uixml/sysconfig/nilinuxrt.console_enable.* \
                /usr/local/natinst/share/uixml/sysconfig/nilinuxrt.rtprotocol_enable.* \
                /usr/local/natinst/share/uixml/sysconfig/nilinuxrt.soft_dip_switch.* \
                /usr/local/natinst/share/uixml/sysconfig/nirio.soft_dip_switch.* \
