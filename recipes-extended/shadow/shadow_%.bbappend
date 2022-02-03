@@ -1,5 +1,7 @@
 FILESEXTRAPATHS_append := "${THISDIR}/files:"
 
+include useradd-staticids-test.inc
+
 # ${PN}-transconf
 inherit transconf-hook
 SRC_URI =+ "file://transconf-hooks/"
