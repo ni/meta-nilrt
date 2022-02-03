@@ -1,15 +1,11 @@
-mail:x:8:
-postgres:x:28:
-netdev:x:999:
-messagebus:x:998:
-avahi:x:997:
-avahi-autoipd:x:996:
-docker:x:499:
-libvirt:x:498:
-sshd:x:497:
-rwhod:x:496:
-opensaf:x:495:
-tracing:x:494:
+nogroup:x:65534:
+# NOTE: static assignments for openembedded packages should be
+#       below the 'ni' group. Range 501-999 is reserved for system
+#       groups installed at runtime (e.g. packages from NIFeeds).
+ni:x:500:
+openvpn:x:499:
+niwscerts:x:498:
+# free space
 mysql:x:399:
 datetime:x:398:
 network:x:397:
@@ -58,7 +54,17 @@ redis:x:354:
 _apt:x:353:
 coroqnetd:x:352:
 logcheck:x:351:
-ni:x:500:
-openvpn:x:499:
-niwscerts:x:498:
+netdev:x:350:
+messagebus:x:349:
+avahi:x:348:
+avahi-autoipd:x:347:
+docker:x:346:
+libvirt:x:345:
+sshd:x:344:
+rwhod:x:343:
+opensaf:x:342:
+tracing:x:341:
+# free space
 radiusd:x:301:
+postgres:x:28:
+mail:x:8:
