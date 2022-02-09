@@ -489,7 +489,6 @@ RDEPENDS_${PN} += "\
 	strongswan \
 	system-config-keyboard \
 	libtalloc \
-	tbb \
 	tree \
 	usb-modeswitch \
 	usbpath \
