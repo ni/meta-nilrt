@@ -7,7 +7,6 @@ ROOTFS_POSTPROCESS_COMMAND_remove = "install_additional_feeds;"
 
 
 require includes/nilrt-proprietary.inc
-require includes/licenses.inc
 
 
 PV = "${DISTRO_VERSION}"

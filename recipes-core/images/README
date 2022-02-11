@@ -5,19 +5,18 @@ c     = nilrt-core-image.inc       # NI-specific modifications to the core-image
  b    = nilrt-image-base.inc       # rules common to bootable NILRT images
    x  = nilrt-xfce.inc             # install pkggrp-ni-xfce and enable X11
     p = nilrt-proprietary.inc      # define NI-proprietary packages
-     l= licenses.inc               # tar open-source licenses
 
 ## Images
       | nilrt-base-system-image.bb  # NILRT base system image archive and CDF
 c     | nilrt-recovery-media.bb     # NILRT installation/recovery media ISO
 c     | nilrt-runmode-initramfs.bb
-cb xpl| nilrt-runmode-rootfs.bb
-cb  pl| nilrt-safemode-initramfs.bb
+cb xp | nilrt-runmode-rootfs.bb
+cb  p | nilrt-safemode-initramfs.bb
       | nilrt-safemode-rootfs.bb
 
 ## rauc/
 *DEPRECATED; do not build*
-cb   l| nilrt-base-image.bb           # consolidated base image for RAUC-enabled targets
+cb    | nilrt-base-image.bb           # consolidated base image for RAUC-enabled targets
       | nilrt-dkms-bundle.bb          # RAUC bundle to deploy nilrt x64 runmode w/ dkms
       | nilrt-dkms-bundle-image.bb    # image containing nilrt x64 runmode w/ dkms for RAUC bundle
 c     | nilrt-initramfs.bb            # nilrt-nxg initramfs for RAUC images
