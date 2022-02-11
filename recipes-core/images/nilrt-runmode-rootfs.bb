@@ -32,7 +32,6 @@ ROOTFS_POSTPROCESS_COMMAND += "install_initramfs;"
 
 # ROOTFS #
 
-require includes/licenses.inc
 require includes/nilrt-proprietary.inc
 
 IMAGE_INSTALL_NODEPS += "\

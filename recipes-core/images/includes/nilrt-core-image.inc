@@ -8,9 +8,6 @@ IMAGE_LINGUAS ??= ""
 
 IMAGE_PREPROCESS_COMMAND += "rootfs_update_timestamp;"
 
-# Do not install license subpackages if they are only recommended.
-BAD_RECOMMENDATIONS_append_pn-${PN} += " *-lic"
-
 # NILRT images expect the default kernel is an actual file
 # (e.g. bzImage) and not a symbolic link; fix it up here.
 ROOTFS_POSTPROCESS_COMMAND += "move_kernel;"

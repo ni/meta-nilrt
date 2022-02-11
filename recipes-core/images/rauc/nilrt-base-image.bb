@@ -23,6 +23,5 @@ IMAGE_INSTALL += "\
 
 require includes/nilrt-image-base.inc
 require includes/nilrt-initramfs.inc
-require includes/licenses.inc
 
 IMAGE_FSTYPES += "squashfs"
