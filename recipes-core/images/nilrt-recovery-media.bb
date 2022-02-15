@@ -48,4 +48,7 @@ ROOTFS_POSTPROCESS_COMMAND += "symlink_iso;"
 
 IMAGE_PREPROCESS_COMMAND += " bootimg_fixup; "
 
+# Use the same kernel binary as the image to create the wic boot device
+WIC_CREATE_EXTRA_ARGS = "-k ${IMAGE_ROOTFS}/boot/runmode"
+
 require includes/nilrt-core-image.inc
