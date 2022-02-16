@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <item>
 	<group id="startupsettings" caption="{startupsettings}" weight="100" order="0">
+		<!-- sysattr=LabVIEWProjectAccess -->
 		<property id="lvremotedevelopmentenable" caption="{lvremotedevelopmentenable}" sysattr="318767104" writable="true" order="700" />
 	</group>
 </item>
