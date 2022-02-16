@@ -7,11 +7,11 @@ LDCONFIGDEPEND = ""
 
 # NI infrastructure packages to be installed in the image
 
-NI_PROPRIETARY_SAFEMODE_PACKAGES += "\
+NI_PROPRIETARY_SAFEMODE_PACKAGES = "\
         ni-software-installation-daemon \
 "
 
-NI_PROPRIETARY_COMMON_PACKAGES += "\
+NI_PROPRIETARY_COMMON_PACKAGES = "\
         libnitargetcfg \
         ni-auth \
         ni-auth-webservice \
@@ -45,7 +45,7 @@ NI_PROPRIETARY_COMMON_PACKAGES += "\
         nissl \
 "
 
-NI_PROPRIETARY_RUNMODE_PACKAGES += "\
+NI_PROPRIETARY_RUNMODE_PACKAGES = "\
         ni-arch-gen \
         ni-sysmgmt-auth-utils \
         ni-sysmgmt-salt-minion-support \
