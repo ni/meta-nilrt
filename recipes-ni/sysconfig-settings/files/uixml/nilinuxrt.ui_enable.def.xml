@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <item>
 	<group id="startupsettings" caption="{startupsettings}" weight="100" order="0">
+		<!-- sysattr=EnableEmbeddedUI -->
 		<property id="uienable" caption="{uienable}" sysattr="335560704" writable="false" order="800" />
 	</group>
   <!-- Make Enable Embedded UI writable only when Locale is set to English because localization is not supported -->
