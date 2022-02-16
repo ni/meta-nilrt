@@ -25,14 +25,14 @@ SRC_URI = "file://niselectsystemsettings \
            file://uixml/nilinuxrt.rtapp_disable.const.ko.xml \
            file://uixml/nilinuxrt.rtapp_disable.const.zh-CN.xml \
            file://uixml/nilinuxrt.rtapp_disable.def.xml \
-           file://uixml/nirio.soft_dip_switch.binding.xml \
-           file://uixml/nirio.soft_dip_switch.const.xml \
-           file://uixml/nirio.soft_dip_switch.const.de.xml \
-           file://uixml/nirio.soft_dip_switch.const.fr.xml \
-           file://uixml/nirio.soft_dip_switch.const.ja.xml \
-           file://uixml/nirio.soft_dip_switch.const.ko.xml \
-           file://uixml/nirio.soft_dip_switch.const.zh-CN.xml \
-           file://uixml/nirio.soft_dip_switch.def.xml \
+           file://uixml/nilinuxrt.fpga_disable.binding.xml \
+           file://uixml/nilinuxrt.fpga_disable.const.xml \
+           file://uixml/nilinuxrt.fpga_disable.const.de.xml \
+           file://uixml/nilinuxrt.fpga_disable.const.fr.xml \
+           file://uixml/nilinuxrt.fpga_disable.const.ja.xml \
+           file://uixml/nilinuxrt.fpga_disable.const.ko.xml \
+           file://uixml/nilinuxrt.fpga_disable.const.zh-CN.xml \
+           file://uixml/nilinuxrt.fpga_disable.def.xml \
 "
 
 FILES_${PN} = "/etc/natinst/niselectsystemsettings \
@@ -41,7 +41,7 @@ FILES_${PN} = "/etc/natinst/niselectsystemsettings \
                /var/local/natinst/systemsettings/target_common.ini \
                /usr/local/natinst/share/uixml/sysconfig/nilinuxrt.rtprotocol_enable.* \
                /usr/local/natinst/share/uixml/sysconfig/nilinuxrt.rtapp_disable.* \
-               /usr/local/natinst/share/uixml/sysconfig/nirio.soft_dip_switch.* \
+               /usr/local/natinst/share/uixml/sysconfig/nilinuxrt.fpga_disable.* \
 "
 
 DEPENDS += "shadow-native pseudo-native niacctbase"
