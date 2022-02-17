@@ -7,6 +7,8 @@ SECTION = "base"
 uixmldir = "${datadir}/nisysapi/uixml"
 systemsettingsdir = "${localstatedir}/local/natinst/systemsettings"
 
+inherit update-rc.d
+
 # sysconfig-settings package
 SRC_URI = "file://niselectsystemsettings \
            file://systemsettings/fpga_target.ini \
@@ -74,7 +76,8 @@ PACKAGES += "${PN}-ui"
 SUMMARY_${PN}-ui = "System configuration files to enable UI"
 DESCRIPTION_${PN}-ui = "Configuration files to enable UI for the National Instruments System Configuration subsystem."
 
-SRC_URI_append = "file://systemsettings/ui_enable.ini \
+SRC_URI_append = "file://nisetembeddeduixml \
+                  file://systemsettings/ui_enable.ini \
                   file://uixml/nilinuxrt.System.binding.xml \
                   file://uixml/nilinuxrt.System.const.xml \
                   file://uixml/nilinuxrt.System.const.de.xml \
@@ -93,12 +96,17 @@ SRC_URI_append = "file://systemsettings/ui_enable.ini \
                   file://uixml/nilinuxrt.ui_enable.def.xml \
 "
 
-FILES_${PN}-ui = "${systemsettingsdir}/ui_enable.ini \
+FILES_${PN}-ui = "${sysconfdir}/init.d/nisetembeddeduixml \
+                  ${systemsettingsdir}/ui_enable.ini \
                   ${uixmldir}/nilinuxrt.System.* \
                   ${uixmldir}/nilinuxrt.ui_enable.* \
 "
 
 RDEPENDS_${PN}-ui += "sysconfig-settings niacctbase"
+
+INITSCRIPT_PACKAGES += "${PN}-ui"
+INITSCRIPT_NAME_${PN}-ui = "nisetembeddeduixml"
+INITSCRIPT_PARAMS_${PN}-ui = "start 20 5 ."
 
 do_install[depends] += "niacctbase:do_populate_sysroot"
 
@@ -116,6 +124,9 @@ do_install () {
 
 	install -d -m 0755 ${D}${sysconfdir}/natinst/
 	install -m 0755 ${S}/niselectsystemsettings ${D}${sysconfdir}/natinst/
+
+	install -d ${D}${sysconfdir}/init.d/
+	install -m 0755 ${WORKDIR}/nisetembeddeduixml ${D}${sysconfdir}/init.d
 }
 
 pkg_postinst_ontarget_${PN} () {
