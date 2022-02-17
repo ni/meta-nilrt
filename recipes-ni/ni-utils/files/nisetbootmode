@@ -35,11 +35,7 @@ else
 fi
 
 # Verify all the necessary utilities exist
-if [ "$NI_GRUB_ENABLE_BOOTFLAGS_DIR" -ge 1 ]; then
-	[ -f "$BOOTFLAGS_DIR/safemode" -o -f "$BOOTFLAGS_DIR/runtime" ] || fail "$0 error: Unable to find $BOOTFLAGS_DIR/safemode nor $BOOTFLAGS_DIR/runtime";
-else
-	[ -f "$BOOT_CONFIG_LOCATION" ] || fail "$0 error: Unable to find $BOOT_CONFIG_LOCATION";
-fi
+[ -f "$BOOT_CONFIG_LOCATION" ] || fail "$0 error: Unable to find $BOOT_CONFIG_LOCATION";
 
 case "$1" in
   start)

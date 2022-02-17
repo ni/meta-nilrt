@@ -136,7 +136,7 @@ elif [ "$ARCH" = "x86_64" ]; then
 
 	show_help()
 	{
-		>&3 echo -e "\nUsage: $0 [-hav] [-t DEVICE] [-r y|n] [-c y|n] [-b SECONDS] [-F RESTART_OPTION]\n"
+		>&3 echo -e "\nUsage: $0 [-hav] [-t DEVICE] [-c y|n] [-b SECONDS] [-F RESTART_OPTION]\n"
 		>&3 echo -e "Options\n"
 		>&3 echo "   -h : Show help."
 		>&3 echo "   -a : Ask at every error if continue. Default is N, so at the first error abort."
@@ -144,9 +144,6 @@ elif [ "$ARCH" = "x86_64" ]; then
 		>&3 echo "   -t DEVICE : DEVICE is the device name for the disk to update. (e.g /dev/sda)"
 		>&3 echo "               If DEVICE is not specificed, the first non-removable block device"
 		>&3 echo "               that is not the recovery tool is used."
-		>&3 echo "   -r y|n : Force use of initramfs style boot for runmode (compatible 2018 and later)."
-		>&3 echo "            Also enables bootflag.d directory for bootmode selection. Determined"
-		>&3 echo "            automatically when unspecified."
 		>&3 echo "   -c y|n : Initial value of the console out enable flag."
 		>&3 echo "   -b SECONDS : Initial value of bootdelay -- how long (seconds) to show boot menu."
 		>&3 echo "   -F RESTART_OPTION : Force provisioning (surpress the promts). RESTART_OPTION specifies"
@@ -490,7 +487,7 @@ early_setup()
 
 	OPTIND=1
 
-	while getopts "havt:r:c:b:F:" opt; do
+	while getopts "havt:c:b:F:" opt; do
 		case "$opt" in
 			h)  show_help
 				exit 1
@@ -501,14 +498,6 @@ early_setup()
 				>&3 echo "Verbose mode..."
 				;;
 			t)  TARGET_DISK="$OPTARG"
-				;;
-			r)  if [ "$OPTARG" == "y" -o "$OPTARG" == "Y" ]; then
-					use_ramfs=true
-				elif [ "$OPTARG" == "n" -o "$OPTARG" == "N" ]; then
-					use_ramfs=false
-				else
-					die "Must specify '-r y' or '-r n'"
-				fi
 				;;
 			c)  if [ "$OPTARG" == "y" -o "$OPTARG" == "Y" ]; then
 					grubenv_consoleoutenable="True"

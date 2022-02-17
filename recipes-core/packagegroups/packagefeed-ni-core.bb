@@ -27,7 +27,6 @@ RDEPENDS_${PN} = "\
 
 RDEPENDS_${PN}_append_x64 = "\
 	init-nilrt-ramfs \
-	init-runmode-ramfs \
 	rauc \
 	rauc-mark-good \
 	nilrt-grub-runmode \

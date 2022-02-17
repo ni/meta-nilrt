@@ -9,6 +9,12 @@
 # itself, regardless of if some other component ultimately will too.
 mkdir -p -m 755 /mnt/userfs/etc/natinst/share/uninstall
 
+# Delete the enable_initramfs variable so the target will no longer try to boot
+# using an initramfs in runmode.  This also disables the usage of an initramfs on
+# older runmodes and safemode combinations.  The enable_initramfs variable is
+# only set during provisioning, so it should remain unset for this target.
+grub-editenv /boot/grub/grubenv unset enable_initramfs
+
 # Enable ssh by default when installing SystemLink.
 /usr/local/natinst/bin/nirtcfg -s section=systemsettings,token=sshd.enabled,value=True
 

@@ -2,7 +2,6 @@
 set -e
 
 ask_at_every_error="N"
-use_ramfs=""
 grubenv_consoleoutenable=${grubenv_consoleoutenable:-""}
 grubenv_bootdelay=${grubenv_bootdelay:-""}
 
@@ -181,21 +180,6 @@ has_tpm_chip ()
 	[ -e "/dev/tpm0" ]
 }
 
-check_if_ramfs_required()
-{
-	# If use_ramfs was unspecified by user, set it based on
-	#  presence of TPM chip or Hyper-V
-	if [ -z "$use_ramfs" ]; then
-		if has_tpm_chip; then
-			use_ramfs=true
-		elif lsmod | grep hv_storvsc &> /dev/null; then
-			use_ramfs=true
-		else
-			use_ramfs=false
-		fi
-	fi
-}
-
 partitioning_disk()
 {
 	umount "$TARGET_DISK"? 2>/dev/null || true
@@ -280,18 +264,10 @@ install_safemode()
 
 install_bootmode_file()
 {
-	if $use_ramfs; then
-		# create boot flags dir and configure initially for safemode boot
-		print_info "Installing bootflags.d..."
-		mkdir $BOOTFS_MOUNTPOINT/bootflags.d
-		echo -n "" >$BOOTFS_MOUNTPOINT/bootflags.d/safemode
-		print_done
-	else
-		# write initial bootmode file
-		print_info "Installing bootmode file..."
-		echo "set BOOT_MODE=safemode" >$BOOTFS_MOUNTPOINT/bootmode
-		print_done
-	fi
+	# write initial bootmode file
+	print_info "Installing bootmode file..."
+	echo "set BOOT_MODE=safemode" >$BOOTFS_MOUNTPOINT/bootmode
+	print_done
 }
 
 install_grubenv()
@@ -319,14 +295,8 @@ install_grubenv()
 	grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "BIOSBootMode=efi"
 	grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "NITarget=$NI_TARGET"
 
-	# If target has a TPM chip or runs on Hyper-V, we need to enable an alternate boot flow
-	# involving initramfs and bootflags dir
-	if $use_ramfs; then
-		grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "enable_initramfs=1"
-	fi
-
 	# Mark aforementioned grub vars read-only
-	for varname in "BIOSBootMode" "NITarget" "enable_initramfs"; do
+	for varname in "BIOSBootMode" "NITarget" ; do
 		echo "$varname" >> "$BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars"
 	done
 
@@ -456,7 +426,6 @@ sanity_check()
 
 check_all_used_binaries
 load_kernel_modules
-check_if_ramfs_required
 
 echo "Installing safemode to: $TARGET_DISK."
 echo 6 > /proc/sys/kernel/printk
