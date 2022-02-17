@@ -4,6 +4,9 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 SECTION = "base"
 
+uixmldir = "${datadir}/nisysapi/uixml"
+systemsettingsdir = "${localstatedir}/local/natinst/systemsettings"
+
 # sysconfig-settings package
 SRC_URI = "file://niselectsystemsettings \
            file://systemsettings/fpga_target.ini \
@@ -35,13 +38,13 @@ SRC_URI = "file://niselectsystemsettings \
            file://uixml/nilinuxrt.fpga_disable.def.xml \
 "
 
-FILES_${PN} = "/etc/natinst/niselectsystemsettings \
-               /var/local/natinst/systemsettings/fpga_target.ini \
-               /var/local/natinst/systemsettings/rt_target.ini \
-               /var/local/natinst/systemsettings/target_common.ini \
-               /usr/local/natinst/share/uixml/sysconfig/nilinuxrt.rtprotocol_enable.* \
-               /usr/local/natinst/share/uixml/sysconfig/nilinuxrt.rtapp_disable.* \
-               /usr/local/natinst/share/uixml/sysconfig/nilinuxrt.fpga_disable.* \
+FILES_${PN} = "${sysconfdir}/natinst/niselectsystemsettings \
+               ${systemsettingsdir}/fpga_target.ini \
+               ${systemsettingsdir}/rt_target.ini \
+               ${systemsettingsdir}/target_common.ini \
+               ${uixmldir}/nilinuxrt.rtprotocol_enable.* \
+               ${uixmldir}/nilinuxrt.rtapp_disable.* \
+               ${uixmldir}/nilinuxrt.fpga_disable.* \
 "
 
 DEPENDS += "shadow-native pseudo-native niacctbase"
@@ -63,7 +66,7 @@ SRC_URI_append = "file://uixml/nilinuxrt.sshd_enable.binding.xml \
                   file://uixml/nilinuxrt.sshd_enable.def.xml \
 "
 
-FILES_${PN}-ssh = "/usr/local/natinst/share/uixml/sysconfig/nilinuxrt.sshd_enable.*"
+FILES_${PN}-ssh = "${uixmldir}/nilinuxrt.sshd_enable.*"
 
 # sysconfig-settings-ui package
 PACKAGES += "${PN}-ui"
@@ -90,9 +93,9 @@ SRC_URI_append = "file://systemsettings/ui_enable.ini \
                   file://uixml/nilinuxrt.ui_enable.def.xml \
 "
 
-FILES_${PN}-ui = "/var/local/natinst/systemsettings/ui_enable.ini \
-                  /usr/local/natinst/share/uixml/sysconfig/nilinuxrt.System.* \
-                  /usr/local/natinst/share/uixml/sysconfig/nilinuxrt.ui_enable.* \
+FILES_${PN}-ui = "${systemsettingsdir}/ui_enable.ini \
+                  ${uixmldir}/nilinuxrt.System.* \
+                  ${uixmldir}/nilinuxrt.ui_enable.* \
 "
 
 RDEPENDS_${PN}-ui += "sysconfig-settings niacctbase"
@@ -103,13 +106,13 @@ S = "${WORKDIR}"
 
 do_install () {
 	# UIXML config (soft dip switches, etc.)
-	install -d -m 0755 ${D}/usr/local/natinst/share/uixml/sysconfig/
-	install -m 0644 ${S}/uixml/* ${D}/usr/local/natinst/share/uixml/sysconfig/
+	install -d -m 0755 ${D}${uixmldir}/
+	install -m 0644 ${S}/uixml/* ${D}${uixmldir}/
 
 	# Common interface for system settings (soft dip switches, etc.)
-	install -d -m 0775 ${D}${localstatedir}/local/natinst/systemsettings/
-	chown ${LVRT_USER}:${LVRT_GROUP} ${D}${localstatedir}/local/natinst/systemsettings/
-	install -m 0644 ${S}/systemsettings/* ${D}${localstatedir}/local/natinst/systemsettings/
+	install -d -m 0775 ${D}${systemsettingsdir}/
+	chown ${LVRT_USER}:${LVRT_GROUP} ${D}${systemsettingsdir}/
+	install -m 0644 ${S}/systemsettings/* ${D}${systemsettingsdir}/
 
 	install -d -m 0755 ${D}${sysconfdir}/natinst/
 	install -m 0755 ${S}/niselectsystemsettings ${D}${sysconfdir}/natinst/
