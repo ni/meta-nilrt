@@ -93,9 +93,6 @@ if ! /usr/sbin/chroot /mnt/userfs /sbin/depmod -a "${RUNMODE_KERNEL_VERSION}"; t
 	exit 1
 fi
 
-# select the system settings for this target (only on install for persisted files)
-/usr/sbin/chroot /mnt/userfs /etc/natinst/niselectsystemsettings postinst
-
 # Hack for bug 975962, put /boot back to a+rw
 if [ "$arch" = "armv7l" ]; then
 	chmod 0777 /boot
