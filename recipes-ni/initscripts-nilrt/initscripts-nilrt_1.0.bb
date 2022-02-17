@@ -22,7 +22,6 @@ SRC_URI = "\
 	file://nidisablecstates \
 	file://nipopulateconfigdir \
 	file://nisetcommitratio \
-	file://nisetembeddeduixml \
 	file://nisetreboottype \
 	file://nisetupkernelconfig \
 	file://populateconfig \
@@ -53,7 +52,6 @@ do_install () {
 
 	install -m 0755 ${WORKDIR}/mountconfig           ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/mountdebugfs          ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nisetembeddeduixml    ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nicleanstalelinks     ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nicreatecpusets       ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nicreatecpuacctgroups ${D}${sysconfdir}/init.d
@@ -72,7 +70,6 @@ do_install () {
 	update-rc.d -r ${D} nicreatecpuacctgroups start 2  4 5 .
 	update-rc.d -r ${D} nisetupkernelconfig   start 3  5 .
 	update-rc.d -r ${D} nicleanstalelinks     start 5  S .
-	update-rc.d -r ${D} nisetembeddeduixml    start 20 5 .
 	update-rc.d -r ${D} nipopulateconfigdir   start 36 S .
 	update-rc.d -r ${D} mountconfig           start 36 S .
 	update-rc.d -r ${D} populateconfig        start 36 S . start 30 0 6 .
