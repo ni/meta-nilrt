@@ -1,60 +1,23 @@
 arch=`uname -m`
 
-# Newer grub.cfg may look for the existence of a boot mode file
-#  under BOOTFLAGS_DIR instead of BOOT_CONFIG_LOCATION
-#  when enable_initramfs is set.
-NI_GRUB_ENABLE_BOOTFLAGS_DIR="`/sbin/fw_printenv enable_initramfs 2>/dev/null | cut -d'=' -f2`" || true
-[ -n "$NI_GRUB_ENABLE_BOOTFLAGS_DIR" ] || NI_GRUB_ENABLE_BOOTFLAGS_DIR=0
+BOOT_CONFIG_LOCATION="/boot/bootmode"
 
-if [ "$NI_GRUB_ENABLE_BOOTFLAGS_DIR" -ge 1 ]; then
-   BOOTFLAGS_DIR="/boot/bootflags.d"
+write_config() {
+   echo "set BOOT_MODE=$1" > $BOOT_CONFIG_LOCATION
+}
 
-   write_config() {
-      if [ "$1" == safemode ]; then
-         echo -n "" >"$BOOTFLAGS_DIR/safemode"
-         rm -f "$BOOTFLAGS_DIR/runtime"
-      else
-         echo -n "" >"$BOOTFLAGS_DIR/runtime"
-         rm -f "$BOOTFLAGS_DIR/safemode"
-      fi
-   }
+read_config() {
+   read tmp_cfg < $BOOT_CONFIG_LOCATION
+   echo $tmp_cfg | awk -F '=' '{print $2}';
+}
 
-   read_config() {
-      if [ -f "$BOOTFLAGS_DIR/safemode" ]; then
-         echo "safemode"
-      else
-         echo "runtime"
-      fi
-   }
-
-   # set default on first run of this script
-   if [ ! -f "$BOOTFLAGS_DIR/safemode" ] && [ ! -f "$BOOTFLAGS_DIR/runtime" ]; then
-      if [ -f "/etc/natinst/safemode" ]; then
-         write_config safemode
-      else
-         write_config runtime
-      fi
-   fi
-else
-   BOOT_CONFIG_LOCATION="/boot/bootmode"
-
-   write_config() {
-      echo "set BOOT_MODE=$1" > $BOOT_CONFIG_LOCATION
-   }
-
-   read_config() {
-      read tmp_cfg < $BOOT_CONFIG_LOCATION
-      echo $tmp_cfg | awk -F '=' '{print $2}';
-   }
-
-   # if the bootmode file doesn't exist, this is the first run of this
-   # script for this boot, so set it to the current mode
-   if [ ! -f "$BOOT_CONFIG_LOCATION" ]; then
-      if [ -f "/etc/natinst/safemode" ]; then
-         write_config safemode
-      else
-         write_config runtime
-      fi
+# if the bootmode file doesn't exist, this is the first run of this
+# script for this boot, so set it to the current mode
+if [ ! -f "$BOOT_CONFIG_LOCATION" ]; then
+   if [ -f "/etc/natinst/safemode" ]; then
+      write_config safemode
+   else
+      write_config runtime
    fi
 fi
 

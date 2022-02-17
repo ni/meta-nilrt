@@ -9,7 +9,6 @@ c     = nilrt-core-image.inc       # NI-specific modifications to the core-image
 ## Images
       | nilrt-base-system-image.bb  # NILRT base system image archive and CDF
 c     | nilrt-recovery-media.bb     # NILRT installation/recovery media ISO
-c     | nilrt-runmode-initramfs.bb
 cb xp | nilrt-runmode-rootfs.bb
 cb  p | nilrt-safemode-initramfs.bb
       | nilrt-safemode-rootfs.bb

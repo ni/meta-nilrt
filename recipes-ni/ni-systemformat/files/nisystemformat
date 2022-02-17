@@ -648,15 +648,6 @@ if [ "$ENCRYPT" = yes ]; then
 		die_with_usage NO_TPM_HARDWARE \
 			"The TPM chip on this machine could not be detected (does it have one?)"
 	fi
-
-	# Sanity check, unlikely to hit
-	# Encrypted disk won't boot unless system is provisioned with initramfs enabled
-	enable_initramfs="`/sbin/fw_printenv enable_initramfs 2>/dev/null | cut -d= -f2`" || true
-	[ -n "$enable_initramfs" ] || enable_initramfs="0"
-	if [ "$enable_initramfs" -lt 1 ]; then
-		die_with_usage UNKNOWN_ERROR \
-			"System must be provisioned with initramfs enabled"
-	fi
 fi
 
 if [ "$ENCRYPT_BACKUP" = yes ]; then
