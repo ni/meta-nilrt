@@ -130,8 +130,5 @@ do_install () {
 }
 
 pkg_postinst_ontarget_${PN} () {
-	# Add the memory reservation for Base
-	/usr/local/natinst/bin/nirtcfg -s section=RtLinuxMemReserve,token=Base,value=24
-
 	${sysconfdir}/natinst/niselectsystemsettings postinst
 }
