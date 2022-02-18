@@ -10,8 +10,7 @@ systemsettingsdir = "${localstatedir}/local/natinst/systemsettings"
 inherit update-rc.d
 
 # sysconfig-settings package
-SRC_URI = "file://niselectsystemsettings \
-           file://systemsettings/fpga_target.ini \
+SRC_URI = "file://systemsettings/fpga_target.ini \
            file://systemsettings/rt_target.ini \
            file://systemsettings/target_common.ini \
            file://uixml/nilinuxrt.rtprotocol_enable.binding.xml \
@@ -40,8 +39,7 @@ SRC_URI = "file://niselectsystemsettings \
            file://uixml/nilinuxrt.fpga_disable.def.xml \
 "
 
-FILES_${PN} = "${sysconfdir}/natinst/niselectsystemsettings \
-               ${systemsettingsdir}/fpga_target.ini \
+FILES_${PN} = "${systemsettingsdir}/fpga_target.ini \
                ${systemsettingsdir}/rt_target.ini \
                ${systemsettingsdir}/target_common.ini \
                ${uixmldir}/nilinuxrt.rtprotocol_enable.* \
@@ -50,7 +48,7 @@ FILES_${PN} = "${sysconfdir}/natinst/niselectsystemsettings \
 "
 
 DEPENDS += "shadow-native pseudo-native niacctbase"
-RDEPENDS_${PN} += "niacctbase bash"
+RDEPENDS_${PN} += "niacctbase bash fw-printenv"
 
 # sysconfig-settings-ssh package
 PACKAGES += "${PN}-ssh"
@@ -122,13 +120,18 @@ do_install () {
 	chown ${LVRT_USER}:${LVRT_GROUP} ${D}${systemsettingsdir}/
 	install -m 0644 ${S}/systemsettings/* ${D}${systemsettingsdir}/
 
-	install -d -m 0755 ${D}${sysconfdir}/natinst/
-	install -m 0755 ${S}/niselectsystemsettings ${D}${sysconfdir}/natinst/
-
 	install -d ${D}${sysconfdir}/init.d/
 	install -m 0755 ${WORKDIR}/nisetembeddeduixml ${D}${sysconfdir}/init.d
 }
 
 pkg_postinst_ontarget_${PN} () {
-	${sysconfdir}/natinst/niselectsystemsettings postinst
+	TARGET_CLASS=$(fw_printenv -n TargetClass 2>&1)
+
+	echo "" > ${systemsettingsdir}/rt_target.ini
+
+	# cDAQ targets should not have FPGA startup settings, and CVS
+	# targets do not support FPGA autoload.
+	if [ "$TARGET_CLASS" = "cDAQ" -o "$TARGET_CLASS" = "CVS" ]; then
+		echo "" > ${systemsettingsdir}/fpga_target.ini
+	fi
 }
