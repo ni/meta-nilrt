@@ -1,14 +1,20 @@
 #!/bin/sh
 
+SETTINGSDATADIR=/usr/share/sysconfig-settings/systemsettings
+SYSTEMSETTINGSDIR=/var/local/natinst/systemsettings
+
 system_has_display_driver() {
 	[ -d /sys/class/drm -o -e /sys/class/graphics/fb0 ]
 }
 
 check_and_remove() {
 	if system_has_display_driver; then
+		if [ ! -e ${SYSTEMSETTINGSDIR}/ui_enable.ini ]; then
+			ln -sf ${SETTINGSDATADIR}/ui_enable.ini ${SYSTEMSETTINGSDIR}/ui_enable.ini
+		fi
 		return
 	fi
-	rm -f /var/local/natinst/systemsettings/ui_enable.ini
+	rm -f ${SYSTEMSETTINGSDIR}/ui_enable.ini
 }
 
 case $1 in
