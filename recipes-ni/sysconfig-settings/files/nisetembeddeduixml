@@ -1,7 +1,7 @@
 #!/bin/sh
 
 system_has_display_driver() {
-	[ -d /sys/class/drm ]
+	[ -d /sys/class/drm -o -e /sys/class/graphics/fb0 ]
 }
 
 check_and_remove() {
