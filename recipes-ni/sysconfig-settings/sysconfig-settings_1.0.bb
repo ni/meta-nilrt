@@ -5,6 +5,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 SECTION = "base"
 
 uixmldir = "${datadir}/nisysapi/uixml"
+settingsdatadir = "${datadir}/${BPN}/systemsettings"
 systemsettingsdir = "${localstatedir}/local/natinst/systemsettings"
 
 inherit update-rc.d
@@ -39,9 +40,9 @@ SRC_URI = "file://systemsettings/fpga_target.ini \
            file://uixml/nilinuxrt.fpga_disable.def.xml \
 "
 
-FILES_${PN} = "${systemsettingsdir}/fpga_target.ini \
-               ${systemsettingsdir}/rt_target.ini \
-               ${systemsettingsdir}/target_common.ini \
+FILES_${PN} = "${settingsdatadir}/fpga_target.ini \
+               ${settingsdatadir}/rt_target.ini \
+               ${settingsdatadir}/target_common.ini \
                ${uixmldir}/nilinuxrt.rtprotocol_enable.* \
                ${uixmldir}/nilinuxrt.rtapp_disable.* \
                ${uixmldir}/nilinuxrt.fpga_disable.* \
@@ -95,7 +96,7 @@ SRC_URI_append = "file://nisetembeddeduixml \
 "
 
 FILES_${PN}-ui = "${sysconfdir}/init.d/nisetembeddeduixml \
-                  ${systemsettingsdir}/ui_enable.ini \
+                  ${settingsdatadir}/ui_enable.ini \
                   ${uixmldir}/nilinuxrt.System.* \
                   ${uixmldir}/nilinuxrt.ui_enable.* \
 "
@@ -105,6 +106,10 @@ RDEPENDS_${PN}-ui += "sysconfig-settings niacctbase"
 INITSCRIPT_PACKAGES += "${PN}-ui"
 INITSCRIPT_NAME_${PN}-ui = "nisetembeddeduixml"
 INITSCRIPT_PARAMS_${PN}-ui = "start 20 5 ."
+
+pkg_prerm_ontarget_${PN}-ui () {
+	rm -f ${systemsettingsdir}/ui_enable.ini
+}
 
 do_install[depends] += "niacctbase:do_populate_sysroot"
 
@@ -116,9 +121,9 @@ do_install () {
 	install -m 0644 ${S}/uixml/* ${D}${uixmldir}/
 
 	# Common interface for system settings (soft dip switches, etc.)
-	install -d -m 0775 ${D}${systemsettingsdir}/
-	chown ${LVRT_USER}:${LVRT_GROUP} ${D}${systemsettingsdir}/
-	install -m 0644 ${S}/systemsettings/* ${D}${systemsettingsdir}/
+	install -d -m 0775 ${D}${settingsdatadir}/
+	chown ${LVRT_USER}:${LVRT_GROUP} ${D}${settingsdatadir}/
+	install -m 0644 ${S}/systemsettings/* ${D}${settingsdatadir}/
 
 	install -d ${D}${sysconfdir}/init.d/
 	install -m 0755 ${WORKDIR}/nisetembeddeduixml ${D}${sysconfdir}/init.d
@@ -127,11 +132,19 @@ do_install () {
 pkg_postinst_ontarget_${PN} () {
 	TARGET_CLASS=$(fw_printenv -n TargetClass 2>&1)
 
-	echo "" > ${systemsettingsdir}/rt_target.ini
+	ln -sf ${settingsdatadir}/target_common.ini ${systemsettingsdir}/target_common.ini
+	ln -sf ${settingsdatadir}/rt_target.ini ${systemsettingsdir}/rt_target.ini
 
 	# cDAQ targets should not have FPGA startup settings, and CVS
 	# targets do not support FPGA autoload.
-	if [ "$TARGET_CLASS" = "cDAQ" -o "$TARGET_CLASS" = "CVS" ]; then
-		echo "" > ${systemsettingsdir}/fpga_target.ini
+	if ! [ "$TARGET_CLASS" = "cDAQ" -o "$TARGET_CLASS" = "CVS" ]; then
+		ln -sf ${settingsdatadir}/fpga_target.ini ${systemsettingsdir}/fpga_target.ini
 	fi
+
+}
+
+pkg_prerm_ontarget_${PN} () {
+	rm -f ${systemsettingsdir}/target_common.ini \
+	      ${systemsettingsdir}/rt_target.ini \
+	      ${systemsettingsdir}/fpga_target.ini
 }
