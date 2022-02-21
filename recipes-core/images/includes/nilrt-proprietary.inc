@@ -30,6 +30,7 @@ NI_PROPRIETARY_COMMON_PACKAGES = "\
         ni-sysapi \
         ni-sysapi-remote \
         ni-sysapi-webservice \
+        ni-sysmgmt-auth-utils \
         ni-system-webserver \
         ni-traceengine \
         ni-webdav-system-webserver-support \
@@ -47,7 +48,6 @@ NI_PROPRIETARY_COMMON_PACKAGES = "\
 
 NI_PROPRIETARY_RUNMODE_PACKAGES = "\
         ni-arch-gen \
-        ni-sysmgmt-auth-utils \
         ni-sysmgmt-salt-minion-support \
         ni-sysmgmt-sysapi-expert \
         python3-ni-systemlink-sdk \
