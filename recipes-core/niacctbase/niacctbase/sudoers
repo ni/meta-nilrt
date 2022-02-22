@@ -1,0 +1,6 @@
+
+# Allow the admin user (UID 0) to invoke sudo without a password
+admin ALL=(ALL) NOPASSWD: ALL
+
+# Allow lvuser to modify the opkg state without a password
+lvuser ALL=(#0:#0) NOPASSWD: /usr/bin/opkg info *

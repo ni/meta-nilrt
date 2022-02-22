@@ -2,8 +2,16 @@ DESCRIPTION = "Basic user and group settings for NI Linux RT applications."
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
+SRC_URI = "\
+	file://sudoers \
+"
+
+S = "${WORKDIR}"
+
 ALLOW_EMPTY_${PN} = "1"
 
+
+# useradd #
 inherit allarch useradd
 
 USERADD_PACKAGES = "${PN}"
@@ -31,5 +39,23 @@ useradd_preinst_append () {
 	eval ${PSEUDO} ln -sf /home/admin ${SYSROOT}/home/root || true
     fi
 }
+
+
+# -sudo subpackage (sudo integration) #
+
+do_install_append () {
+	install -d ${D}${sysconfdir}/sudoers.d/
+	install --mode=0660 ${S}/sudoers ${D}${sysconfdir}/sudoers.d/${PN}
+}
+
+PACKAGE_BEFORE_PN += " ${PN}-sudo"
+FILES_${PN}-sudo = "${sysconfdir}/sudoers.d/*"
+CONFFILES_${PN}-sudo = "${sysconfdir}/sudoers.d/*"
+RDEPENDS_${PN}-sudo = "\
+	niacctbase \
+	sudo-lib \
+"
+RRECOMMENDS_${PN} += " ${PN}-sudo"
+
 
 BBCLASSEXTEND = "native nativesdk"
