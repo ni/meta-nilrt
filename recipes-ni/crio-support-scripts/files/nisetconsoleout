@@ -6,22 +6,6 @@ fi
 
 case "$1" in
 	start)
-		# On x86_64 platform, efiConsoleOutEnable must not be empty if consoleout is supported.
-		# Remove [consoleOut] section from rt_target.ini if efiConsoleOutEnable is empty since
-		# consoleout is not supported.
-		arch=`uname -m 2> /dev/null`
-		if [ "$arch" = "x86_64" ]; then
-			efiConsoleOutEnable=`fw_printenv -n BootFirmwareConsoleOutEnable 2> /dev/null`
-			if [ -z "$efiConsoleOutEnable" ]; then
-				rt_target_ini_file=/var/local/natinst/systemsettings/rt_target.ini
-				if [ ! -f $rt_target_ini_file ]; then
-					# rt_target.ini file does not exist
-					exit 1
-				fi
-
-				sed -i '/^\[consoleOut\]/,/^$/d' $rt_target_ini_file
-			fi
-		fi
 		;;
 
 	stop)
