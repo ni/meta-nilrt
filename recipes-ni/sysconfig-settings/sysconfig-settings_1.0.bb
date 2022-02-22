@@ -11,7 +11,8 @@ systemsettingsdir = "${localstatedir}/local/natinst/systemsettings"
 inherit update-rc.d
 
 # sysconfig-settings package
-SRC_URI = "file://systemsettings/fpga_target.ini \
+SRC_URI = "file://systemsettings/consoleout.ini \
+           file://systemsettings/fpga_target.ini \
            file://systemsettings/rt_target.ini \
            file://systemsettings/target_common.ini \
            file://uixml/nilinuxrt.rtprotocol_enable.binding.xml \
@@ -40,7 +41,8 @@ SRC_URI = "file://systemsettings/fpga_target.ini \
            file://uixml/nilinuxrt.fpga_disable.def.xml \
 "
 
-FILES_${PN} = "${settingsdatadir}/fpga_target.ini \
+FILES_${PN} = "${settingsdatadir}/consoleout.ini \
+               ${settingsdatadir}/fpga_target.ini \
                ${settingsdatadir}/rt_target.ini \
                ${settingsdatadir}/target_common.ini \
                ${uixmldir}/nilinuxrt.rtprotocol_enable.* \
@@ -141,10 +143,16 @@ pkg_postinst_ontarget_${PN} () {
 		ln -sf ${settingsdatadir}/fpga_target.ini ${systemsettingsdir}/fpga_target.ini
 	fi
 
+	# add console out if we have a firmware variable for it (x86_64 targets only)
+	efiConsoleOutEnable=$(fw_printenv -n BootFirmwareConsoleOutEnable 2>/dev/null || true)
+	if ! [ -z "$efiConsoleOutEnable" ]; then
+		ln -sf ${settingsdatadir}/consoleout.ini ${systemsettingsdir}/consoleout.ini
+	fi
 }
 
 pkg_prerm_ontarget_${PN} () {
 	rm -f ${systemsettingsdir}/target_common.ini \
 	      ${systemsettingsdir}/rt_target.ini \
-	      ${systemsettingsdir}/fpga_target.ini
+	      ${systemsettingsdir}/fpga_target.ini \
+	      ${systemsettingsdir}/consoleout.ini
 }
