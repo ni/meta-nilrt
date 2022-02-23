@@ -27,3 +27,9 @@ RDEPENDS_${PN} += "\
 RDEPENDS_${PN} += "\
 	libfmi \
 "
+
+# Required for VCOM Toolkit
+# Contact: Stefano Caiola <stefano.caiola@ni.com>
+RDEPENDS_${PN}_append_x64 = "\
+	qtbase \
+"
