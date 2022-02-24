@@ -163,10 +163,12 @@ do_install_ptest_append_x64 () {
 }
 
 
+# /etc/init.d/populateconfig invokes wpa-supplicant.ipk scripts.
 RDEPENDS_${PN} += "\
 	bash \
 	niacctbase \
 	update-rc.d \
+	wpa-supplicant \
 "
 RDEPENDS_${PN}_append_x64 = " nilrtdiskcrypt "
 RDEPENDS_${PN}-ptest += "bash"
