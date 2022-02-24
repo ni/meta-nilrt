@@ -7,12 +7,7 @@ SECTION = "base"
 inherit ptest
 
 DEPENDS += "shadow-native pseudo-native update-rc.d-native niacctbase"
-
-RDEPENDS_${PN} += "bash niacctbase update-rc.d"
-RDEPENDS_${PN}-ptest += "bash"
-
 DEPENDS_append_x64 = " nilrtdiskcrypt "
-RDEPENDS_${PN}_append_x64 = " nilrtdiskcrypt "
 
 SRC_URI = "\
 	file://cleanvarcache \
@@ -166,3 +161,12 @@ do_install_ptest_append_x64 () {
 	cp ${WORKDIR}/test-niopendisks-init  ${D}${PTEST_PATH}/
 	cp ${WORKDIR}/test-niclosedisks-init  ${D}${PTEST_PATH}/
 }
+
+
+RDEPENDS_${PN} += "\
+	bash \
+	niacctbase \
+	update-rc.d \
+"
+RDEPENDS_${PN}_append_x64 = " nilrtdiskcrypt "
+RDEPENDS_${PN}-ptest += "bash"
