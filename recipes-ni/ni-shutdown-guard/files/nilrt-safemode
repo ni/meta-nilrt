@@ -1,0 +1,1 @@
+-c nisystemimage -c nisystemformat -c niinstallsafemode -c restore.sh
