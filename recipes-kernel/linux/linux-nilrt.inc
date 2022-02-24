@@ -97,6 +97,11 @@ do_shared_workdir_append() {
 }
 
 pkg_postinst_ontarget_${KERNEL_PACKAGE_NAME}-base_append_x64 () {
+	# The postinst is intended to be run when new kernels are installed
+	# in runmode so that uninstalling them works correctly.
+	# It does not make sense to run this on safemode. So skip.
+	[ -f /etc/natinst/safemode ] && exit 0
+
 	cd "$D/${KERNEL_IMAGEDEST}"
 
 	if [ -f "${KERNEL_IMAGETYPE}" ]; then
