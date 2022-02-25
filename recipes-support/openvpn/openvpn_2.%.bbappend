@@ -17,6 +17,8 @@ do_install_append () {
 	install -d ${D}${sysconfdir}/default/volatiles/
 	install --mode=0644 ${WORKDIR}/volatile ${D}${sysconfdir}/default/volatiles/99_${PN}
 
-	install -p -m 755 ${WORKDIR}/vpn ${D}${sysconfdir}/init.d/
-	install -p -m 755 ${WORKDIR}/vpnctl ${D}${sbindir}/
+	install -d ${D}${sysconfdir}/init.d
+	install --mode=0755 ${WORKDIR}/vpn ${D}${sysconfdir}/init.d/
+
+	install --mode=0755 ${WORKDIR}/vpnctl ${D}${sbindir}/
 }
