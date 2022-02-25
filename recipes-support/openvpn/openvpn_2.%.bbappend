@@ -10,10 +10,8 @@ DEPENDS += "shadow-native pseudo-native niacctbase"
 
 RDEPENDS_{PN} += "niacctbase"
 
-inherit update-rc.d
-
-INITSCRIPT_NAME = "vpn"
-INITSCRIPT_PARAMS = "start 42 4 5 . stop 5 0 1 2 6 ."
+INITSCRIPT_NAME_${PN} = "vpn"
+INITSCRIPT_PARAMS_${PN} = "start 42 4 5 . stop 5 0 1 2 6 ."
 
 do_install_append () {
 	install -d ${D}${sysconfdir}/default/volatiles/
