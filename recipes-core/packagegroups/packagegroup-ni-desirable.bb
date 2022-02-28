@@ -52,6 +52,7 @@ RDEPENDS_${PN} += "\
 	rsync \
 	sshpass \
 	strace \
+	sysconfig-settings-ui \
 	valgrind \
 	vim \
 "
