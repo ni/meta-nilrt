@@ -7,6 +7,7 @@ RDEPENDS_${PN} = "\
 	packagegroup-base \
 	packagegroup-core-boot \
 	packagegroup-ni-base \
+	packagegroup-ni-contributors \
 	packagegroup-ni-crio \
 	packagegroup-ni-graphical \
 	packagegroup-ni-internal-deps \
