@@ -1,0 +1,5 @@
+# create symlink to establish a uniform path to nirtfeatures
+DRIVER=="nirtfeatures",RUN+="/bin/ln -sf /sys%p /dev/nirtfeatures"
+
+#give all users read/write access to CPLD-created /dev/input/event?
+SUBSYSTEM=="input", ENV{ID_PATH}=="acpi-NIC775D:??", KERNEL=="event?", MODE="0666"
