@@ -1,25 +1,12 @@
 #!/bin/sh
 
-# We are going to create a udev script to mount nirtfeatures under /dev
-# to make us more robust to changes in the absolute path under /sys. However
-# to allow things to continue to work until everything makes its way through
-# the system or in case that udev script doesn't run for some reason we fall
-# back to trying to find ip_reset in a likely spot.
-
 IP_RESET_FILE="/dev/nirtfeatures/ip_reset"
-SMBIOS_HELPER="/usr/share/nisysinfo/smbios_helper"
-
-if [ ! -e $IP_RESET_FILE ]; then
-        [ "${VERBOSE}" != "no" ] && echo "Unable to find ip_reset at normal spot. Attempting to find dynamically."
-        IP_RESET_FILE=`find /sys/bus/acpi/drivers/nirtfeatures -maxdepth 2 -follow -name ip_reset`
-fi
 
 IP_RESET_REQUESTED=""
-if [ -n "$IP_RESET_FILE" ]; then
+if [ -e "$IP_RESET_FILE" ]; then
 	grep -q '1' $IP_RESET_FILE && IP_RESET_REQUESTED="y"
-elif [ -r $SMBIOS_HELPER ]; then
-	source $SMBIOS_HELPER
-	get_ipreset && IP_RESET_REQUESTED="y"
+else
+	[ "${VERBOSE}" != "no" ] && echo "Unable to find ip_reset at normal spot."
 fi
 
 if [ "$IP_RESET_REQUESTED" == "y" ]; then
