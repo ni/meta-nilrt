@@ -15,37 +15,18 @@ SRC_URI += "\
 
 S = "${WORKDIR}"
 
+inherit update-rc.d
 
-do_install () {
+INITSCRIPT_NAME = "handle_cpld_ip_reset"
+INITSCRIPT_PARAMS = "start 6 1 3 4 5 ."
+
+do_install_append () {
 	install -d ${D}${sysconfdir}/init.d/
-
 	install -m 0755 ${S}/init.d/handle_cpld_ip_reset    ${D}${sysconfdir}/init.d
 
 	install -d ${D}${sysconfdir}/udev/rules.d
-
 	install -m 0644 ${S}/rtfeatures.rules    ${D}${sysconfdir}/udev/rules.d/rtfeatures.rules
 }
-
-pkg_postinst_${PN} () {
-	if [ -n "$D" ]; then
-		OPT="-r $D"
-	else
-		OPT="-s"
-	fi
-
-	update-rc.d $OPT handle_cpld_ip_reset    start 6 1 3 4 5 .
-}
-
-pkg_postrm_${PN} () {
-	if [ -n "$D" ]; then
-		OPT="-f -r $D"
-	else
-		OPT="-f"
-	fi
-
-	update-rc.d $OPT handle_cpld_ip_reset  remove
-}
-
 
 PACKAGE_ARCH = "all"
 PACKAGES_remove += "${PN}-staticdev ${PN}-dev ${PN}-dbg"
