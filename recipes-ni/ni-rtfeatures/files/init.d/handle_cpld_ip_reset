@@ -6,7 +6,7 @@ IP_RESET_REQUESTED=""
 if [ -e "$IP_RESET_FILE" ]; then
 	grep -q '1' $IP_RESET_FILE && IP_RESET_REQUESTED="y"
 else
-	[ "${VERBOSE}" != "no" ] && echo "Unable to find ip_reset at normal spot."
+	[ "${VERBOSE}" = "yes" ] && echo "Unable to find ip_reset at normal spot."
 fi
 
 if [ "$IP_RESET_REQUESTED" == "y" ]; then
