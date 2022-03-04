@@ -11,6 +11,6 @@ fi
 
 if [ "$IP_RESET_REQUESTED" == "y" ]; then
 	mkdir -p /tmp/ip_reset_dir
-	/usr/local/natinst/bin/ninetcfgutil pulldefault -d /tmp/ip_reset_dir -g primary -g secondary
+	ninetcfgutil pulldefault -d /tmp/ip_reset_dir -g primary -g secondary
 	rm -rf /tmp/ip_reset_dir
 fi
