@@ -1,0 +1,37 @@
+#!/bin/sh
+# Copyright (c) 2012-2013 National Instruments.
+# All rights reserved.
+# Spawn getty on the enabled, controlling console device. There will be at most
+# one of these. If there aren't any, don't spawn any.
+
+
+SPEED=""
+CONSOLE=""
+TERM=$3
+
+while read cons flags; do
+   case "$flags" in
+   *EC*) CONSOLE="$cons"
+         SPEED=$(stty speed < /dev/$CONSOLE)
+         echo Autodetected console "$CONSOLE" with baud rate "$SPEED"
+         break
+         ;;
+   esac
+done < /proc/consoles
+
+# If there aren't any detected consoles, exit
+[ -z "$CONSOLE" ] && exit 0
+
+# busybox' getty does this itself, util-linux' agetty needs extra help
+getty="/sbin/getty"
+case $(readlink -f "${getty}") in
+    */busybox*)
+        ;;
+    *)
+        if [ -x "/usr/bin/setsid" ] ; then
+            setsid="/usr/bin/setsid"
+        fi
+        ;;
+esac
+
+${setsid:-} ${getty} -L $SPEED $CONSOLE $TERM
