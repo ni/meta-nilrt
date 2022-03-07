@@ -2,11 +2,11 @@
 # Copyright (c) 2012-2013 National Instruments.
 # All rights reserved.
 # Spawn getty on the enabled, controlling console device. There will be at most
-# one of these. If there aren't any, don't spawn any.
+# one of these. If there aren't any, spawn with values provided in inittab to
+# keep this script running as it will be respawned by sysvinit if it dies.
 
-
-SPEED=""
-CONSOLE=""
+SPEED=$1
+CONSOLE=$2
 TERM=$3
 
 while read cons flags; do
@@ -18,9 +18,6 @@ while read cons flags; do
          ;;
    esac
 done < /proc/consoles
-
-# If there aren't any detected consoles, exit
-[ -z "$CONSOLE" ] && exit 0
 
 # busybox' getty does this itself, util-linux' agetty needs extra help
 getty="/sbin/getty"
