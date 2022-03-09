@@ -7,7 +7,6 @@ SECTION = "base"
 inherit ptest
 
 DEPENDS += "shadow-native pseudo-native update-rc.d-native niacctbase"
-DEPENDS_append_x64 = " nilrtdiskcrypt "
 
 SRC_URI = "\
 	file://cleanvarcache \
@@ -170,5 +169,4 @@ RDEPENDS_${PN} += "\
 	update-rc.d \
 	wpa-supplicant \
 "
-RDEPENDS_${PN}_append_x64 = " nilrtdiskcrypt "
 RDEPENDS_${PN}-ptest += "bash"

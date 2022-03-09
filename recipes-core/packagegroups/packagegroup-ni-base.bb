@@ -74,7 +74,6 @@ RDEPENDS_${PN} += "\
 	ni-systemformat \
 	ni-utils \
 	niacctbase \
-	nilrtdiskcrypt \
 	niwatchdogpet \
 	openssh-scp \
 	openssh-sftp-server \
