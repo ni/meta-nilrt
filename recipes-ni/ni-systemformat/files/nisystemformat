@@ -20,17 +20,10 @@ arch=`uname -m`
 NETCFG_MODE=bypass
 RESET_OVERLAY=no
 
-ENCRYPT=no
-ENCRYPT_BACKUP=no
-ENCRYPT_PCR_SET=""
-ENCRYPT_DICT_LOCKOUT="disable"
-
 NETCFG_TMP=/tmp/netconfig.$$
 declare -r BASENAME=${0##*/}
 
 NINETCFGUTIL=/usr/local/natinst/bin/ninetcfgutil
-
-NILRTDISKCRYPT=/usr/sbin/nilrtdiskcrypt
 
 if [ "$arch" = "x86_64" ]; then
 	LABEL_TYPE=$(lsblk -lno PARTLABEL | grep -q nirootfs && echo PARTLABEL || echo LABEL)
@@ -49,14 +42,13 @@ SYSCFG_IMAGE_TGZ_FILE=$NIBOOT_DIR/system-config-image.tgz
 
 # List of returnable errors
 declare -Ar EXITCODES=(
-	[UNSPECIFIED]=1		# No reason specified
-	[UNKNOWN_ERROR]=2	# Unexpected exit code encountered
-	[INVALID_ARGUMENT]=3	# An invalid combination of arguments was specified
-	[INVALID_FSTYPE]=4	# An invalid fstype was specified
-	[ILLTIMED]=5            # Called at an inappropriate time
-	[INVALID_ARCH]=6        # Running an unsupported processor architecture
-	[NO_TPM_HARDWARE]=7     # Could not detect a TPM chip
-	[NO_KEY_BACKUP_DEVICE]=8     # Partition to store backup key could not be found; perhaps it's mislabeled or not plugged in
+	[UNSPECIFIED]=1             # No reason specified
+	[UNKNOWN_ERROR]=2           # Unexpected exit code encountered
+	[INVALID_ARGUMENT]=3        # An invalid combination of arguments was specified
+	[INVALID_FSTYPE]=4          # An invalid fstype was specified
+	[ILLTIMED]=5                # Called at an inappropriate time
+	[INVALID_ARCH]=6            # Running an unsupported processor architecture
+	[NO_KEY_BACKUP_DEVICE]=7    # Partition to store backup key could not be found; perhaps it's mislabeled or not plugged in
 )
 
 # $1: exit code (key from EXITCODES)
@@ -177,9 +169,6 @@ format_rootfs()
 	  ext4)
 		local volume_label="nirootfs"
 		local options=""
-		if [ "$ENCRYPT" = yes ]; then
-			options="-O metadata_csum,64bit"
-		fi
 		mkfs.ext4 -q -F -L $volume_label $options ${2:-$ROOTFS_DEV}
 		;;
 	esac
@@ -201,9 +190,6 @@ format_config()
 	  ext4)
 		local volume_label="niconfig"
 		local options=""
-		if [ "$ENCRYPT" = yes ]; then
-			options="-O metadata_csum,64bit"
-		fi
 		mkfs.ext4 -q -F -L $volume_label $options ${2:-$CONFIGFS_DEV}
 		;;
 	esac
@@ -252,12 +238,6 @@ usage()
 		-t	Filesystem type
 		-c	Format the config volume (otherwise rootfs + kernel)
 		-r	Relaunch the system webserver after format
-		-e	Encrypt volume using a new generated disk key stored in the TPM
-		-B	Backup encryption keys to the filesystem labeled <fslabel> (normally on USB storage)
-		-P	Comma separated set of PCR registers to seal disk keys
-		-L	Specifies dictionary lockout configuration:
-		        keep: Do not change current configuration
-		        disable: Disable dictionary lockout (default)
 		-n	Preserve network config according to <mode>:
 		        all		Preserve all settings
 		        primary		Preserve primary, reset secondary
@@ -267,7 +247,6 @@ usage()
 		Examples:
 
 		$BASENAME -f -t <type>        - format the rootfs as <type> fs
-		$BASENAME -f -t <type> -c -e  - format and encrypt configfs & rootfs
 		$BASENAME -s -c		- print the filesystem type of the config volume
 		$BASENAME -l		- list possible filesystem types (',' separated)
 
@@ -437,43 +416,9 @@ format_rootfs_or_userfs_nomount()
 	configfs_dev="$CONFIGFS_DEV"
 	rootfs_dev="$ROOTFS_DEV"
 
-	# Only if the machine has TPM hardware support (x64 targets for now)
-	if [ "$arch" = "x86_64" ] && [ -e "/dev/tpm0" ] && ${NILRTDISKCRYPT}_canformat; then
-		# unconditionally wipe keys to ensure secure deletion of previously encrypted data,
-		# this needs to happen regardless of current format type (both encrypted or not)
-		# and will make data unrecoverable on both config & rootfs
-		${NILRTDISKCRYPT}_close -d "$configfs_dev" -d "$rootfs_dev"
-		${NILRTDISKCRYPT}_wipe -k 0 -k 1
-
-		if [ "$ENCRYPT" = yes ]; then
-			if [ "$ENCRYPT_DICT_LOCKOUT" == "disable" ]; then
-				${NILRTDISKCRYPT}_dictionarylockout -d
-			fi
-
-			bkp_arg=""
-			pcrset_arg=""
-			[ "$ENCRYPT_BACKUP" = yes ] && bkp_arg="-B $ENCRYPT_BACKUP_LABEL"
-			[ -n "$ENCRYPT_PCR_SET" ] && pcrset_arg="-P $ENCRYPT_PCR_SET"
-			luks_dev=( $("${NILRTDISKCRYPT}_format" -s 0 -d "$configfs_dev" -d "$rootfs_dev" $bkp_arg $pcrset_arg) )
-			configfs_dev=${luks_dev[0]}
-			rootfs_dev=${luks_dev[1]}
-		fi
-	fi
-
 	if [ "$VOL" = config ]; then
-		# We're forcing rootfs formatting even though the user requested config because
-		# we need to support secure deletion (once one partition is formatted the key is
-		# deleted) so by deleting the configfs we invalidate the rootfs. In the non-encrypt
-		# case we can be unable to mount already encrypted rootfs after configfs was wiped
-		# because the key was missing.
-		if [ "$ENCRYPT" = yes ] || ${NILRTDISKCRYPT}_canopen -d "$rootfs_dev" 2>/dev/null; then
-			format_rootfs "$TYPE" "$rootfs_dev"
-		fi
 		format_config "$TYPE" "$configfs_dev"
 	else
-		if ${NILRTDISKCRYPT}_canopen -d "$configfs_dev" 2>/dev/null; then
-			format_config "$TYPE" "$configfs_dev"
-		fi
 		format_rootfs "$TYPE" "$rootfs_dev"
 	fi
 }
@@ -543,10 +488,6 @@ do
 		c)	VOL=config;;
 		o)	RESET_OVERLAY=yes;;
 		r)	RELAUNCH=yes;;
-		e)	ENCRYPT=yes;;
-		B)	ENCRYPT_BACKUP=yes && ENCRYPT_BACKUP_LABEL="$OPTARG";;
-		P)	ENCRYPT_PCR_SET="$OPTARG";;
-		L)	ENCRYPT_DICT_LOCKOUT="$OPTARG";;
 		n)	NETCFG_MODE="$OPTARG";;
 		*)	usage;;
 	esac
@@ -558,10 +499,7 @@ fi
 
 
 if [ "$OSMODE" = runmode-rauc ]; then
-	if [ "$ENCRYPT" = yes -o "$ENCRYPT_BACKUP" = yes -o -n "$ENCRYPT_PCR_SET" -o "$ENCRYPT_DICT_LOCKOUT" != disable ]; then
-		die_with_usage INVALID_ARGUMENT \
-			"Encryption cannot be used on RAUC targets."
-	elif [ -n "$TYPE" ]; then
+	if [ -n "$TYPE" ]; then
 		die_with_usage INVALID_ARGUMENT \
 			"fstype option (-t) cannot be specified on RAUC targets."
 	elif [ -n "$VOL" ]; then
@@ -631,48 +569,6 @@ if [ "$MODE" = format -a "$OSMODE" != runmode-rauc ]; then
 	fi
 
 	[[ $(supported_fstypes) =~ (^|,)$TYPE(,) ]] || die_with_usage INVALID_FSTYPE "Invalid fstype '$TYPE'"
-fi
-
-if [ "$ENCRYPT" = yes ]; then
-	if [ "$MODE" != format -o "$VOL" != config ]; then
-		die_with_usage INVALID_ARGUMENT \
-			"Encryption can be only be used when performing a full format including config (-f -c)"
-	fi
-
-	if [ "$arch" != "x86_64" ]; then
-		die_with_usage INVALID_ARCH \
-			"Encryption can be only be used on x86_64 machines"
-	fi
-
-	if ! ${NILRTDISKCRYPT}_canformat; then
-		die_with_usage NO_TPM_HARDWARE \
-			"The TPM chip on this machine could not be detected (does it have one?)"
-	fi
-fi
-
-if [ "$ENCRYPT_BACKUP" = yes ]; then
-	if [ "$ENCRYPT" != yes ]; then
-		die_with_usage INVALID_ARGUMENT \
-			"Backing up encryption keys only works when formatting with encryption enabled (-e)"
-	fi
-
-	if [ -z "$ENCRYPT_BACKUP_LABEL" ]; then
-		die_with_usage INVALID_ARGUMENT \
-			"No filesystem label specified to the -B arg"
-	fi
-
-	# it's best to capture this error here as early as possible before we umount, stop services or call
-	# nilrtdiskcrypt/luks to nuke filesystems
-	bkpDevice=$(lsblk -l -n -o LABEL,NAME | grep "^$ENCRYPT_BACKUP_LABEL " | tr -s ' ' | cut -d' ' -f2 || true )
-	if [ -z "$bkpDevice" ]; then
-		die_with_usage NO_KEY_BACKUP_DEVICE \
-			"Could not detect block device containing filesystem label $ENCRYPT_BACKUP_LABEL"
-	fi
-fi
-
-if [ "$ENCRYPT_DICT_LOCKOUT" != "keep" -a "$ENCRYPT_DICT_LOCKOUT" != "disable" ]; then
-	die_with_usage INVALID_ARGUMENT \
-		"Dictionary lockout mode must be 'keep' or 'disable'"
 fi
 
 case "$MODE" in
