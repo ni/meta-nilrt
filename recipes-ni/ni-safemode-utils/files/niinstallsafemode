@@ -84,17 +84,6 @@ cp -f $tmp_dir/* $mount_point/.safe/ || exit 5
 chmod u-w $mount_point/.safe/* || exit 5
 chmod u-w $mount_point/.safe || exit 5
 
-# Unseal safemode key for reseal on next boot
-CONFIGFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^niconfig '| tr -s ' ' | cut -d' ' -f2)"
-ROOTFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^nirootfs '| tr -s ' ' | cut -d' ' -f2)"
-if /usr/sbin/nilrtdiskcrypt_canopen -d "$ROOTFS_DEV" -d "$CONFIGFS_DEV"; then
-	if ! /usr/sbin/nilrtdiskcrypt_unseal -s 0 -d 0; then
-		exit 1
-	fi
-fi
-unset ROOTFS_DEV
-unset CONFIGFS_DEV
-
 if [ -x $tmp_dir/postinst ]; then
 	$tmp_dir/postinst
 	rm -f $tmp_dir/postinst
