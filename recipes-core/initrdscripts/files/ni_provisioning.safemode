@@ -161,25 +161,6 @@ set_serial_port()
 
 }
 
-# Load necessary kernel modules needed to inspect the system's hardware
-load_kernel_modules ()
-{
-	for modname in "tpm_tis"; do
-		if modprobe "$modname"; then
-			print_verbose "Loaded $modname"
-		else
-			print_error "Failed to load $modname"
-		fi
-	done
-}
-
-# Is true if system has a TPM chip. Must not be used before
-#  load_kernel_modules() runs.
-has_tpm_chip ()
-{
-	[ -e "/dev/tpm0" ]
-}
-
 partitioning_disk()
 {
 	umount "$TARGET_DISK"? 2>/dev/null || true
@@ -425,7 +406,6 @@ sanity_check()
 }
 
 check_all_used_binaries
-load_kernel_modules
 
 echo "Installing safemode to: $TARGET_DISK."
 echo 6 > /proc/sys/kernel/printk
