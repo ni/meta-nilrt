@@ -807,31 +807,6 @@ run_hook hook_image_${MODE}_pre
 image_${MODE}
 run_hook hook_image_${MODE}_post
 
-if is_set; then
-	# Unseal safemode key into runmode key slot for reseal on next boot
-	echo_verbose 2 "starting runmode key unseal"
-
-	CONFIGFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^niconfig '| tr -s ' ' | cut -d' ' -f2)" || true
-	ROOTFS_DEV="/dev/$(lsblk -l -n -o PARTLABEL,NAME | grep '^nirootfs '| tr -s ' ' | cut -d' ' -f2)" || true
-
-	if [ -n "$CONFIGFS_DEV" -a -n "$ROOTFS_DEV" ]; then
-		if /usr/sbin/nilrtdiskcrypt_canopen -d "$ROOTFS_DEV" -d "$CONFIGFS_DEV"; then
-			if ! /usr/sbin/nilrtdiskcrypt_unseal -s 0 -d 1; then
-				exit 1
-			fi
-		else
-			echo_verbose 2 "partitions not encrypted, skipping"
-		fi
-	else
-		echo_verbose 2 "no PARTLABELs, skipping"
-	fi
-
-	unset ROOTFS_DEV
-	unset CONFIGFS_DEV
-
-	echo_verbose 2 "finished"
-fi
-
 # If a $SCRIPT_POST was installed (i.e. through setting an image), run it
 [[ -f $SCRIPT_POST ]] && . "$SCRIPT_POST"
 
