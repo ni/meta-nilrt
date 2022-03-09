@@ -5,9 +5,4 @@
 ./test-nisetcommitratio-unit
 ./test-nisetcommitratio-system
 
-if [ "`uname -m`" == "x86_64" ]; then
-    ./test-niopendisks-init
-    ./test-niclosedisks-init
-fi
-
 exit 0
