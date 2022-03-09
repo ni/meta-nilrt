@@ -29,7 +29,6 @@ RDEPENDS_${PN} += "\
 	init-restore-mode \
 	kmod \
 	ni-smbios-helper \
-	nilrtdiskcrypt \
 	parted \
 	procps \
 	sed \
