@@ -17,11 +17,9 @@ SRC_URI = "\
 	file://nicheckbiosconfig \
 	file://nicleanefivars \
 	file://nicleanstalelinks \
-	file://niclosedisks \
 	file://nicreatecpuacctgroups \
 	file://nicreatecpusets \
 	file://nidisablecstates \
-	file://niopendisks \
 	file://nipopulateconfigdir \
 	file://nisetcommitratio \
 	file://nisetembeddeduixml \
@@ -29,8 +27,6 @@ SRC_URI = "\
 	file://nisetupkernelconfig \
 	file://populateconfig \
 	file://run-ptest \
-	file://test-niclosedisks-init \
-	file://test-niopendisks-init \
 	file://test-nisetcommitratio-common.sh \
 	file://test-nisetcommitratio-system \
 	file://test-nisetcommitratio-unit \
@@ -141,12 +137,6 @@ do_install_append_x64 () {
 	install -m 0755   ${WORKDIR}/nicheckbiosconfig      ${D}${sysconfdir}/init.d
 	update-rc.d -r ${D} nicheckbiosconfig start 99 4 5 .
 
-	install -m 0755   ${WORKDIR}/niopendisks   ${D}${sysconfdir}/init.d
-	update-rc.d -r ${D} niopendisks start 00 S .
-
-	install -m 0755   ${WORKDIR}/niclosedisks  ${D}${sysconfdir}/init.d
-	update-rc.d -r ${D} niclosedisks start 41 0 . start 41 6 .
-
 	install -m 0755   ${WORKDIR}/nicleanefivars  ${D}${sysconfdir}/init.d
 	update-rc.d -r ${D} nicleanefivars start 10 S .
 }
@@ -155,12 +145,6 @@ do_install_ptest () {
 	cp ${WORKDIR}/test-nisetcommitratio-* ${D}${PTEST_PATH}/
 	cp ${WORKDIR}/test-safemode-runlevel-init ${D}${PTEST_PATH}/
 }
-
-do_install_ptest_append_x64 () {
-	cp ${WORKDIR}/test-niopendisks-init  ${D}${PTEST_PATH}/
-	cp ${WORKDIR}/test-niclosedisks-init  ${D}${PTEST_PATH}/
-}
-
 
 # /etc/init.d/populateconfig invokes wpa-supplicant.ipk scripts.
 RDEPENDS_${PN} += "\
