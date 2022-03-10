@@ -25,7 +25,6 @@ then
 		fi
 	fi
 
-	mkdir -p /etc/natinst/share/tpm
 	mkdir -p /etc/natinst/share/ssh
 	chmod -t /etc/natinst/share
 	test -L /etc/natinst/share/localtime || ( rm -f /etc/natinst/share/localtime && ln -s /usr/share/zoneinfo/UTC /etc/natinst/share/localtime )
