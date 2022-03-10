@@ -60,7 +60,6 @@ RDEPENDS_${PN} = "\
 	packagegroup-ni-debug-kernel \
 	packagegroup-ni-desirable \
 	packagegroup-ni-selinux \
-	packagegroup-tpm2 \
 "
 
 # kernel regression tests
