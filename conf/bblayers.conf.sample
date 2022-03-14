@@ -9,7 +9,6 @@ BBLAYERS ?= " \
 	${GIT_REPODIR}/meta-cloud-services \
 	${GIT_REPODIR}/meta-cloud-services/meta-openstack \
 	${GIT_REPODIR}/meta-measured \
-	${GIT_REPODIR}/meta-mingw \
 	${GIT_REPODIR}/meta-nilrt \
 	${GIT_REPODIR}/meta-openembedded/meta-filesystems \
 	${GIT_REPODIR}/meta-openembedded/meta-gnome \
