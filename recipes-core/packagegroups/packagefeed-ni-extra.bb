@@ -772,11 +772,6 @@ RDEPENDS_${PN} += "\
 	qpid \
 "
 
-# meta-measured
-RDEPENDS_${PN} += "\
-	trousers \
-"
-
 # meta-virtualization
 RDEPENDS_${PN} += "\
 	cgroup-lite \
