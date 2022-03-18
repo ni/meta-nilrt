@@ -1,5 +1,5 @@
 DESCRIPTION = "NILRT linux kernel debug build"
-NI_RELEASE_VERSION = "master"
+NI_RELEASE_VERSION = "21.8"
 LINUX_VERSION = "5.10"
 LINUX_VERSION_xilinx-zynq = "4.14"
 LINUX_KERNEL_TYPE = "debug"
@@ -12,7 +12,8 @@ SRC_URI += "\
 
 # This is the place to overwrite the source AUTOREV from linux-nilrt.inc, if
 # the kernel recipe requires a particular ref.
-#SRCREV = ""
+SRCREV = "eac277bc99b4925ef52b234eb6cbe48ddf55981b"
+SRCREV_xilinx-zynq = "051c9569fc919a173fbc7a56c75efdbba3b13b8c"
 
 # Move vmlinux-${KERNEL_VERSION_NAME} from /boot to /lib/modules/${KERNEL_VERSION}/build/
 # to avoid filling the /boot partition.
