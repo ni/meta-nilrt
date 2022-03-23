@@ -17,7 +17,7 @@ PACKAGECONFIG = "tcp"
 PACKAGECONFIG[tcp] = ",,python3-pycrypto"
 
 SRC_URI = "\
-    git://github.com/ni/salt.git;protocol=https;branch=ni/master/3000.2 \
+    git://github.com/ni/salt.git;protocol=https;branch=ni/skyline-21.5/3000.2 \
     file://set_python_location_hashbang.patch \
     file://minion \
     file://salt-minion \
@@ -32,7 +32,7 @@ SRC_URI = "\
     file://run-ptest \
 "
 
-SRCREV = "${AUTOREV}"
+SRCREV = "2390363a777ee0ee893bb8698ededcc0bf535278"
 
 S = "${WORKDIR}/git"
 
