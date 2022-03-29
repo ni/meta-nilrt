@@ -70,9 +70,9 @@ do_install () {
 	update-rc.d -r ${D} nicreatecpuacctgroups start 2  4 5 .
 	update-rc.d -r ${D} nisetupkernelconfig   start 3  5 .
 	update-rc.d -r ${D} nicleanstalelinks     start 5  S .
-	update-rc.d -r ${D} nipopulateconfigdir   start 36 S .
-	update-rc.d -r ${D} mountconfig           start 36 S .
-	update-rc.d -r ${D} populateconfig        start 36 S . start 30 0 6 .
+	update-rc.d -r ${D} nipopulateconfigdir   start 35 S .
+	update-rc.d -r ${D} mountconfig           start 35 S .
+	update-rc.d -r ${D} populateconfig        start 35 S . start 30 0 6 .
 	update-rc.d -r ${D} wirelesssetdomain     start 36 S .
 	update-rc.d -r ${D} cleanvarcache         start 38 0 6 S .
 	update-rc.d -r ${D} firewall              start 39 S .
