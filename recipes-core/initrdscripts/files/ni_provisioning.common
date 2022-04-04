@@ -22,7 +22,7 @@ GREEN='\e[0;32m'
 ASK_BEFORE_REBOOT=0
 ARCH=$(uname -m)
 VERBOSE_ARGS=${VERBOSE_ARGS:-"-q"}
-MKFS_ARGS=${MKFS_ARGS:-"$VERBOSE_ARGS -F"}
+MKFS_ARGS=${MKFS_ARGS:-"$VERBOSE_ARGS -F -I 256"}
 verbose_mode=${verbose_mode:-0}
 
 if [ "$verbose_mode" -eq 0 ]; then
@@ -528,7 +528,7 @@ early_setup()
 
 	if [[ $verbose_mode -eq 1 ]]; then
 		VERBOSE_ARGS="-v"
-		MKFS_ARGS="$VERBOSE_ARGS -F"
+		MKFS_ARGS="$VERBOSE_ARGS -F -I 256"
 	fi
 
 	if [[ -z $TARGET_DISK ]]; then
