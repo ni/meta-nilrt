@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# redirect all stderr to stdout to maintain ordering of output
+exec 2>&1
+
+./makedumpfile-is-kernel-supported
+RESULT=${PIPESTATUS[0]}
+
+exit $RESULT
