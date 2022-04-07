@@ -1,10 +1,3 @@
-# Disable running ldconfig at the end of the rootfs creation process.
-# Running ldconfig removes symlinks created by ni packages installed
-# to the rootfs, particularly the symlinks to libraries in
-# NIWebServer. This needs to be investigated before ldconfig can be
-# reenabled.
-LDCONFIGDEPEND = ""
-
 # NI infrastructure packages to be installed in the image
 
 NI_PROPRIETARY_SAFEMODE_PACKAGES = "\
