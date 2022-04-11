@@ -25,6 +25,8 @@ FILES_${PN} += "README_File_Paths.txt \
 		/etc/ld.so.conf.d/multiarch_libs.conf \
 		/usr/local/natinst/bin \
 		/usr/local/natinst/lib \
+		/var/local/natinst \
+		${sysconfdir}/natinst/share \
 "
 
 S = "${WORKDIR}"
@@ -79,4 +81,19 @@ do_install () {
 
 	# add machine-info and allow System Web Server to modify it
 	install -m 0664 -g ${LVRT_GROUP} ${WORKDIR}/machine-info ${D}${sysconfdir}/
+}
+
+pkg_postinst_${PN} () {
+	# HACK: force ownership of certain directories. See AzDO#1918906.
+	# The various ni-* IPKs from NIFeeds are installed with
+	# IMAGE_INSTALL_NODEPS and therefore do not depend on
+	# base-files-nilrt, and so at present they are installed into the
+	# rootfs first. This is a problem, because it means that "ni-sdmon"
+	# and "ni-traceengine" start owning things like /var/local/natinst
+	# or /usr because they end up creating those directories first
+	# (without our permissions here). As a workaround, we chmod/chown
+	# here, but we should really fix the order and let this happen via
+	# via 'install -d'.
+	chown ${LVRT_USER}:${LVRT_GROUP} $D/var/local/natinst $D/var/local/natinst/log $D${sysconfdir}/natinst/share/
+	chmod 0775 $D/var/local/natinst $D/var/local/natinst/log
 }
