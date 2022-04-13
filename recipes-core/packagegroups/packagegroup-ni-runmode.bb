@@ -23,6 +23,7 @@ RDEPENDS_${PN} = "\
 	librtpi \
 	linux-firmware-radeon \
 	lldpd \
+	ni-modules-autoload \
 	niwatchdogpet \
 	opkg-utils-shell-tools \
 	parted \
