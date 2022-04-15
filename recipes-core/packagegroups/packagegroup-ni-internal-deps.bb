@@ -33,3 +33,9 @@ RDEPENDS_${PN} += "\
 RDEPENDS_${PN}_append_x64 = "\
 	qtbase \
 "
+
+# ni-rdma, libnirdma
+# Contact: Eric Gross <eric.gross@ni.com>
+RDEPENDS_${PN} += "\
+	rdma-core \
+"
