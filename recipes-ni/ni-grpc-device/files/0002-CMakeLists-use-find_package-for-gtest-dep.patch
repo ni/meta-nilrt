@@ -1,0 +1,35 @@
+From ac8145c7646b2783db4625069ddeb67083656a17 Mon Sep 17 00:00:00 2001
+From: Alex Stewart <alex.stewart@ni.com>
+Date: Fri, 15 Apr 2022 15:41:23 -0500
+Subject: [PATCH] CMakeLists: use find_package for gtest dep
+
+Within the context of an OpenEmbedded build, `find_library(gtest...`
+fails to detect googletest in the recipe-sysroot-native, blocking
+configuration.
+
+Switch the find_ operation to `find_package()`, which functions
+properly.
+
+Signed-off-by: Alex Stewart <alex.stewart@ni.com>
+
+Upstream-Status: Pending [https://github.com/ni/grpc-device/pull/660]
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 573b7e94d8bb69de203907cb8eee60de11ebbd32..406590b4dedb9cb9e12efc1bf0c74840719c4cf3 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -227,7 +227,7 @@ add_custom_command(
+ #----------------------------------------------------------------------
+ if(CMAKE_CROSSCOMPILING AND NOT _GRPC_DEVICE_NILRT_LEGACY_TOOLCHAIN)
+   find_package(nlohmann_json REQUIRED)
+-  find_library(gtest REQUIRED)
++  find_package(GTest REQUIRED)
+ else()
+   add_subdirectory(third_party/json ${CMAKE_CURRENT_BINARY_DIR}/json EXCLUDE_FROM_ALL)
+   enable_testing()
+-- 
+2.35.1
+

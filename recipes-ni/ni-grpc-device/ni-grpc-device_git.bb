@@ -10,6 +10,7 @@ LIC_FILES_CHKSUM = "\
 
 DEPENDS += "\
 	grpc-native \
+	googletest-native \
 	nlohmann-json-native \
 	protobuf-native \
 	python3-grpcio-tools-native \
@@ -22,6 +23,7 @@ PV = "1.1.0"
 SRC_URI = "\
 	git://github.com/ni/grpc-device.git;name=grpc-device;branch=${SRCBRANCH};protocol=https \
 	file://0001-CMakeLists.txt-remove-local-protobuf-includes.patch \
+	file://0002-CMakeLists-use-find_package-for-gtest-dep.patch \
 	file://ptest \
 "
 
