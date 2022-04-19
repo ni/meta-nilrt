@@ -40,7 +40,7 @@ do_install () {
 	install -m 0440   ${WORKDIR}/nisetbootmode.functions     ${D}${libdir}
 	install -m 0550   ${WORKDIR}/nisetbootmode               ${D}${sysconfdir}/init.d
 	install -m 0755   ${WORKDIR}/nisetled                    ${D}${sysconfdir}/init.d
-	install -m 0550   ${WORKDIR}/nisetprimarymac             ${D}${sysconfdir}/init.d
+	install -m 0755   ${WORKDIR}/nisetprimarymac             ${D}${sysconfdir}/init.d
 	install -m 0755   ${WORKDIR}/functions.common            ${D}${sysconfdir}/natinst/networking
 
 	update-rc.d -r ${D} nisetled              start 40 S .
