@@ -48,9 +48,10 @@ FILES_${PN} = "${settingsdatadir}/consoleout.ini \
                ${uixmldir}/nilinuxrt.rtprotocol_enable.* \
                ${uixmldir}/nilinuxrt.rtapp_disable.* \
                ${uixmldir}/nilinuxrt.fpga_disable.* \
+               ${systemsettingsdir} \
 "
 
-DEPENDS += "shadow-native pseudo-native niacctbase"
+DEPENDS += "shadow-native pseudo-native niacctbase base-files-nilrt"
 RDEPENDS_${PN} += "niacctbase bash fw-printenv"
 
 # sysconfig-settings-ssh package
@@ -124,8 +125,10 @@ do_install () {
 
 	# Common interface for system settings (soft dip switches, etc.)
 	install -d -m 0775 ${D}${settingsdatadir}/
-	chown ${LVRT_USER}:${LVRT_GROUP} ${D}${settingsdatadir}/
 	install -m 0644 ${S}/systemsettings/* ${D}${settingsdatadir}/
+
+	# Create shared systemsettingsdir with appropriate permissions and ownership
+	install -d -m 0775 -o ${LVRT_USER} -g ${LVRT_GROUP} ${D}${systemsettingsdir}
 
 	install -d ${D}${sysconfdir}/init.d/
 	install -m 0755 ${WORKDIR}/nisetembeddeduixml ${D}${sysconfdir}/init.d
