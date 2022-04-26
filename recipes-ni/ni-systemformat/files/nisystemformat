@@ -190,7 +190,7 @@ format_config()
 	  ext4)
 		local volume_label="niconfig"
 		local options=""
-		mkfs.ext4 -q -F -L $volume_label $options ${2:-$CONFIGFS_DEV}
+		mkfs.ext4 -q -F -I 256 -L $volume_label $options ${2:-$CONFIGFS_DEV}
 		;;
 	esac
 }
