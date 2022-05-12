@@ -1,0 +1,38 @@
+From 691c27ce4f973ea8030f592041390fabdede8746 Mon Sep 17 00:00:00 2001
+From: Charlie Johnston <charlie.johnston@ni.com>
+Date: Thu, 12 May 2022 15:09:52 -0500
+Subject: [PATCH] Adding aliases from LabVIEW locales to glibc locales.
+
+Some NI Software currently expects non-standard locales. This
+change allows aliasing of those locales to their glibc equivalents
+until work can be done to change those expectations.
+
+Upstream-Status: Inappropriate [NI-specific changes]
+---
+ intl/locale.alias | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/intl/locale.alias b/intl/locale.alias
+index c0dd564fe0..a139b348f1 100644
+--- a/intl/locale.alias
++++ b/intl/locale.alias
+@@ -37,6 +37,8 @@
+ 
+ bokmal		nb_NO.ISO-8859-1
+ catalan		ca_ES.ISO-8859-1
++CP932           ja_JP.windows31j
++CP936           zh_CN.gbk
+ croatian	hr_HR.ISO-8859-2
+ czech		cs_CZ.ISO-8859-2
+ danish          da_DK.ISO-8859-1
+@@ -64,6 +66,7 @@ japanese.sjis	ja_JP.SJIS
+ korean		ko_KR.eucKR
+ korean.euc 	ko_KR.eucKR
+ ko_KR		ko_KR.eucKR
++L1              en_US.iso88591
+ lithuanian      lt_LT.ISO-8859-13
+ no_NO		nb_NO.ISO-8859-1
+ no_NO.ISO-8859-1 nb_NO.ISO-8859-1
+-- 
+2.30.2
+
