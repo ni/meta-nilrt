@@ -12,3 +12,9 @@ SRC_URI =+ " \
 SRC_URI =+ " \
 	file://windows-31j_support.patch \
 "
+
+# Add patch to alias custom LabVIEW locales to the equivalent
+# glibc locales in the Base System Image
+SRC_URI =+ " \
+	file://alias-custom-locales.patch \
+"
