@@ -266,10 +266,6 @@ RDEPENDS_${PN} += "\
 "
 
 
-# meta-openembedded/meta-oe/recipes-bsp
-RDEPENDS_${PN} += "\
-	tbtadm \
-"
 # meta-openembedded/meta-oe/recipes-connectivity
 RDEPENDS_${PN} += "\
 	gammu \
