@@ -12,10 +12,12 @@ SRC_URI =+ "file://0001-pi-condvars-add-protocol-support-to-pthread_condattr.pat
             file://0005-x86_64-Remove-assembly-implementations-for-pthread_c.patch \
             file://0006-pi-condvars-EAGAIN-retry-in-pthread_cond_-broadcast-and-signal.patch \
            "
-# Add patch to build the ja_JP.WINDOWS-31J locale for LabVIEW
-# Japanese language support.
+
+# Add patches to build the ja_JP.WINDOWS-31J and zh_CN.CP936 locales for
+# LabVIEW Japanese and Chinese language support.
 SRC_URI =+ " \
 	file://windows-31j_support.patch \
+	file://cp936_charmap_support.patch \
 "
 
 # Add patch to alias custom LabVIEW locales to the equivalent
