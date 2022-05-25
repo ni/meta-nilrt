@@ -21,7 +21,7 @@ index c0dd564fe0..a139b348f1 100644
  bokmal		nb_NO.ISO-8859-1
  catalan		ca_ES.ISO-8859-1
 +CP932           ja_JP.windows31j
-+CP936           zh_CN.gbk
++CP936           zh_CN.cp936
  croatian	hr_HR.ISO-8859-2
  czech		cs_CZ.ISO-8859-2
  danish          da_DK.ISO-8859-1
