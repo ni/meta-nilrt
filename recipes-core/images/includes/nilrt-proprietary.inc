@@ -44,5 +44,6 @@ NI_PROPRIETARY_RUNMODE_PACKAGES = "\
         ni-arch-gen \
         ni-sysmgmt-salt-minion-support \
         ni-sysmgmt-sysapi-expert \
+        python3-ni-asset-discovery \
         python3-ni-systemlink-sdk \
 "
