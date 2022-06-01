@@ -19,7 +19,6 @@ PACKAGECONFIG[zeromq] = ",,python3-pycrypto python3-pyzmq"
 
 SRC_URI = "\
     git://github.com/ni/salt.git;protocol=https;branch=ni/master/3000.2 \
-    file://set_python_location_hashbang.patch \
     file://minion \
     file://salt-minion \
     file://salt-common.bash_completion \
@@ -107,6 +106,13 @@ do_install_append() {
 
     install -d ${D}${PYTHON_SITEPACKAGES_DIR}/${PN}-tests/
     cp -r ${S}/tests/ ${D}${PYTHON_SITEPACKAGES_DIR}/${PN}-tests/
+
+    # The Salt SysV scripts require that the process name of the salt
+    # components have the form "salt-<component>".
+    # The current python shebangs on the salt components scripts spwans
+    # processes that are generically named python. Changed shebang so
+    # that process names will be identifiable by the init scripts.
+    sed -i 's|#!/usr/bin/env python3|#!/usr/bin/python3|' ${D}${bindir}/salt-*
 }
 
 ALLOW_EMPTY_${PN} = "1"
