@@ -130,7 +130,7 @@ Between the remote execution system, and state management Salt addresses the bac
 
 SUMMARY_${PN}-minion = "client package for salt, the distributed remote execution system"
 DESCRIPTION_${PN}-minion = "${DESCRIPTION_COMMON} This particular package provides the worker agent for salt."
-RDEPENDS_${PN}-minion = "${PN}-common (= ${EXTENDPKGV}) python3-msgpack python3-distro"
+RDEPENDS_${PN}-minion = "${PN}-common (= ${EXTENDPKGV}) python3-core python3-msgpack python3-distro"
 RDEPENDS_${PN}-minion += "${@bb.utils.contains('PACKAGECONFIG', 'zeromq', 'python3-pycrypto python3-pyzmq (>= 13.1.0)', '',d)}"
 RDEPENDS_${PN}-minion += "${@bb.utils.contains('PACKAGECONFIG', 'tcp', 'python3-pycrypto', '',d)}"
 RRECOMMENDS_${PN}-minion_append_x64 = "dmidecode"
@@ -154,7 +154,7 @@ SUMMARY_${PN}-ssh = "remote manager to administer servers via salt"
 DESCRIPTION_${PN}-ssh = "${DESCRIPTION_COMMON} This particular package provides the salt ssh controller. It \
 is able to run salt modules and states on remote hosts via ssh. No minion or other salt specific software needs\
  to be installed on the remote host."
-RDEPENDS_${PN}-ssh = "${PN}-common (= ${EXTENDPKGV}) python3-msgpack"
+RDEPENDS_${PN}-ssh = "${PN}-common (= ${EXTENDPKGV}) python3-core python3-msgpack"
 CONFFILES_${PN}-ssh="${sysconfdir}/${PN}/roster"
 FILES_${PN}-ssh = "${bindir}/${PN}-ssh ${CONFFILES_${PN}-ssh}"
 
@@ -164,7 +164,7 @@ running Salt system. It can start and manage multiple interfaces allowing a REST
 even a Websocket API. The Salt API system is used to expose the fundamental aspects of Salt control to external\
  sources. salt-api acts as the bridge between Salt itself and REST, Websockets, etc. Documentation is available\
  on Read the Docs: http://salt-api.readthedocs.org/"
-RDEPENDS_${PN}-api = "${PN}-master"
+RDEPENDS_${PN}-api = "${PN}-master python3-core"
 RSUGGESTS_${PN}-api = "python3-cherrypy"
 CONFFILES_${PN}-api = "${sysconfdir}/init.d/${PN}-api"
 FILES_${PN}-api = "${bindir}/${PN}-api ${CONFFILES_${PN}-api}"
@@ -173,7 +173,7 @@ INITSCRIPT_PARAMS_${PN}-api = "defaults"
 
 SUMMARY_${PN}-master = "remote manager to administer servers via salt"
 DESCRIPTION_${PN}-master ="${DESCRIPTION_COMMON} This particular package provides the salt controller."
-RDEPENDS_${PN}-master = "${PN}-common (= ${EXTENDPKGV}) python3-msgpack"
+RDEPENDS_${PN}-master = "${PN}-common (= ${EXTENDPKGV}) python3-core python3-msgpack"
 RDEPENDS_${PN}-master += "${@bb.utils.contains('PACKAGECONFIG', 'zeromq', 'python3-pycrypto python3-pyzmq (>= 13.1.0)', '',d)}"
 RDEPENDS_${PN}-master += "${@bb.utils.contains('PACKAGECONFIG', 'tcp', 'python3-pycrypto', '',d)}"
 CONFFILES_${PN}-master="${sysconfdir}/init.d/${PN}-master  ${sysconfdir}/${PN}/master"
@@ -185,7 +185,7 @@ INITSCRIPT_PARAMS_${PN}-master = "defaults"
 SUMMARY_${PN}-syndic = "master-of-masters for salt, the distributed remote execution system"
 DESCRIPTION_${PN}-syndic = "${DESCRIPTION_COMMON} This particular package provides the master of masters for \
 salt; it enables the management of multiple masters at a time."
-RDEPENDS_${PN}-syndic = "${PN}-master (= ${EXTENDPKGV})"
+RDEPENDS_${PN}-syndic = "${PN}-master (= ${EXTENDPKGV}) python3-core"
 CONFFILES_${PN}-syndic="${sysconfdir}/init.d/${PN}-syndic"
 FILES_${PN}-syndic = "${bindir}/${PN}-syndic ${CONFFILES_${PN}-syndic}"
 INITSCRIPT_NAME_${PN}-syndic = "${PN}-syndic"
@@ -193,7 +193,7 @@ INITSCRIPT_PARAMS_${PN}-syndic = "defaults"
 
 SUMMARY_${PN}-cloud = "public cloud VM management system"
 DESCRIPTION_${PN}-cloud = "provision virtual machines on various public clouds via a cleanly controlled profile and mapping system."
-RDEPENDS_${PN}-cloud = "${PN}-common (= ${EXTENDPKGV})"
+RDEPENDS_${PN}-cloud = "${PN}-common (= ${EXTENDPKGV}) python3-core"
 RSUGGESTS_${PN}-cloud = "python3-netaddr python3-botocore"
 CONFFILES_${PN}-cloud = "${sysconfdir}/${PN}/cloud"
 FILES_${PN}-cloud = "${bindir}/${PN}-cloud ${sysconfdir}/${PN}/cloud.conf.d/ ${sysconfdir}/${PN}/cloud.profiles.d/ ${sysconfdir}/${PN}/cloud.providers.d/ ${CONFFILES_${PN}-cloud}"
