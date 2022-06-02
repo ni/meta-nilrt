@@ -11,13 +11,15 @@ SRC_URI += " \
     file://grub.d \
 "
 
-FILES_${PN}     += "/boot/runmode/bootimage.cfg /boot/runmode/bootimage.cfg.d/*.cfg"
-CONFFILES_${PN} += "/boot/runmode/bootimage.cfg /boot/runmode/bootimage.cfg.d/*.cfg"
+FILES_${PN}     += "/boot/runmode/bootimage.cfg /boot/runmode/bootimage.cfg.d/*.cfg /boot/runmode/cve-*.cfg"
+CONFFILES_${PN} += "/boot/runmode/bootimage.cfg /boot/runmode/bootimage.cfg.d/*.cfg /boot/runmode/cve-*.cfg"
 
 do_install () {
 	install -d ${D}/boot/runmode
 	install -m 0644 ${WORKDIR}/grub-runmode-bootimage.cfg ${D}/boot/runmode/bootimage.cfg
 
-	install -d "${D}/boot/runmode/bootimage.cfg.d"
-	install -m 0644 ${WORKDIR}/grub.d/* ${D}/boot/runmode/bootimage.cfg.d
+	install -m 0644 ${WORKDIR}/grub.d/cve-2017-5715.cfg ${D}/boot/runmode
+	install -m 0644 ${WORKDIR}/grub.d/cve-2017-5754.cfg ${D}/boot/runmode
+	install -m 0644 ${WORKDIR}/grub.d/cve-2018-3620_3646.cfg ${D}/boot/runmode
+	install -m 0644 ${WORKDIR}/grub.d/cve-2018-3639.cfg ${D}/boot/runmode
 }
