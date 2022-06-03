@@ -17,6 +17,7 @@
       </property>
       <property name="background-alpha" type="uint" value="0"/>
       <property name="autohide" type="bool" value="false"/>
+      <property name="size" type="uint" value="48"/>
     </property>
   </property>
   <property name="plugins" type="empty">
