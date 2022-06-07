@@ -1,0 +1,32 @@
+From 7a8a38e6863d88de2869056b1cb53fc6de3d5f24 Mon Sep 17 00:00:00 2001
+From: Shruthi Ravichandran <shruthi.ravichandran@ni.com>
+Date: Tue, 7 Jun 2022 14:36:19 -0700
+Subject: [PATCH] opkg_conf: Check if tmp_dir exists before deleting
+
+opkg's rm_r prints an error message if the directory to be deleted
+does not exist. There are some cases when the tmp_dir is not created.
+Therefore, check if the tmp_dir exists before trying to delete it.
+
+Upstream-Status: Not Submitted [Hotfix for upcoming release]
+
+Signed-off-by: Shruthi Ravichandran <shruthi.ravichandran@ni.com>
+---
+ libopkg/opkg_conf.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libopkg/opkg_conf.c b/libopkg/opkg_conf.c
+index 37fcd2c..e13ebc1 100644
+--- a/libopkg/opkg_conf.c
++++ b/libopkg/opkg_conf.c
+@@ -906,7 +906,7 @@ void opkg_conf_deinit(void)
+     int i;
+     char **tmp;
+ 
+-    if (opkg_config->tmp_dir)
++    if (opkg_config->tmp_dir && file_exists(opkg_config->tmp_dir))
+         rm_r(opkg_config->tmp_dir);
+ 
+     if (opkg_config->volatile_cache && file_exists(opkg_config->cache_dir))
+-- 
+2.20.1
+
