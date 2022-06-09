@@ -103,6 +103,8 @@ PREFERRED_PROVIDER_jpeg-native = "jpeg-native"
 PREFERRED_PROVIDER_getopt = "busybox"
 VIRTUAL-RUNTIME_getopt = "busybox"
 
+PREFERRED_PROVIDER_virtual/crypt = "glibc"
+
 OLDEST_KERNEL = "3.14.3"
 
 QTDEMOS = "quicky fotowall"
