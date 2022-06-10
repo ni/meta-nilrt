@@ -76,11 +76,11 @@ case "$1" in
     status)
         pid=`pidof -x $DAEMON`
         if [ -n "$pid" ]; then
-	    echo "$NAME (pid $pid) is running ..."
-	else
-	    echo "$NAME is stopped"
+            echo "$NAME (pid $pid) is running ..."
+        else
+            echo "$NAME is stopped"
         fi
-	;;
+        ;;
     #reload)
         # not implemented
         #;;
