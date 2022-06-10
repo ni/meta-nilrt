@@ -39,6 +39,10 @@ do_start() {
         return 1
     fi
 
+    # The pki/minion directory must exist for unregistered minions to be added
+    # to NI masters from the Systemlink Web UI.
+    mkdir -p /etc/salt/pki/minion
+
     # Don't start the salt-minion when the master is disabled
     if [ -f "$MASTER_CONF_FILE" ] && [ "$(awk '$1 ~ /^master_type/ {print $2}' $MASTER_CONF_FILE)" = 'disable' ]; then
         return 0
