@@ -39,3 +39,11 @@ RDEPENDS_${PN}_append_x64 = "\
 RDEPENDS_${PN} += "\
 	rdma-core \
 "
+
+# ni-flexrio-integratedio-libs, required for csi2serdesconfig
+# Contact: Michael Strain <michael.strain@ni.com>
+RDEPENDS_${PN}_append_x64 = "\
+	python3-core \
+	python3-ctypes \
+	python3-threading \
+"
