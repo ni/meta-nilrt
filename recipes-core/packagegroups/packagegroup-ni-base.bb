@@ -66,6 +66,7 @@ RDEPENDS_${PN} += "\
 	linux-firmware-i915 \
 	logrotate \
 	lsbinitscripts \
+	modutils-initscripts \
 	netbase \
 	ni-hw-scripts \
 	ni-rtfeatures \
