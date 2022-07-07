@@ -2,8 +2,6 @@ MAINTAINER = "NI Linux Real-Time Maintainers <nilrt@ni.com>"
 
 TARGET_VENDOR = "-nilrt"
 
-GRUB_BRANCH = "nilrt/19.0"
-
 DISTRO_FEATURES += "${DISTRO_FEATURES_DEFAULT}"
 # Common features enabled on all NILRT flavours
 DISTRO_FEATURES += "\
