@@ -11,7 +11,6 @@ NI_PROPRIETARY_COMMON_PACKAGES = "\
         ni-avahi-client \
         ni-ca-certs \
         ni-rt-exec-webservice \
-        ni-rtlog \
         ni-sdmon \
         ni-service-locator \
         ni-skyline-file-client \
