@@ -327,12 +327,10 @@ install_grubenv()
 set_versions()
 {
 	BUILD_IDENTIFIER=$(get_image_info BUILD_IDENTIFIER)
-	GRUB_IDENTIFIER=$(get_image_info GRUB_VERSION)
 
-	echo "set ni_grub_version=${GRUB_IDENTIFIER}" > $BOOTFS_MOUNTPOINT/grub/grub-ni-version
 	echo "set ni_recoverytool_version=${BUILD_IDENTIFIER}" > $BOOTFS_MOUNTPOINT/grub/recoverytool-ni-version
 
-	chmod 444 $BOOTFS_MOUNTPOINT/grub/grub-ni-version $BOOTFS_MOUNTPOINT/grub/recoverytool-ni-version
+	chmod 444 $BOOTFS_MOUNTPOINT/grub/recoverytool-ni-version
 }
 
 fixup_configfs()
