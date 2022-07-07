@@ -34,10 +34,7 @@ bootimg_fixup() {
 	install -m 0644 ${THISDIR}/files/grubenv_non_ni_target	${IMAGE_ROOTFS}/payload
 	install -m 0644 ${THISDIR}/files/unicode.pf2		${IMAGE_ROOTFS}/payload/fonts
 
-	GRUB_VERSION=$(echo ${GRUB_BRANCH} | cut -d "/" -f 2)
-
 	echo "BUILD_IDENTIFIER=${BUILD_IDENTIFIER}" > ${IMAGE_ROOTFS}/payload/imageinfo
-	echo "GRUB_VERSION=${GRUB_VERSION}.0" >> ${IMAGE_ROOTFS}/payload/imageinfo
 }
 
 symlink_iso () {
