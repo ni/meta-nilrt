@@ -34,10 +34,7 @@ do_install() {
 	install -m 0644 ${WORKDIR}/leds.rules          ${D}${sysconfdir}/udev/rules.d/leds.rules
 
 	install -m 0644 ${WORKDIR}/localextra.rules    ${D}${sysconfdir}/udev/rules.d/localextra.rules
-	if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'false', 'true', d)}; then
-		# only needed pre-NXG
-		install -m 0644 ${WORKDIR}/localextra_rfkill.rules    ${D}${sysconfdir}/udev/rules.d/localextra_rfkill.rules
-	fi
+	install -m 0644 ${WORKDIR}/localextra_rfkill.rules    ${D}${sysconfdir}/udev/rules.d/localextra_rfkill.rules
 
 	install -m 0644 ${WORKDIR}/mount.blacklist     ${D}${sysconfdir}/udev/
 
@@ -45,8 +42,6 @@ do_install() {
 
 	install -m 0755 ${WORKDIR}/mount.sh            ${D}${sysconfdir}/udev/scripts/mount.sh
 
-	# only for nilrt and nilrt-xfce
-	if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'false', 'true', d)}; then
 	install -m 0755 ${WORKDIR}/hotplug.script      ${D}${sysconfdir}/udev/scripts/hotplug.script
 
 	cat >> ${D}${sysconfdir}/udev/rules.d/net-hotplug.rules << EOF
@@ -54,7 +49,6 @@ do_install() {
 SUBSYSTEM=="net", ENV{networking}!="done", ENV{skipped}="yes"
 SUBSYSTEM=="net", ENV{networking}=="done", ENV{skipped}="no", RUN+="/etc/udev/scripts/hotplug.script"
 EOF
-	fi
 }
 
 do_install_append_xilinx-zynq() {
