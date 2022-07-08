@@ -6,12 +6,9 @@ SRC_URI += "\
 	file://vpnctl \
 "
 
-DEPENDS += "shadow-native pseudo-native niacctbase"
-
-RDEPENDS_{PN} += "niacctbase"
-
 INITSCRIPT_NAME_${PN} = "vpn"
 INITSCRIPT_PARAMS_${PN} = "start 42 4 5 . stop 5 0 1 2 6 ."
+
 
 do_install_append () {
 	install -d ${D}${sysconfdir}/default/volatiles/
