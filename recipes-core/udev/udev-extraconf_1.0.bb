@@ -19,32 +19,26 @@ SRC_URI = " \
 	file://net-hotplug.rules \
 "
 
+S = "${WORKDIR}"
+udev_rules = "${D}${sysconfdir}/udev/rules.d"
+
 do_install() {
-	install -d ${D}${sysconfdir}/udev/rules.d
+	install -d ${D}${sysconfdir}/udev
+	install -m 0644 ${S}/mount.blacklist ${D}${sysconfdir}/udev/
 
-	install -m 0644 ${WORKDIR}/automount.rules     ${D}${sysconfdir}/udev/rules.d/automount.rules
-	install -m 0644 ${WORKDIR}/net-hotplug.rules   ${D}${sysconfdir}/udev/rules.d/net-hotplug.rules
-	install -m 0644 ${WORKDIR}/50-plugdev.rules    ${D}${sysconfdir}/udev/rules.d/50-plugdev.rules
-	install -m 0644 ${WORKDIR}/61-removable-storage-polling.rules    ${D}${sysconfdir}/udev/rules.d/61-removable-storage-polling.rules
-	install -m 0644 ${WORKDIR}/70-usb-serial-permissions.rules ${D}${sysconfdir}/udev/rules.d/70-usb-serial-permissions.rules
-	install -m 0644 ${WORKDIR}/leds.rules          ${D}${sysconfdir}/udev/rules.d/leds.rules
+	install -d ${udev_rules}
+	install -m 0644 ${S}/50-plugdev.rules                   ${udev_rules}/50-plugdev.rules
+	install -m 0644 ${S}/61-removable-storage-polling.rules ${udev_rules}/61-removable-storage-polling.rules
+	install -m 0644 ${S}/70-usb-serial-permissions.rules    ${udev_rules}/70-usb-serial-permissions.rules
+	install -m 0644 ${S}/automount.rules                    ${udev_rules}/automount.rules
+	install -m 0644 ${S}/leds.rules                         ${udev_rules}/leds.rules
+	install -m 0644 ${S}/localextra.rules                   ${udev_rules}/localextra.rules
+	install -m 0644 ${S}/localextra_rfkill.rules            ${udev_rules}/localextra_rfkill.rules
+	install -m 0644 ${S}/net-hotplug.rules                  ${udev_rules}/net-hotplug.rules
 
-	install -m 0644 ${WORKDIR}/localextra.rules    ${D}${sysconfdir}/udev/rules.d/localextra.rules
-	install -m 0644 ${WORKDIR}/localextra_rfkill.rules    ${D}${sysconfdir}/udev/rules.d/localextra_rfkill.rules
-
-	install -m 0644 ${WORKDIR}/mount.blacklist     ${D}${sysconfdir}/udev/
-
-	install -d ${D}${sysconfdir}/udev/scripts/
-
-	install -m 0755 ${WORKDIR}/mount.sh            ${D}${sysconfdir}/udev/scripts/mount.sh
-
-	install -m 0755 ${WORKDIR}/hotplug.script      ${D}${sysconfdir}/udev/scripts/hotplug.script
-
-	cat >> ${D}${sysconfdir}/udev/rules.d/net-hotplug.rules << EOF
-
-SUBSYSTEM=="net", ENV{networking}!="done", ENV{skipped}="yes"
-SUBSYSTEM=="net", ENV{networking}=="done", ENV{skipped}="no", RUN+="/etc/udev/scripts/hotplug.script"
-EOF
+	install -d ${D}${sysconfdir}/udev/scripts
+	install -m 0755 ${S}/mount.sh       ${D}${sysconfdir}/udev/scripts/mount.sh
+	install -m 0755 ${S}/hotplug.script ${D}${sysconfdir}/udev/scripts/hotplug.script
 }
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
