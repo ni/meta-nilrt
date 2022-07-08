@@ -20,9 +20,6 @@ SRC_URI = " \
 	file://net-hotplug.rules \
 "
 
-SRC_URI_append_xilinx-zynq = "file://fpga.rules"
-SRC_URI_append_xilinx-zynqhf = "file://fpga.rules"
-
 do_install() {
 	install -d ${D}${sysconfdir}/udev/rules.d
 
@@ -49,10 +46,6 @@ do_install() {
 SUBSYSTEM=="net", ENV{networking}!="done", ENV{skipped}="yes"
 SUBSYSTEM=="net", ENV{networking}=="done", ENV{skipped}="no", RUN+="/etc/udev/scripts/hotplug.script"
 EOF
-}
-
-do_install_append_xilinx-zynq() {
-	install -m 0644 ${WORKDIR}/fpga.rules          ${D}${sysconfdir}/udev/rules.d/fpga.rules
 }
 
 FILES_${PN} = "${sysconfdir}/udev"
