@@ -10,6 +10,12 @@ CONSOLE=$2
 TERM=$3
 
 while read cons flags; do
+   # tty1 comes up by default in inittab and tty0 is an alias to active terminal.
+   # So don't select these.
+   if [ "$cons" = "tty0" ] || [ "$cons" = "tty1" ]; then
+      continue;
+   fi
+
    case "$flags" in
    *EC*) CONSOLE="$cons"
          SPEED=$(stty speed < /dev/$CONSOLE)
