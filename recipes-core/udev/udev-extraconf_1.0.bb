@@ -6,17 +6,9 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
 SRC_URI = " \
-	file://50-plugdev.rules \
-	file://61-removable-storage-polling.rules \
-	file://70-usb-serial-permissions.rules \
-	file://automount.rules \
-	file://hotplug.script \
-	file://leds.rules \
-	file://localextra.rules \
-	file://localextra_rfkill.rules \
 	file://mount.blacklist \
-	file://mount.sh \
-	file://net-hotplug.rules \
+	file://rules.d \
+	file://scripts \
 "
 
 S = "${WORKDIR}"
@@ -27,18 +19,17 @@ do_install() {
 	install -m 0644 ${S}/mount.blacklist ${D}${sysconfdir}/udev/
 
 	install -d ${udev_rules}
-	install -m 0644 ${S}/50-plugdev.rules                   ${udev_rules}/50-plugdev.rules
-	install -m 0644 ${S}/61-removable-storage-polling.rules ${udev_rules}/61-removable-storage-polling.rules
-	install -m 0644 ${S}/70-usb-serial-permissions.rules    ${udev_rules}/70-usb-serial-permissions.rules
-	install -m 0644 ${S}/automount.rules                    ${udev_rules}/automount.rules
-	install -m 0644 ${S}/leds.rules                         ${udev_rules}/leds.rules
-	install -m 0644 ${S}/localextra.rules                   ${udev_rules}/localextra.rules
-	install -m 0644 ${S}/localextra_rfkill.rules            ${udev_rules}/localextra_rfkill.rules
-	install -m 0644 ${S}/net-hotplug.rules                  ${udev_rules}/net-hotplug.rules
+	install -m 0644 ${S}/rules.d/automount.rules                 ${udev_rules}/automount.rules
+	install -m 0644 ${S}/rules.d/leds.rules                      ${udev_rules}/leds.rules
+	install -m 0644 ${S}/rules.d/localextra.rules                ${udev_rules}/localextra.rules
+	install -m 0644 ${S}/rules.d/localextra_rfkill.rules         ${udev_rules}/localextra_rfkill.rules
+	install -m 0644 ${S}/rules.d/net-hotplug.rules               ${udev_rules}/net-hotplug.rules
+	install -m 0644 ${S}/rules.d/plugdev.rules                   ${udev_rules}/50-plugdev.rules
+	install -m 0644 ${S}/rules.d/removable-storage-polling.rules ${udev_rules}/61-removable-storage-polling.rules
+	install -m 0644 ${S}/rules.d/usb-serial-permissions.rules    ${udev_rules}/70-usb-serial-permissions.rules
 
 	install -d ${D}${sysconfdir}/udev/scripts
-	install -m 0755 ${S}/mount.sh       ${D}${sysconfdir}/udev/scripts/mount.sh
-	install -m 0755 ${S}/hotplug.script ${D}${sysconfdir}/udev/scripts/hotplug.script
+	install -m 0755 ${S}/scripts/* ${D}${sysconfdir}/udev/scripts
 }
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
