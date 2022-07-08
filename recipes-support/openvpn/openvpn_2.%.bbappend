@@ -1,8 +1,8 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
 SRC_URI += "\
+	file://init.d/vpn \
 	file://volatile \
-	file://vpn \
 	file://vpnctl \
 "
 
@@ -18,7 +18,7 @@ do_install_append () {
 	install --mode=0644 ${WORKDIR}/volatile ${D}${sysconfdir}/default/volatiles/99_${PN}
 
 	install -d ${D}${sysconfdir}/init.d
-	install --mode=0755 ${WORKDIR}/vpn ${D}${sysconfdir}/init.d/
+	install --mode=0755 ${WORKDIR}/init.d/vpn ${D}${sysconfdir}/init.d/
 
 	install --mode=0755 ${WORKDIR}/vpnctl ${D}${sbindir}/
 }
