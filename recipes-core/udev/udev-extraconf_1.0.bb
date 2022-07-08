@@ -1,10 +1,9 @@
 SUMMARY = "Extra machine specific configuration files"
 DESCRIPTION = "Extra machine specific configuration files for udev, specifically blacklist information."
+HOMEPAGE = "https://github.com/ni/meta-nilrt"
+BUGTRACKER = "https://github.com/ni/meta-nilrt/issues"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
-
-
-PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 SRC_URI = " \
 	file://50-plugdev.rules \
@@ -47,6 +46,8 @@ SUBSYSTEM=="net", ENV{networking}!="done", ENV{skipped}="yes"
 SUBSYSTEM=="net", ENV{networking}=="done", ENV{skipped}="no", RUN+="/etc/udev/scripts/hotplug.script"
 EOF
 }
+
+PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 FILES_${PN} = "${sysconfdir}/udev"
 RDEPENDS_${PN} = "udev"
