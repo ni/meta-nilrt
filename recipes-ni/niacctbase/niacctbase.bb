@@ -71,7 +71,7 @@ RDEPENDS:${PN}-sudo = "\
 SUMMARY:${PN}-udev = "${SUMMARY} - udev rules"
 FILES:${PN}-udev = "${sysconfdir}/udev/*"
 CONFFILES:${PN}-udev = "${sysconfdir}/udev/rules.d/*"
-RDEPENDS:${PN}-udev += " udev"
+RDEPENDS:${PN}-udev += " niacctbase udev"
 
 
 RDEPENDS:${PN} += " ${PN}-udev"
