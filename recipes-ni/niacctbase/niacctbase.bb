@@ -1,4 +1,7 @@
-DESCRIPTION = "Basic user and group settings for NI Linux RT applications."
+SUMMARY = "Common user and group settings for NI applications"
+DESCRIPTION = "Configures the '${LVRT_USER}' user account; the '${LVRT_GROUP}' group; and other common, NI-specific accounts. Configures privileges for members of those accounts."
+HOMEPAGE = "https://github.com/ni/meta-nilrt"
+BUGTRACKER = "https://github.com/ni/meta-nilrt/issues"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
