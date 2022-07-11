@@ -1,0 +1,21 @@
+# Rules for permitting device access to the `ni` user group.
+
+# webserv requires access to rfkill for the web server
+# configuration of wifi.
+KERNEL=="rfkill", GROUP="ni", MODE="660"
+
+# First RTC device
+KERNEL=="rtc0", GROUP="ni", MODE="664"
+
+# i2c and spi access for roborio
+KERNEL=="i2c-[0-9]*", GROUP="ni", MODE="660"
+KERNEL=="spidev[0-9]*.[0-9]*", GROUP="ni", MODE="660"
+
+# watchdog
+KERNEL=="watchdog", GROUP="ni", MODE="660"
+
+# NI watchdog
+KERNEL=="niwatchdog", GROUP="ni", MODE="660"
+
+# v4l (video/webcam)
+KERNEL=="video[0-9]*", GROUP="ni", MODE="666"

@@ -1,3 +1,0 @@
-# webserv requires access to rfkill for the web server
-# configuration of wifi.
-KERNEL=="rfkill", GROUP="ni", MODE="660"

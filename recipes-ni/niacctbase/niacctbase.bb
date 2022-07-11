@@ -4,6 +4,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 SRC_URI = "\
 	file://sudoers \
+	file://udev.rules \
 "
 
 S = "${WORKDIR}"
@@ -44,21 +45,35 @@ useradd_preinst_append () {
 }
 
 
-# -sudo subpackage (sudo integration) #
-
 do_install_append () {
 	install -d ${D}${sysconfdir}/sudoers.d/
 	install --mode=0660 ${S}/sudoers ${D}${sysconfdir}/sudoers.d/${PN}
+
+	install -d ${D}${sysconfdir}/udev/rules.d
+	install --mode=0644 ${S}/udev.rules ${D}${sysconfdir}/udev/rules.d/90-${PN}.rules
 }
 
-PACKAGE_BEFORE_PN += " ${PN}-sudo"
+## subpackages
+PACKAGE_BEFORE_PN += " \
+	${PN}-sudo \
+	${PN}-udev \
+"
+# -sudo : sudo integration
+SUMMARY_${PN}-sudo = "${SUMMARY} - sudo integration"
 FILES_${PN}-sudo = "${sysconfdir}/sudoers.d/*"
 CONFFILES_${PN}-sudo = "${sysconfdir}/sudoers.d/*"
 RDEPENDS_${PN}-sudo = "\
 	niacctbase \
 	sudo-lib \
 "
+
+# -udev : udev rules for the `ni` group
+SUMMARY_${PN}-udev = "${SUMMARY} - udev rules"
+FILES_${PN}-udev = "${sysconfdir}/udev/*"
+CONFFILES_${PN}-udev = "${sysconfdir}/udev/rules.d/*"
+RDEPENDS_${PN}-udev += " udev"
+
+
+RDEPENDS_${PN} += " ${PN}-udev"
 RRECOMMENDS_${PN} += " ${PN}-sudo"
-
-
 BBCLASSEXTEND = "native nativesdk"

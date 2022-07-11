@@ -22,7 +22,6 @@ do_install() {
 	install -m 0644 ${S}/rules.d/automount.rules                 ${udev_rules}/automount.rules
 	install -m 0644 ${S}/rules.d/leds.rules                      ${udev_rules}/leds.rules
 	install -m 0644 ${S}/rules.d/localextra.rules                ${udev_rules}/localextra.rules
-	install -m 0644 ${S}/rules.d/localextra_rfkill.rules         ${udev_rules}/localextra_rfkill.rules
 	install -m 0644 ${S}/rules.d/net-hotplug.rules               ${udev_rules}/net-hotplug.rules
 	install -m 0644 ${S}/rules.d/plugdev.rules                   ${udev_rules}/50-plugdev.rules
 	install -m 0644 ${S}/rules.d/removable-storage-polling.rules ${udev_rules}/61-removable-storage-polling.rules
