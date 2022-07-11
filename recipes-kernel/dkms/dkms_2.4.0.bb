@@ -9,6 +9,14 @@ SRC_URI[md5sum] = "d2e74dd79086c564a924b5763794091b"
 
 INSANE_SKIP_${PN} += "dev-deps"
 
-RDEPENDS_${PN} += "bash kmod gcc make patch kernel-dev"
+RDEPENDS_${PN} += " \
+	bash \
+	gcc \
+	kernel-dev \
+	kernel-devsrc \
+	kmod \
+	make \
+	patch \
+"
 
 inherit autotools-brokensep
