@@ -14,7 +14,7 @@ SRC_URI = "\
 
 S = "${WORKDIR}"
 
-ALLOW_EMPTY_${PN} = "1"
+ALLOW_EMPTY:${PN} = "1"
 
 
 # useradd #
@@ -24,27 +24,27 @@ USERADD_PACKAGES = "${PN}"
 
 # Note: With the parsing that happens with these varaibles, you need to be sure
 # to avoid "... ;", no trailing semicolons
-GROUPADD_PARAM_${PN} = " \
+GROUPADD_PARAM:${PN} = " \
 	--system ${LVRT_GROUP}; \
 	--system openvpn; \
 	--system niwscerts; \
 	--system network"
 
 # add parameter -m if you want home directories created with default files (.profile, .bashrc)
-USERADD_PARAM_${PN} = " \
+USERADD_PARAM:${PN} = " \
 	-m -N -g ${LVRT_GROUP} -G network,niwscerts,plugdev,tty,video -c 'LabVIEW user' ${LVRT_USER}; \
 	-m -N -g ${LVRT_GROUP} -G niwscerts,plugdev,adm,tty -c 'Web services user' webserv; \
 	-N -g openvpn -G network -c 'OpenVPN' -r openvpn; \
 "
 
-useradd_preinst_append () {
+useradd_preinst:append () {
 	eval ${PSEUDO} chmod g+sw ${SYSROOT}/home/${LVRT_USER} || true
 	eval ${PSEUDO} chmod g+s ${SYSROOT}/home/webserv || true
 	eval ${PSEUDO} ln -sf /home/admin ${SYSROOT}/home/root || true
 }
 
 
-do_install_append () {
+do_install:append () {
 	install -d ${D}${sysconfdir}/sudoers.d/
 	install --mode=0660 ${S}/sudoers ${D}${sysconfdir}/sudoers.d/${PN}
 
@@ -59,21 +59,21 @@ PACKAGE_BEFORE_PN += " \
 	${PN}-udev \
 "
 # -sudo : sudo integration
-SUMMARY_${PN}-sudo = "${SUMMARY} - sudo integration"
-FILES_${PN}-sudo = "${sysconfdir}/sudoers.d/*"
-CONFFILES_${PN}-sudo = "${sysconfdir}/sudoers.d/*"
-RDEPENDS_${PN}-sudo = "\
+SUMMARY:${PN}-sudo = "${SUMMARY} - sudo integration"
+FILES:${PN}-sudo = "${sysconfdir}/sudoers.d/*"
+CONFFILES:${PN}-sudo = "${sysconfdir}/sudoers.d/*"
+RDEPENDS:${PN}-sudo = "\
 	niacctbase \
 	sudo-lib \
 "
 
 # -udev : udev rules for the `ni` group
-SUMMARY_${PN}-udev = "${SUMMARY} - udev rules"
-FILES_${PN}-udev = "${sysconfdir}/udev/*"
-CONFFILES_${PN}-udev = "${sysconfdir}/udev/rules.d/*"
-RDEPENDS_${PN}-udev += " udev"
+SUMMARY:${PN}-udev = "${SUMMARY} - udev rules"
+FILES:${PN}-udev = "${sysconfdir}/udev/*"
+CONFFILES:${PN}-udev = "${sysconfdir}/udev/rules.d/*"
+RDEPENDS:${PN}-udev += " udev"
 
 
-RDEPENDS_${PN} += " ${PN}-udev"
-RRECOMMENDS_${PN} += " ${PN}-sudo"
+RDEPENDS:${PN} += " ${PN}-udev"
+RRECOMMENDS:${PN} += " ${PN}-sudo"
 BBCLASSEXTEND = "native nativesdk"
