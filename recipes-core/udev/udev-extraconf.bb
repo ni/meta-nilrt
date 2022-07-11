@@ -1,9 +1,11 @@
-SUMMARY = "Extra machine specific configuration files"
+SUMMARY = "NILRT distro-specific configuration files"
 DESCRIPTION = "Extra machine specific configuration files for udev, specifically blacklist information."
 HOMEPAGE = "https://github.com/ni/meta-nilrt"
 BUGTRACKER = "https://github.com/ni/meta-nilrt/issues"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
+
+PV = "1.1"
 
 SRC_URI = " \
 	file://mount.blacklist \
@@ -12,6 +14,8 @@ SRC_URI = " \
 "
 
 S = "${WORKDIR}"
+
+
 udev_rules = "${D}${sysconfdir}/udev/rules.d"
 
 do_install() {
@@ -30,6 +34,7 @@ do_install() {
 	install -d ${D}${sysconfdir}/udev/scripts
 	install -m 0755 ${S}/scripts/* ${D}${sysconfdir}/udev/scripts
 }
+
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
