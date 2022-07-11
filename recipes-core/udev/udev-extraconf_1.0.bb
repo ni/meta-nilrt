@@ -41,6 +41,3 @@ CONFFILES:${PN} = "${sysconfdir}/udev/mount.blacklist"
 RPROVIDES:${PN} = "udev-extra-rules"
 RREPLACES:${PN} = "udev-extra-rules"
 RCONFLICTS:${PN} = "udev-extra-rules"
-
-DEPENDS += "shadow-native pseudo-native niacctbase"
-RDEPENDS:${PN} += "niacctbase"
