@@ -12,9 +12,9 @@ SRCREV = "8c3065c6b26d573d55abfcb17b422204ba63e590"
 
 S = "${WORKDIR}/git"
 
-INSANE_SKIP_${PN} += "dev-deps"
+INSANE_SKIP:${PN} += "dev-deps"
 
-RDEPENDS_${PN} += " \
+RDEPENDS:${PN} += " \
 	bash \
 	gcc \
 	kernel-dev \
