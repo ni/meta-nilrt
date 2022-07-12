@@ -1,5 +1,3 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
-
 SUMMARY = "NI-LinuxRT-specifc glibc tests"
 HOMEPAGE = "https://github.com/ni/meta-nilrt"
 BUGTRACKER = "https://github.com/ni/meta-nilrt/issues"
