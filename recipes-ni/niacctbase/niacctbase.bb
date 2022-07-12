@@ -1,4 +1,4 @@
-SUMMARY = "Common user and group settings for NI applications"
+SUMMARY = "Common user and group settings for NI applications and devices"
 DESCRIPTION = "Configures the '${LVRT_USER}' user account; the '${LVRT_GROUP}' group; and other common, NI-specific accounts. Configures privileges for members of those accounts."
 HOMEPAGE = "https://github.com/ni/meta-nilrt"
 BUGTRACKER = "https://github.com/ni/meta-nilrt/issues"
