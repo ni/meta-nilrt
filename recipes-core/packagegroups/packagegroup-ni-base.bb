@@ -42,6 +42,7 @@ RDEPENDS_${PN} += "\
 	dpkg-start-stop \
 	e2fsprogs \
 	e2fsprogs-mke2fs \
+	efibootmgr \
 	efivar \
 	ethtool \
 	eudev \
