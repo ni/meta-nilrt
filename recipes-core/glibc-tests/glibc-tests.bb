@@ -39,6 +39,6 @@ do_install_ptest() {
 	install -m 0755 ${S}/test_stack_touch         ${D}${PTEST_PATH}
 }
 
-ALLOW_EMPTY_${PN} = "1"
+ALLOW_EMPTY:${PN} = "1"
 
-RDEPENDS_${PN}-ptest = "bash"
+RDEPENDS:${PN}-ptest = "bash"
