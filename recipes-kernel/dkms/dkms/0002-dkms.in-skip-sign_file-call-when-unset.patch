@@ -1,0 +1,39 @@
+From a2818feee267996a112d8f4571a2c410575d3543 Mon Sep 17 00:00:00 2001
+From: Alex Stewart <alex.stewart@ni.com>
+Date: Tue, 12 Jul 2022 04:55:59 -0500
+Subject: [PATCH] dkms.in: skip sign_file call when unset
+
+The module-signing script is located in prepare_signing(). It is
+possible for installation to proceed, even if no signing file is located
+on the system. In that case, the script promises that signing will not
+occur.
+
+However, in actual_build(), there is no check for the case where
+$sign_file is unset. So `eval "" sha512 ...` is executed instead - which
+is a nonsense command.
+
+If $sign_file is unset, skip signing.
+
+Signed-off-by: Alex Stewart <alex.stewart@ni.com>
+
+Upstream-Status: Submitted [https://github.com/dell/dkms/pull/234]
+
+---
+ dkms.in | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/dkms.in b/dkms.in
+index ba312c3..4510436 100644
+--- a/dkms.in
++++ b/dkms.in
+@@ -1030,7 +1030,9 @@ actual_build()
+                     kmodsign sha512 $mok_signing_key $mok_certificate "$built_module"
+                     ;;
+                 *)
+-                    eval $sign_file sha512 $mok_signing_key $mok_certificate "$built_module"
++                    if [ -n "${sign_file}" ]; then
++                        eval $sign_file sha512 $mok_signing_key $mok_certificate "$built_module"
++                    fi
+                     ;;
+             esac
+         fi
