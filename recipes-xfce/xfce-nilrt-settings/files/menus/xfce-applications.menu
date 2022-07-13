@@ -14,8 +14,8 @@
 
     <Layout>
         <Filename>xfce4-run.desktop</Filename>
-        <Filename>exo-terminal-emulator.desktop</Filename>
-        <Filename>exo-file-manager.desktop</Filename>
+        <Filename>xfce4-terminal-emulator.desktop</Filename>
+        <Filename>xfce4-file-manager.desktop</Filename>
         <Menuname>Settings</Menuname>
         <Separator/>
         <Filename>xfce4-about.desktop</Filename>
