@@ -2,10 +2,10 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/${PN}-${PV}:"
 
 SRC_URI += " \
-            file://bootmisc_0001_make_hwclock_authoritative.patch \
-            file://bootmisc_0002_add_sanity_checks.patch \
-            file://urandom.default \
-            file://transconf-hooks \
+	file://bootmisc_0001_make_hwclock_authoritative.patch \
+	file://bootmisc_0002_add_sanity_checks.patch \
+	file://transconf-hooks \
+	file://urandom.default \
 "
 
 do_install_append() {
