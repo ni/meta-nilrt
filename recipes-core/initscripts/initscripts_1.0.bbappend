@@ -1,5 +1,5 @@
 
-FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/${PN}-${PV}:"
+FILESEXTRAPATHS:prepend := "${THISDIR}:${THISDIR}/${PN}-${PV}:"
 
 SRC_URI += " \
 	file://bootmisc_0001_make_hwclock_authoritative.patch \
@@ -8,7 +8,7 @@ SRC_URI += " \
 	file://urandom.default \
 "
 
-do_install_append() {
+do_install:append() {
 	install -d ${D}${sysconfdir}/default
 	install -m 0644 ${WORKDIR}/urandom.default ${D}${sysconfdir}/default/urandom
 
@@ -33,5 +33,5 @@ do_install_append() {
 
 # ${PN}-transconf
 inherit transconf-hook
-RDEPENDS_${PN}-transconf += "bash"
-TRANSCONF_HOOKS_${PN} = "transconf-hooks/hostname"
+RDEPENDS:${PN}-transconf += "bash"
+TRANSCONF_HOOKS:${PN} = "transconf-hooks/hostname"
