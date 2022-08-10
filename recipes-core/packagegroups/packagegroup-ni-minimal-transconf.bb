@@ -4,7 +4,6 @@ LICENSE = "MIT"
 inherit packagegroup
 
 RDEPENDS_${PN} = " \
-	connman-transconf \
 	initscripts-transconf \
 	openssh-transconf \
 	shadow-transconf \

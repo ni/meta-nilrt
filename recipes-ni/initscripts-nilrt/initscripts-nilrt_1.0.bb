@@ -109,14 +109,12 @@ pkg_postinst_ontarget_${PN} () {
 				fi
 			done
 
-			/etc/init.d/connman stop
 			/etc/init.d/udev stop
 			for mod in $active_drivers; do
 				modprobe -r "$mod"
 				modprobe "$mod"
 			done
 			/etc/init.d/udev start
-			/etc/init.d/connman start
 		fi
 	fi
 
