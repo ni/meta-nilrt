@@ -85,7 +85,6 @@ RDEPENDS_${PN} += "\
 	opkg \
 	opkg-keyrings \
 	os-release \
-	phc2sys \
 	pigz \
 	pstore-save \
 	run-postinsts \
