@@ -608,7 +608,6 @@ RDEPENDS_${PN} += "\
 	python3-pytz \
 	python3-zopeinterface \
 	python3-pyparted \
-	python3-pyconnman \
 	python3-gevent \
 	python3-greenlet \
 	python3-gsocketpool \
