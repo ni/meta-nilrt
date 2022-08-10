@@ -109,7 +109,7 @@ OLDEST_KERNEL = "3.14.3"
 
 QTDEMOS = "quicky fotowall"
 
-GCCVERSION = "7.3%"
+GCCVERSION = "12.%"
 
 EFI_PROVIDER = "grub-efi"
 
