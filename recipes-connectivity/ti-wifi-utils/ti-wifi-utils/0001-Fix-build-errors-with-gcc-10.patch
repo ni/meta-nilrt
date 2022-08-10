@@ -1,0 +1,47 @@
+From 426a54468a01cab6d2cee2d09ef7e24232469078 Mon Sep 17 00:00:00 2001
+From: Joe Hershberger <joe.hershberger@ni.com>
+Date: Wed, 10 Aug 2022 14:04:30 -0500
+Subject: [PATCH] Fix build errors with gcc 10
+
+TI designed this software to calculate offsets to registers by taking the
+address of packed struct members, resulting in unalligned pointers.
+
+Set -Wno-address-of-packed-member to ignore that warning.
+
+EFUSE_PARAMETER_TYPE_ENM global instance is not used and adds a warning
+in gcc-10+.
+
+Upstream-Status: Inappropriate [dead project]
+Signed-off-by: Joe Hershberger <joe.hershberger@ni.com>
+---
+ Makefile | 2 +-
+ plt.h    | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 78ed271..55eedb8 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,5 +1,5 @@
+ CC = $(CROSS_COMPILE)gcc
+-CFLAGS = -O2 -Wall
++CFLAGS = -O2 -Wall -Wno-address-of-packed-member
+ CFLAGS += -I$(NFSROOT)/usr/include -I$(NFSROOT)/include
+ 
+ ifdef NLROOT
+diff --git a/plt.h b/plt.h
+index 8b534a9..43d5dbc 100644
+--- a/plt.h
++++ b/plt.h
+@@ -399,7 +399,7 @@ enum EFUSE_PARAMETER_TYPE_ENMT {
+ 	TX_BIP_PD_BUFFER_VBIAS_ERROR_E,
+ 	EFUSE_NUMBER_OF_PARAMETERS_E,
+ 	EFUSE_LAST_PARAMETER_E = (EFUSE_NUMBER_OF_PARAMETERS_E - 1)
+-} EFUSE_PARAMETER_TYPE_ENM;
++};
+ 
+ int get_mac_addr(int ifc_num, unsigned char *mac_addr);
+ 
+-- 
+2.11.0
+
