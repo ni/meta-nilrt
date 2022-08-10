@@ -1,16 +1,18 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-SRC_URI =+ "file://wep-hexkeys-and-wpa-psk-hexkeys-fix.patch \
-            file://report-eap-authentication-state.patch \
-            file://dbus-wpa_supplicant.conf;subdir=nilrt \
-            file://fi.epitest.hostap.WPASupplicant.service;subdir=nilrt \
-            file://fi.w1.wpa_supplicant1.service;subdir=nilrt \
-            file://wpa_supplicant_conf;subdir=nilrt \
+SRC_URI =+ " \
+	file://dbus-wpa_supplicant.conf;subdir=nilrt \
+	file://fi.epitest.hostap.WPASupplicant.service;subdir=nilrt \
+	file://fi.w1.wpa_supplicant1.service;subdir=nilrt \
+	file://report-eap-authentication-state.patch \
+	file://wep-hexkeys-and-wpa-psk-hexkeys-fix.patch \
+	file://wpa_supplicant_conf;subdir=nilrt \
 "
 
-PACKAGECONFIG_append = " openssl"
+PACKAGECONFIG:append = " openssl"
 
-do_install_append () {
+
+do_install:append () {
 	install -m 644 ${WORKDIR}/nilrt/dbus-wpa_supplicant.conf ${D}/${sysconfdir}/dbus-1/system.d
 	install -m 644 ${WORKDIR}/nilrt/*.service ${D}/${datadir}/dbus-1/system-services
 
