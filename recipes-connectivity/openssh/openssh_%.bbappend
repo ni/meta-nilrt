@@ -4,7 +4,6 @@ SRC_URI += " \
 	file://close-all-ssh-connections-patch \
 "
 
-addtask patch_oe_source after do_patch before do_configure
 
 do_patch_oe_source () {
     # Patch sysvinit file to close all open ssh connections on shutdown or reboot
@@ -14,19 +13,16 @@ do_patch_oe_source () {
     # the openssh IPK.
     patch -u ${WORKDIR}/init -i ${WORKDIR}/close-all-ssh-connections-patch
 }
+addtask patch_oe_source after do_patch before do_configure
 
 do_install_append () {
-    # this logic is only for nilrt and nilrt-xfce, not for nilrt-nxg
-    if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'false', 'true', d)}; then
-        # modify sshd so that if sshd is not enabled in ni-rt.ini, sshd does not start
-        sed 's|check_for_no_start() {|&\
+    sed 's|check_for_no_start() {|&\
     # if sshd is not enabled in ni-rt.ini, do not start sshd\
     enable=`/usr/local/natinst/bin/nirtcfg --get section=SystemSettings,token=sshd.enabled,value="false" \|tr "[:upper:]" "[:lower:]"`\
     if [ "$enable" != "true" ]; then\
         [ "${VERBOSE}" != "no" ] \&\& echo "SSHD not enabled in ni-rt.ini"\
         exit 0\
     fi|' -i ${D}${sysconfdir}/init.d/sshd
-    fi
 
     # customize sshd_config
     sed -e 's|^[#[:space:]]*Banner .*|Banner /etc/issue.net|' \
