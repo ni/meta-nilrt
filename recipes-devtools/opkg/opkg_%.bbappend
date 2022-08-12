@@ -1,7 +1,5 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-inherit ptest
-
 SRC_URI += " \
 	file://opkg.conf \
 	file://opkg-signing.conf \
@@ -9,9 +7,9 @@ SRC_URI += " \
 	file://run-ptest \
 "
 
-PACKAGECONFIG = "libsolv gpg sha256 curl"
+inherit ptest
 
-RDEPENDS:${PN}-ptest += "bash"
+PACKAGECONFIG = "libsolv gpg sha256 curl"
 
 do_install:append () {
 	install -d ${D}${sysconfdir}/opkg
@@ -19,3 +17,5 @@ do_install:append () {
 	install -d -m 0700 ${D}${sysconfdir}/opkg/gpg
 	install -m 0644 ${WORKDIR}/gpg.conf ${D}${sysconfdir}/opkg/gpg/
 }
+
+RDEPENDS:${PN}-ptest += "bash"
