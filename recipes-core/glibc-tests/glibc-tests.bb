@@ -1,4 +1,4 @@
-SUMMARY = "NI-LinuxRT-specifc glibc tests"
+SUMMARY = "NI-LinuxRT-specific glibc tests"
 HOMEPAGE = "https://github.com/ni/meta-nilrt"
 BUGTRACKER = "https://github.com/ni/meta-nilrt/issues"
 SECTION = "tests"
