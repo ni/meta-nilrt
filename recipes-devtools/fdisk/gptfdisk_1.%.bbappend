@@ -12,5 +12,3 @@ RDEPENDS_${PN}_class-target += "\
        ${PN}-fixparts \
 "
 ALLOW_EMPTY_${PN} = "1"
-
-DEFAULT_PREFERENCE = "1"
