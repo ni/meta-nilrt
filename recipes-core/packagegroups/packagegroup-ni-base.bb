@@ -48,7 +48,7 @@ RDEPENDS_${PN} += "\
 	eudev \
 	fw-printenv \
 	glibc-gconv-utf-16 \
-	gptfdisk-sgdisk \
+	gptfdisk \
 	init-ifupdown \
 	initscripts \
 	initscripts-nilrt \

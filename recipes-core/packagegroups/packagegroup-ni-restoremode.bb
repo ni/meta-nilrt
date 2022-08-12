@@ -21,7 +21,7 @@ RDEPENDS_${PN} += "\
 	findutils \
 	fw-printenv \
 	gawk \
-	gptfdisk-sgdisk \
+	gptfdisk \
 	grep \
 	grub \
 	grub-editenv \
