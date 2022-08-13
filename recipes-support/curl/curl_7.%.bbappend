@@ -13,5 +13,3 @@ SRC_URI += " \
 "
 
 SELECTED_OPTIMIZATION += "-Wno-deprecated-declarations"
-
-ENABLE_SRC_INSTALL_${PN} = "1"
