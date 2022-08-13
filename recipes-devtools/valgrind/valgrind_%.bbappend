@@ -7,7 +7,5 @@ SRC_URI += " \
 
 # Enable -src package creation, which is not done by default in nilrt
 # OE recipes. valgrind-src is a runtime dependency of valgrind-ptest.
-
-ENABLE_SRC_INSTALL = "1"
 PACKAGE_DEBUG_SPLIT_STYLE = "debug-with-srcpkg"
 
