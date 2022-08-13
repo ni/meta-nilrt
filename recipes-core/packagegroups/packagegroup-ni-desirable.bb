@@ -36,6 +36,7 @@ RDEPENDS:${PN} += "\
 	kernel-performance-tests \
 	ldd \
 	ltrace \
+	ntp \
 	ntpdate \
 	openssl-dev \
 	perf \

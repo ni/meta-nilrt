@@ -546,7 +546,6 @@ RDEPENDS:${PN} += "\
 	memcached \
 	mtr \
 	ndisc6 \
-	ntp \
 	netcat \
 	netcat-openbsd \
 	netcf \
