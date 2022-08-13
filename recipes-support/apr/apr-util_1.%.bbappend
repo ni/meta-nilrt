@@ -1,1 +1,1 @@
-PACKAGECONFIG_append = " ldap sqlite3 "
+PACKAGECONFIG:append = " ldap sqlite3 "
