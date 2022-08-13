@@ -1,3 +1,14 @@
+SUMMARY = "Salt - remote execution manager"
+DESCRIPTION = "\
+Salt is a powerful remote execution manager that can be used to administer \
+servers in a fast and efficient way. It allows commands to be executed across \
+large groups of servers. This means systems can be easily managed, but data \
+can also be easily gathered. Quick introspection into running systems becomes \
+a reality. Remote execution is usually used to set up a certain state on a \
+remote system. Salt addresses this problem as well, the salt state system uses \
+salt state files to define the state a server needs to be in.  Between the \
+remote execution system, and state management Salt addresses the backbone of \
+cloud and data center management."
 HOMEPAGE = "http://saltstack.com/"
 SECTION = "admin"
 LICENSE = "Apache-2.0"
@@ -96,16 +107,8 @@ FILES:${PN} = ""
 
 
 ## SUBPACKAGES #
-DESCRIPTION_COMMON = "salt is a powerful remote execution manager that can be used to administer servers in a\
- fast and efficient way. It allows commands to be executed across large groups of servers. This means systems\
- can be easily managed, but data can also be easily gathered. Quick introspection into running systems becomes\
- a reality. Remote execution is usually used to set up a certain state on a remote system. Salt addresses this\
- problem as well, the salt state system uses salt state files to define the state a server needs to be in. \
-Between the remote execution system, and state management Salt addresses the backbone of cloud and data center\
- management."
-
 # salt-api
-SUMMARY:${PN}-api = "generic, modular network access system"
+SUMMARY:${PN}-api = "${SUMMARY}; generic, modular network access system"
 DESCRIPTION:${PN}-api = "a modular interface on top of Salt that can provide a variety of entry points into a \
 running Salt system. It can start and manage multiple interfaces allowing a REST API to coexist with XMLRPC or \
 even a Websocket API. The Salt API system is used to expose the fundamental aspects of Salt control to external\
@@ -122,8 +125,8 @@ INITSCRIPT_PARAMS:${PN}-api = "defaults"
 FILES:${PN}-bash-completion = "${sysconfdir}/bash_completion.d/${PN}-common"
 
 # salt-cloud
-SUMMARY:${PN}-cloud = "public cloud VM management system"
-DESCRIPTION:${PN}-cloud = "provision virtual machines on various public clouds via a cleanly controlled profile and mapping system."
+SUMMARY:${PN}-cloud = "${SUMMARY}; public cloud VM management system"
+DESCRIPTION:${PN}-cloud = "${DESCRIPTION}. Provision virtual machines on various public clouds via a cleanly controlled profile and mapping system."
 RDEPENDS:${PN}-cloud = "${PN}-common (= ${EXTENDPKGV}) python3-core"
 RSUGGESTS:${PN}-cloud = "python3-netaddr python3-botocore"
 CONFFILES:${PN}-cloud = "${sysconfdir}/${PN}/cloud"
@@ -136,8 +139,8 @@ FILES:${PN}-cloud = "\
 "
 
 # salt-common
-SUMMARY:${PN}-common = "shared libraries that salt requires for all packages"
-DESCRIPTION:${PN}-common ="${DESCRIPTION_COMMON} This particular package provides shared libraries that \
+SUMMARY:${PN}-common = "${SUMMARY}; shared libraries that salt requires for all packages"
+DESCRIPTION:${PN}-common ="${DESCRIPTION} This particular package provides shared libraries that \
 salt-master, salt-minion, and salt-syndic require to function."
 RDEPENDS:${PN}-common = " \
 	python3-configparser \
@@ -167,8 +170,8 @@ CONFFILES:${PN}-common="${sysconfdir}/logrotate.d/${PN}-common"
 FILES:${PN}-common = "${bindir}/${PN}-call ${PYTHON_SITEPACKAGES_DIR} ${CONFFILES:${PN}-common}"
 
 # salt-master
-SUMMARY:${PN}-master = "remote manager to administer servers via salt"
-DESCRIPTION:${PN}-master ="${DESCRIPTION_COMMON} This particular package provides the salt controller."
+SUMMARY:${PN}-master = "${SUMMARY}; remote manager to administer servers via salt"
+DESCRIPTION:${PN}-master ="${DESCRIPTION} This particular package provides the salt controller."
 RDEPENDS:${PN}-master = "\
 	${@bb.utils.contains('PACKAGECONFIG', 'tcp', 'python3-pycrypto', '',d)} \
 	${@bb.utils.contains('PACKAGECONFIG', 'zeromq', 'python3-pycrypto python3-pyzmq (>= 13.1.0)', '',d)} \
@@ -183,8 +186,8 @@ INITSCRIPT_NAME:${PN}-master = "${PN}-master"
 INITSCRIPT_PARAMS:${PN}-master = "defaults"
 
 # salt-minion
-SUMMARY:${PN}-minion = "client package for salt, the distributed remote execution system"
-DESCRIPTION:${PN}-minion = "${DESCRIPTION_COMMON} This particular package provides the worker agent for salt."
+SUMMARY:${PN}-minion = "${SUMMARY}; client package for salt, the distributed remote execution system"
+DESCRIPTION:${PN}-minion = "${DESCRIPTION} This particular package provides the worker agent for salt."
 RDEPENDS:${PN}-minion = "\
 	${@bb.utils.contains('PACKAGECONFIG', 'zeromq', 'python3-pycrypto python3-pyzmq (>= 13.1.0)', '',d)} \
 	${PN}-common (= ${EXTENDPKGV}) \
@@ -211,8 +214,8 @@ INITSCRIPT_PARAMS:${PN}-minion = "defaults 93 7"
 RDEPENDS:${PN}-ptest += "salt-tests python3-distro python3-mock"
 
 # salt-ssh
-SUMMARY:${PN}-ssh = "remote manager to administer servers via salt"
-DESCRIPTION:${PN}-ssh = "${DESCRIPTION_COMMON} This particular package provides the salt ssh controller. It \
+SUMMARY:${PN}-ssh = "${SUMMARY}; remote manager to administer servers via salt"
+DESCRIPTION:${PN}-ssh = "${DESCRIPTION} This particular package provides the salt ssh controller. It \
 is able to run salt modules and states on remote hosts via ssh. No minion or other salt specific software needs\
  to be installed on the remote host."
 RDEPENDS:${PN}-ssh = "${PN}-common (= ${EXTENDPKGV}) python3-core python3-msgpack"
@@ -220,8 +223,8 @@ CONFFILES:${PN}-ssh="${sysconfdir}/${PN}/roster"
 FILES:${PN}-ssh = "${bindir}/${PN}-ssh ${CONFFILES:${PN}-ssh}"
 
 # salt-syndic
-SUMMARY:${PN}-syndic = "master-of-masters for salt, the distributed remote execution system"
-DESCRIPTION:${PN}-syndic = "${DESCRIPTION_COMMON} This particular package provides the master of masters for \
+SUMMARY:${PN}-syndic = "${SUMMARY}; master-of-masters for salt"
+DESCRIPTION:${PN}-syndic = "${DESCRIPTION} This particular package provides the master of masters for \
 salt; it enables the management of multiple masters at a time."
 RDEPENDS:${PN}-syndic = "${PN}-master (= ${EXTENDPKGV}) python3-core"
 CONFFILES:${PN}-syndic="${sysconfdir}/init.d/${PN}-syndic"
@@ -230,8 +233,8 @@ INITSCRIPT_NAME:${PN}-syndic = "${PN}-syndic"
 INITSCRIPT_PARAMS:${PN}-syndic = "defaults"
 
 # salt-tests
-SUMMARY:${PN}-tests = "salt stack test suite"
-DESCRIPTION:${PN}-tests ="${DESCRIPTION_COMMON} This particular package provides the salt unit test suite."
+SUMMARY:${PN}-tests = "${SUMMARY}; test suite"
+DESCRIPTION:${PN}-tests ="${DESCRIPTION} This particular package provides the salt unit test suite."
 RDEPENDS:${PN}-tests = "${PN}-common python3-pytest-salt python3-pyzmq python3-six python3-tests python3-image bash"
 FILES:${PN}-tests = "${PYTHON_SITEPACKAGES_DIR}/salt-tests/tests/"
 
