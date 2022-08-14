@@ -1,4 +1,4 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/${PN}:"
+FILESEXTRAPATHS:prepend := "${THISDIR}:${THISDIR}/${PN}:"
 
 SRC_URI += "\
 	file://crond.init.newer \
@@ -8,7 +8,7 @@ SRC_URI += "\
 # these crond initscripts are here for legacy reasons and will be removed
 # in the future (once the default system stack size limits will be removed).
 # crond.init.older is used for older NILRT, cron.init.newer for newer NILRT
-do_install_append() {
+do_install:append() {
 	if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'true', 'false', d)}; then
 		install -m 0755 ${WORKDIR}/crond.init.newer ${D}${sysconfdir}/init.d/crond
 	else
