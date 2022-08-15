@@ -45,7 +45,14 @@ FILES:${PN} += "\
 	${sysconfdir}/init.d/nitargetinfo \
 	/usr/local/natinst/bin/nisystemformat \
 "
-RDEPENDS:${PN} += "
+RDEPENDS:${PN} += "\
 	bash \
 	niacctbase \
 "
+# nisystemformat rdeps
+RDEPENDS:${PN} += "\
+	coreutils \
+	ni-netcfgutil \
+	util-linux-lsblk \
+"
+RDEPENDS:${PN}:append:x64 = " e2fsprogs-mke2fs"
