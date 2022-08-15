@@ -8,6 +8,9 @@ inherit ptest
 
 DEPENDS += "shadow-native pseudo-native update-rc.d-native niacctbase"
 
+PV = "2.0"
+
+
 SRC_URI = "\
 	file://cleanvarcache \
 	file://firewall \
