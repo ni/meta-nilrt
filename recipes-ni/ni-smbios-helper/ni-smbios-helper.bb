@@ -22,3 +22,10 @@ FILES:${PN} += "\
 	${datadir}/nisysinfo/smbios_helper \
     ${datadir}/nisysinfo/efi_helper \
 "
+# efi_helper rdeps: efivar
+# smbios_helper rdeps: dmidecode
+RDEPENDS:${PN} = "\
+	bash \
+	dmidecode \
+	efivar \
+"
