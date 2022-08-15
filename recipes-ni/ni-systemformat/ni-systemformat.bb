@@ -42,4 +42,14 @@ inherit update-rc.d
 INITSCRIPT_NAME = "nitargetinfo"
 INITSCRIPT_PARAMS = "start 20 S ."
 
-RDEPENDS:${PN} += "bash"
+RDEPENDS:${PN} += "\
+	bash \
+	niacctbase \
+"
+# nisystemformat rdeps
+RDEPENDS:${PN} += "\
+	coreutils \
+	ni-netcfgutil \
+	util-linux-lsblk \
+"
+RDEPENDS:${PN}:append:x64 = " e2fsprogs-mke2fs"
