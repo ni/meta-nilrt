@@ -97,27 +97,7 @@ pkg_postinst_ontarget:${PN} () {
 	# Use persistent names on PXI, not on any other targets
 	if [ "$class" != "PXI" -a "$class" != "USRP Stand-Alone Devices" ]; then
 		touch /etc/udev/rules.d/80-net-name-slot.rules
-
-		# Since the network is already brought up on the first boot, reload the network to get the new rules
-		if ${@oe.utils.conditional('DISTRO', 'nilrt-nxg', 'true', 'false', d)}; then
-
-			NXG_ETHERNET_DRIVERS="igb e1000 virtio-pci"
-			active_drivers=""
-			for driver in $NXG_ETHERNET_DRIVERS; do
-				if `lsmod | grep -q "$driver"`; then
-					active_drivers="$active_drivers $driver"
-				fi
-			done
-
-			/etc/init.d/udev stop
-			for mod in $active_drivers; do
-				modprobe -r "$mod"
-				modprobe "$mod"
-			done
-			/etc/init.d/udev start
-		fi
 	fi
-
 
 	# Enable core dumps on PXI, not on any other targets
 	[ "$class" = "PXI" ] && echo "* soft core unlimited" > /etc/security/limits.d/allow-core-dumps.conf
