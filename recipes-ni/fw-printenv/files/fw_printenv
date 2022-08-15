@@ -8,21 +8,22 @@
 
 print_help(){
 cat <<EOF
-fw_printenv/fw_setenv, an implementation of the U-Boot environment variable facility in Grub/EFI
+fw_printenv/fw_setenv, an implementation of the U-Boot environment variable
+facility in Grub/EFI
+
 usage:  fw_printenv [-n] [variable name]
-	fw_setenv [variable name] [variable value]
-	fw_setenv -s [ file ]
-	fw_setenv -s - < [ file ]
+    fw_setenv [variable name] [variable value]
+    fw_setenv -s [ file ]
+    fw_setenv -s - < [ file ]
 
 File syntax example:
-	# Any line starting with # is treated as comment
-	var1
-	var2          string value
-	other_value   1234
+    # Any line starting with # is treated as comment
+    var1
+    var2          string value
+    other_value   1234
 
-In this case, var1 will be deleted, var2 and other_value
-will be set with the values passed. The value can contain any
-number of spaces.
+In this case, var1 will be deleted, var2 and other_value will be set with the
+values passed. The value can contain any number of spaces.
 EOF
 }
 
@@ -213,7 +214,7 @@ parse_opt(){
 	do
 		case "${opt}" in
 
-			-)	#check for long options
+			-) #check for long options
 				if [ "${OPTARG}" == "help" ]; then
 					#print help and exit
 					print_help >&2
@@ -222,13 +223,13 @@ parse_opt(){
 					print_invalid_opt ${OPTARG} >&2
 				fi
 				;;
-			h)	#print help and exit
+			h) #print help and exit
 				print_help >&2
 				exit
 				;;
-			s)	s_opt=1; s_file=$OPTARG ;;
-			n)	n_opt=1; varnames=$OPTARG ;;
-			*)	print_invalid_opt $OPTARG >&2
+			s) s_opt=1; s_file=$OPTARG ;;
+			n) n_opt=1; varnames=$OPTARG ;;
+			*) print_invalid_opt $OPTARG >&2
 				;;
 		esac
 	done
