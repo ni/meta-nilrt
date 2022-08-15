@@ -8,6 +8,9 @@ DEPENDS += "\
 	update-rc.d-native \
 "
 
+PV = "2.0"
+
+
 SRC_URI += "\
 	file://init.d/ni-rename-ifaces \
 	file://init.d/nisetserialnumber \
