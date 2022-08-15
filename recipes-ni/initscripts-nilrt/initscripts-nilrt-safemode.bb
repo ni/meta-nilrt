@@ -9,9 +9,6 @@ DEPENDS += "shadow-native pseudo-native update-rc.d-native niacctbase"
 RDEPENDS:${PN} += "bash niacctbase update-rc.d"
 
 SRC_URI = " \
-"
-
-SRC_URI:append:x64 = " \
 	file://mountcompatibility \
 	file://mountuserfs \
 	file://nisafemodereason \
@@ -22,16 +19,13 @@ S = "${WORKDIR}"
 
 do_install () {
 	install -d ${D}${sysconfdir}/init.d/
-}
-
-do_install:append:x64 () {
-	install -m 0755   ${WORKDIR}/niselectnetnaming      ${D}${sysconfdir}/init.d
-	install -m 0755   ${WORKDIR}/nisafemodereason       ${D}${sysconfdir}/init.d
-	install -m 0755   ${WORKDIR}/mountuserfs            ${D}${sysconfdir}/init.d
 	install -m 0755   ${WORKDIR}/mountcompatibility     ${D}${sysconfdir}/init.d
+	install -m 0755   ${WORKDIR}/mountuserfs            ${D}${sysconfdir}/init.d
+	install -m 0755   ${WORKDIR}/nisafemodereason       ${D}${sysconfdir}/init.d
+	install -m 0755   ${WORKDIR}/niselectnetnaming      ${D}${sysconfdir}/init.d
 
-	update-rc.d -r ${D} niselectnetnaming start 3 S .
-	update-rc.d -r ${D} nisafemodereason start 60 S .
-	update-rc.d -r ${D} mountuserfs start 82 S .
 	update-rc.d -r ${D} mountcompatibility start 97 S .
+	update-rc.d -r ${D} mountuserfs start 82 S .
+	update-rc.d -r ${D} nisafemodereason start 60 S .
+	update-rc.d -r ${D} niselectnetnaming start 3 S .
 }
