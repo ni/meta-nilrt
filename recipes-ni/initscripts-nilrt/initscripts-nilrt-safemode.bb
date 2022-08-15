@@ -16,9 +16,6 @@ PV = "2.0"
 
 
 SRC_URI = " \
-"
-
-SRC_URI:append:x64 = " \
 	file://mountcompatibility \
 	file://mountuserfs \
 	file://nisafemodereason \
@@ -30,9 +27,6 @@ S = "${WORKDIR}"
 
 do_install () {
 	install -d ${D}${sysconfdir}/init.d/
-}
-
-do_install:append:x64 () {
 	install -m 0755   ${WORKDIR}/mountcompatibility     ${D}${sysconfdir}/init.d
 	install -m 0755   ${WORKDIR}/mountuserfs            ${D}${sysconfdir}/init.d
 	install -m 0755   ${WORKDIR}/nisafemodereason       ${D}${sysconfdir}/init.d
