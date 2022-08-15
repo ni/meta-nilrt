@@ -4,37 +4,25 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 SECTION = "base"
 
-SRC_URI = "file://README_File_Paths.txt \
-	   file://README_File_Transfer.txt \
-	   file://LICENSES \
-	   file://natinst_libs.conf \
-	   file://local_libs.conf \
-	   file://ulimit.sh \
-	   file://nisetlocale.sh \
-	   file://machine-info \
-"
+DEPENDS += "niacctbase"
 
-# Move main package before ${PN}-doc to make it  pick
-# the LICENSES file (otherwise, it goes into ${PN}-doc
-PACKAGES = "${PN}-dbg ${PN}-staticdev ${PN}-dev ${PN} ${PN}-doc ${PN}-locale"
 
-FILES_${PN} += "README_File_Paths.txt \
-		README_File_Transfer.txt \
-		/usr/share/doc/LICENSES \
-		/usr/lib/${TARGET_ARCH}-linux-gnu${ARCH_ABI_EXT} \
-		/etc/ld.so.conf.d/multiarch_libs.conf \
-		/usr/local/natinst/bin \
-		/usr/local/natinst/lib \
-		/var/local/natinst \
-		${sysconfdir}/natinst/share \
+SRC_URI = "\
+	file://LICENSES \
+	file://README_File_Paths.txt \
+	file://README_File_Transfer.txt \
+	file://local_libs.conf \
+	file://machine-info \
+	file://natinst_libs.conf \
+	file://nisetlocale.sh \
+	file://ulimit.sh \
 "
 
 S = "${WORKDIR}"
 
+
 ARCH_ABI_EXT="${ABIEXTENSION}${@bb.utils.contains('TUNE_FEATURES','callconvention-hard','hf','',d)}"
 
-RDEPENDS_${PN} += "procps"
-DEPENDS += "niacctbase"
 
 do_install () {
 	install -d ${D}${sysconfdir}/
@@ -82,3 +70,22 @@ do_install () {
 	# add machine-info and allow System Web Server to modify it
 	install -m 0664 -g ${LVRT_GROUP} ${WORKDIR}/machine-info ${D}${sysconfdir}/
 }
+
+
+# Move main package before ${PN}-doc to make it  pick
+# the LICENSES file (otherwise, it goes into ${PN}-doc
+PACKAGES = "${PN}-dbg ${PN}-staticdev ${PN}-dev ${PN} ${PN}-doc ${PN}-locale"
+
+FILES:${PN} += "\
+	README_File_Paths.txt \
+	README_File_Transfer.txt \
+	/usr/share/doc/LICENSES \
+	/usr/lib/${TARGET_ARCH}-linux-gnu${ARCH_ABI_EXT} \
+	/etc/ld.so.conf.d/multiarch_libs.conf \
+	/usr/local/natinst/bin \
+	/usr/local/natinst/lib \
+	/var/local/natinst \
+	${sysconfdir}/natinst/share \
+"
+
+RDEPENDS:${PN} += "procps"
