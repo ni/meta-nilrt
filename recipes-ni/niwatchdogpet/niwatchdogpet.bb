@@ -25,3 +25,6 @@ do_install() {
 	install -m 0755 ${S}/niwatchdogpet ${D}${sbindir}
 	install -m 0755 ${S}/niwatchdogpet.sh ${D}${sysconfdir}/init.d/niwatchdogpet
 }
+
+
+RDEPENDS:${PN} = "fw-printenv"
