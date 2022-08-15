@@ -1,4 +1,5 @@
 DESCRIPTION = "NI Watchdog Petter"
+HOMEPAGE = "https://github.com/ni/meta-nilrt"
 SECTION = "base"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=0835ade698e0bcf8506ecda2f7b4f302"
@@ -6,18 +7,21 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=0835ade698e0bcf8506ecda2f7b4f302"
 PV = "2.0"
 
 
-inherit update-rc.d
+SRC_URI = "\
+	file://LICENSE \
+	file://niwatchdogpet.c \
+	file://niwatchdogpet.sh \
+"
 
 S = "${WORKDIR}"
 
-SRC_URI = "file://LICENSE \
-	   file://niwatchdogpet.c \
-	   file://niwatchdogpet.sh"
 
+inherit update-rc.d
 INITSCRIPT_NAME = "niwatchdogpet"
 INITSCRIPT_PARAMS = "start 05 S ."
 
-CFLAGS_append = " -std=c89 -Wall -Werror -pedantic"
+CFLAGS:append = " -std=c89 -Wall -Werror -pedantic"
+
 
 do_compile() {
 	${CC} -Os ${CFLAGS} ${WORKDIR}/niwatchdogpet.c -o niwatchdogpet ${LDFLAGS}
