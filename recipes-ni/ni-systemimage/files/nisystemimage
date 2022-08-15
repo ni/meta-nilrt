@@ -149,7 +149,7 @@ declare -Ar EXITCODES=(
 	[FILE_NOT_FOUND]=11
 	[FS_PREP_FAILED]=12
 	[NETCFG_FAIL]=13
-        [ILLTIMED]=14
+	[ILLTIMED]=14
 )
 
 # $@: text
