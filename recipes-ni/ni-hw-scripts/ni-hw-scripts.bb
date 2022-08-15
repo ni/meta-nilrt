@@ -9,6 +9,6 @@ PV = "2.0"
 inherit packagegroup
 
 
-RDEPENDS_${PN} = "\
+RDEPENDS:${PN} = "\
 	${PN}-common \
 "
