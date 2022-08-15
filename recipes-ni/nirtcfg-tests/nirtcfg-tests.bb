@@ -11,6 +11,7 @@ PV = "2.0"
 
 SRC_URI = "\
 	file://configs/ \
+	file://ptest-format.sh \
 	file://run-ptest \
 	file://section_chars \
 	file://setup.sh \
