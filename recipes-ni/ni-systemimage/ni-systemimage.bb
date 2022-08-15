@@ -27,5 +27,10 @@ FILES:${PN} += "\
 	${bindir}/nisystemimage \
 	/usr/local/natinst/bin/nisystemimage \
 "
-
-RDEPENDS:${PN} += "bash ni-netcfgutil"
+RDEPENDS:${PN} += "\
+	bash \
+	findutils \
+	ni-netcfgutil \
+	ni-utils \
+	niacctbase \
+"
