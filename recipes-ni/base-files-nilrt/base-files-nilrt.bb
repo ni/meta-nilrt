@@ -22,9 +22,6 @@ SRC_URI = "\
 S = "${WORKDIR}"
 
 
-ARCH_ABI_EXT="${ABIEXTENSION}${@bb.utils.contains('TUNE_FEATURES','callconvention-hard','hf','',d)}"
-
-
 do_install () {
 	install -d ${D}${sysconfdir}/
 	install -d -m 0755 -o ${LVRT_USER} -g ${LVRT_GROUP} ${D}${sysconfdir}/natinst/share/
@@ -51,14 +48,14 @@ do_install () {
 
 	# Create multiarch installation directory and write proper path to
 	# multiarch.conf
-	install -d ${D}/usr/lib/${TARGET_ARCH}-linux-gnu${ARCH_ABI_EXT}
+	install -d ${D}/usr/lib/${TARGET_ARCH}-linux-gnu${ABIEXTENSION}
 
 	# ld.so.conf includes the directory /etc/ld.so.conf.d, a standard
 	# practice in linux distros, adding extra files to map our directories
 	install -d ${D}${sysconfdir}/ld.so.conf.d/
 	install -m 0644 ${WORKDIR}/natinst_libs.conf ${D}${sysconfdir}/ld.so.conf.d/
 	install -m 0644 ${WORKDIR}/local_libs.conf ${D}${sysconfdir}/ld.so.conf.d/
-	echo /usr/lib/${TARGET_ARCH}-linux-gnu${ARCH_ABI_EXT} > ${D}${sysconfdir}/ld.so.conf.d/multiarch_libs.conf
+	echo /usr/lib/${TARGET_ARCH}-linux-gnu${ABIEXTENSION} > ${D}${sysconfdir}/ld.so.conf.d/multiarch_libs.conf
 
 	install -d ${D}${sysconfdir}/profile.d/
 
@@ -81,7 +78,7 @@ FILES:${PN} += "\
 	README_File_Paths.txt \
 	README_File_Transfer.txt \
 	/usr/share/doc/LICENSES \
-	/usr/lib/${TARGET_ARCH}-linux-gnu${ARCH_ABI_EXT} \
+	/usr/lib/${TARGET_ARCH}-linux-gnu${ABIEXTENSION} \
 	/etc/ld.so.conf.d/multiarch_libs.conf \
 	/usr/local/natinst/bin \
 	/usr/local/natinst/lib \
