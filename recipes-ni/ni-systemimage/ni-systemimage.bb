@@ -6,6 +6,9 @@ SECTION = "base"
 
 DEPENDS += "niacctbase"
 
+PV = "2.0"
+
+
 SRC_URI = "\
 	file://nisystemimage \
 "
