@@ -3,7 +3,11 @@ DESCRIPTION = "Support scripts and utilities for all NI hardware products which 
 LICENSE = "MIT"
 SECTION = "base"
 
+PV = "2.0"
+
+
 inherit packagegroup
+
 
 RDEPENDS_${PN} = "\
 	${PN}-common \
