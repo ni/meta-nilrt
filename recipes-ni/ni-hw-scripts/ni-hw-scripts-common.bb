@@ -1,12 +1,11 @@
 SUMMARY = "Support scripts and utilities common to all NI hardware products"
 DESCRIPTION = "Support scripts and utilities for all NI hardware products which are supported by NI LinuxRT."
-LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
-LICENSE = "MIT"
+HOMEPAGE = "https://github.com/ni/meta-nilrt"
 SECTION = "base"
+LICENSE = "MIT"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-DEPENDS += "\
-	update-rc.d-native \
-"
+DEPENDS = "update-rc.d-native"
 
 PV = "2.0"
 
@@ -21,12 +20,11 @@ S = "${WORKDIR}"
 
 do_install () {
 	install -d ${D}${sysconfdir}/init.d/
-
 	install -m 0755 ${S}/init.d/ni-rename-ifaces     ${D}${sysconfdir}/init.d
 	install -m 0755 ${S}/init.d/nisetserialnumber    ${D}${sysconfdir}/init.d
 }
 
-pkg_postinst_${PN} () {
+pkg_postinst:${PN} () {
 	if [ -n "$D" ]; then
 		OPT="-r $D"
 	else
@@ -37,7 +35,7 @@ pkg_postinst_${PN} () {
 	update-rc.d $OPT nisetserialnumber   start 38 S .
 }
 
-pkg_postrm_${PN} () {
+pkg_postrm:${PN} () {
 	if [ -n "$D" ]; then
 		OPT="-f -r $D"
 	else
@@ -50,13 +48,11 @@ pkg_postrm_${PN} () {
 
 
 PACKAGE_ARCH = "all"
-PACKAGES_remove += "${PN}-staticdev ${PN}-dev ${PN}-dbg"
+PACKAGES:remove = "${PN}-staticdev ${PN}-dev ${PN}-dbg"
 
-FILES_${PN} += "\
+FILES:${PN} = "\
 	${sysconfdir}/init.d/ni-rename-ifaces \
 	${sysconfdir}/init.d/nisetserialnumber \
 "
 
-RDEPENDS_${PN} += "\
-	bash \
-"
+RDEPENDS:${PN} = "bash"
