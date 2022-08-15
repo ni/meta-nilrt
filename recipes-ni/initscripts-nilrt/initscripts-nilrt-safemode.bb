@@ -6,6 +6,9 @@ SECTION = "base"
 
 DEPENDS += "shadow-native pseudo-native update-rc.d-native niacctbase"
 
+PV = "2.0"
+
+
 RDEPENDS_${PN} += "bash niacctbase update-rc.d"
 
 SRC_URI = " \
