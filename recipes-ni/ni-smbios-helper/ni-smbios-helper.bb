@@ -24,4 +24,10 @@ do_install () {
 
 
 FILES:${PN} += "${datadir}/nisysinfo/*"
-RDEPENDS:${PN} = "bash"
+# efi_helper rdeps: efivar
+# smbios_helper rdeps: dmidecode
+RDEPENDS:${PN} = "\
+	bash \
+	dmidecode \
+	efivar \
+"
