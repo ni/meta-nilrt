@@ -8,7 +8,7 @@ SRC_URI = "\
 
 DEPENDS = "bash busybox util-linux ${PREFERRED_PROVIDER_virtual/kernel}"
 
-RDEPENDS_${PN} += " \
+RDEPENDS:${PN} += " \
 	bash \
 	busybox \
 	util-linux-lsblk \
@@ -23,4 +23,4 @@ do_install() {
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-FILES_${PN} += "/init"
+FILES:${PN} += "/init"
