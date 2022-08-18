@@ -1,3 +1,4 @@
-RDEPENDS_${PN} += "nativesdk-squashfs-tools \
-	       nativesdk-libarchive \
-	       "
+RDEPENDS:${PN} += "\
+	nativesdk-libarchive \
+	nativesdk-squashfs-tools \
+"
