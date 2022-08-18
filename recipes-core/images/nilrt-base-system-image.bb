@@ -6,8 +6,8 @@ IMAGE_FSTYPES = "tar"
 IMAGE_NAME_SUFFIX = ""
 
 SRC_URI += " \
-    file://${BPN}.postinst \
-    file://${BPN}.cdf \
+	file://${BPN}.postinst \
+	file://${BPN}.cdf \
 "
 
 PV = "${DISTRO_VERSION}"

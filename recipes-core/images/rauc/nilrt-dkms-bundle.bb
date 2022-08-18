@@ -9,7 +9,7 @@ DEPENDS = "${BUNDLE_IMAGE}"
 LICENSE_CREATE_PACKAGE = "0"
 
 SRC_URI += " \
-    file://nilrt-bundle-hooks.sh \
+	file://nilrt-bundle-hooks.sh \
 "
 
 RAUC_BUNDLE_COMPATIBLE = "nilrt-efi-ab"
@@ -22,9 +22,9 @@ RAUC_BUNDLE_HOOKS[file] = "nilrt-bundle-hooks.sh"
 RAUC_BUNDLE_HOOKS[hooks] = "install-check;"
 
 RAUC_BUNDLE_SLOTS = "niboot"
-RAUC_SLOT_niboot = "${BUNDLE_IMAGE}"
-RAUC_SLOT_niboot[fstype] = "tar.bz2"
-RAUC_SLOT_niboot[hooks] = "pre-install;post-install;"
+RAUC_SLOT:niboot = "${BUNDLE_IMAGE}"
+RAUC_SLOT:niboot[fstype] = "tar.bz2"
+RAUC_SLOT:niboot[hooks] = "pre-install;post-install;"
 
 RAUC_SIGN_BUNDLE = "0"
 

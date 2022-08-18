@@ -2,6 +2,6 @@
 
 IMAGE_INSTALL += "\
 	packagegroup-ni-xfce \
-	"
+"
 
 IMAGE_FEATURES += "x11"

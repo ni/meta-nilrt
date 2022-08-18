@@ -2,8 +2,9 @@ DESCRIPTION = "NI Linux RT installation/recovery media ISO"
 
 IMAGE_FSTYPES_append = " wic"
 
-PACKAGE_INSTALL = "${ROOTFS_BOOTSTRAP_INSTALL} \
-                   packagegroup-ni-restoremode \
+PACKAGE_INSTALL = "\
+	${ROOTFS_BOOTSTRAP_INSTALL} \
+	packagegroup-ni-restoremode \
 "
 
 IMAGE_FEATURES += "empty-root-password"
