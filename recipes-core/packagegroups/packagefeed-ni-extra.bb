@@ -1,12 +1,14 @@
 SUMMARY = "Package feed of potentially useful, but unsupported, packages for NI Linux RT"
 LICENSE = "MIT"
 
+
 inherit packagegroup
+
 
 # These packages are only built for the nilrt-xfce fork of the older NILRT distro
 # as opposed to nilrt-nxg which always enables x11 support. Also only for x64
 # because NILRT ARM does not have a GUI.
-RDEPENDS_${PN}_append_x64 = "\
+RDEPENDS:${PN}:append:x64 = "\
 	${@bb.utils.contains('DISTRO_FEATURES', 'x11', '\
 		packagegroup-self-hosted \
 		packagegroup-xfce-extended \
@@ -49,7 +51,7 @@ RDEPENDS_${PN}_append_x64 = "\
 	', '', d)} \
 "
 
-RDEPENDS_${PN} = "\
+RDEPENDS:${PN} = "\
 	packagegroup-core-basic \
 	packagegroup-core-buildessential \
 	packagegroup-core-sdk \
@@ -63,11 +65,11 @@ RDEPENDS_${PN} = "\
 "
 
 # kernel regression tests
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	kernel-test-fbomb \
 "
 
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	avahi \
 	bind \
 	cifs-utils \
@@ -80,18 +82,18 @@ RDEPENDS_${PN} += "\
 	salt \
 "
 
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	psplash \
 	sysfsutils \
 "
 
 # openembedded-core/meta/recipes-core
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	libcgroup \
 "
 
 # openembedded-core/meta/recipes-bsp
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	alsa-state \
 	keymaps \
 	lrzsz \
@@ -100,12 +102,12 @@ RDEPENDS_${PN} += "\
 "
 
 # openembedded-core/meta/recipes-connectivity
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	bluez5 \
 "
 
 # openembedded-core/meta/recipes-devtools
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	apt \
 	bison \
 	bootchart2 \
@@ -142,7 +144,7 @@ RDEPENDS_${PN} += "\
 "
 
 # openembedded-core/meta/recipes-extended
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	at \
 	augeas \
 	bc \
@@ -173,12 +175,12 @@ RDEPENDS_${PN} += "\
 "
 
 # openembedded-core/meta/recipes-rt
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	rt-tests \
 "
 
 # openembedded-core/meta/recipes-support
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	apr \
 	aspell \
 	attr \
@@ -202,7 +204,7 @@ RDEPENDS_${PN} += "\
 "
 
 # openembedded-core/meta/recipes-kernel
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	blktrace \
 	dkms \
 	dtc \
@@ -217,7 +219,7 @@ RDEPENDS_${PN} += "\
 "
 
 # openembedded-gore/meta/recipes-multimedia
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	alsa-tools \
 	alsa-utils \
 	alsa-utils-scripts \
@@ -227,7 +229,7 @@ RDEPENDS_${PN} += "\
 "
 
 # meta-openembedded/meta-oe/recipes-benchmark
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	bonnie++ \
 	dbench \
 	fio \
@@ -244,11 +246,11 @@ RDEPENDS_${PN} += "\
 
 
 # meta-openembedded/meta-oe/recipes-bsp
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	tbtadm \
 "
 # meta-openembedded/meta-oe/recipes-connectivity
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	gammu \
 	hostapd \
 	iw \
@@ -266,12 +268,12 @@ RDEPENDS_${PN} += "\
 "
 
 # meta-openembedded/meta-oe/recipes-core
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	usleep \
 "
 
 # meta-openembedded/meta-oe/recipes-devtools
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	bootchart \
 	breakpad \
 	cgdb \
@@ -307,13 +309,13 @@ RDEPENDS_${PN} += "\
 "
 
 # meta-openembedded/meta-oe/recipes-devtools
-RDEPENDS_${PN}_append_x64 += "\
+RDEPENDS:${PN}:append:x64 += "\
 	concurrencykit \
 	msr-tools \
 "
 
 # meta-openembedded/meta-oe/recipes-extended
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	acpica \
 	collectd \
 	corosync \
@@ -355,7 +357,7 @@ RDEPENDS_${PN} += "\
 
 # meta-openembedded/meta-oe/recipes-graphics
 # meta-oe/recipes-graphics
-RDEPENDS_${PN}_append_x64 += "\
+RDEPENDS:${PN}:append:x64 += "\
 	jasper \
 	packagegroup-fonts-truetype \
 	terminus-font \
@@ -368,7 +370,7 @@ RDEPENDS_${PN}_append_x64 += "\
 
 
 # meta-openembedded/meta-oe/recipes-multimedia
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	alsa-oss \
 	audiofile \
 	jack \
@@ -381,7 +383,7 @@ RDEPENDS_${PN} += "\
 # vlc, mplayer requires libmad which is on a non-whitelisted license
 
 # meta-openembedded/meta-oe/recipes-support
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	bash-completion \
 	ccid \
 	ckermit \
@@ -463,7 +465,7 @@ RDEPENDS_${PN} += "\
 	vim \
 "
 
-RDEPENDS_${PN}_append_x64 += "\
+RDEPENDS:${PN}:append:x64 += "\
 	edac-utils \
 	lcms \
 	mcelog \
@@ -476,12 +478,12 @@ RDEPENDS_${PN}_append_x64 += "\
 "
 
 # meta-openembedded/meta-oe/recipes-kernel
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	crash \
 "
 
 # meta-openembedded/meta-filesystems
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	ntfs-3g-ntfsprogs \
 	smbnetfs \
 	sshfs-fuse \
@@ -493,7 +495,7 @@ RDEPENDS_${PN} += "\
 "
 
 # meta-openembedded/meta-networking
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	inetutils \
 	polarssl \
 	ufw \
@@ -568,7 +570,7 @@ RDEPENDS_${PN} += "\
 "
 
 # meta-oe/recipes-devtools/python (most now in meta-oe/meta-python)
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	python3-future \
 	python3-gsocketpool \
 	python3-pycrypto \
@@ -610,7 +612,7 @@ RDEPENDS_${PN} += "\
 # python3-matplotlib: hang on do_install
 
 # meta-openembedded/meta-webserver
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	fcgi \
 	spawn-fcgi \
 	hiawatha \
@@ -621,12 +623,12 @@ RDEPENDS_${PN} += "\
 "
 
 # meta-nilrt/recipes-devtools
-RDEPENDS_${PN} += " \
+RDEPENDS:${PN} += " \
 	debootstrap \
 "
 
 # meta-cloud-services/meta-openstack/recipes-devtools
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	erlang \
 	libconfig-general-perl \
 	python3-amqp \
@@ -733,22 +735,22 @@ RDEPENDS_${PN} += "\
 "
 
 # meta-cloud-services/meta-openstack/recipes-devtools
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	uwsgi \
 "
 
 # meta-nilrt/recipes-devtools
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	libubox \
 "
 
 # meta-nilrt/recipes-connectivity
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	relayd \
 "
 
 # meta-cloud-services/meta-openstack/recipes-support
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	chef \
 	hiera \
 	mod-wsgi \
@@ -756,18 +758,18 @@ RDEPENDS_${PN} += "\
 	tgt \
 "
 
-RDEPENDS_${PN}_append_x64 += "\
+RDEPENDS:${PN}:append:x64 += "\
 	chef \
 	puppet \
 "
 
 # meta-cloud-services/meta-openstack/recipes-extended
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	qpid \
 "
 
 # meta-virtualization
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	cgroup-lite \
 	docker \
 	lxc \
@@ -775,17 +777,17 @@ RDEPENDS_${PN} += "\
 	openvswitch \
 "
 
-RDEPENDS_${PN}_append_x64 += "\
+RDEPENDS:${PN}:append:x64 += "\
 	ipxe \
 "
 
 # Shared libraries needed to run FireFox
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	alsa-lib \
 "
 
 # meta-security
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	clamav \
 	ecryptfs-utils \
 	libhtp \
@@ -794,12 +796,12 @@ RDEPENDS_${PN} += "\
 "
 
 # meta-nilrt/recipes-ni
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	nirtcfg-tests \
 	sysconfig-settings \
 "
 
 # meta-qt5
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	qtvirtualkeyboard \
 "
