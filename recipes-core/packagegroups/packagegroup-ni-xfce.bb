@@ -11,21 +11,19 @@ inherit packagegroup
 
 RDEPENDS:${PN} = "\
 	packagegroup-xfce-base \
-	xf86-input-evdev \
-	xfce4-xkb-plugin \
-	xserver-xfce-init \
-	xrdb \
-	xfce-nilrt-settings \
 	font-cursor-misc \
 	font-misc-misc \
-	xorg-fonts-100dpi \
-	xfontsel \
 	fontconfig-overrides \
 	mousepad \
 	ttf-pt-sans \
-"
-RDEPENDS:${PN}:append:x64 += "\
+	xf86-input-evdev \
 	xf86-video-ati \
 	xf86-video-intel \
 	xf86-video-vesa \
+	xfce-nilrt-settings \
+	xfce4-xkb-plugin \
+	xfontsel \
+	xorg-fonts-100dpi \
+	xrdb \
+	xserver-xfce-init \
 "
