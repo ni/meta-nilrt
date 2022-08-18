@@ -1,11 +1,14 @@
 SUMMARY = "initramfs specific packages for NI Linux Realtime distribution"
 LICENSE = "MIT"
 
+
 PACKAGE_ARCH = "${MACHINE_ARCH}"
+
 
 inherit packagegroup
 
-RDEPENDS_${PN} += "\
+
+RDEPENDS:${PN} += "\
 	base-passwd \
 	bash \
 	bzip2 \
@@ -39,7 +42,7 @@ RDEPENDS_${PN} += "\
 	vim-tiny \
 "
 
-RRECOMMENDS_${PN}_x64 = "\
+RRECOMMENDS:${PN}:x64 = "\
 	kernel-module-tpm-tis \
 	kernel-module-atkbd \
 	kernel-module-hyperv-keyboard \

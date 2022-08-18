@@ -5,11 +5,14 @@
 SUMMARY = "Time zone packages for NI Linux Realtime distribution"
 LICENSE = "MIT"
 
+
 PACKAGE_ARCH = "${MACHINE_ARCH}"
+
 
 inherit packagegroup
 
-RDEPENDS_${PN} = "\
+
+RDEPENDS:${PN} = "\
 	tzdata \
 	tzdata-africa \
 	tzdata-americas \
@@ -18,4 +21,5 @@ RDEPENDS_${PN} = "\
 	tzdata-australia \
 	tzdata-europe \
 	tzdata-misc \
-	tzdata-pacific"
+	tzdata-pacific \
+"

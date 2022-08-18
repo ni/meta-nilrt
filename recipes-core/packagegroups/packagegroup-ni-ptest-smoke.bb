@@ -5,18 +5,21 @@
 SUMMARY = "Ptest packages necessary for passing the NILRT development pipeline"
 LICENSE = "MIT"
 
+
 PACKAGE_ARCH = "${MACHINE_ARCH}"
+
 
 inherit packagegroup
 
-RDEPENDS_${PN} = "ptest-runner"
+
+RDEPENDS:${PN} = "ptest-runner"
 
 # ptest packages
-RDEPENDS_${PN}_append = "\
-    glibc-tests-ptest \
-    kernel-tests-ptest \
-    opkg-ptest \
-    pstore-save-ptest \
-    rt-tests-ptest \
-    run-postinsts-ptest \
+RDEPENDS:${PN}:append = "\
+	glibc-tests-ptest \
+	kernel-tests-ptest \
+	opkg-ptest \
+	pstore-save-ptest \
+	rt-tests-ptest \
+	run-postinsts-ptest \
 "

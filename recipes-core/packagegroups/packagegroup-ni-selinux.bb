@@ -5,12 +5,15 @@
 SUMMARY = "SELinux packages for the NI Linux Real-Time distribution"
 LICENSE = "MIT"
 
+
 PACKAGE_ARCH = "${MACHINE_ARCH}"
+
 
 inherit packagegroup
 
-RDEPENDS_${PN} = "\
-	packagegroup-core-selinux \
-	coreutils-ls \
+
+RDEPENDS:${PN} = "\
 	coreutils-chcon \
-	"
+	coreutils-ls \
+	packagegroup-core-selinux \
+"

@@ -6,7 +6,9 @@ LICENSE = "MIT"
 # Contact: <a DEVELOPER contact who can speak to the requirement>
 # RDEPENDS:${PN} += ""
 
+
 inherit packagegroup
+
 
 # Dependency: LQ-Bindings <https://github.com/JKSH/LQ-Bindings>
 # Contact: Sze Howe Koh <szehowe.koh@gmail.com>

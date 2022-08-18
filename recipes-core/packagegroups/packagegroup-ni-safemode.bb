@@ -5,11 +5,14 @@
 SUMMARY = "Safemode specific packages for NI Linux Realtime distribution"
 LICENSE = "MIT"
 
+
 PACKAGE_ARCH = "${MACHINE_ARCH}"
+
 
 inherit packagegroup
 
-RDEPENDS_${PN} = " \
+
+RDEPENDS:${PN} = " \
 	initscripts-nilrt-safemode \
 	e2fsprogs \
 	e2fsprogs-e2fsck \
@@ -21,6 +24,6 @@ RDEPENDS_${PN} = " \
 	sysconfig-settings-ssh \
 "
 
-RDEPENDS_${PN}_append_armv7a = " \
+RDEPENDS:${PN}:append:armv7a = " \
 	nisdbootconfig \
 "

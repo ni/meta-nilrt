@@ -5,15 +5,19 @@
 SUMMARY = "Wi-Fi packages for NI Linux Realtime distribution"
 LICENSE = "MIT"
 
+
 PACKAGE_ARCH = "${MACHINE_ARCH}"
+
 
 inherit packagegroup
 
-RDEPENDS_${PN} = "\
+
+RDEPENDS:${PN} = "\
 	crda \
 	iw \
 	libnl \
 	openssl \
 	rfkill \
+	wireless-regdb \
 	wpa-supplicant \
-	wireless-regdb"
+"
