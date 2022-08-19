@@ -8,6 +8,9 @@ DEPENDS += "\
 	update-rc.d-native \
 "
 
+PV = "2.0"
+
+
 SRC_URI += "\
 	file://handle_cpld_ip_reset.initd \
 	file://ni-rtfeatures.initd \
