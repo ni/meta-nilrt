@@ -46,6 +46,7 @@ done
 
 function log_msg () {
     echo "$SCRIPTNAME: $@"
+    logger "$SCRIPTNAME: $@"
 }
 
 function log_error () {
