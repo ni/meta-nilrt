@@ -39,7 +39,7 @@ pkg_postinst:${PN} () {
 	update-rc.d $OPT ni-rtfeatures start 20 1 3 4 5 .
 }
 
-pkg_prerm:${PN} () {
+pkg_postrm:${PN} () {
 	if [ -n "$D" ]; then
 		OPT="-f -r $D"
 	else
