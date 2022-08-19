@@ -1,12 +1,12 @@
 SUMMARY = "rtfeatures user-space tools"
 DESCRIPTION = "Provides user-space tools to support the nirtfeatures kernel module."
-LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
-LICENSE = "MIT"
+HOMEPAGE = "https://github.com/ni/meta-nilrt"
 SECTION = "base"
+LICENSE = "MIT"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-DEPENDS += "\
-	update-rc.d-native \
-"
+
+DEPENDS += "update-rc.d-native"
 
 PV = "2.0"
 
@@ -20,7 +20,7 @@ SRC_URI += "\
 S = "${WORKDIR}"
 
 
-do_install_append () {
+do_install:append () {
 	install -d ${D}${sysconfdir}/init.d/
 	install -m 0755 ${S}/handle_cpld_ip_reset.initd  ${D}${sysconfdir}/init.d/handle_cpld_ip_reset
 	install -m 0755 ${S}/ni-rtfeatures.initd         ${D}${sysconfdir}/init.d/ni-rtfeatures
@@ -49,15 +49,16 @@ pkg_prerm:${PN} () {
 	update-rc.d $OPT ni-rtfeatures remove
 }
 
-PACKAGE_ARCH = "all"
-PACKAGES_remove += "${PN}-staticdev ${PN}-dev ${PN}-dbg"
 
-FILES_${PN} += "\
+PACKAGE_ARCH = "all"
+PACKAGES:remove += "${PN}-staticdev ${PN}-dev ${PN}-dbg"
+
+FILES:${PN} += "\
 	${sysconfdir}/init.d/* \
 	${sysconfdir}/udev \
 "
 
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	bash \
 	ni-netcfgutil \
 	udev \
