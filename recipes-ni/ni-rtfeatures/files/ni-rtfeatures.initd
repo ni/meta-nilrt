@@ -1,0 +1,70 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          ni-rtfeatures
+# Required-Start:    $syslog
+# Required-Stop:
+# Default-Start:     1 3 4 5
+# Default-Stop:
+# Short-Description: nirtfeatures driver utilities
+# Description:       Perform utility functions related to the nirtfeatures
+#                    linux kernel driver.
+### END INIT INFO
+
+DEV_NIRTFEATURES="/dev/nirtfeatures"
+
+
+# Log messages to the console and to the system message buffer.
+log () {
+	local level=$1
+	local msg=${@:2}
+	local logger_stderr=""
+	[ "$VERBOSE" ] && logger_stderr="--stderr"
+
+	logger \
+		--stderr \
+		--tag ni-rtfeatures \
+		--id=$$ \
+		-p syslog.$level \
+		-- "$msg"
+}
+
+# Print a descriptive log of the reason that the CPLD was reset.
+log_reset_source () {
+	local RESET_SOURCE="${DEV_NIRTFEATURES}/reset_source"
+
+	if [ ! -r "${RESET_SOURCE}" ]; then
+		log WARNING "reset_source sysfs not found or not readable."
+		return
+	fi
+
+	# Valid reasons are enumerated in the linux kernel nirtfeatures.c source
+	# nirtfeatures_reset_source_strings
+	read reason <"$RESET_SOURCE"
+	case $reason in
+		button)
+			log INFO "reset_source=${reason}  # Reset from front panel"
+			;;
+		fpga)
+			log INFO "reset_source=${reason}  # FPGA System Reset IO Node"
+			;;
+		ironclad)
+			log INFO "reset_source=${reason}  # Ironclad watchdog timer expired"
+			;;
+		processor)
+			log INFO "reset_source=${reason}  # Reset from MAX or command line"
+			;;
+		software)
+			log INFO "reset_source=${reason}  # ResetProcessor written"
+			;;
+		watchdog)
+			log INFO "reset_source=${reason}  # RT watchdog timer expired"
+			;;
+		*)
+			log ERROR "Unkown reset_source string: \"$reason\""
+			;;
+	esac
+}
+
+
+## MAIN ##
+log_reset_source
