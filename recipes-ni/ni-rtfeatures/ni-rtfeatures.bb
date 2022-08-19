@@ -33,7 +33,7 @@ pkg_postinst:${PN} () {
 	if [ -n "$D" ]; then
 		OPT="-r $D"
 	else
-		OPT="-s"
+		OPT=""
 	fi
 	update-rc.d $OPT handle_cpld_ip_reset start 6 1 3 4 5 .
 	update-rc.d $OPT ni-rtfeatures start 20 1 3 4 5 .
