@@ -17,8 +17,6 @@ DEV_NIRTFEATURES="/dev/nirtfeatures"
 log () {
 	local level=$1
 	local msg=${@:2}
-	local logger_stderr=""
-	[ "$VERBOSE" ] && logger_stderr="--stderr"
 
 	logger \
 		--stderr \
