@@ -21,7 +21,6 @@ log () {
 	logger \
 		--stderr \
 		--tag ni-rtfeatures \
-		--id=$$ \
 		-p syslog.$level \
 		-- "$msg"
 }
