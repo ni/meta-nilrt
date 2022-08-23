@@ -10,11 +10,11 @@ B = "${KERNEL_BUILD_DIRECTORY}"
 
 KERNEL_VERSION = "${@get_kernelversion_headers('${B}')}"
 
-RDEPENDS_${PN}_remove = "python3"
-
-do_install_append() {
+do_install:append() {
 	# Remove the symlink so it doesn't conflict with other
 	# kernel-devsrc packages
 	rm -f ${D}/usr/src/kernel
 	rmdir --ignore-fail-on-non-empty ${D}/usr/src
 }
+
+RDEPENDS:${PN}:remove = "python3"

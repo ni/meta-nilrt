@@ -1,9 +1,11 @@
 SUMMARY = "Kernel packages for a full dynamic ticks 'nohz' kernel for the NI Linux Real-Time distribution"
 LICENSE = "MIT"
 
+
 inherit packagegroup
 
-RDEPENDS_${PN} = "\
+
+RDEPENDS:${PN} = "\
 	kernel-nohz \
 	kernel-nohz-dev \
 	kernel-nohz-modules \

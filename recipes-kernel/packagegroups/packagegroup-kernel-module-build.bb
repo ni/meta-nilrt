@@ -1,9 +1,11 @@
 SUMMARY = "Packages for building external kernel modules"
 LICENSE = "MIT"
 
+
 inherit packagegroup
 
-RDEPENDS_${PN} = "\
+
+RDEPENDS:${PN} = "\
 	binutils \
 	gcc \
 	gcc-symlinks \
