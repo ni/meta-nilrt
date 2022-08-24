@@ -30,7 +30,6 @@ log_reset_source () {
 	local RESET_SOURCE="${DEV_NIRTFEATURES}/reset_source"
 
 	if [ ! -r "${RESET_SOURCE}" ]; then
-		log WARNING "reset_source sysfs not found or not readable."
 		return
 	fi
 
