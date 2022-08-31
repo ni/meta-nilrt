@@ -239,12 +239,14 @@ RDEPENDS_${PN} += "\
 	trace-cmd \
 "
 
-# openembedded-gore/meta/recipes-multimedia
+# openembedded-core/meta/recipes-multimedia
 RDEPENDS_${PN} += "\
 	alsa-tools \
 	alsa-utils \
 	alsa-utils-scripts \
 	flac \
+	gstreamer1.0-plugins-good \
+	gstreamer1.0-rtsp-server \
 	pulseaudio \
 	speex \
 "
