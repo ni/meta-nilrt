@@ -2,7 +2,7 @@ MAINTAINER = "NI Linux Real-Time Maintainers <nilrt@ni.com>"
 
 TARGET_VENDOR = "-nilrt"
 
-GRUB_BRANCH = "main"
+GRUB_BRANCH = "nilrt/22.8/sumo"
 
 # Inherit the default LIBC features superset from OE-core
 DISTRO_FEATURES += "${DISTRO_FEATURES_LIBC}"
