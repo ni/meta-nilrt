@@ -18,7 +18,7 @@ PACKAGECONFIG[tcp] = ",,python3-pycrypto"
 PACKAGECONFIG[zeromq] = ",,python3-pycrypto python3-pyzmq"
 
 SRC_URI = "\
-    git://github.com/ni/salt.git;protocol=https;branch=ni/master/3000.2 \
+    git://github.com/ni/salt.git;protocol=https;branch=ni/skyline-22.8/3000.2 \
     file://minion \
     file://salt-minion \
     file://salt-common.bash_completion \
@@ -32,7 +32,7 @@ SRC_URI = "\
     file://run-ptest \
 "
 
-SRCREV = "${AUTOREV}"
+SRCREV = "fe2a17b8b65e3aef21a963c6477ae73827ac5002"
 
 S = "${WORKDIR}/git"
 
