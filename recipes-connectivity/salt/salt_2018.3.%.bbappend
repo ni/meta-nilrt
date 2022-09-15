@@ -37,7 +37,7 @@ RDEPENDS_${PN}-minion_append += "\
 "
 
 RDEPENDS_${PN}-minion_append_armv7a += "\
-    ${@oe.utils.conditional('DISTRO', 'nilrt', 'u-boot-mkimage', '', d)} \
+	u-boot-mkimage \
 "
 
 # these dependencies should NOT be added to the salt bb recipe as they're added

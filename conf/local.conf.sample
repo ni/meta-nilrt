@@ -20,8 +20,8 @@
 MACHINE ?= "xilinx-zynq"
 
 # Distribution selection
-#   Supported NILRT distro values are: nilrt
-DISTRO ?= "nilrt"
+#   Supported NILRT distro values are: nilrt-academic
+DISTRO ?= "nilrt-academic"
 
 # Clean *most* package work directories
 #INHERIT += " rm_work "
@@ -190,4 +190,4 @@ CONF_VERSION = "1"
 # concatentation of the currrent $DATE and $TIME - which is not very meaningful
 # and can lead to taskhash issues in recipes which are sensitive to it (like
 # os-release.)
-BUILDNAME ?= "dev-nilrt"
+BUILDNAME ?= "dev-nilrt-academic"

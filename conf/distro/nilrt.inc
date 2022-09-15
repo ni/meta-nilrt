@@ -1,6 +1,6 @@
 MAINTAINER = "NI Linux Real-Time Maintainers <nilrt@ni.com>"
 
-TARGET_VENDOR = "-nilrt"
+TARGET_VENDOR = "-${DISTRO}"
 
 GRUB_BRANCH = "main"
 
@@ -66,7 +66,7 @@ USERADD_ERROR_DYNAMIC = "1"
 LVRT_USER = "lvuser"
 LVRT_GROUP = "ni"
 
-SDK_VENDOR = "-nilrtsdk"
+SDK_VENDOR = "-${DISTRO}sdk"
 SDK_VERSION := "${@'${DISTRO_VERSION}'}"
 
 LOCALCONF_VERSION = "1"
