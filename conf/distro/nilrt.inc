@@ -1,6 +1,6 @@
 MAINTAINER = "NI Linux Real-Time Maintainers <nilrt@ni.com>"
 
-TARGET_VENDOR = "-${DISTRO}"
+TARGET_VENDOR = "-nilrt"
 
 GRUB_BRANCH = "main"
 
@@ -143,8 +143,7 @@ PACKAGE_ENABLE_FILELIST ?= "True"
 # Root URI of all NILRT feeds
 NILRT_FEEDS_URI                    ?= "http://download.ni.com/ni-linux-rt/feeds"
 NILRT_FEEDS_URI_RELEASE            ?= "${NILRT_FEEDS_URI}/${NILRT_FEED_NAME}"
-NILRT_MACHINE_FEED_URI_x64         ?= "${NILRT_FEEDS_URI_RELEASE}/x64"
-NILRT_MACHINE_FEED_URI_xilinx-zynq ?= "${NILRT_FEEDS_URI_RELEASE}/arm"
+NILRT_MACHINE_FEED_URI_xilinx-zynq ?= "${NILRT_FEEDS_URI_RELEASE}/academic"
 
 # OE Packages with TUNEARCHes
 PACKAGE_FEED_URIS       = "${NILRT_MACHINE_FEED_URI}"
