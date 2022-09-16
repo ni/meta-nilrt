@@ -1,3 +1,4 @@
 OS_RELEASE_FIELDS += "BUILD_ID"
 
 BUILD_ID = "${BUILDNAME}"
+ID_LIKE = "nilrt"
