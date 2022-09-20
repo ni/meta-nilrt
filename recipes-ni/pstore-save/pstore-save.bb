@@ -31,7 +31,7 @@ do_install () {
 	install -d ${D}${sbindir}
 	install -m 0755 ${S}/pstore-save ${D}${sbindir}/
 
-	install -d ${D}${sbindir} ${D}${sysconfdir}/init.d
+	install -d ${D}${sysconfdir}/init.d
 	install -m 0755 ${S}/initscript ${D}${sysconfdir}/init.d/pstore-save
 }
 
