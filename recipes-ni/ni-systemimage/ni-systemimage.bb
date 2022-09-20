@@ -1,4 +1,4 @@
-SUMMARY = "A system imaging utility for NI NILRT safemodes"
+SUMMARY = "A system imaging utility for NILRT safemodes"
 DESCRIPTION = "Installs the nisystemimage utility"
 HOMEPAGE = "https://github.com/ni/meta-nilrt"
 SECTION = "base"
