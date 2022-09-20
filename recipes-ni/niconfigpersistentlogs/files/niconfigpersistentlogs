@@ -1,0 +1,83 @@
+#!/bin/bash
+
+set -uo pipefail
+
+error_and_die() {
+set +u
+    if [ -n "$1" ]; then
+        echo >&2 "$1"
+    fi
+set -u
+    echo >&2 "ERROR"
+    exit 1
+}
+
+FILE_PATH_VOLATILES_CONFIG="/etc/default/volatiles/00_core"
+PERSISTENT_DIR_VAR_LOG_LINE="d root root 0755 /var/log none"
+VOLATILE_SYMLINK_VAR_LOG_LINE="l root root 0755 /var/log /var/volatile/log"
+
+ENABLE_PERSISTENT_LOGS_INI_VAL=$(/usr/local/natinst/bin/nirtcfg --get section=SystemSettings,token=PersistentLogs.enabled,value="false" | tr "[:upper:]" "[:lower:]")
+
+case $ENABLE_PERSISTENT_LOGS_INI_VAL in
+    true)
+        NEW_VAR_LOG_LINE="$PERSISTENT_DIR_VAR_LOG_LINE"
+        OLD_VAR_LOG_LINE="$VOLATILE_SYMLINK_VAR_LOG_LINE"
+        SUCCESS_MESSAGE="Persistent logs enabled."
+        RM_VAR_LOG=true
+        ;;
+    false)
+        NEW_VAR_LOG_LINE="$VOLATILE_SYMLINK_VAR_LOG_LINE"
+        OLD_VAR_LOG_LINE="$PERSISTENT_DIR_VAR_LOG_LINE"
+        SUCCESS_MESSAGE="Persistent logs disabled."
+        RM_VAR_LOG=false
+        ;;
+    *)
+        error_and_die "Unexpected value for PersistentLogs.enabled in /etc/natinst/share/ni-rt.ini. Expected True or False."
+        ;;
+esac
+
+# This grep command looks for the exact new line.
+grep "^$NEW_VAR_LOG_LINE$" "$FILE_PATH_VOLATILES_CONFIG" > /dev/null
+EXIT_CODE="$?"
+
+if [ "$EXIT_CODE" = 0 ]; then
+set +u
+    # New line is already present, do not modify file.
+    [ "${VERBOSE}" != "no" ] && echo "No changes needed to $FILE_PATH_VOLATILES_CONFIG."
+set -u
+elif [ "$EXIT_CODE" = 1 ]; then
+    # This grep command looks for the exact old line, which we want to replace with the new line.
+    grep "^$OLD_VAR_LOG_LINE$" "$FILE_PATH_VOLATILES_CONFIG" > /dev/null
+    EXIT_CODE="$?"
+
+    if [ "$EXIT_CODE" = 0 ]; then
+        # This sed command replaces the old line with the new line.
+        if ! sed "s|^$OLD_VAR_LOG_LINE$|$NEW_VAR_LOG_LINE|" -i "$FILE_PATH_VOLATILES_CONFIG"
+        then
+        error_and_die
+        fi
+    elif [ "$EXIT_CODE" = 1 ]; then
+        error_and_die "Could not locate expected /var/log entry in $FILE_PATH_VOLATILES_CONFIG."
+    else
+        error_and_die
+    fi
+else
+    error_and_die
+fi
+
+if ! rm -rf /etc/volatile.cache
+then
+    error_and_die
+fi
+
+if [ "$RM_VAR_LOG" = true ]; then
+    if ! rm -rf /var/log
+    then
+        error_and_die
+    fi
+fi
+
+set +u
+[ "${VERBOSE}" != "no" ] && echo "$SUCCESS_MESSAGE"
+set -u
+exit 0
