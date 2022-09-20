@@ -1,17 +1,18 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}:${THISDIR}/files:${THISDIR}/${PN}:"
 
 SRC_URI =+ " \
-			file://busybox-ifplugd \
-			file://ifplugd.action \
-			file://ifplugd.conf \
-			file://zcip.script \
-			file://busybox-acpid \
-			file://acpid.conf \
-			file://acpid_poweroff.sh \
-			file://acpid-logrotate.conf \
-			file://zcip-allow-action-script-to-reject-chosen-IP.patch \
-			file://login-utilities.cfg \
-			file://udhcpd.wlan0.conf"
+	file://busybox-ifplugd \
+	file://ifplugd.action \
+	file://ifplugd.conf \
+	file://zcip.script \
+	file://busybox-acpid \
+	file://acpid.conf \
+	file://acpid_poweroff.sh \
+	file://acpid-logrotate.conf \
+	file://zcip-allow-action-script-to-reject-chosen-IP.patch \
+	file://login-utilities.cfg \
+	file://udhcpd.wlan0.conf \
+"
 
 SRC_URI:append:x64 += "file://enable_ar_create_fragment.cfg"
 
