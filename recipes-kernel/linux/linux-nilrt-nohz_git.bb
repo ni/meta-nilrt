@@ -19,4 +19,4 @@ do_install_append() {
 
 # This is the place to overwrite the source AUTOREV from linux-nilrt.inc, if
 # the kernel recipe requires a particular ref.
-#SRCREV = ""
+SRCREV = "9ab416c284b7f19102e9bcdf8320f3112a0450b5"
