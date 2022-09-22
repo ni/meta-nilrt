@@ -1,14 +1,9 @@
 #!/bin/bash
 
-set -uo pipefail
+set -o pipefail
 
 error_and_die() {
-set +u
-    if [ -n "$1" ]; then
-        echo >&2 "$1"
-    fi
-set -u
-    echo >&2 "ERROR"
+    echo >&2 "ERROR: $1"
     exit 1
 }
 
@@ -37,47 +32,45 @@ case $ENABLE_PERSISTENT_LOGS_INI_VAL in
 esac
 
 # This grep command looks for the exact new line.
-grep "^$NEW_VAR_LOG_LINE$" "$FILE_PATH_VOLATILES_CONFIG" > /dev/null
+OUTPUT=$(grep "^$NEW_VAR_LOG_LINE$" "$FILE_PATH_VOLATILES_CONFIG" 2>&1)
 EXIT_CODE="$?"
 
 if [ "$EXIT_CODE" = 0 ]; then
-set +u
     # New line is already present, do not modify file.
     [ "${VERBOSE}" != "no" ] && echo "No changes needed to $FILE_PATH_VOLATILES_CONFIG."
-set -u
+    exit 0
 elif [ "$EXIT_CODE" = 1 ]; then
     # This grep command looks for the exact old line, which we want to replace with the new line.
-    grep "^$OLD_VAR_LOG_LINE$" "$FILE_PATH_VOLATILES_CONFIG" > /dev/null
+    OUTPUT=$(grep "^$OLD_VAR_LOG_LINE$" "$FILE_PATH_VOLATILES_CONFIG" 2>&1)
     EXIT_CODE="$?"
-
+ 
     if [ "$EXIT_CODE" = 0 ]; then
         # This sed command replaces the old line with the new line.
-        if ! sed "s|^$OLD_VAR_LOG_LINE$|$NEW_VAR_LOG_LINE|" -i "$FILE_PATH_VOLATILES_CONFIG"
+        if ! OUTPUT=$(sed "s|^$OLD_VAR_LOG_LINE$|$NEW_VAR_LOG_LINE|" -i "$FILE_PATH_VOLATILES_CONFIG" 2>&1)
         then
-        error_and_die
+            error_and_die "$OUTPUT"
         fi
     elif [ "$EXIT_CODE" = 1 ]; then
         error_and_die "Could not locate expected /var/log entry in $FILE_PATH_VOLATILES_CONFIG."
     else
-        error_and_die
+        error_and_die "$OUTPUT"
     fi
+
 else
-    error_and_die
+    error_and_die "$OUTPUT"
 fi
 
-if ! rm -rf /etc/volatile.cache
+if ! OUTPUT=$(rm -rf /etc/volatile.cache 2>&1)
 then
-    error_and_die
+    error_and_die "$OUTPUT"
 fi
 
 if [ "$RM_VAR_LOG" = true ]; then
-    if ! rm -rf /var/log
+    if ! OUTPUT=$(rm -rf /var/log 2>&1)
     then
-        error_and_die
+        error_and_die "$OUTPUT"
     fi
 fi
 
-set +u
 [ "${VERBOSE}" != "no" ] && echo "$SUCCESS_MESSAGE"
-set -u
 exit 0

@@ -1,27 +1,28 @@
 SUMMARY = "NI persistent logs configuration utility"
-DESCRIPTION = "Installs the niconfigpersistentlogs utility"
+DESCRIPTION = "Installs the ni-configpersistentlogs utility"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 SECTION = "base"
 
-DEPENDS += "shadow-native pseudo-native niacctbase update-rc.d-native"
-
 SRC_URI = "\
-	file://niconfigpersistentlogs \
+	file://ni-configpersistentlogs \
 "
 
 S = "${WORKDIR}"
 
+INITSCRIPT_NAME = "ni-configpersistentlogs"
+INITSCRIPT_PARAMS = "start 2 S ."
+
+inherit update-rc.d
+
 do_install () {
 	install -d ${D}${sysconfdir}/init.d/
-	install -m 0755 ${S}/niconfigpersistentlogs ${D}${sysconfdir}/init.d/
-
-	update-rc.d -r ${D} niconfigpersistentlogs   start 2 S .
+	install -m 0755 ${S}/ni-configpersistentlogs ${D}${sysconfdir}/init.d/
 }
 
 
 FILES_${PN} += "\
-	${sysconfdir}/init.d/niconfigpersistentlogs \
+	${sysconfdir}/init.d/ni-configpersistentlogs \
 "
 
-RDEPENDS_${PN} += "bash"
+RDEPENDS_${PN} += "bash initscripts"
