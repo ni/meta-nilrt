@@ -31,7 +31,7 @@ do_install () {
 }
 
 
-FILES_${PN} += "\
+FILES:${PN} += "\
 	${bindir}/nisystemformat \
 	${sysconfdir}/init.d/nitargetinfo \
 	/usr/local/natinst/bin/nisystemformat \
@@ -42,4 +42,4 @@ inherit update-rc.d
 INITSCRIPT_NAME = "nitargetinfo"
 INITSCRIPT_PARAMS = "start 20 S ."
 
-RDEPENDS_${PN} += "bash"
+RDEPENDS:${PN} += "bash"

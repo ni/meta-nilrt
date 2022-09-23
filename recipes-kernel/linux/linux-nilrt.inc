@@ -27,7 +27,7 @@ INSANE_SKIP += "ldflags"
 
 # The default -hf arm tools don't default to -mfloat-abi=hard, and this
 # causes build failures when building the scripts utilities
-TOOLCHAIN_OPTIONS_append = " ${@bb.utils.contains('TUNE_FEATURES','callconvention-hard',' -mfloat-abi=hard ','',d)} ${CFLAGS} "
+TOOLCHAIN_OPTIONS:append = " ${@bb.utils.contains('TUNE_FEATURES','callconvention-hard',' -mfloat-abi=hard ','',d)} ${CFLAGS} "
 
 # No need to do debug symbol handling for kernel builds; also the default behavior
 # incorrectly splits out some 'kernel-dev' files under /lib/modules/<ver>/build
@@ -47,14 +47,14 @@ SRCREV ?= "${AUTOREV}"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=6bc538ed5bd9a7fc9398086aedcd7e46"
-LIC_FILES_CHKSUM_xilinx-zynq = "file://COPYING;md5=d7810fab7487fb0aad327b76f1be7cd7"
+LIC_FILES_CHKSUM:xilinx-zynq = "file://COPYING;md5=d7810fab7487fb0aad327b76f1be7cd7"
 
 # This checks ${PV} == version from kernel sources which our PV/AUTOREV breaks, so skip it.
 KERNEL_VERSION_SANITY_SKIP="1"
 
-FILESEXTRAPATHS_prepend := "${THISDIR}/${KBUILD_FRAGMENTS_LOCATION}:"
-KBUILD_DEFCONFIG_x64 = "nati_x86_64_defconfig"
-KBUILD_DEFCONFIG_armv7a = "nati_zynq_defconfig"
+FILESEXTRAPATHS:prepend := "${THISDIR}/${KBUILD_FRAGMENTS_LOCATION}:"
+KBUILD_DEFCONFIG:x64 = "nati_x86_64_defconfig"
+KBUILD_DEFCONFIG:armv7a = "nati_zynq_defconfig"
 KCONFIG_MODE="--alldefconfig"
 
 # autoload if installed
@@ -70,20 +70,20 @@ KERNEL_MODULE_PROBECONF += "radeon"
 module_conf_radeon = "options radeon dpm=0"
 
 #create dtb-s fromt dts files for armv7a targets
-DEPENDS_append += "rsync-native"
+DEPENDS:append += "rsync-native"
 
-DEPENDS_append_x64 += "elfutils-native"
+DEPENDS:append:x64 += "elfutils-native"
 
-DEPENDS_append_armv7a += "dtc-native"
+DEPENDS:append:armv7a += "dtc-native"
 
-RDEPENDS_kernel-dev += "bash binutils gcc gcc-symlinks"
+RDEPENDS:kernel-dev += "bash binutils gcc gcc-symlinks"
 
 PACKAGES += "${PN}-module-versioning-headers"
 
-FILES_${PN}-module-versioning-headers = "/kernel"
+FILES:${PN}-module-versioning-headers = "/kernel"
 
 # Install headers and build objects for kernel versioning into
-do_install_append() {
+do_install:append() {
 	export CROSS_COMPILE=${CROSS_COMPILE} ARCH=${ARCH} KBUILD_OUTPUT=${KBUILD_OUTPUT}
 
 	# for older NILRT install under /kernel for inclusion in squashfs for backwards
@@ -92,11 +92,11 @@ do_install_append() {
 	${WORKDIR}/export-kernel-headers.sh ${S} ${D}/kernel
 }
 
-do_shared_workdir_append() {
+do_shared_workdir:append() {
 	cp -rf ./* ${STAGING_KERNEL_BUILDDIR}
 }
 
-pkg_postinst_ontarget_${KERNEL_PACKAGE_NAME}-base_append_x64 () {
+pkg_postinst_ontarget:${KERNEL_PACKAGE_NAME}-base:append:x64 () {
 	# The postinst is intended to be run when new kernels are installed
 	# in runmode so that uninstalling them works correctly.
 	# It does not make sense to run this on safemode. So skip.
@@ -138,7 +138,7 @@ pkg_postinst_ontarget_${KERNEL_PACKAGE_NAME}-base_append_x64 () {
 	fi
 }
 
-pkg_prerm_${KERNEL_PACKAGE_NAME}-base_append_x64 () {
+pkg_prerm:${KERNEL_PACKAGE_NAME}-base:append:x64 () {
 	cd "$D/${KERNEL_IMAGEDEST}"
 
 	# Check that the current kernel image file (e.g. bzImage) is a
@@ -183,7 +183,7 @@ pkg_prerm_${KERNEL_PACKAGE_NAME}-base_append_x64 () {
 	fi
 }
 
-pkg_postrm_${KERNEL_PACKAGE_NAME}-base_append_x64 () {
+pkg_postrm:${KERNEL_PACKAGE_NAME}-base:append:x64 () {
 	cd "$D/${KERNEL_IMAGEDEST}"
 
 	# Remove kernel name from 'kernel-versions' file. We're

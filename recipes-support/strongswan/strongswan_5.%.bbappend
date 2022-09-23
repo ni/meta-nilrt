@@ -1,4 +1,4 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRC_URI += "file://ipsec.init \
 "
@@ -47,17 +47,17 @@ PACKAGECONFIG[tnccs-20] = "--enable-tnccs-20,--disable-tnccs-20,,"
 PACKAGECONFIG[tnccs-dynamic] = "--enable-tnccs-dynamic,--disable-tnccs-dynamic,,"
 PACKAGECONFIG[tss-trousers] = "--enable-tss-trousers,,libtspi,"
 
-FILES_${PN} += "${libdir}/ipsec/imcvs/*.so ${datadir}/regid.2004-03.org.strongswan"
-FILES_${PN}-dbg += "${libdir}/ipsec/imcvs/.debug"
-FILES_${PN}-dev += "${libdir}/ipsec/imcvs/*.la"
-FILES_${PN}-staticdev += "${libdir}/ipsec/imcvs/*.a"
+FILES:${PN} += "${libdir}/ipsec/imcvs/*.so ${datadir}/regid.2004-03.org.strongswan"
+FILES:${PN}-dbg += "${libdir}/ipsec/imcvs/.debug"
+FILES:${PN}-dev += "${libdir}/ipsec/imcvs/*.la"
+FILES:${PN}-staticdev += "${libdir}/ipsec/imcvs/*.a"
 
 inherit update-rc.d
 
 INITSCRIPT_NAME = "ipsec"
 INITSCRIPT_PARAMS = "defaults 42"
 
-do_install_append() {
+do_install:append() {
     if ${@bb.utils.contains('DISTRO_FEATURES', 'sysvinit', 'true', 'false', d)}; then
         install -d ${D}${sysconfdir}/init.d
         install -m 0755 ${WORKDIR}/ipsec.init ${D}${sysconfdir}/init.d/ipsec

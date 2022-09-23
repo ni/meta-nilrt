@@ -29,38 +29,38 @@ PACKAGES = " \
 	trousers-doc \
 	"
 
-FILES_libtspi = " \
+FILES:libtspi = " \
 	${libdir}/*.so.1.2.0 \
 	${libdir}/*.so.1 \
 	"
-FILES_libtspi-dbg = " \
+FILES:libtspi-dbg = " \
 	${libdir}/.debug \
 	${prefix}/src/debug/${PN}/${PV}-${PR}/${PN}-${PV}/src/tspi \
 	${prefix}/src/debug/${PN}/${PV}-${PR}/${PN}-${PV}/src/trspi \
 	${prefix}/src/debug/${PN}/${PV}-${PR}/${PN}-${PV}/src/include/*.h \
 	${prefix}/src/debug/${PN}/${PV}-${PR}/${PN}-${PV}/src/include/tss \
 	"
-FILES_libtspi-dev = " \
+FILES:libtspi-dev = " \
 	${includedir} \
 	${libdir}/*.so \
 	"
-FILES_libtspi-doc = " \
+FILES:libtspi-doc = " \
 	${mandir}/man3 \
 	"
-FILES_libtspi-staticdev = " \
+FILES:libtspi-staticdev = " \
 	${libdir}/*.la \
 	${libdir}/*.a \
 	"
-FILES_${PN} = " \
+FILES:${PN} = " \
 	${sbindir}/tcsd \
 	${sysconfdir} \
 	${localstatedir} \
 	"
-FILES_${PN}-dbg += " \
+FILES:${PN}-dbg += " \
 	${sbindir}/.debug \
 	${prefix}/src/debug \
 	"
-FILES_${PN}-doc += " \
+FILES:${PN}-doc += " \
 	${mandir}/man5 \
 	${mandir}/man8 \
 	"
@@ -73,14 +73,14 @@ INITSCRIPT_PARAMS = "start 99 2 3 4 5 . stop 19 0 1 6 ."
 EXTRA_OECONF="--with-gui=none"
 
 USERADD_PACKAGES = "${PN}"
-GROUPADD_PARAM_${PN} = "--system tss"
-USERADD_PARAM_${PN} = "--system -M -d /var/lib/tpm -s /bin/false -g tss tss"
+GROUPADD_PARAM:${PN} = "--system tss"
+USERADD_PARAM:${PN} = "--system -M -d /var/lib/tpm -s /bin/false -g tss tss"
 
 SYSTEMD_PACKAGES = "${PN}"
-SYSTEMD_SERVICE_${PN} = "tcsd.service"
+SYSTEMD_SERVICE:${PN} = "tcsd.service"
 SYSTEMD_AUTO_ENABLE = "disable"
 
-do_install_append() {
+do_install:append() {
         install -d ${D}${sysconfdir}/init.d
         install -m 0755 ${WORKDIR}/trousers.init.sh ${D}${sysconfdir}/init.d/trousers
         install -d ${D}${sysconfdir}/udev/rules.d

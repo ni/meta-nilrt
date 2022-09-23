@@ -1,4 +1,4 @@
-do_install_append () {
+do_install:append () {
         install -d ${D}${datadir}/fonts/X11/TTF/
 
         for i in *.ttf; do

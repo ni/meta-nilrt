@@ -1,4 +1,4 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 SRC_URI += "\
     file://kthread_test_priority.sh \
@@ -11,16 +11,16 @@ SRC_URI += "\
     file://rcu_nocbs_test.sh \
 "
 
-RDEPENDS_${PN}-ptest += "bash"
+RDEPENDS:${PN}-ptest += "bash"
 
 LDFLAGS += "-lm"
 
-do_compile_ptest_append() {
+do_compile_ptest:append() {
     cd ${WORKDIR}
     ${CC} -o test_throttling_jitter test_throttling_jitter.c ${LDFLAGS}
 }
 
-do_install_ptest_append() {
+do_install_ptest:append() {
     cp ${WORKDIR}/kthread_test_priority.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/ptest-format.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/irq_test_priority.sh ${D}${PTEST_PATH}

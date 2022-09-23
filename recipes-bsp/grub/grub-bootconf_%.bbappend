@@ -1,4 +1,4 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/grub:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/grub:"
 
 SRC_URI += " \
     file://grub.cfg \
@@ -6,12 +6,12 @@ SRC_URI += " \
     file://grub.d \
 "
 
-PACKAGES_prepend = "${PN}-nilrt "
+PACKAGES:prepend = "${PN}-nilrt "
 
-FILES_${PN}-nilrt      += "/boot/efi/nilrt/grub.cfg /boot/grub/grubenv /boot/bootimage.cfg.d/*.cfg"
-CONFFILES_${PN}-nilrt  += "/boot/efi/nilrt/grub.cfg /boot/grub/grubenv /boot/bootimage.cfg.d/*.cfg"
+FILES:${PN}-nilrt      += "/boot/efi/nilrt/grub.cfg /boot/grub/grubenv /boot/bootimage.cfg.d/*.cfg"
+CONFFILES:${PN}-nilrt  += "/boot/efi/nilrt/grub.cfg /boot/grub/grubenv /boot/bootimage.cfg.d/*.cfg"
 
-do_install_append () {
+do_install:append () {
 
     # Install NILRT grub.cfg
     install -d ${D}/boot/efi/nilrt

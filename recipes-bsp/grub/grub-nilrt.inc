@@ -1,4 +1,4 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/grub:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/grub:"
 
 SRC_URI += "\
 	file://cmd-test-Add-bitwise-AND-document-the-feature.patch \

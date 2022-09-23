@@ -14,7 +14,7 @@ SRC_URI = "file://LICENSE \
 INITSCRIPT_NAME = "niwatchdogpet"
 INITSCRIPT_PARAMS = "start 05 S ."
 
-CFLAGS_append = " -std=c89 -Wall -Werror -pedantic"
+CFLAGS:append = " -std=c89 -Wall -Werror -pedantic"
 
 do_compile() {
 	${CC} -Os ${CFLAGS} ${WORKDIR}/niwatchdogpet.c -o niwatchdogpet ${LDFLAGS}

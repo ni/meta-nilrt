@@ -17,7 +17,7 @@ inherit allarch update-rc.d
 
 INITSCRIPT_NAME = "xserver-xfce"
 INITSCRIPT_PARAMS = "start 01 5 2 . stop 01 0 1 6 ."
-INITSCRIPT_PARAMS_shr = "start 90 5 2 . stop 90 0 1 6 ."
+INITSCRIPT_PARAMS:shr = "start 90 5 2 . stop 90 0 1 6 ."
 
 do_install() {
     if ${@bb.utils.contains('DISTRO_FEATURES','sysvinit','true','false',d)}; then
@@ -36,12 +36,12 @@ do_install() {
 }
 
 # Get util-linux for su
-RDEPENDS_${PN} = "xserver-common (>= 1.30) xinit xfce4-session util-linux"
+RDEPENDS:${PN} = "xserver-common (>= 1.30) xinit xfce4-session util-linux"
 
-FILES_${PN} += "${sysconfdir}/default/xserver-xfce"
+FILES:${PN} += "${sysconfdir}/default/xserver-xfce"
 
-SYSTEMD_SERVICE_${PN} = "xserver-xfce.service"
+SYSTEMD_SERVICE:${PN} = "xserver-xfce.service"
 
-#RPROVIDES_${PN} = "xserver-nodm-init"
-#RREPLACES_${PN} = "xserver-nodm-init"
-RCONFLICTS_${PN} = "xserver-nodm-init"
+#RPROVIDES:${PN} = "xserver-nodm-init"
+#RREPLACES:${PN} = "xserver-nodm-init"
+RCONFLICTS:${PN} = "xserver-nodm-init"

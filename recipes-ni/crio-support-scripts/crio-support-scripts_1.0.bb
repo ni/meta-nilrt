@@ -4,9 +4,9 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 SECTION = "base"
 DEPENDS = "shadow-native pseudo-native niacctbase update-rc.d-native"
-RDEPENDS_${PN} += "niacctbase bash"
+RDEPENDS:${PN} += "niacctbase bash"
 
-SRC_URI_append_x64 = "file://nisetfpgaautoload \
+SRC_URI:append:x64 = "file://nisetfpgaautoload \
                       file://nisetconsoleout \
 "
 

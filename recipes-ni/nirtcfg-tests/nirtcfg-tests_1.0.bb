@@ -6,7 +6,7 @@ SECTION = "tests"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 SRC_URI = "\
     file://configs/ \
@@ -40,6 +40,6 @@ do_install_ptest() {
 }
 
 # We only want to build the -ptest package
-PACKAGES_remove = "${PN}-dev ${PN}-staticdev ${PN}-dbg"
+PACKAGES:remove = "${PN}-dev ${PN}-staticdev ${PN}-dbg"
 
-RDEPENDS_${PN}-ptest_append = " bash"
+RDEPENDS:${PN}-ptest:append = " bash"

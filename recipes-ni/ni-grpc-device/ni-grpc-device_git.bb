@@ -44,13 +44,13 @@ OECMAKE_TARGET_COMPILE = "ni_grpc_device_server"
 inherit ptest
 
 BUILD_PTEST = "${B}/ptest"
-RDEPENDS_${PN}-ptest += "\
+RDEPENDS:${PN}-ptest += "\
 	${PN} \
 	bash \
 	python3-grpcio \
 "
 
-do_compile_ptest_append () {
+do_compile_ptest:append () {
 	install -d ${BUILD_PTEST}
 	python3 -m grpc_tools.protoc \
 		-I${S}/source/protobuf \
@@ -59,7 +59,7 @@ do_compile_ptest_append () {
 		${S}/source/protobuf/session.proto
 }
 
-do_install_ptest_append () {
+do_install_ptest:append () {
 	install -d ${D}${PTEST_PATH}
 	install -m 0755 ${WORKDIR}/ptest/run-ptest ${D}${PTEST_PATH}/
 
@@ -88,7 +88,7 @@ do_install () {
 	install --mode=0644 ${S}/source/protobuf/session.proto ${D}${includedir}/${BPN}
 }
 
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	grpc \
 	protobuf \
 "

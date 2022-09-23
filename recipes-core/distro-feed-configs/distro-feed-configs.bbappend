@@ -1,14 +1,14 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 inherit ptest
 
-SRC_URI_append = " \
+SRC_URI:append = " \
     file://run-ptest \
     file://ptest-format.sh \
     file://test_feed_listings.sh \
 "
 
-RDEPENDS_${PN}-ptest += " bash "
+RDEPENDS:${PN}-ptest += " bash "
 
 do_install_ptest() {
     install -d ${D}${PTEST_PATH}

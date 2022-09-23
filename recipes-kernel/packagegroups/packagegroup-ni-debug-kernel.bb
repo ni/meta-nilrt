@@ -3,7 +3,7 @@ LICENSE = "MIT"
 
 inherit packagegroup
 
-RDEPENDS_${PN} = "\
+RDEPENDS:${PN} = "\
 	kernel-debug \
 	kernel-debug-vmlinux \
 	kernel-debug-dev \
@@ -11,6 +11,6 @@ RDEPENDS_${PN} = "\
 	kernel-devsrc-debug \
 "
 
-RDEPENDS_${PN}_append_armv7a = " \
+RDEPENDS:${PN}:append:armv7a = " \
 	kernel-debug-devicetree \
 "

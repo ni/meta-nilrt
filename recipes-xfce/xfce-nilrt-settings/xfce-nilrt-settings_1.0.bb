@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 S = "${WORKDIR}"
 
 DEPENDS = "shadow-native pseudo-native niacctbase"
-RDEPENDS_${PN} = "bash niacctbase xfce4-settings xfce4-session xfce4-panel"
+RDEPENDS:${PN} = "bash niacctbase xfce4-settings xfce4-session xfce4-panel"
 
 homedir = "/home/${LVRT_USER}"
 confdir = "${homedir}/.config"
@@ -38,7 +38,7 @@ SRC_URI = "file://autostart/dpms.desktop \
 	file://xfce4/xfconf/xfce-perchannel-xml/xsettings.xml \
 	"
 
-FILES_${PN} = "${confdir}/autostart/dpms.desktop \
+FILES:${PN} = "${confdir}/autostart/dpms.desktop \
 	    ${confdir}/autostart/dualmonitor.desktop \
 	    ${confdir}/autostart/screensaver.desktop \
 	    ${confdir}/menus/xfce-applications.menu \

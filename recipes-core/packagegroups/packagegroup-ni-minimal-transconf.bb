@@ -3,7 +3,7 @@ LICENSE = "MIT"
 
 inherit packagegroup
 
-RDEPENDS_${PN} = " \
+RDEPENDS:${PN} = " \
 	initscripts-transconf \
 	openssh-transconf \
 	shadow-transconf \

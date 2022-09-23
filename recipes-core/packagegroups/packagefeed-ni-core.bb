@@ -3,7 +3,7 @@ LICENSE = "MIT"
 
 inherit packagegroup
 
-RDEPENDS_${PN} = "\
+RDEPENDS:${PN} = "\
 	packagegroup-base \
 	packagegroup-core-boot \
 	packagegroup-ni-base \
@@ -25,7 +25,7 @@ RDEPENDS_${PN} = "\
 	dkms \
 "
 
-RDEPENDS_${PN}_append_x64 = "\
+RDEPENDS:${PN}:append:x64 = "\
 	init-nilrt-ramfs \
 	rauc \
 	rauc-mark-good \

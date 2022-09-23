@@ -11,12 +11,12 @@ SRC_URI = "\
 "
 
 # ni-shutdown-guard package settings
-FILES_${PN} = "\
+FILES:${PN} = "\
 	${sysconfdir}/init.d/holdoff-shutdown \
 	${sbindir}/rguard \
 "
 
-RDEPENDS_${PN} += "bash"
+RDEPENDS:${PN} += "bash"
 
 INITSCRIPT_NAME = "holdoff-shutdown"
 INITSCRIPT_PARAMS = "stop 00 0 6 ."
@@ -26,14 +26,14 @@ inherit update-rc.d
 # ni-shutdown-guard-safemode package settings
 PACKAGES += "${PN}-safemode"
 
-SUMMARY_${PN}-safemode = "Shutdown/reboot guard run-parts file(s) for NILRT safemode"
-DESCRIPTION_${PN}-safemode = "Run-parts file(s) for ni-shutdown-guard to prevent shutdown/reboot to protect critical operations in safemode"
+SUMMARY:${PN}-safemode = "Shutdown/reboot guard run-parts file(s) for NILRT safemode"
+DESCRIPTION:${PN}-safemode = "Run-parts file(s) for ni-shutdown-guard to prevent shutdown/reboot to protect critical operations in safemode"
 
-FILES_${PN}-safemode = "\
+FILES:${PN}-safemode = "\
 	${sysconfdir}/holdoff-shutdown.d/nilrt-safemode \
 "
 
-RDEPENDS_${PN}-safemode += "${PN}"
+RDEPENDS:${PN}-safemode += "${PN}"
 
 do_install () {
 	install -d ${D}${sbindir}

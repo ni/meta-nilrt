@@ -6,7 +6,7 @@ SECTION = "base"
 
 PACKAGES = "${PN}"
 
-RDEPENDS_${PN} = "	\
+RDEPENDS:${PN} = "	\
 					parted \
 					e2fsprogs-resize2fs \
 					bash \

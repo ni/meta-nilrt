@@ -8,12 +8,12 @@ SRC_URI = "\
 	file://ni-modules-autoload \
 "
 
-FILES_${PN} = "\
+FILES:${PN} = "\
 	${sysconfdir}/modules.autoload.d \
 	${sysconfdir}/init.d/ni-modules-autoload \
 "
 
-RDEPENDS_${PN} += "bash"
+RDEPENDS:${PN} += "bash"
 
 INITSCRIPT_NAME = "ni-modules-autoload"
 INITSCRIPT_PARAMS = "start 37 S ."

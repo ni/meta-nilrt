@@ -1,4 +1,4 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 SRC_URI += "file://nikern.conf \
             file://logrotate.d-auth.conf \
@@ -6,17 +6,17 @@ SRC_URI += "file://nikern.conf \
             file://logrotate.d-messages.conf \
 "
 
-RRECOMMENDS_${PN}_append := "logrotate"
+RRECOMMENDS:${PN}:append := "logrotate"
 
 DEPENDS += "shadow-native pseudo-native niacctbase"
 
-RDEPENDS_${PN} += "niacctbase"
+RDEPENDS:${PN} += "niacctbase"
 
-CONFFILES_${PN}_append := " ${sysconfdir}/logrotate.d/auth.conf \
+CONFFILES:${PN}:append := " ${sysconfdir}/logrotate.d/auth.conf \
                             ${sysconfdir}/logrotate.d/cron.conf \
                             ${sysconfdir}/logrotate.d/messages.conf"
 
-do_install_append (){
+do_install:append (){
    install -d ${D}${sysconfdir}/syslog-ng.d
    install -d ${D}${sysconfdir}/logrotate.d
 

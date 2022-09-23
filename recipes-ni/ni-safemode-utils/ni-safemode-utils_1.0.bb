@@ -12,7 +12,7 @@ SRC_URI = "\
 
 natinstbin="/usr/local/natinst/bin"
 
-FILES_${PN} += "\
+FILES:${PN} += "\
 	${natinstbin}/nicompareversion   \
 	${natinstbin}/niinstallsafemode  \
 	${natinstbin}/nisafemodeversion  \
@@ -20,7 +20,7 @@ FILES_${PN} += "\
 
 DEPENDS += "shadow-native pseudo-native niacctbase update-rc.d-native"
 
-RDEPENDS_${PN} += "niacctbase bash fw-printenv"
+RDEPENDS:${PN} += "niacctbase bash fw-printenv"
 
 do_install () {
 	install -d ${D}${natinstbin}

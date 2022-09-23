@@ -5,6 +5,6 @@ SECTION = "base"
 
 inherit packagegroup
 
-RDEPENDS_${PN} = "\
+RDEPENDS:${PN} = "\
 	${PN}-common \
 "
