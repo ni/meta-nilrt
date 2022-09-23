@@ -6,11 +6,11 @@ GRUB_BUILDIN += "smbios chain multiboot efi_uga font gfxterm gfxmenu terminal \
                 regexp probe"
 
 # Downstream NI-branch code quality is not yet ready to build with -Werror
-CFLAGS_append += "-Wno-error"
+CFLAGS:append += "-Wno-error"
 
-PACKAGES_prepend = "${PN}-nilrt "
+PACKAGES:prepend = "${PN}-nilrt "
 
-do_install_append_class-target() {
+do_install:append:class-target() {
 
     # Build NILRT grub image with prefix=\efi\nilrt instead of
     # the default \EFI\BOOT. We keep the upstream grub image
@@ -28,4 +28,4 @@ do_install_append_class-target() {
     install -m 644 ${B}/${GRUB_IMAGE_PREFIX}nilrt-${GRUB_IMAGE} ${D}/boot/efi/nilrt/${GRUB_IMAGE}
 }
 
-FILES_${PN}-nilrt = "/boot/efi/nilrt/${GRUB_IMAGE}"
+FILES:${PN}-nilrt = "/boot/efi/nilrt/${GRUB_IMAGE}"

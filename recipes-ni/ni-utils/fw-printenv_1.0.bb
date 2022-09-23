@@ -13,11 +13,11 @@ SRC_URI = "\
 
 COMPATIBLE_MACHINE = "x64"
 
-FILES_${PN} += "${datadir}/fw_printenv/*"
+FILES:${PN} += "${datadir}/fw_printenv/*"
 
 DEPENDS += "shadow-native pseudo-native niacctbase"
 
-RDEPENDS_${PN} += "ni-smbios-helper grub-editenv niacctbase bash"
+RDEPENDS:${PN} += "ni-smbios-helper grub-editenv niacctbase bash"
 
 S = "${WORKDIR}"
 

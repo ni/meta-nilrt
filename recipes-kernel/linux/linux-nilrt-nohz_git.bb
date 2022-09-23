@@ -10,9 +10,9 @@ SRC_URI += "\
 	file://README.nohz \
 "
 
-FILES_${KERNEL_PACKAGE_NAME} += "${docdir}/*"
+FILES:${KERNEL_PACKAGE_NAME} += "${docdir}/*"
 
-do_install_append() {
+do_install:append() {
         install -d -m 755 ${D}${docdir}/${KERNEL_PACKAGE_NAME}
         install -p -m 644 ${WORKDIR}/README.nohz ${D}${docdir}/${KERNEL_PACKAGE_NAME}/
 }

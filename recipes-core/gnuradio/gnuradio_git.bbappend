@@ -1,1 +1,1 @@
-PACKAGECONFIG_remove += "uhd"
+PACKAGECONFIG:remove += "uhd"

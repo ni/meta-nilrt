@@ -3,7 +3,7 @@ LICENSE = "MIT"
 
 inherit packagegroup
 
-RDEPENDS_${PN} = "\
+RDEPENDS:${PN} = "\
 	kernel-nohz \
 	kernel-nohz-dev \
 	kernel-nohz-modules \

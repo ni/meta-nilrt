@@ -6,12 +6,12 @@ SECTION = "base"
 
 DEPENDS += "shadow-native pseudo-native update-rc.d-native niacctbase"
 
-RDEPENDS_${PN} += "bash niacctbase update-rc.d"
+RDEPENDS:${PN} += "bash niacctbase update-rc.d"
 
 SRC_URI = " \
 "
 
-SRC_URI_append_x64 = " \
+SRC_URI:append:x64 = " \
 	file://mountcompatibility \
 	file://mountuserfs \
 	file://nisafemodereason \
@@ -24,7 +24,7 @@ do_install () {
 	install -d ${D}${sysconfdir}/init.d/
 }
 
-do_install_append_x64 () {
+do_install:append:x64 () {
 	install -m 0755   ${WORKDIR}/niselectnetnaming      ${D}${sysconfdir}/init.d
 	install -m 0755   ${WORKDIR}/nisafemodereason       ${D}${sysconfdir}/init.d
 	install -m 0755   ${WORKDIR}/mountuserfs            ${D}${sysconfdir}/init.d

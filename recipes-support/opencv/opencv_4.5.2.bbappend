@@ -1,1 +1,1 @@
-PACKAGECONFIG_remove = "gphoto2"
+PACKAGECONFIG:remove = "gphoto2"

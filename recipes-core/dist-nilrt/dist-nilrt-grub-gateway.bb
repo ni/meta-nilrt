@@ -4,21 +4,21 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 LICENSE_CREATE_PACKAGE = "0"
 
-ALLOW_EMPTY_${PN}-dbg = "0"
-ALLOW_EMPTY_${PN}-dev = "0"
+ALLOW_EMPTY:${PN}-dbg = "0"
+ALLOW_EMPTY:${PN}-dev = "0"
 
 SRC_URI += "\
     file://nilrt-gateway-install \
     file://MIT \
 "
 
-FILESEXTRAPATHS_prepend := "${COMMON_LICENSE_DIR}:"
+FILESEXTRAPATHS:prepend := "${COMMON_LICENSE_DIR}:"
 
 DEPENDS = "safemode-image"
-RDEPENDS_${PN} += "bash"
+RDEPENDS:${PN} += "bash"
 do_install[depends] = "safemode-restore-image:do_image_complete"
 
-do_install_x64() {
+do_install:x64() {
     install -d ${D}/usr/share/nilrt
     install -d ${D}/usr/share/licenses/${PN}
     install -m 0755 ${WORKDIR}/nilrt-gateway-install ${D}/usr/share/nilrt/nilrt-install
@@ -26,7 +26,7 @@ do_install_x64() {
     install -m 0755 ${DEPLOY_DIR_IMAGE}/safemode-restore-image-${MACHINE}.wic ${D}/usr/share/nilrt/safemode-restore-image-${MACHINE}.iso
 }
 
-python do_package_prepend() {
+python do_package:prepend() {
     found = False
     svi = "%s/safemode_version_info" % d.getVar('STAGING_DIR_HOST')
     with open(svi) as fp:
@@ -42,7 +42,7 @@ python do_package_prepend() {
         bb.fatal("Safemode version not found (check safemode-image recipe) !!!")
 }
 
-FILES_${PN} = "\
+FILES:${PN} = "\
     /usr/share/nilrt/safemode-restore-image-${MACHINE}.iso \
     /usr/share/nilrt/nilrt-install \
     /usr/share/licenses/${PN}/MIT \

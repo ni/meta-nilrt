@@ -23,9 +23,9 @@ do_install () {
 }
 
 
-FILES_${PN} += "\
+FILES:${PN} += "\
 	${bindir}/nisystemimage \
 	/usr/local/natinst/bin/nisystemimage \
 "
 
-RDEPENDS_${PN} += "bash ni-netcfgutil"
+RDEPENDS:${PN} += "bash ni-netcfgutil"

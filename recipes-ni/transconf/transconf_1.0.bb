@@ -16,11 +16,11 @@ PACKAGES =+ "${PN}-example"
 
 DEPENDS += "bash"
 
-RDEPENDS_${PN} += "bash"
-RDEPENDS_${PN}-example += "${PN} bash"
-RDEPENDS_${PN}-ptest += "${PN} ${PN}-example bash"
+RDEPENDS:${PN} += "bash"
+RDEPENDS:${PN}-example += "${PN} bash"
+RDEPENDS:${PN}-ptest += "${PN} ${PN}-example bash"
 
-FILES_${PN}-example = "${sysconfdir}/transconf/hooks/example"
+FILES:${PN}-example = "${sysconfdir}/transconf/hooks/example"
 
 S = "${WORKDIR}"
 
@@ -40,7 +40,7 @@ do_install () {
     install -m 0755 ${S}/example_transconf_hook ${D}${sysconfdir}/transconf/hooks/example
 }
 
-do_install_ptest_append () {
+do_install_ptest:append () {
     install -d ${D}${PTEST_PATH}
     install -m 0755 ${S}/run-ptest ${D}${PTEST_PATH}/
 }
@@ -48,7 +48,7 @@ do_install_ptest_append () {
 # XXX OE can't sub-package "${sysconfdir}/transconf/hooks/example" file
 #  then package an empty "${sysconfdir}/transconf/hooks/" directory.
 #  Workaround in postinst script.
-pkg_postinst_${PN} () {
+pkg_postinst:${PN} () {
     [ -e "$D${sysconfdir}/transconf" ] || mkdir -m 0755 "$D${sysconfdir}/transconf"
     [ -e "$D${sysconfdir}/transconf/hooks" ] || mkdir -m 0755 "$D${sysconfdir}/transconf/hooks"
 }

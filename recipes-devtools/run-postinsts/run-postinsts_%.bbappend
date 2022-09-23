@@ -28,4 +28,4 @@ do_install_ptest:append() {
 }
 
 
-RDEPENDS_${PN}-ptest += "bash"
+RDEPENDS:${PN}-ptest += "bash"

@@ -82,7 +82,7 @@ do_install () {
 	update-rc.d -r ${D} nisetreboottype       stop  55 6 .
 }
 
-pkg_postinst_ontarget_${PN} () {
+pkg_postinst_ontarget:${PN} () {
 	# Make sure /boot is mounted so that fw_printenv is usable
 	if /sbin/fw_printenv TargetClass > /dev/null 2>&1; then
 		mountstate=1
@@ -126,7 +126,7 @@ pkg_postinst_ontarget_${PN} () {
 	[ $mountstate == 0 ] && umount /boot || true
 }
 
-do_install_append_x64 () {
+do_install:append:x64 () {
 	install -m 0755   ${WORKDIR}/nidisablecstates      ${D}${sysconfdir}/init.d
 	update-rc.d -r ${D} nidisablecstates start 2 3 4 5 S .
 	install -m 0755   ${WORKDIR}/nicheckbiosconfig      ${D}${sysconfdir}/init.d
@@ -142,10 +142,10 @@ do_install_ptest () {
 }
 
 # /etc/init.d/populateconfig invokes wpa-supplicant.ipk scripts.
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	bash \
 	niacctbase \
 	update-rc.d \
 	wpa-supplicant \
 "
-RDEPENDS_${PN}-ptest += "bash"
+RDEPENDS:${PN}-ptest += "bash"

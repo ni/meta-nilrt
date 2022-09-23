@@ -24,7 +24,7 @@ DISTRO_FEATURES += "\
 
 # Because NIRLT uses opkg so intimately, assert that the rootfs should always
 # be made of IPKs.
-PACKAGE_CLASSES_prepend =+ "package_ipk"
+PACKAGE_CLASSES:prepend =+ "package_ipk"
 
 # Clean *most* package work directories
 INHERIT += " rm_work "
@@ -109,14 +109,14 @@ EFI_PROVIDER = "grub-efi"
 
 INCLUDE_PYCS = "0"
 
-DISTRO_FEATURES_BACKFILL_CONSIDERED_arm = "gobject-introspection-data"
+DISTRO_FEATURES_BACKFILL_CONSIDERED:arm = "gobject-introspection-data"
 
 # touchsreen calibration doesn't work with xf86-input-libinput, only with xf86-input-edev
 BAD_RECOMMENDATIONS += "xf86-input-libinput"
 
 # Do not "--enable-udev_sync" in lvm2/libdevmapper
-LVM2_PACKAGECONFIG_remove_class-target = "udev"
-RRECOMMENDS_libdevmapper_remove_class-target = "lvm2-udevrules"
+LVM2_PACKAGECONFIG:remove:class-target = "udev"
+RRECOMMENDS:libdevmapper:remove:class-target = "lvm2-udevrules"
 
 # these bbappends are constantly stale and since we don't use them
 # mask to avoid the bitbake warning noise
@@ -137,8 +137,8 @@ PACKAGE_ENABLE_FILELIST ?= "True"
 # Root URI of all NILRT feeds
 NILRT_FEEDS_URI                    ?= "http://download.ni.com/ni-linux-rt/feeds"
 NILRT_FEEDS_URI_RELEASE            ?= "${NILRT_FEEDS_URI}/${NILRT_FEED_NAME}"
-NILRT_MACHINE_FEED_URI_x64         ?= "${NILRT_FEEDS_URI_RELEASE}/x64"
-NILRT_MACHINE_FEED_URI_xilinx-zynq ?= "${NILRT_FEEDS_URI_RELEASE}/arm"
+NILRT_MACHINE_FEED_URI:x64         ?= "${NILRT_FEEDS_URI_RELEASE}/x64"
+NILRT_MACHINE_FEED_URI:xilinx-zynq ?= "${NILRT_FEEDS_URI_RELEASE}/arm"
 
 NILRT_MAIN_FEED_VERSION            ?= "${NILRT_FEED_NAME}"
 NILRT_MACHINE_FEED_URI_nimain      ?= "${NILRT_FEEDS_URI}/${NILRT_MAIN_FEED_VERSION}/ni-main"

@@ -18,12 +18,12 @@ S = "${WORKDIR}/git"
 
 inherit autotools ptest
 
-FILES_${PN}-dev += "${libdir}/*.so ${includedir}/*.h"
-FILES_${PN}-staticdev += "${libdir}/*.a"
+FILES:${PN}-dev += "${libdir}/*.so ${includedir}/*.h"
+FILES:${PN}-staticdev += "${libdir}/*.a"
 
 LDFLAGS += "-lpthread"
 
-RDEPENDS_${PN}-ptest += "make"
+RDEPENDS:${PN}-ptest += "make"
 
 do_compile_ptest() {
     oe_runmake -C tests buildtest-TESTS

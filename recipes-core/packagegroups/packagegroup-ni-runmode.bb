@@ -9,7 +9,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-RDEPENDS_${PN} = "\
+RDEPENDS:${PN} = "\
 	dosfstools \
 	e2fsprogs \
 	e2fsprogs-e2fsck \
@@ -38,7 +38,7 @@ RDEPENDS_${PN} = "\
 "
 
 # Packages required by SystemLink
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	cpp \
 	cpp-symlinks \
 	libmpc \
@@ -133,6 +133,6 @@ RDEPENDS_${PN} += "\
 
 # Required components for Veristand.
 # Engineering contact: Marcelo Izaguirre
-RDEPENDS_${PN}_append = "\
+RDEPENDS:${PN}:append = "\
 	libfmi-dev \
 "

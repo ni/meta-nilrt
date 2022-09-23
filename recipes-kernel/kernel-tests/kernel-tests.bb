@@ -6,14 +6,14 @@ LIC_FILES_CHKSUM = "file://run-ptest;md5=0c0d48c031233bf837da6482d67473ae"
 
 inherit ptest
 
-FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-files:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}-files:"
 
 S = "${WORKDIR}"
 
 DEPENDS = "virtual/kernel libcap"
-RDEPENDS_${PN}-ptest += "bash libcap kmod dmidecode"
+RDEPENDS:${PN}-ptest += "bash libcap kmod dmidecode"
 
-ALLOW_EMPTY_${PN} = "1"
+ALLOW_EMPTY:${PN} = "1"
 
 SRC_URI += "\
     file://run-ptest \
@@ -42,7 +42,7 @@ SRC_URI += "\
 
 LDFLAGS += "-lcap -lpthread"
 
-do_compile_ptest_append() {
+do_compile_ptest:append() {
     cd ${WORKDIR}
     ${CC} ${CFLAGS} -o test_kernel_mcopy_functionality test_kernel_mcopy_functionality.c ${LDFLAGS}
     ${CC} ${CFLAGS} -o test_kernel_mcopy_freed_memory test_kernel_mcopy_freed_memory.c ${LDFLAGS}
@@ -53,7 +53,7 @@ do_compile_ptest_append() {
     ${CC} ${CFLAGS} -o test_pthread_stack_size test_pthread_stack_size.c ${LDFLAGS}
 }
 
-do_install_ptest_append() {
+do_install_ptest:append() {
     cp ${WORKDIR}/run-ptest ${D}${PTEST_PATH}
     cp ${WORKDIR}/ptest-format.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/security-mitigations.txt ${D}${PTEST_PATH}
@@ -76,11 +76,11 @@ do_install_ptest_append() {
     cp ${WORKDIR}/test_i915_firmware.sh ${D}${PTEST_PATH}
 }
 
-do_install_ptest_append_x64() {
+do_install_ptest:append:x64() {
     cp ${WORKDIR}/required_kernel_modules.x64 ${D}${PTEST_PATH}/required_kernel_modules
 }
 
-do_install_ptest_append_xilinx-zynqhf() {
+do_install_ptest:append:xilinx-zynqhf() {
     cp ${WORKDIR}/required_kernel_modules.arm ${D}${PTEST_PATH}/required_kernel_modules
 }
 

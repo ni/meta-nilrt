@@ -9,7 +9,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-RDEPENDS_${PN} = "\
+RDEPENDS:${PN} = "\
 	packagegroup-xfce-base \
 	xf86-input-evdev \
 	xfce4-xkb-plugin \
@@ -24,7 +24,7 @@ RDEPENDS_${PN} = "\
 	mousepad \
 	ttf-pt-sans \
 "
-RDEPENDS_${PN}_append_x64 += "\
+RDEPENDS:${PN}:append:x64 += "\
 	xf86-video-ati \
 	xf86-video-intel \
 	xf86-video-vesa \

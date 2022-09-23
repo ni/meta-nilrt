@@ -5,14 +5,14 @@ LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://fbomb.c;md5=5087cbd611aca643601e03428b6ef30d"
 inherit ptest
 
-FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-files:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}-files:"
 
 S = "${WORKDIR}"
 
 DEPENDS = "virtual/kernel"
-RDEPENDS_${PN}-ptest += "bash kmod"
+RDEPENDS:${PN}-ptest += "bash kmod"
 
-ALLOW_EMPTY_${PN} = "1"
+ALLOW_EMPTY:${PN} = "1"
 
 SRC_URI += "\
     file://run-ptest \
@@ -21,12 +21,12 @@ SRC_URI += "\
 
 LDFLAGS += "-lpthread"
 
-do_compile_ptest_append() {
+do_compile_ptest:append() {
     cd ${WORKDIR}
     ${CC} ${CFLAGS} -o fbomb fbomb.c ${LDFLAGS}
 }
 
-do_install_ptest_append() {
+do_install_ptest:append() {
     install -m 0755 ${S}/run-ptest ${D}${PTEST_PATH}
     install -m 0755 ${S}/fbomb ${D}${PTEST_PATH}
 }

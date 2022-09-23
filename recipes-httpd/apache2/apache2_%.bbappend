@@ -1,1 +1,1 @@
-PACKAGECONFIG_append = " openldap "
+PACKAGECONFIG:append = " openldap "

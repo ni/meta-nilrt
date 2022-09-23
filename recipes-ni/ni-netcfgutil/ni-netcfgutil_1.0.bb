@@ -32,7 +32,7 @@ do_install () {
 }
 
 
-FILES_${PN} += "\
+FILES:${PN} += "\
 	${bindir}/ninetcfgutil \
 	${bindir}/niresetip \
 	/usr/local/natinst/bin/ninetcfgutil \
@@ -40,4 +40,4 @@ FILES_${PN} += "\
 	/etc/natinst/networking/ninetcfgutil_platdep.sh \
 "
 
-RDEPENDS_${PN} += "bash"
+RDEPENDS:${PN} += "bash"

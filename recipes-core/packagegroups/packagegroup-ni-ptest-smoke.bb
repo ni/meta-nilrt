@@ -9,10 +9,10 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-RDEPENDS_${PN} = "ptest-runner"
+RDEPENDS:${PN} = "ptest-runner"
 
 # ptest packages
-RDEPENDS_${PN}_append = "\
+RDEPENDS:${PN}:append = "\
     glibc-tests-ptest \
     kernel-tests-ptest \
     opkg-ptest \

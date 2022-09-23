@@ -5,19 +5,19 @@ LICENSE = "MIT"
 inherit packagegroup
 
 # essential packagegroups
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	packagegroup-core-tools-debug \
 	packagegroup-ni-debug-kernel \
 	packagegroup-ni-ptest \
 	packagegroup-ni-selinux \
 "
 
-RDEPENDS_${PN}_append_x64 = "\
+RDEPENDS:${PN}:append:x64 = "\
 	packagegroup-ni-next-kernel \
 	kernel-test-nohz \
 "
 
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	binutils \
 	cgdb \
 	cifs-utils \

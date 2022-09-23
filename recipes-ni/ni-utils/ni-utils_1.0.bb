@@ -13,7 +13,7 @@ SRC_URI = "\
 	file://functions.common \
 "
 
-FILES_${PN} += "\
+FILES:${PN} += "\
 	${bindir}/status_led \
 	${libdir}/nisetbootmode.functions \
 	${sysconfdir}/init.d/nisetbootmode \
@@ -24,9 +24,9 @@ FILES_${PN} += "\
 
 DEPENDS += "shadow-native pseudo-native niacctbase update-rc.d-native"
 
-RDEPENDS_${PN} += "niacctbase bash"
+RDEPENDS:${PN} += "niacctbase bash"
 
-RDEPENDS_${PN}_append_x64 += "fw-printenv"
+RDEPENDS:${PN}:append:x64 += "fw-printenv"
 
 S = "${WORKDIR}"
 

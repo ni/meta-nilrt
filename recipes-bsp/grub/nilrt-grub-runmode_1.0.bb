@@ -4,15 +4,15 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 SECTION = "base"
 
-FILESEXTRAPATHS_prepend := "${THISDIR}/grub:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/grub:"
 
 SRC_URI += " \
     file://grub-runmode-bootimage.cfg \
     file://grub.d \
 "
 
-FILES_${PN}     += "/boot/runmode/bootimage.cfg /boot/runmode/bootimage.cfg.d/*.cfg /boot/runmode/cpu-mitigations.cfg"
-CONFFILES_${PN} += "/boot/runmode/bootimage.cfg /boot/runmode/bootimage.cfg.d/*.cfg /boot/runmode/cpu-mitigations.cfg"
+FILES:${PN}     += "/boot/runmode/bootimage.cfg /boot/runmode/bootimage.cfg.d/*.cfg /boot/runmode/cpu-mitigations.cfg"
+CONFFILES:${PN} += "/boot/runmode/bootimage.cfg /boot/runmode/bootimage.cfg.d/*.cfg /boot/runmode/cpu-mitigations.cfg"
 
 do_install () {
 	install -d ${D}/boot/runmode

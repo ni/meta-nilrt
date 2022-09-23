@@ -6,7 +6,7 @@ LICENSE = "GPLv2+"
 # spec file.
 LIC_FILES_CHKSUM = "file://${S}/rtctl.spec;beginline=6;endline=6;md5=cb929ed8d4eeb8a538033622343c6f94"
 
-FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 SRC_URI = " \
     http://git.centos.org/sources/rtctl/c7-rt/eb046c6fb02eff54d1907c2b003bbc076eed6ded;downloadfilename=rtctl-${PV}.tar.bz2 \
@@ -21,7 +21,7 @@ SRC_URI[md5sum] = "a530ceb797193c54b0d57a05b1e82d24"
 
 S = "${WORKDIR}/rtctl-${PV}"
 
-RDEPENDS_${PN} += "bash"
+RDEPENDS:${PN} += "bash"
 
 inherit update-rc.d
 

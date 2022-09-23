@@ -23,7 +23,7 @@ do_install () {
 	install -m 0755 ${S}/init.d/nisetserialnumber    ${D}${sysconfdir}/init.d
 }
 
-pkg_postinst_${PN} () {
+pkg_postinst:${PN} () {
 	if [ -n "$D" ]; then
 		OPT="-r $D"
 	else
@@ -34,7 +34,7 @@ pkg_postinst_${PN} () {
 	update-rc.d $OPT nisetserialnumber   start 38 S .
 }
 
-pkg_postrm_${PN} () {
+pkg_postrm:${PN} () {
 	if [ -n "$D" ]; then
 		OPT="-f -r $D"
 	else
@@ -47,13 +47,13 @@ pkg_postrm_${PN} () {
 
 
 PACKAGE_ARCH = "all"
-PACKAGES_remove += "${PN}-staticdev ${PN}-dev ${PN}-dbg"
+PACKAGES:remove += "${PN}-staticdev ${PN}-dev ${PN}-dbg"
 
-FILES_${PN} += "\
+FILES:${PN} += "\
 	${sysconfdir}/init.d/ni-rename-ifaces \
 	${sysconfdir}/init.d/nisetserialnumber \
 "
 
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	bash \
 "

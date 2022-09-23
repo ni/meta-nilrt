@@ -16,12 +16,12 @@ MACHINE_ESSENTIAL_EXTRA_RDEPENDS ?= ""
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS ?= ""
 
 
-RDEPENDS_${PN} = "\
+RDEPENDS:${PN} = "\
 	${MACHINE_ESSENTIAL_EXTRA_RDEPENDS} \
 	${VIRTUAL-RUNTIME_mountpoint} \
 "
 
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
 	${@bb.utils.contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
 	${@bb.utils.contains('MACHINE_FEATURES', 'acpi', 'busybox-acpid', '', d)} \
 	${@bb.utils.contains('MACHINE_FEATURES', 'keyboard', 'keymaps', '', d)} \

@@ -23,8 +23,8 @@ EXTRA_OECMAKE = "\
 	-DFMILIB_BUILD_STATIC_LIB=OFF \
 "
 
-RDEPENDS_${PN}-dev = ""
+RDEPENDS:${PN}-dev = ""
 
-FILES_${PN}-doc += "/usr/doc"
+FILES:${PN}-doc += "/usr/doc"
 
-INSANE_SKIP_${PN}-dev = "dev-elf"
+INSANE_SKIP:${PN}-dev = "dev-elf"

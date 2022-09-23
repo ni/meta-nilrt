@@ -41,7 +41,7 @@ SRC_URI = "file://systemsettings/consoleout.ini \
            file://uixml/nilinuxrt.fpga_disable.def.xml \
 "
 
-FILES_${PN} = "${settingsdatadir}/consoleout.ini \
+FILES:${PN} = "${settingsdatadir}/consoleout.ini \
                ${settingsdatadir}/fpga_target.ini \
                ${settingsdatadir}/rt_target.ini \
                ${settingsdatadir}/target_common.ini \
@@ -52,15 +52,15 @@ FILES_${PN} = "${settingsdatadir}/consoleout.ini \
 "
 
 DEPENDS += "shadow-native pseudo-native niacctbase base-files-nilrt"
-RDEPENDS_${PN} += "niacctbase bash fw-printenv"
+RDEPENDS:${PN} += "niacctbase bash fw-printenv"
 
 # sysconfig-settings-ssh package
 PACKAGES += "${PN}-ssh"
 
-SUMMARY_${PN}-ssh = "System configuration files for ssh"
-DESCRIPTION_${PN}-ssh = "SSH configuration files for the National Instruments System Configuration subsystem."
+SUMMARY:${PN}-ssh = "System configuration files for ssh"
+DESCRIPTION:${PN}-ssh = "SSH configuration files for the National Instruments System Configuration subsystem."
 
-SRC_URI_append = "file://uixml/nilinuxrt.sshd_enable.binding.xml \
+SRC_URI:append = "file://uixml/nilinuxrt.sshd_enable.binding.xml \
                   file://uixml/nilinuxrt.sshd_enable.const.de.xml \
                   file://uixml/nilinuxrt.sshd_enable.const.fr.xml \
                   file://uixml/nilinuxrt.sshd_enable.const.ja.xml \
@@ -70,15 +70,15 @@ SRC_URI_append = "file://uixml/nilinuxrt.sshd_enable.binding.xml \
                   file://uixml/nilinuxrt.sshd_enable.def.xml \
 "
 
-FILES_${PN}-ssh = "${uixmldir}/nilinuxrt.sshd_enable.*"
+FILES:${PN}-ssh = "${uixmldir}/nilinuxrt.sshd_enable.*"
 
 # sysconfig-settings-ui package
 PACKAGES += "${PN}-ui"
 
-SUMMARY_${PN}-ui = "System configuration files to enable UI"
-DESCRIPTION_${PN}-ui = "Configuration files to enable UI for the National Instruments System Configuration subsystem."
+SUMMARY:${PN}-ui = "System configuration files to enable UI"
+DESCRIPTION:${PN}-ui = "Configuration files to enable UI for the National Instruments System Configuration subsystem."
 
-SRC_URI_append = "file://nisetembeddeduixml \
+SRC_URI:append = "file://nisetembeddeduixml \
                   file://systemsettings/ui_enable.ini \
                   file://uixml/nilinuxrt.System.binding.xml \
                   file://uixml/nilinuxrt.System.const.xml \
@@ -98,19 +98,19 @@ SRC_URI_append = "file://nisetembeddeduixml \
                   file://uixml/nilinuxrt.ui_enable.def.xml \
 "
 
-FILES_${PN}-ui = "${sysconfdir}/init.d/nisetembeddeduixml \
+FILES:${PN}-ui = "${sysconfdir}/init.d/nisetembeddeduixml \
                   ${settingsdatadir}/ui_enable.ini \
                   ${uixmldir}/nilinuxrt.System.* \
                   ${uixmldir}/nilinuxrt.ui_enable.* \
 "
 
-RDEPENDS_${PN}-ui += "sysconfig-settings niacctbase"
+RDEPENDS:${PN}-ui += "sysconfig-settings niacctbase"
 
 INITSCRIPT_PACKAGES += "${PN}-ui"
-INITSCRIPT_NAME_${PN}-ui = "nisetembeddeduixml"
-INITSCRIPT_PARAMS_${PN}-ui = "start 20 5 ."
+INITSCRIPT_NAME:${PN}-ui = "nisetembeddeduixml"
+INITSCRIPT_PARAMS:${PN}-ui = "start 20 5 ."
 
-pkg_prerm_ontarget_${PN}-ui () {
+pkg_prerm_ontarget:${PN}-ui () {
 	rm -f ${systemsettingsdir}/ui_enable.ini
 }
 
@@ -134,7 +134,7 @@ do_install () {
 	install -m 0755 ${WORKDIR}/nisetembeddeduixml ${D}${sysconfdir}/init.d
 }
 
-pkg_postinst_ontarget_${PN} () {
+pkg_postinst_ontarget:${PN} () {
 	TARGET_CLASS=$(fw_printenv -n TargetClass 2>&1)
 
 	ln -sf ${settingsdatadir}/target_common.ini ${systemsettingsdir}/target_common.ini
@@ -153,7 +153,7 @@ pkg_postinst_ontarget_${PN} () {
 	fi
 }
 
-pkg_prerm_ontarget_${PN} () {
+pkg_prerm_ontarget:${PN} () {
 	rm -f ${systemsettingsdir}/target_common.ini \
 	      ${systemsettingsdir}/rt_target.ini \
 	      ${systemsettingsdir}/fpga_target.ini \

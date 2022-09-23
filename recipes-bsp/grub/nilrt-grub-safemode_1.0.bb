@@ -4,7 +4,7 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 SECTION = "base"
 
-FILESEXTRAPATHS_prepend := "${THISDIR}/grub:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/grub:"
 
 SRC_URI += " \
     file://grubenv \
@@ -12,13 +12,13 @@ SRC_URI += " \
     file://grub-safemode-bootimage.cfg \
 "
 
-FILES_${PN} += " \
+FILES:${PN} += " \
     /boot/bootimage.cfg \
     /boot/grub.cfg \
     /boot/grubenv \
 "
 
-CONFFILES_${PN} += " \
+CONFFILES:${PN} += " \
     /boot/bootimage.cfg \
     /boot/grub.cfg \
     /boot/grubenv \

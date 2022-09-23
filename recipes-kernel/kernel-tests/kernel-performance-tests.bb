@@ -6,16 +6,16 @@ LIC_FILES_CHKSUM = "file://run-ptest;md5=e6b9dbe04e1c3de85402b8167a279f76"
 
 inherit ptest
 
-FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-files:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}-files:"
 
 S = "${WORKDIR}"
 
 DEPENDS = "virtual/kernel"
-RDEPENDS_${PN}-ptest += "bash rt-tests fio iperf3"
-RDEPENDS_${PN}-ptest_append_x64 += "fw-printenv"
-RDEPENDS_${PN}-ptest_append_armv7a += "u-boot-fw-utils"
+RDEPENDS:${PN}-ptest += "bash rt-tests fio iperf3"
+RDEPENDS:${PN}-ptest:append:x64 += "fw-printenv"
+RDEPENDS:${PN}-ptest:append:armv7a += "u-boot-fw-utils"
 
-ALLOW_EMPTY_${PN} = "1"
+ALLOW_EMPTY:${PN} = "1"
 
 SRC_URI += "\
     file://run-ptest \
@@ -29,7 +29,7 @@ SRC_URI += "\
     file://test_kernel_cyclictest_iperf.sh \
 "
 
-do_install_ptest_append() {
+do_install_ptest:append() {
     install -m 0755 ${S}/run-ptest ${D}${PTEST_PATH}
     install -m 0755 ${S}/run-cyclictest ${D}${PTEST_PATH}
     install -m 0644 ${S}/common.cfg ${D}${PTEST_PATH}

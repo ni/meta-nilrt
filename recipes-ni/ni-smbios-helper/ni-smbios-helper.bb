@@ -8,7 +8,7 @@ SRC_URI = "file://smbios_helper \
         file://efi_helper \
 "
 
-RDEPENDS_${PN} = "bash"
+RDEPENDS:${PN} = "bash"
 
 S = "${WORKDIR}"
 
@@ -18,7 +18,7 @@ do_install () {
      install -m 0755    ${WORKDIR}/efi_helper    ${D}${datadir}/nisysinfo/
 }
 
-FILES_${PN} += "\
+FILES:${PN} += "\
 	${datadir}/nisysinfo/smbios_helper \
     ${datadir}/nisysinfo/efi_helper \
 "

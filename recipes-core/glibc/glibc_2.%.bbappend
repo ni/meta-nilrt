@@ -1,4 +1,4 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/${PN}:"
+FILESEXTRAPATHS:prepend := "${THISDIR}:${THISDIR}/${PN}:"
 
 # Add patches to map CP936 to the proper codepage for LabVIEW simplified
 # Chinese support.
@@ -22,9 +22,9 @@ SRC_URI =+ " \
 
 ## package: ni-locale-alias ##
 PACKAGES =+ " ni-locale-alias "
-FILES_ni-locale-alias = "${datadir}/locale/locale.alias"
-SUMMARY_ni-locale-alias = "NI Locale Aliases"
-DESCRIPTION_ni-locale-alias = "Custom locale.alias file for NI Software."
+FILES:ni-locale-alias = "${datadir}/locale/locale.alias"
+SUMMARY:ni-locale-alias = "NI Locale Aliases"
+DESCRIPTION:ni-locale-alias = "Custom locale.alias file for NI Software."
 
 # Disable building split locale packages since those are empty.
 # Locale files for glibc are built by glibc-locale.

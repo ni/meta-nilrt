@@ -6,7 +6,7 @@ SECTION = "base"
 
 SRC_URI = "file://systemimageupdateinfo"
 
-RDEPENDS_${PN} += "bash"
+RDEPENDS:${PN} += "bash"
 
 S = "${WORKDIR}"
 

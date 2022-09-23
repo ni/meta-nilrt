@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=07c4f6dea3845b02a18dc00c8c87699c"
 
 
 DEPENDS = "libnl"
-RDEPENDS_${PN} = "\
+RDEPENDS:${PN} = "\
 	       wireless-regdb \
 	       udev \
 "
@@ -14,8 +14,8 @@ S = "${WORKDIR}/git"
 
 SRC_URI = "git://github.com/mcgrof/crda.git;protocol=https;tag=v1.1.3"
 
-CFLAGS_append =" -DCONFIG_LIBNL32 -I${STAGING_INCDIR}/libnl3"
-LDFLAGS_append =" -lnl-3 -lnl-genl-3 -lm"
+CFLAGS:append =" -DCONFIG_LIBNL32 -I${STAGING_INCDIR}/libnl3"
+LDFLAGS:append =" -lnl-3 -lnl-genl-3 -lm"
 
 do_compile() {
         ${CC} ${CFLAGS} ${S}/reglib.c ${S}/crda.c -o crda ${LDFLAGS}
@@ -29,4 +29,4 @@ do_install() {
 	install -m 0755 ${S}/udev/regulatory.rules.parsed ${D}${libdir}/udev/rules.d/85-regulatory.rules
 }
 
-FILES_${PN} += "${libdir}/udev/rules.d/85-regulatory.rules"
+FILES:${PN} += "${libdir}/udev/rules.d/85-regulatory.rules"

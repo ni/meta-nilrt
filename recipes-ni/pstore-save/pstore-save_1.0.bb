@@ -19,7 +19,7 @@ INITSCRIPT_NAME = "pstore-save"
 INITSCRIPT_PARAMS = "start 09 S ."
 
 DEPENDS += "bash"
-RDEPENDS_${PN} += "bash"
+RDEPENDS:${PN} += "bash"
 
 do_install () {
     install -d ${D}${sbindir} ${D}${sysconfdir}/init.d
@@ -30,9 +30,9 @@ do_install () {
 
 inherit ptest
 
-RDEPENDS_${PN}-ptest += "${PN} bash"
+RDEPENDS:${PN}-ptest += "${PN} bash"
 
-do_install_ptest_append () {
+do_install_ptest:append () {
     install -d ${D}${PTEST_PATH}/src
     install -m 0444 ${S}/testdata/src/* ${D}${PTEST_PATH}/src
 

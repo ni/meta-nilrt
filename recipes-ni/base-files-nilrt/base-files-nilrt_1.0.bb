@@ -18,7 +18,7 @@ SRC_URI = "file://README_File_Paths.txt \
 # the LICENSES file (otherwise, it goes into ${PN}-doc
 PACKAGES = "${PN}-dbg ${PN}-staticdev ${PN}-dev ${PN} ${PN}-doc ${PN}-locale"
 
-FILES_${PN} += "README_File_Paths.txt \
+FILES:${PN} += "README_File_Paths.txt \
 		README_File_Transfer.txt \
 		/usr/share/doc/LICENSES \
 		/usr/lib/${TARGET_ARCH}-linux-gnu${ARCH_ABI_EXT} \
@@ -33,7 +33,7 @@ S = "${WORKDIR}"
 
 ARCH_ABI_EXT="${ABIEXTENSION}${@bb.utils.contains('TUNE_FEATURES','callconvention-hard','hf','',d)}"
 
-RDEPENDS_${PN} += "procps"
+RDEPENDS:${PN} += "procps"
 DEPENDS += "niacctbase"
 
 do_install () {
