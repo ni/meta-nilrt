@@ -23,8 +23,8 @@ do_install () {
 }
 
 
-FILES_${PN} += "\
+FILES:${PN} += "\
 	${sysconfdir}/init.d/ni-configpersistentlogs \
 "
 
-RDEPENDS_${PN} += "bash initscripts"
+RDEPENDS:${PN} += "bash initscripts"
