@@ -66,7 +66,7 @@ USERADD_ERROR_DYNAMIC = "1"
 LVRT_USER = "lvuser"
 LVRT_GROUP = "ni"
 
-SDK_VENDOR = "-${DISTRO}sdk"
+SDK_VENDOR = "-nilrtsdk"
 SDK_VERSION := "${@'${DISTRO_VERSION}'}"
 
 LOCALCONF_VERSION = "1"
