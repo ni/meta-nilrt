@@ -11,6 +11,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 SRC_URI = "\
     file://configs/ \
     file://run-ptest \
+    file://ptest-format.sh \
     file://section_chars \
     file://setup.sh \
     file://shared-functions.sh \
