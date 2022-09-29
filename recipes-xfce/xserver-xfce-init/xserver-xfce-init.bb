@@ -4,6 +4,9 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=751419260aa954499f7abaabaa882bbe"
 SECTION = "x11"
 
 
+PV = "1.0"
+
+
 SRC_URI = "file://xserver-xfce \
            file://gplv2-license.patch \
            file://xserver-xfce.service \
