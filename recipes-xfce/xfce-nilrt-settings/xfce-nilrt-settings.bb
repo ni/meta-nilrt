@@ -2,6 +2,11 @@ DESCRIPTION = "Customized settings for the Xfce desktop environment."
 SECTION = "x11"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
+
+
+PV = "1.0"
+
+
 S = "${WORKDIR}"
 
 DEPENDS = "shadow-native pseudo-native niacctbase"
