@@ -11,7 +11,7 @@ FILE_PATH_VOLATILES_CONFIG="/etc/default/volatiles/00_core"
 PERSISTENT_DIR_VAR_LOG_LINE="d root root 0755 /var/log none"
 VOLATILE_SYMLINK_VAR_LOG_LINE="l root root 0755 /var/log /var/volatile/log"
 
-ENABLE_PERSISTENT_LOGS_INI_VAL=$(nirtcfg --get section=SystemSettings,token=PersistentLogs.enabled,value="false" | tr "[:upper:]" "[:lower:]")
+ENABLE_PERSISTENT_LOGS_INI_VAL=$(/usr/local/natinst/bin/nirtcfg --get section=SystemSettings,token=PersistentLogs.enabled,value="false" | tr "[:upper:]" "[:lower:]")
 
 case $ENABLE_PERSISTENT_LOGS_INI_VAL in
     true)
