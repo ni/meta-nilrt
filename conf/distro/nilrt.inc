@@ -128,9 +128,6 @@ NILRT_GIT ?= "git://github.com/ni"
 # Creates ``*-lic`` subpackages for all OE recipes if enabled
 LICENSE_CREATE_PACKAGE ?= "1"
 
-# Create Packages.filelist for each feed
-PACKAGE_ENABLE_FILELIST ?= "True"
-
 
 ## OPKG SOURCE FEEDS ##
 
