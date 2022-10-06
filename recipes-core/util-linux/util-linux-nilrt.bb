@@ -18,3 +18,4 @@ do_install_ptest() {
 }
 
 RDEPENDS:${PN}-ptest += " bash "
+RDEPENDS:${PN}-ptest:remove = "${PN}"
