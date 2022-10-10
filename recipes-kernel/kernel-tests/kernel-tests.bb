@@ -28,6 +28,7 @@ SRC_URI += "\
     file://test_kernel_cap_support.sh \
     file://test_kernel_modules.sh \
     file://test_kernel_security.sh \
+    file://test_kernel_serial_devices.sh \
     file://test_exe_cap_support.c \
     file://test_proc_cap_support.c \
     file://cap_support_exe_to_test.c \
@@ -64,6 +65,7 @@ do_install_ptest_append() {
     cp ${WORKDIR}/test_kernel_cap_support.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_modules.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_security.sh ${D}${PTEST_PATH}
+    cp ${WORKDIR}/test_kernel_serial_devices.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_exe_cap_support ${D}${PTEST_PATH}
     cp ${WORKDIR}/cap_support_exe_to_test ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_proc_cap_support ${D}${PTEST_PATH}
