@@ -25,12 +25,16 @@ RDEPENDS_${PN} += "\
 	cgdb \
 	cifs-utils \
 	elfutils \
+	ffmpeg \
 	file \
 	g++ \
 	gcc \
 	gdb \
 	git \
 	gperf \
+	gstreamer1.0-libav \
+	gstreamer1.0-plugins-good \
+	gstreamer1.0-rtsp-server \
 	htop \
 	iperf2 \
 	iperf3 \
