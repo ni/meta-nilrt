@@ -2,10 +2,6 @@
 # These tests validate that the kernel is build with security mitigations
 # enabled or disabled to our satisfaction.
 
-# The security specifications against which the ptest target is tested, are
-# defined by "security-mitigations.txt" files which should be in this same
-# directory.
-
 source $(dirname "$0")/ptest-format.sh
 
 declare -xr SYSFS_VULNS="/sys/devices/system/cpu/vulnerabilities"
@@ -41,170 +37,48 @@ function _check_machine_arch () {
 	esac
 }
 
-# Print the vulnerability status to stdout.
-# 1: The name of the vulnerability to check.
-# This function errors if arg 1 is empty strig or the vulnerability sysfs file
-# cannot be found.
-function _get_mitigation_status () {
-	if [ -z "$1" ]; then
-		exit_error "Vulnerability name is invalid. (empty string)"
-	fi
-
-	if [ -f "${SYSFS_VULNS}/${1}" ]; then
-		cat "${SYSFS_VULNS}/${1}"
-	else
-		exit_error "Vulnerability sysfs file \"$1\" does not exist."
-	fi
-}
-
-# Compare two device code strings to one another. Return 0 if they match, else
-# return 1.
-# 1: device code 1; can be comma-delimited
-# 2: device code 2; must be single entry
-# The special code string '*' matches all.
-function _match_device_code () {
-	local match=false
-
-	IFS_old=$IFS
-	IFS=','
-	for dev_code in $1; do
-		case "$dev_code" in
-			"$2")
-				match=true
-				;;
-			\*)
-				match=true
-				;;
-			"")
-				if [ -z "$2" ]; then
-					match=true
-				fi
-				;;
-			*)
-				;;
-		esac
-	done
-	IFS=$IFS_old
-
-	$match
-}
-
-# Parse a security mitigations rules file and pack the rules global var with
-# only the rules which apply to the specified device code.
-# 1: mitigations rules filepath
-# 2: target device code
-function _read_mitigations_rules_file () {
-	# We must set noglob here bc. '*' is a valid literal character in the rules
-	# file, but will be otherwise expanded annoyingly by bash.
-	set -o noglob
-
-	# for each line of in the security mitigations rules file
+function report_cpu () {
+	echo "INFO: cpu under test:"
 	while read -r line; do
-		# disregard comments and blank lines
-		if [[ "$line" =~ ^\ *# ]]; then
-			continue
-		elif [ -z "$line" ]; then
-			continue
+		case "${line}" in
+			"vendor_id"*|"cpu family"*|"model"*|"stepping"*|"microcode"*|"bugs"*)
+				echo "INFO:     $(echo "${line}" | sed -r 's/(\s*):(\s*)/: /;')"
+		;;
+		esac
+		# break on first blank line: we only want to print processor 0
+		# because we assume CPU cores to be homogeneous (at least to
+		# the extent of having the same bugs)
+		if [ "${line}" = "" ]; then
+			break
 		fi
-
-		# break the line by whitespace into words
-		declare -a words="($line)"
-
-		# iff the device code column matches this device, repack the rules
-		# entry using the field seperator into the rules hashmap.
-		if _match_device_code "${words[0]}" "${2}"; then
-			IFS_old=$IFS
-			IFS=${field_sep}
-			#printf "INFO: matched line:%s\n" "${words[*]}"
-			rules["${words[1]}"]="${words[*]}"
-			IFS=$IFS_old
-		fi
-	done <"${1:-security-mitigations.txt}"
+	done </proc/cpuinfo
 }
 
-# TESTS #
-#########
-
-# Parses the specified security mitigations rules file and asserts the rules
-# against the system state.
-#
-# For each valid entry, creates a new subtests and:
-# 1. checks that required kernel commandline arguments are asserted (if
-# applicable)
-# 2. that the vulnerability status returned by the sysfs matches expectations.
-#
-# Fails the subtest if either of the above assertions is false.
-#
-# 1: security mitigations rules filepath
-#    Defaults to: "security-mitigations.txt"
-# 2: device code override (optional)
-#    Overwrites the device code returned by the system (use for testing
-#    purposes only)
-function test_mitigations_from_file () {
-
-	echo "INFO: Checking security mitigations against spec file: $1"
-
-	device_code="`fw_printenv -n DeviceCode`" || device_code=""
-	echo "INFO: device code=" "${device_code}"
-	if [ -n "$2" ]; then
-		device_code="${2}"
-		echo "Overwriting device code as:" $device_code
-	else
-		# If this is a VM, then we don't want to use the rules in security_mitigations.txt
-		# corresponding to the device code of the hardware we are simulating. So we
-		# override the device code with some unique value.
-		MAN=$(dmidecode --string system-manufacturer)
-		if [ $? -eq 0 ]; then
-			if [ ! "${MAN}" == "National Instruments" ]; then
-				device_code="0x00VM"
-				echo "INFO: Overwriting device code as: 0x00VM"
-			fi
-		else
-			echo "ERROR: dmidecode call failed."
-			ptest_fail
-			ptest_report
-			return
-		fi
-	fi
-	_read_mitigations_rules_file "${1:-security-mitigations.txt}" "$device_code"
-	# the 'rules' variable now contains an array of rules strings which
-	# apply to the current target
-
-	declare -xi subtest_num=1
-	printf "INFO: using rule: %s\n" "${rules[@]}"
-	for entry in "${rules[@]}"; do
-		IFS=${field_sep} read -r -a words <<<"${entry}"
-
-		sysfs_file="${words[1]}"
-		kcmdline_arg="${words[2]}"
-		expected="${words[3]}"
-
-		ptest_change_subtest $subtest_num "$sysfs_file"
-
-		# check the kernel commandline
-		if [ -z "${kcmdline_arg}" ]; then
-			echo "INFO: no kernel argument for $sysfs_file, skipping cmdline check."
-			ptest_pass
-		elif ! _arg_in_cmdline "${kcmdline_arg}"; then
-			echo "Expected kernel command argument \"${kcmdline_arg}\" not in command line."
-			ptest_fail
-		else
-			ptest_pass
-		fi
-
-		# check the sysfs for vulnerability status
-		local mitigation_status=`_get_mitigation_status ${sysfs_file}`
-		if [ "${mitigation_status}" != "${expected}" ]; then
-			printf "Security mitigation mismatch.\nExpected: %s\nFound: %s\n" \
-				"${expected}" "${mitigation_status}"
-			ptest_fail
-		fi
-
-		ptest_report
-		((subtest_num++))
+function report_vulnerability_status () {
+	echo "INFO: vulnerability status:"
+	for id in $(ls ${SYSFS_VULNS}); do
+		status=$(cat ${SYSFS_VULNS}/${id})
+		echo "INFO:     ${id}: ${status}"
 	done
 }
 
+function test_mitigations () {
+	report_cpu
+	report_vulnerability_status
+
+	echo "INFO: kernel cmdline:"
+	echo "INFO:     $(cat /proc/cmdline)"
+
+	kcmdline_arg="mitigations=off"
+	if ! _arg_in_cmdline "${kcmdline_arg}"; then
+		echo "Expected kernel command argument \"${kcmdline_arg}\" not in command line."
+		ptest_fail
+	else
+		ptest_pass
+	fi
+
+	ptest_report
+}
 
 # MAIN #
 ########
@@ -218,8 +92,7 @@ if ! _check_machine_arch; then
 	ptest_skip
 	ptest_report
 else
-	test_mitigations_from_file "security-mitigations.txt" "${1}"
+	test_mitigations
 fi
-
 
 exit $rc
