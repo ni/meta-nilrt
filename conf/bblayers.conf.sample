@@ -31,6 +31,8 @@ BBLAYERS ?= " \
 	${GIT_REPODIR}/meta-security \
 	${GIT_REPODIR}/meta-selinux \
 	${GIT_REPODIR}/meta-virtualization \
+	${GIT_REPODIR}/meta-xilinx/meta-xilinx-bsp \
+	${GIT_REPODIR}/meta-xilinx/meta-xilinx-contrib \
 	${GIT_REPODIR}/openembedded-core/meta \
 "
 

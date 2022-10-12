@@ -19,6 +19,8 @@
 #   Supported NILRT machine values are: xilinx-zynq
 MACHINE ?= "xilinx-zynq"
 
+DEFAULTTUNE_qemu-zynq7 = "cortexa9-vfpv3"
+
 # Distribution selection
 #   Supported NILRT distro values are: nilrt-academic
 DISTRO ?= "nilrt-academic"
