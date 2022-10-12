@@ -3,3 +3,4 @@
 # scripting using python3. Disable `scripting` PACKAGECONFIG in that case, to
 # keep python3 out of the perf config.
 PACKAGECONFIG_remove_xilinx-zynq += "scripting"
+PACKAGECONFIG_remove_qemu-zynq7 += "scripting"
