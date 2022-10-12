@@ -20,7 +20,6 @@ SRC_URI += "\
     file://required_kernel_modules.arm \
     file://required_kernel_modules.x64 \
     file://ptest-format.sh \
-    file://security-mitigations.txt \
     file://test_kernel_mcopy.sh \
     file://test_kernel_mcopy_functionality.c \
     file://test_kernel_mcopy_freed_memory.c \
@@ -56,7 +55,6 @@ do_compile_ptest:append() {
 do_install_ptest:append() {
     cp ${WORKDIR}/run-ptest ${D}${PTEST_PATH}
     cp ${WORKDIR}/ptest-format.sh ${D}${PTEST_PATH}
-    cp ${WORKDIR}/security-mitigations.txt ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_mcopy.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_mcopy_functionality ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_mcopy_freed_memory ${D}${PTEST_PATH}
