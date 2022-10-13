@@ -11,7 +11,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}-files:"
 S = "${WORKDIR}"
 
 DEPENDS = "virtual/kernel"
-RDEPENDS:${PN}-ptest += "bash rt-tests fio iperf3"
+RDEPENDS:${PN}-ptest += "bash rt-tests fio iperf3 python3 python3-pip"
 RDEPENDS:${PN}-ptest:append:x64 += "fw-printenv"
 RDEPENDS:${PN}-ptest:append:armv7a += "u-boot-fw-utils"
 
@@ -20,6 +20,7 @@ ALLOW_EMPTY:${PN} = "1"
 SRC_URI += "\
     file://run-ptest \
     file://run-cyclictest \
+    file://upload_cyclictest_results.py \
     file://common.cfg \
     file://fio.cfg \
     file://iperf.cfg \
@@ -32,6 +33,7 @@ SRC_URI += "\
 do_install_ptest:append() {
     install -m 0755 ${S}/run-ptest ${D}${PTEST_PATH}
     install -m 0755 ${S}/run-cyclictest ${D}${PTEST_PATH}
+    install -m 0755 ${S}/upload_cyclictest_results.py ${D}${PTEST_PATH}
     install -m 0644 ${S}/common.cfg ${D}${PTEST_PATH}
     install -m 0644 ${S}/fio.cfg ${D}${PTEST_PATH}
     install -m 0644 ${S}/iperf.cfg ${D}${PTEST_PATH}
@@ -39,6 +41,10 @@ do_install_ptest:append() {
     install -m 0755 ${S}/test_kernel_cyclictest_hackbench.sh ${D}${PTEST_PATH}
     install -m 0755 ${S}/test_kernel_cyclictest_fio.sh ${D}${PTEST_PATH}
     install -m 0755 ${S}/test_kernel_cyclictest_iperf.sh ${D}${PTEST_PATH}
+}
+
+pkg_postinst_ontarget:${PN}-ptest:append() {
+    python3 -m pip install influxdb
 }
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
