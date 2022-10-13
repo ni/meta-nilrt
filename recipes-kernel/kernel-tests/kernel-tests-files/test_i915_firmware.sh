@@ -5,6 +5,9 @@
 source $(dirname "$0")/ptest-format.sh
 
 ptest_test=$(basename "$0" ".sh")  # test_i915_firmware.sh
+ptest_rc=0
+
+declare -xr SYSFS_PCI_DEVS="/sys/bus/pci/devices"
 
 # Skips this test if we are on an ARM device.
 function check_arch () {
@@ -41,43 +44,53 @@ function check_files () {
 	done
 }
 
-# Use dmidecode to check the system-manufacturer is 'National Instruments'.
-# If it is not, skip this test.
-function check_manufacturer () {
-	MAN=$(dmidecode --string system-manufacturer) \
-	|| echo "ERROR: dmicode call failed." 
+function check_video_device () {
+	has_video_device=0
+	has_intel_video_device=0
+	has_i915_driver_loaded=0
 
-	if [ ! "${MAN}" == "National Instruments" ]; then
-		echo "REASON: Detected system manufacturer as '${MAN}'."
-		echo "REASON: We do not know if i915 should be tested."
+	# Enumerate PCI devices, looking for video controllers (that may
+	# or may not have drivers bound to them)
+	while read dev; do
+		pci_class=$(cat $SYSFS_PCI_DEVS/$dev/class)
+		# device class 0x03 is "display controller"
+		pci_class_id=$(( ($pci_class & 0xFF0000) >> 16 ))
+		if [ $pci_class_id -eq 3 ]; then
+			has_video_device=1
+
+			# get the vendor id
+			vendor_id=$(cat $SYSFS_PCI_DEVS/$dev/vendor)
+			if [ "${vendor_id}" = "0x8086" ]; then
+				has_intel_video_device=1
+			fi
+
+			driver_name=$(basename $(realpath $SYSFS_PCI_DEVS/$dev/driver))
+			if [ "${driver_name}" = "i915" ]; then
+				has_i915_driver_loaded=1
+				# we have one GPU with i915 loaded, we don't need
+				# to look at any more devices.
+				break
+			fi
+		fi
+	done < <(ls $SYSFS_PCI_DEVS)
+
+	if [ $has_video_device -eq 0 ]; then
+		echo "REASON: No video devices found via PCI enumeration."
 		ptest_skip
-	fi
-}
-
-# Passes iff the i915 module is loaded AND has >0 users. Fails otherwise.
-function check_module () {
-	MOD=$(lsmod | awk '/^i915/ {print $3}')
-	if [ -z "$MOD" ]; then
-		echo "i915 module not loaded."
-		ptest_fail
-		return
-	fi
-
-	echo -n "i915 module loaded."
-	if [ ${MOD:='0'} -gt 0 ]; then
-		ptest_pass
-	else
+	elif [ $has_intel_video_device -eq 0 ]; then
+		echo "REASON: No Intel video devices found via PCI enumeration."
+		ptest_skip
+	elif [ $has_intel_video_device -eq 1 -a $has_i915_driver_loaded -eq 0 ]; then
+		echo "REASON: Intel video devices found, but i915 driver not attached."
 		ptest_fail
 	fi
-	echo "${MOD} users."
 }
 
 check_arch
-check_manufacturer
+check_video_device
 
 if [ $ptest_rc -ne 77 ]; then
 	check_files
-	check_module
 fi
 
 ptest_report
