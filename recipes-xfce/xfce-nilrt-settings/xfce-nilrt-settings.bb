@@ -1,4 +1,5 @@
-DESCRIPTION = "Customized settings for the Xfce desktop environment."
+SUMMARY = "Customized NILRT settings for the XFCE desktop environment."
+DESCRIPTION = "Defines the default XFCE desktop environment settings for lvuser."
 SECTION = "x11"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
@@ -7,16 +8,11 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 PV = "1.0"
 
 
-S = "${WORKDIR}"
-
 DEPENDS = "shadow-native pseudo-native niacctbase"
-RDEPENDS:${PN} = "bash niacctbase xfce4-settings xfce4-session xfce4-panel"
 
-homedir = "/home/${LVRT_USER}"
-confdir = "${homedir}/.config"
-backgrounddir = "/usr/share/backgrounds/xfce"
 
-SRC_URI = "file://autostart/dpms.desktop \
+SRC_URI =  " \
+	file://autostart/dpms.desktop \
 	file://autostart/dualmonitor.desktop \
 	file://autostart/screensaver.desktop \
 	file://dual-monitor-setup.sh \
@@ -41,36 +37,17 @@ SRC_URI = "file://autostart/dpms.desktop \
 	file://xfce4/xfconf/xfce-perchannel-xml/xfce4-settings-manager.xml \
 	file://xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml \
 	file://xfce4/xfconf/xfce-perchannel-xml/xsettings.xml \
-	"
+"
 
-FILES:${PN} = "${confdir}/autostart/dpms.desktop \
-	    ${confdir}/autostart/dualmonitor.desktop \
-	    ${confdir}/autostart/screensaver.desktop \
-	    ${confdir}/menus/xfce-applications.menu \
-	    ${confdir}/xfce4/desktop/icons.screen0-624x384.rc \
-	    ${confdir}/xfce4/desktop/icons.screen0-624x464.rc \
-	    ${backgrounddir}/nilrt-desktop-background.png \
-	    ${confdir}/xfce4/panel/launcher-1/file_manager_launcher.desktop \
-	    ${confdir}/xfce4/panel/launcher-2/terminal_emulator_launcher.desktop \
-	    ${confdir}/xfce4/panel/launcher-3/settings_manager_launcher.desktop \
-	    ${confdir}/xfce4/panel/launcher-4/display_settings_launcher.desktop \
-	    /usr/local/natinst/bin/showpanel \
-	    /usr/local/natinst/bin/hidepanel \
-	    /usr/local/bin/showpanel \
-	    /usr/local/bin/hidepanel \
-	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/keyboards.xml \
-	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/thunar.xml \
-	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml \
-	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml \
-	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/xfce4-notifyd.xml \
-	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml \
-	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/xfce4-session.xml \
-	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/xfce4-settings-editor.xml \
-	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/xfce4-settings-manager.xml \
-	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml \
-	    ${confdir}/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml \
-	    /usr/local/natinst/bin/dual-monitor-setup.sh \
-	    "
+S = "${WORKDIR}"
+
+
+
+homedir = "/home/${LVRT_USER}"
+confdir = "${homedir}/.config"
+backgrounddir = "/usr/share/backgrounds/xfce"
+
+
 
 do_install () {
 	   install -d ${D}${confdir}/autostart
@@ -116,3 +93,36 @@ do_install () {
 
 	   chown -R ${LVRT_USER}:${LVRT_GROUP} ${D}${homedir}
 }
+
+
+FILES:${PN} =  " \
+	${confdir}/autostart/dpms.desktop \
+	${confdir}/autostart/dualmonitor.desktop \
+	${confdir}/autostart/screensaver.desktop \
+	${confdir}/menus/xfce-applications.menu \
+	${confdir}/xfce4/desktop/icons.screen0-624x384.rc \
+	${confdir}/xfce4/desktop/icons.screen0-624x464.rc \
+	${backgrounddir}/nilrt-desktop-background.png \
+	${confdir}/xfce4/panel/launcher-1/file_manager_launcher.desktop \
+	${confdir}/xfce4/panel/launcher-2/terminal_emulator_launcher.desktop \
+	${confdir}/xfce4/panel/launcher-3/settings_manager_launcher.desktop \
+	${confdir}/xfce4/panel/launcher-4/display_settings_launcher.desktop \
+	/usr/local/natinst/bin/showpanel \
+	/usr/local/natinst/bin/hidepanel \
+	/usr/local/bin/showpanel \
+	/usr/local/bin/hidepanel \
+	${confdir}/xfce4/xfconf/xfce-perchannel-xml/keyboards.xml \
+	${confdir}/xfce4/xfconf/xfce-perchannel-xml/thunar.xml \
+	${confdir}/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml \
+	${confdir}/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml \
+	${confdir}/xfce4/xfconf/xfce-perchannel-xml/xfce4-notifyd.xml \
+	${confdir}/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml \
+	${confdir}/xfce4/xfconf/xfce-perchannel-xml/xfce4-session.xml \
+	${confdir}/xfce4/xfconf/xfce-perchannel-xml/xfce4-settings-editor.xml \
+	${confdir}/xfce4/xfconf/xfce-perchannel-xml/xfce4-settings-manager.xml \
+	${confdir}/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml \
+	${confdir}/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml \
+	/usr/local/natinst/bin/dual-monitor-setup.sh \
+"
+
+RDEPENDS:${PN} = "bash niacctbase xfce4-settings xfce4-session xfce4-panel"
