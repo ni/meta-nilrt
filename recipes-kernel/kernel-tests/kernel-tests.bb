@@ -11,7 +11,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}-files:"
 S = "${WORKDIR}"
 
 DEPENDS = "virtual/kernel libcap"
-RDEPENDS:${PN}-ptest += "bash libcap kmod dmidecode"
+RDEPENDS:${PN}-ptest += "bash libcap kmod dmidecode python3-pymongo"
 
 ALLOW_EMPTY:${PN} = "1"
 
@@ -37,6 +37,8 @@ SRC_URI += "\
     file://test_pthread_stack_size.c \
     file://test_kernel_swap_disabled.sh \
     file://test_i915_firmware.sh \
+    file://kernel_dmesg_diff.py \
+    file://test_kernel_dmesg_diff.sh \
 "
 
 LDFLAGS += "-lcap -lpthread"
@@ -72,6 +74,8 @@ do_install_ptest:append() {
     cp ${WORKDIR}/test_pthread_stack_size ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_kernel_swap_disabled.sh ${D}${PTEST_PATH}
     cp ${WORKDIR}/test_i915_firmware.sh ${D}${PTEST_PATH}
+    cp ${WORKDIR}/kernel_dmesg_diff.py ${D}${PTEST_PATH}
+    cp ${WORKDIR}/test_kernel_dmesg_diff.sh ${D}${PTEST_PATH}
 }
 
 do_install_ptest:append:x64() {
