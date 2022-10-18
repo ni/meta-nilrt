@@ -11,6 +11,12 @@ if [ -z "$IPERF_SERVER" ]; then
 fi
 
 if [ ! -z "$IPERF_PORT" ]; then
+    iperf3 -c "$IPERF_SERVER" -p "$IPERF_PORT" -t 1 > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "ERROR: iperf server not reachable; skipping iperf based network load test."
+        echo "SKIP: test_kernel_cyclictest_iperf"
+        exit 77
+    fi
 	iperf3 -c "$IPERF_SERVER" -p "$IPERF_PORT" -t 36000 --logfile "$LOG_DIR/iperf-`date +'%Y_%m_%d-%H_%M_%S'`.log" &
     else
 	iperf3 -c "$IPERF_SERVER" -t 36000 --logfile "$LOG_DIR/iperf-`date +'%Y_%m_%d-%H_%M_%S'`.log" &
