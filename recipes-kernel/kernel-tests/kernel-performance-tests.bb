@@ -2,7 +2,7 @@ SUMMARY = "Linux kernel-specific performance tests"
 HOMEPAGE = "https://kernel.org"
 SECTION = "tests"
 LICENSE = "GPLv2 & GPLv2+"
-LIC_FILES_CHKSUM = "file://run-ptest;md5=e6b9dbe04e1c3de85402b8167a279f76"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0-or-later;md5=fed54355545ffd980b814dab4a3b312c"
 
 inherit ptest
 
