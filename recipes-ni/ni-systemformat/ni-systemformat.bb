@@ -49,7 +49,7 @@ RDEPENDS:${PN} += "\
 # nisystemformat rdeps
 RDEPENDS:${PN} += "\
 	coreutils \
+	e2fsprogs-mke2fs \
 	ni-netcfgutil \
 	util-linux-lsblk \
 "
-RDEPENDS:${PN}:append:x64 = " e2fsprogs-mke2fs"
