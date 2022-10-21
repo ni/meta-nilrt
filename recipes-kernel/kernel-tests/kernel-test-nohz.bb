@@ -1,7 +1,7 @@
 SUMMARY = "Linux kernel NO_HZ_FULL polling test"
 HOMEPAGE = "https://kernel.org"
 SECTION = "tests"
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://nohz_test.c;beginline=1;endline=2;md5=9e3e9401383732750e93a18064dc9493"
 
 inherit ptest

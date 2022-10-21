@@ -1,7 +1,7 @@
 SUMMARY = "Linux kernel futex test"
 HOMEPAGE = "https://kernel.org"
 SECTION = "tests"
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://fbomb.c;md5=5087cbd611aca643601e03428b6ef30d"
 inherit ptest
 
