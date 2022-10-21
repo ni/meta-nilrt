@@ -4,7 +4,7 @@ SECTION = "libs"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE.md;md5=feb42903281464837bc0c9a861b1e7a1"
 
-SRC_URI = "git://github.com/modelon-community/fmi-library;protocol=https \
+SRC_URI = "git://github.com/modelon-community/fmi-library;protocol=https;branch=master \
            file://0001-fmixml-use-system-expat-instead-of-building-own-with.patch \
            "
 

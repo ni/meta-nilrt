@@ -11,7 +11,7 @@ RDEPENDS:${PN} = "boost-filesystem"
 inherit cmake
 
 SRCREV = "fe0fa2237b971ec8baae36b785d98a772684e5e7"
-SRC_URI = "git://github.com/intel/thunderbolt-software-user-space.git;protocol=https \
+SRC_URI = "git://github.com/intel/thunderbolt-software-user-space.git;protocol=https;branch=master \
            file://0001-tbtadm-Disable-manpage-target.patch \
            "
 
