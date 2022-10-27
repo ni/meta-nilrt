@@ -2,7 +2,7 @@
 # National Instruments Corporation.
 # All rights reserved.
 
-SUMMARY = "Ptest packages necessary for passing the NILRT development pipeline"
+SUMMARY = "Ptest packages necessary for passing the NILRT functional ptest automated test system"
 LICENSE = "MIT"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
@@ -13,10 +13,40 @@ RDEPENDS:${PN} = "ptest-runner"
 
 # ptest packages
 RDEPENDS:${PN}:append = "\
-    glibc-tests-ptest \
-    kernel-tests-ptest \
+    busybox-ptest \
+    bzip2-ptest \
+    coreutils-ptest \
+    e2fsprogs-ptest \
+    elfutils-ptest \
+    ethtool-ptest \
+    flex-ptest \
+    gettext-ptest \
+    liberror-perl-ptest \
+    libxml2-ptest \
+    mdadm-ptest \
+    nettle-ptest \
+    ni-hw-scripts-ptest \
     opkg-ptest \
+    pango-ptest \
+    parted-ptest \
+    perl-ptest \
     pstore-save-ptest \
-    rt-tests-ptest \
-    run-postinsts-ptest \
+    python3-appdirs-ptest \
+    python3-atomicwrites-ptest \
+    python3-bcrypt-ptest \
+    python3-cryptography-ptest \
+    python3-markupsafe-ptest \
+    python3-more-itertools-ptest \
+    python3-msgpack-ptest \
+    python3-multidict-ptest \
+    python3-pluggy-ptest \
+    python3-pyasn1-ptest \
+    python3-pyroute2-ptest \
+    python3-pyserial-ptest \
+    python3-pytz-ptest \
+    python3-wcwidth-ptest \
+    sed-ptest \
+    util-linux-ptest \
+    xorg-fonts-100dpi-ptest \
+    zeromq-ptest \
 "
