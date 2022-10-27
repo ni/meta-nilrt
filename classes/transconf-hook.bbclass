@@ -24,7 +24,7 @@ FILES:${PN}-transconf = "${TRANSCONF_HOOKS_RUNPARTS_PATH}"
 do_install:append() {
 	install -d "${D}${TRANSCONF_HOOKS_RUNPARTS_PATH}"
 
-	for hook in "${TRANSCONF_HOOKS_${PN}}"; do
+	for hook in "${TRANSCONF_HOOKS:${PN}}"; do
 		install -m 0755 "${WORKDIR}/${hook}" "${D}${TRANSCONF_HOOKS_RUNPARTS_PATH}"
 	done
 }
