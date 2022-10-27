@@ -36,7 +36,7 @@ SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
-inherit setuptools3 update-rc.d ptest
+inherit setuptools3_legacy update-rc.d ptest
 
 # Avoid a QA Warning triggered by the test package including a file
 # with a .a extension
