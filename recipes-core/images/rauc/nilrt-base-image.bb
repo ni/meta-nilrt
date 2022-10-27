@@ -11,7 +11,6 @@ IMAGE_INSTALL = "\
 # user software
 IMAGE_INSTALL += "\
 	packagegroup-ni-runmode \
-	packagegroup-ni-transconf \
 	packagegroup-ni-wifi \
 	packagegroup-ni-xfce \
 "

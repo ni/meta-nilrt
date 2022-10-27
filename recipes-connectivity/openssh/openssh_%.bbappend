@@ -41,9 +41,3 @@ do_install:append () {
 		echo "HostKey /etc/natinst/share/ssh/ssh_host_ecdsa_key"   >>${D}${sysconfdir}/ssh/sshd_config
 		echo "HostKey /etc/natinst/share/ssh/ssh_host_ed25519_key" >>${D}${sysconfdir}/ssh/sshd_config
 }
-
-# -transconf hook sublpackage
-inherit transconf-hook
-RDEPENDS:${PN}-transconf += "bash"
-SRC_URI =+ "file://transconf-hooks/"
-TRANSCONF_HOOKS:${PN} = "transconf-hooks/sshd"

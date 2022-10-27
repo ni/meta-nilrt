@@ -4,7 +4,6 @@ FILESEXTRAPATHS:prepend := "${THISDIR}:${THISDIR}/${PN}-${PV}:"
 SRC_URI += " \
 	file://bootmisc_0001_make_hwclock_authoritative.patch \
 	file://bootmisc_0002_add_sanity_checks.patch \
-	file://transconf-hooks \
 	file://urandom.default \
 "
 
@@ -30,8 +29,3 @@ do_install:append() {
 	update-rc.d -f -r ${D} mountnfs.sh remove
 	update-rc.d -f -r ${D} read-only-rootfs-hook.sh remove
 }
-
-# ${PN}-transconf
-inherit transconf-hook
-RDEPENDS:${PN}-transconf += "bash"
-TRANSCONF_HOOKS:${PN} = "transconf-hooks/hostname"

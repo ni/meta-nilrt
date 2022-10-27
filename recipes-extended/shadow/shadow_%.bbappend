@@ -2,11 +2,6 @@ FILESEXTRAPATHS:append := "${THISDIR}/files:"
 
 include useradd-staticids-test.inc
 
-# ${PN}-transconf
-inherit transconf-hook
-SRC_URI =+ "file://transconf-hooks/"
-RDEPENDS:${PN}-transconf += "bash"
-TRANSCONF_HOOKS:${PN} = "transconf-hooks/shadow"
 
 SRC_URI:append = "\
 	file://login_defs_uidgid.sed \

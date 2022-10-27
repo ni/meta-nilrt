@@ -10,7 +10,7 @@ SRC_URI += " \
     file://rauc-mark-good \
 "
 
-RDEPENDS:${PN}-mark-good += "${PN} bash transconf"
+RDEPENDS:${PN}-mark-good += "${PN} bash"
 FILES:${PN}-mark-good = "${sysconfdir}/init.d/rauc-mark-good /var/lib/rauc/"
 
 INITSCRIPT_PACKAGES += "${PN}-mark-good"
