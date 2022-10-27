@@ -76,7 +76,7 @@ def upload_log(db, dmesg_log):
     data['dmesg_log'] = header + dmesg_log
 
     record = db.insert(data)
-    print('INFO: Uploaded current dmesg log from {} with _id {}'.format(data['date'], record.inserted_id))
+    print('INFO: Uploaded dmesg log of "{}" kernel {} from {} with _id {}'.format(data['kernel_type'], data['kernel_version_full'], data['date'], record.inserted_id))
 
 def strip_headers(dmesg_log):
     output = ''
@@ -107,7 +107,7 @@ def get_old_dmesg_log(db):
             return ''
 
     result = next(results)
-    print('INFO: Using previous dmesg log from {} with _id {}'.format(result['date'], result['_id']))
+    print('INFO: Using previous dmesg log of "{}" kernel {} from {} with _id {}'.format(result['kernel_type'], result['kernel_version_full'], result['date'], result['_id']))
     dmesg_log = result['dmesg_log']
     return strip_headers(dmesg_log)
 
