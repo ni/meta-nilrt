@@ -70,11 +70,11 @@ KERNEL_MODULE_PROBECONF += "radeon"
 module_conf_radeon = "options radeon dpm=0"
 
 #create dtb-s fromt dts files for armv7a targets
-DEPENDS:append += "rsync-native"
+DEPENDS:append = " rsync-native"
 
-DEPENDS:append:x64 += "elfutils-native"
+DEPENDS:append:x64 = " elfutils-native"
 
-DEPENDS:append:armv7a += "dtc-native"
+DEPENDS:append:armv7a = " dtc-native"
 
 RDEPENDS:kernel-dev += "bash binutils gcc gcc-symlinks"
 
