@@ -1,0 +1,43 @@
+From 6ab2afe3dff052809c07abc6eb0bddbb4835397c Mon Sep 17 00:00:00 2001
+From: Alex Stewart <alex.stewart@ni.com>
+Date: Thu, 27 Oct 2022 09:17:20 -0500
+Subject: [PATCH] gconv-modules-extra: remove CP936 to GBK mapping
+
+LabVIEW depends on CP936 - and the associated windows equivalent
+codepoints - being truely CP936; not remapped to GBK.
+
+Remove the CP936 to GBK mappings to support LV.
+
+Upstream-Status: Inappropriate [NI-specific]
+
+Signed-off-by: Alex Stewart <alex.stewart@ni.com>
+---
+ iconvdata/gconv-modules-extra.conf | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/iconvdata/gconv-modules-extra.conf b/iconvdata/gconv-modules-extra.conf
+index 82d7be577d..eef6acfa34 100644
+--- a/iconvdata/gconv-modules-extra.conf
++++ b/iconvdata/gconv-modules-extra.conf
+@@ -1116,12 +1116,15 @@ module	BIG5//			EUC-CN//		GBBIG5		1
+ 
+ #	from			to			module		cost
+ alias	GB13000//		GBK//
+-alias	CP936//			GBK//
+-alias	MS936//			GBK//
+-alias	WINDOWS-936//		GBK//
+ module	GBK//			INTERNAL		GBK		1
+ module	INTERNAL		GBK//			GBK		1
+ 
++#       from                    to                      module          cost
++alias	MS936//			CP936//
++alias	WINDOWS-936//		CP936//
++module	CP936//			INTERNAL		CP936		1
++module	INTERNAL		CP936//			CP936		1
++
+ #	from			to			module		cost
+ module	GBK//			EUC-CN//		GBGBK		1
+ module	EUC-CN//		GBK//			GBGBK		1
+-- 
+2.37.2
+

@@ -2,9 +2,10 @@ FILESEXTRAPATHS:prepend := "${THISDIR}:${THISDIR}/${PN}:"
 
 # Add patches to map CP936 to the proper codepage for LabVIEW simplified
 # Chinese support.
+#file://cp936-gconv-modules.patch
 SRC_URI =+ " \
 	file://cp936_support.patch \
-	file://cp936-gconv-modules.patch \
+	file://gconv-modules-extra-remove-CP936-to-GBK-mapping.patch \
 "
 
 # Add patches to build the ja_JP.WINDOWS-31J and zh_CN.CP936 locales for
