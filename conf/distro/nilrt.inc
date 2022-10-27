@@ -24,7 +24,7 @@ DISTRO_FEATURES += "\
 
 # Because NIRLT uses opkg so intimately, assert that the rootfs should always
 # be made of IPKs.
-PACKAGE_CLASSES:prepend =+ "package_ipk"
+PACKAGE_CLASSES =+ "package_ipk"
 
 # Clean *most* package work directories
 INHERIT += " rm_work "
