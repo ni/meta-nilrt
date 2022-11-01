@@ -21,6 +21,8 @@ RDEPENDS:${PN}:append = "\
     ethtool-ptest \
     flex-ptest \
     gettext-ptest \
+    glibc-tests-ptest \
+    kernel-tests-ptest \
     liberror-perl-ptest \
     libxml2-ptest \
     mdadm-ptest \
@@ -45,6 +47,8 @@ RDEPENDS:${PN}:append = "\
     python3-pyserial-ptest \
     python3-pytz-ptest \
     python3-wcwidth-ptest \
+    rt-tests-ptest \
+    run-postinsts-ptest \
     sed-ptest \
     util-linux-ptest \
     xorg-fonts-100dpi-ptest \
