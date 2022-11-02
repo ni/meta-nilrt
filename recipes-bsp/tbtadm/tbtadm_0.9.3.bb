@@ -8,7 +8,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=565a8f58cc6472cf9c3ee9453d7e5aa4"
 DEPENDS = "cmake-native udev boost"
 RDEPENDS:${PN} = "boost-filesystem"
 
-inherit cmake
+inherit cmake pkgconfig
 
 SRCREV = "fe0fa2237b971ec8baae36b785d98a772684e5e7"
 SRC_URI = "git://github.com/intel/thunderbolt-software-user-space.git;protocol=https;branch=master \
