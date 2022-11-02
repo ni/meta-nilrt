@@ -86,6 +86,7 @@ PREFERRED_PROVIDER_virtual/libgles1 ?= "mesa"
 PREFERRED_PROVIDER_virtual/libgles2 ?= "mesa"
 
 PREFERRED_PROVIDER_virtual/kernel ?= "linux-nilrt"
+BB_MULTI_PROVIDER_ALLOWED += "virtual/kernel"
 
 PREFERRED_RPROVIDER_java2-runtime = "openjdk-8"
 
