@@ -1,5 +1,5 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
-PACKAGECONFIG:remove += "network json service"
+PACKAGECONFIG:remove = "network json service streaming"
 
 INSANE_SKIP:${PN} += "native-last"
 inherit update-rc.d
