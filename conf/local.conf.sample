@@ -75,7 +75,7 @@ DISTRO ?= "nilrt"
 # you can build the SDK packages for architectures other than the machine you are
 # running the build on (i.e. building i686 packages on an x86_64 host).
 # Supported values are i686 and x86_64
-#SDKMACHINE ?= "i686"
+SDKMACHINE ?= "x86_64"
 
 #
 # Extra image configuration defaults
