@@ -56,7 +56,7 @@ PACKAGES += "\
     ${PN}-bash-completion \
 "
 
-RDEPENDS:${PN}-minion:append += "\
+RDEPENDS:${PN}-minion += "\
     python3-aiodns \
     python3-aiohttp \
     python3-avahi \
@@ -67,10 +67,8 @@ RDEPENDS:${PN}-minion:append += "\
     python3-psutil \
 "
 
-# these dependencies should NOT be added to the salt bb recipe as they're added
-# here in the bbappend for the NIFeeds ni-skyline packages. In the future these
-# will be removed and skyline packages made to depend on them directly.
-RDEPENDS:${PN}-common:append += " \
+# NI Skyline dependencies only; not needed for base salt.
+RDEPENDS:${PN}-common += " \
     python3-configparser \
     python3-dateutil \
     python3-difflib \
