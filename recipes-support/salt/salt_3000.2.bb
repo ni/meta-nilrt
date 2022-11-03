@@ -136,7 +136,7 @@ RDEPENDS:${PN}-minion += "${@bb.utils.contains('PACKAGECONFIG', 'tcp', 'python3-
 RRECOMMENDS:${PN}-minion:append:x64 = "dmidecode"
 RSUGGESTS:${PN}-minion = "python3-augeas"
 CONFFILES:${PN}-minion = "${sysconfdir}/${PN}/minion ${sysconfdir}/init.d/${PN}-minion"
-FILES:${PN}-minion = "${bindir}/${PN}-minion ${sysconfdir}/${PN}/minion.d/ ${CONFFILES_${PN}-minion} ${bindir}/${PN}-proxy"
+FILES:${PN}-minion = "${bindir}/${PN}-minion ${sysconfdir}/${PN}/minion.d/ ${CONFFILES:${PN}-minion} ${bindir}/${PN}-proxy"
 INITSCRIPT_NAME:${PN}-minion = "${PN}-minion"
 INITSCRIPT_PARAMS:${PN}-minion = "defaults"
 
@@ -148,7 +148,7 @@ RRECOMMENDS:${PN}-common = "lsb-release"
 RSUGGESTS:${PN}-common = "python3-mako python3-git"
 RCONFLICTS:${PN}-common = "python3-mako (< 0.7.0)"
 CONFFILES:${PN}-common="${sysconfdir}/logrotate.d/${PN}-common"
-FILES:${PN}-common = "${bindir}/${PN}-call ${PYTHON_SITEPACKAGES_DIR} ${CONFFILES_${PN}-common}"
+FILES:${PN}-common = "${bindir}/${PN}-call ${PYTHON_SITEPACKAGES_DIR} ${CONFFILES:${PN}-common}"
 
 SUMMARY:${PN}-ssh = "remote manager to administer servers via salt"
 DESCRIPTION:${PN}-ssh = "${DESCRIPTION_COMMON} This particular package provides the salt ssh controller. It \
@@ -156,7 +156,7 @@ is able to run salt modules and states on remote hosts via ssh. No minion or oth
  to be installed on the remote host."
 RDEPENDS:${PN}-ssh = "${PN}-common (= ${EXTENDPKGV}) python3-core python3-msgpack"
 CONFFILES:${PN}-ssh="${sysconfdir}/${PN}/roster"
-FILES:${PN}-ssh = "${bindir}/${PN}-ssh ${CONFFILES_${PN}-ssh}"
+FILES:${PN}-ssh = "${bindir}/${PN}-ssh ${CONFFILES:${PN}-ssh}"
 
 SUMMARY:${PN}-api = "generic, modular network access system"
 DESCRIPTION:${PN}-api = "a modular interface on top of Salt that can provide a variety of entry points into a \
@@ -167,7 +167,7 @@ even a Websocket API. The Salt API system is used to expose the fundamental aspe
 RDEPENDS:${PN}-api = "${PN}-master python3-core"
 RSUGGESTS:${PN}-api = "python3-cherrypy"
 CONFFILES:${PN}-api = "${sysconfdir}/init.d/${PN}-api"
-FILES:${PN}-api = "${bindir}/${PN}-api ${CONFFILES_${PN}-api}"
+FILES:${PN}-api = "${bindir}/${PN}-api ${CONFFILES:${PN}-api}"
 INITSCRIPT_NAME:${PN}-api = "${PN}-api"
 INITSCRIPT_PARAMS:${PN}-api = "defaults"
 
@@ -178,7 +178,7 @@ RDEPENDS:${PN}-master += "${@bb.utils.contains('PACKAGECONFIG', 'zeromq', 'pytho
 RDEPENDS:${PN}-master += "${@bb.utils.contains('PACKAGECONFIG', 'tcp', 'python3-pycrypto', '',d)}"
 CONFFILES:${PN}-master="${sysconfdir}/init.d/${PN}-master  ${sysconfdir}/${PN}/master"
 RSUGGESTS:${PN}-master = "python3-git"
-FILES:${PN}-master = "${bindir}/${PN} ${bindir}/${PN}-cp ${bindir}/${PN}-key ${bindir}/${PN}-master ${bindir}/${PN}-run ${bindir}/${PN}-unity ${bindir}/spm ${CONFFILES_${PN}-master}"
+FILES:${PN}-master = "${bindir}/${PN} ${bindir}/${PN}-cp ${bindir}/${PN}-key ${bindir}/${PN}-master ${bindir}/${PN}-run ${bindir}/${PN}-unity ${bindir}/spm ${CONFFILES:${PN}-master}"
 INITSCRIPT_NAME:${PN}-master = "${PN}-master"
 INITSCRIPT_PARAMS:${PN}-master = "defaults"
 
@@ -187,7 +187,7 @@ DESCRIPTION:${PN}-syndic = "${DESCRIPTION_COMMON} This particular package provid
 salt; it enables the management of multiple masters at a time."
 RDEPENDS:${PN}-syndic = "${PN}-master (= ${EXTENDPKGV}) python3-core"
 CONFFILES:${PN}-syndic="${sysconfdir}/init.d/${PN}-syndic"
-FILES:${PN}-syndic = "${bindir}/${PN}-syndic ${CONFFILES_${PN}-syndic}"
+FILES:${PN}-syndic = "${bindir}/${PN}-syndic ${CONFFILES:${PN}-syndic}"
 INITSCRIPT_NAME:${PN}-syndic = "${PN}-syndic"
 INITSCRIPT_PARAMS:${PN}-syndic = "defaults"
 
@@ -196,7 +196,7 @@ DESCRIPTION:${PN}-cloud = "provision virtual machines on various public clouds v
 RDEPENDS:${PN}-cloud = "${PN}-common (= ${EXTENDPKGV}) python3-core"
 RSUGGESTS:${PN}-cloud = "python3-netaddr python3-botocore"
 CONFFILES:${PN}-cloud = "${sysconfdir}/${PN}/cloud"
-FILES:${PN}-cloud = "${bindir}/${PN}-cloud ${sysconfdir}/${PN}/cloud.conf.d/ ${sysconfdir}/${PN}/cloud.profiles.d/ ${sysconfdir}/${PN}/cloud.providers.d/ ${CONFFILES_${PN}-cloud}"
+FILES:${PN}-cloud = "${bindir}/${PN}-cloud ${sysconfdir}/${PN}/cloud.conf.d/ ${sysconfdir}/${PN}/cloud.profiles.d/ ${sysconfdir}/${PN}/cloud.providers.d/ ${CONFFILES:${PN}-cloud}"
 
 SUMMARY:${PN}-tests = "salt stack test suite"
 DESCRIPTION:${PN}-tests ="${DESCRIPTION_COMMON} This particular package provides the salt unit test suite."
