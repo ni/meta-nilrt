@@ -5,7 +5,6 @@ SRC_URI =+ " \
 	file://fi.epitest.hostap.WPASupplicant.service;subdir=nilrt \
 	file://fi.w1.wpa_supplicant1.service;subdir=nilrt \
 	file://report-eap-authentication-state.patch \
-	file://wep-hexkeys-and-wpa-psk-hexkeys-fix.patch \
 	file://wpa_supplicant_conf;subdir=nilrt \
 "
 
