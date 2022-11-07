@@ -4,7 +4,6 @@ SRC_URI =+ " \
 	file://dbus-wpa_supplicant.conf;subdir=nilrt \
 	file://fi.epitest.hostap.WPASupplicant.service;subdir=nilrt \
 	file://fi.w1.wpa_supplicant1.service;subdir=nilrt \
-	file://report-eap-authentication-state.patch \
 	file://wpa_supplicant_conf;subdir=nilrt \
 "
 
