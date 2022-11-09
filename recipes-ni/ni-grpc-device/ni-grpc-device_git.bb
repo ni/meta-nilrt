@@ -8,6 +8,7 @@ LIC_FILES_CHKSUM = "\
 	file://ThirdPartyNotices.txt;md5=6def9ca42f278e76d89243699fae2b67 \
 "
 
+
 DEPENDS += "\
 	grpc-native \
 	googletest-native \
@@ -20,16 +21,15 @@ DEPENDS += "\
 
 PV = "1.1.0"
 
+
 SRC_URI = "\
-	git://github.com/ni/grpc-device.git;name=grpc-device;branch=${SRCBRANCH};protocol=https \
+	git://github.com/ni/grpc-device.git;name=grpc-device;branch=main;protocol=https \
 	file://0001-CMakeLists.txt-remove-local-protobuf-includes.patch \
+	file://0001-semaphore.h-fix-undefined-condition_variable-type.patch \
 	file://0002-CMakeLists-use-find_package-for-gtest-dep.patch \
 	file://ptest \
 "
-
-SRCBRANCH = "main"
 SRCREV_grpc-device = "15508bba63a6c289a32445ffb7f8986c99a2f286"
-
 SRCREV_FORMAT = "grpc-device"
 
 S = "${WORKDIR}/git"
@@ -39,6 +39,7 @@ inherit cmake python3native
 
 EXTRA_OECMAKE += "-DCMAKE_BUILD_TYPE=Release"
 OECMAKE_TARGET_COMPILE = "ni_grpc_device_server"
+OECMAKE_GENERATOR = "Unix Makefiles"
 
 
 inherit ptest
