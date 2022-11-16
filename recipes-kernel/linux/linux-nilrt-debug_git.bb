@@ -22,6 +22,6 @@ FILES:${KERNEL_PACKAGE_NAME}-vmlinux += "${VMLINUX_DIR}/vmlinux-${KERNEL_VERSION
 
 do_install:append(){
     install -d "${D}/${VMLINUX_DIR}"
-    mv ${D}/boot/vmlinux-${KERNEL_VERSION} "${D}/${VMLINUX_DIR}/"
+    mv ${D}/${KERNEL_IMAGEDEST}/vmlinux-${KERNEL_VERSION} "${D}/${VMLINUX_DIR}/"
 }
 
