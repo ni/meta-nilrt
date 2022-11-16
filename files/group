@@ -6,6 +6,7 @@ ni:x:500:
 openvpn:x:499:
 niwscerts:x:498:
 # free space
+ossec:x:400:
 mysql:x:399:
 datetime:x:398:
 network:x:397:
