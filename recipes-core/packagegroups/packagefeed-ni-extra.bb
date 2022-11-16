@@ -50,7 +50,6 @@ RDEPENDS:${PN}:append:x64 = "\
 "
 
 RDEPENDS:${PN} = "\
-	packagegroup-core-basic \
 	packagegroup-core-buildessential \
 	packagegroup-core-sdk \
 	packagegroup-core-security \
@@ -123,7 +122,6 @@ RDEPENDS:${PN} += "\
 	mtd-utils \
 	patchelf \
 	pax-utils \
-	prelink \
 	python3-dbus \
 	python3-imaging \
 	python3-setuptools \
@@ -154,7 +152,6 @@ RDEPENDS:${PN} += "\
 	libarchive \
 	lighttpd \
 	ltp \
-	mailx \
 	msmtp \
 	net-tools \
 	pigz \
@@ -234,7 +231,6 @@ RDEPENDS:${PN} += "\
 	iozone3 \
 	iperf2 \
 	iperf3 \
-	libhugetlbfs \
 	lmbench \
 	memtester \
 	nbench-byte \
@@ -272,7 +268,6 @@ RDEPENDS:${PN} += "\
 
 # meta-openembedded/meta-oe/recipes-devtools
 RDEPENDS:${PN} += "\
-	bootchart \
 	breakpad \
 	cgdb \
 	gdb \
@@ -389,7 +384,6 @@ RDEPENDS:${PN} += "\
 	cryptsetup \
 	daemonize \
 	daemontools \
-	dstat \
 	dfu-util \
 	eject \
 	enca \
@@ -630,7 +624,6 @@ RDEPENDS:${PN} += "\
 	libconfig-general-perl \
 	python3-amqp \
 	python3-amqplib \
-	python3-anyjson \
 	python3-beautifulsoup4 \
 	python3-boto \
 	python3-cephclient \
