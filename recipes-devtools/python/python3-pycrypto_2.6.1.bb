@@ -7,7 +7,7 @@ DEPENDS += " gmp"
 
 export HOST_SYS
 
-inherit pypi autotools-brokensep distutils3
+inherit pypi autotools-brokensep setuptools3_legacy
 
 SRC_URI += "file://cross-compiling.patch \
             file://CVE-2013-7459.patch \
@@ -23,7 +23,7 @@ do_compile[noexec] = "1"
 # *don't* want the autotools install to run, since this package doesn't
 # provide a "make install" target.
 do_install() {
-       distutils3_do_install
+        setuptools3_legacy_do_install
 }
 
 BBCLASSEXTEND = "native nativesdk"
