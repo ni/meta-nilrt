@@ -28,6 +28,13 @@ do_install:append (){
    install -m 0644 ${WORKDIR}/logrotate.d-auth.conf ${D}${sysconfdir}/logrotate.d/auth.conf
    install -m 0644 ${WORKDIR}/logrotate.d-cron.conf ${D}${sysconfdir}/logrotate.d/cron.conf
    install -m 0644 ${WORKDIR}/logrotate.d-messages.conf ${D}${sysconfdir}/logrotate.d/messages.conf
+
+   # NILRT has a custom conf file for sysvinit systems.
+   # If using sysvinit, update the conf file with the current version.
+   if ${@bb.utils.contains('DISTRO_FEATURES','systemd','false','true',d)}; then
+      # syslog-ng expects the version to be MAJ.MIN, so filter out the patch version from ${PV}.
+      sed -i -e "s/@VERSION@/$(echo ${PV} | grep -oE ^[0-9]+.[0-9]+)/g" ${D}${sysconfdir}/${BPN}/${BPN}.conf
+   fi
 }
 
 INITSCRIPT_PARAMS = "start 19 2 3 4 5 . stop 90 0 1 6 ."
