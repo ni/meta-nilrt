@@ -35,6 +35,6 @@ PACKAGE_NO_LOCALE = "1"
 # directory from the package/ staging area before it can be allocated to
 # ni-locale-alias. Restore it before splitting subpackages.
 restore_locale_alias() {
-	install -D ${LOCALESTASH}${datadir}/locale/locale.alias ${PKGD}${datadir}/locale/locale.alias
+	install -D ${D}${datadir}/locale/locale.alias ${PKGD}${datadir}/locale/locale.alias
 }
 PACKAGE_PREPROCESS_FUNCS += " restore_locale_alias "
