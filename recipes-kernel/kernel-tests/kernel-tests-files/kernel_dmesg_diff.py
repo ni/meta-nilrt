@@ -133,7 +133,10 @@ replacement_patterns = [
         [r'tcp_listen_portaddr_hash hash table entries: .*', 'tcp_listen_portaddr_hash hash table entries: '],
         [r'hash table entries: .*', 'hash table entries: '],
         [r'succeeded in \d+ usecs', 'succeeded in usecs'],
-        [r'audit\(\d+\.\d+:\d+\):', 'audit():']
+        [r'audit\(\d+\.\d+:\d+\):', 'audit():'],
+        [r', CDC EEM Device, \S+', ', CDC EEM Device, '],
+        [r' HOST MAC \S+', ' HOST MAC '],
+        [r'NODE_DATA\(0\) allocated \[mem .*\]', 'NODE_DATA(0) allocated [mem ]']
 ]
 
 def strip_known_differences(log):
