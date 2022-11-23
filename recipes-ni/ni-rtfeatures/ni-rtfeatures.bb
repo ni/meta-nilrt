@@ -51,7 +51,7 @@ pkg_postrm:${PN} () {
 
 
 PACKAGE_ARCH = "all"
-PACKAGES:remove += "${PN}-staticdev ${PN}-dev ${PN}-dbg"
+PACKAGES:remove = "${PN}-staticdev ${PN}-dev ${PN}-dbg"
 
 FILES:${PN} += "\
 	${sysconfdir}/init.d/* \

@@ -55,4 +55,4 @@ do_install:append:xilinx-zynqhf() {
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 FILES:${PN} += " /init /ni_provisioning* /disk_config /efifix /etc/profile.d/00-init-restore-mode.sh"
-FILES:${PN}:append:x64 += " /grub.cfg "
+FILES:${PN}:append:x64 = " /grub.cfg "

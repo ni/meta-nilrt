@@ -26,7 +26,7 @@ DEPENDS += "shadow-native pseudo-native niacctbase update-rc.d-native"
 
 RDEPENDS:${PN} += "niacctbase bash"
 
-RDEPENDS:${PN}:append:x64 += "fw-printenv"
+RDEPENDS:${PN}:append:x64 = " fw-printenv"
 
 S = "${WORKDIR}"
 

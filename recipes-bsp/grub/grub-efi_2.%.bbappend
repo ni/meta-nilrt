@@ -6,7 +6,7 @@ GRUB_BUILDIN += "smbios chain multiboot efi_uga font gfxterm gfxmenu terminal \
                 regexp probe"
 
 # Downstream NI-branch code quality is not yet ready to build with -Werror
-CFLAGS:append += "-Wno-error"
+CFLAGS:append = " -Wno-error"
 
 PACKAGES:prepend = "${PN}-nilrt "
 

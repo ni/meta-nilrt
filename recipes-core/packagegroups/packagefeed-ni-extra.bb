@@ -302,7 +302,7 @@ RDEPENDS:${PN} += "\
 "
 
 # meta-openembedded/meta-oe/recipes-devtools
-RDEPENDS:${PN}:append:x64 += "\
+RDEPENDS:${PN}:append:x64 = "\
 	concurrencykit \
 	msr-tools \
 "
@@ -350,7 +350,7 @@ RDEPENDS:${PN} += "\
 
 # meta-openembedded/meta-oe/recipes-graphics
 # meta-oe/recipes-graphics
-RDEPENDS:${PN}:append:x64 += "\
+RDEPENDS:${PN}:append:x64 = "\
 	jasper \
 	packagegroup-fonts-truetype \
 	terminus-font \
@@ -457,7 +457,7 @@ RDEPENDS:${PN} += "\
 	vim \
 "
 
-RDEPENDS:${PN}:append:x64 += "\
+RDEPENDS:${PN}:append:x64 = "\
 	edac-utils \
 	lcms \
 	mcelog \
@@ -748,7 +748,7 @@ RDEPENDS:${PN} += "\
 	tgt \
 "
 
-RDEPENDS:${PN}:append:x64 += "\
+RDEPENDS:${PN}:append:x64 = "\
 	chef \
 	puppet \
 "
@@ -767,7 +767,7 @@ RDEPENDS:${PN} += "\
 	openvswitch \
 "
 
-RDEPENDS:${PN}:append:x64 += "\
+RDEPENDS:${PN}:append:x64 = "\
 	ipxe \
 "
 

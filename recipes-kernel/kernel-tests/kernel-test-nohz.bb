@@ -11,7 +11,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}-files:"
 S = "${WORKDIR}"
 
 RDEPENDS:${PN}-ptest += "bash coreutils procps rt-tests"
-RDEPENDS:${PN}-ptest:append:x64 += "packagegroup-ni-nohz-kernel"
+RDEPENDS:${PN}-ptest:append:x64 = " packagegroup-ni-nohz-kernel"
 ALLOW_EMPTY:${PN} = "1"
 
 SRC_URI += "\

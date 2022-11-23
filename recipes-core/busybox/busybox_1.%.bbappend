@@ -13,11 +13,11 @@ SRC_URI =+ " \
             file://login-utilities.cfg \
             file://udhcpd.wlan0.conf"
 
-SRC_URI:append:x64 += "file://enable_ar_create_fragment.cfg"
+SRC_URI:append:x64 = " file://enable_ar_create_fragment.cfg"
 
 # we're using syslog-ng, don't build busybox syslog (avoids build warnings)
-SRC_URI:remove += "file://syslog.cfg"
-INITSCRIPT_PACKAGES:remove += "${PN}-syslog"
+SRC_URI:remove = "file://syslog.cfg"
+INITSCRIPT_PACKAGES:remove = "${PN}-syslog"
 
 # Do not perform update-rc.d actions on the hwclock.sh initscript in this
 # package. We only wish to call hwclock.sh from /etc/init.d/bootmisc manually.
