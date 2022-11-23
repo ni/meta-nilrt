@@ -1,6 +1,6 @@
 # Onboard uses unicode glyphs in its key_defs.xml file, which means
 # we need a font that has those glyphs present.
-RDEPENDS:${PN}:append += "ttf-dejavu-sans"
+RDEPENDS:${PN}:append = " ttf-dejavu-sans"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
