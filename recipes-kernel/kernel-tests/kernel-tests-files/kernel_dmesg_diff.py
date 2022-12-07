@@ -2,6 +2,7 @@ import argparse
 from bson.binary import Binary
 import datetime
 import difflib
+import hashlib
 import mmap
 import os
 import pymongo
@@ -29,6 +30,18 @@ class DB:
 
     def count_documents(self, query):
         return self.dmesg_logs_collection.count_documents(query)
+
+class Logger:
+    logs = []
+    def log(self, log):
+        self.logs.append(log)
+
+    def first_log(self, log):
+        self.logs.insert(0, log)
+
+    def report(self):
+        for log in self.logs:
+            print(log)
 
 def run_cmd(cmd):
     output = subprocess.check_output(cmd).strip()
@@ -58,7 +71,7 @@ def get_dmesg_log():
     dmesg_log = run_cmd(['dmesg'])
     return dmesg_log
 
-def upload_log(db, dmesg_log):
+def upload_log(db, dmesg_log, logger):
     data = {}
     kernel_version = KernelVersion()
     data['kernel_version_full'] = kernel_version.full
@@ -76,7 +89,7 @@ def upload_log(db, dmesg_log):
     data['dmesg_log'] = header + dmesg_log
 
     record = db.insert(data)
-    print('INFO: Uploaded dmesg log of "{}" kernel {} from {} with _id {}'.format(data['kernel_type'], data['kernel_version_full'], data['date'], record.inserted_id))
+    logger.log('INFO: Uploaded dmesg log of "{}" kernel {} from {} with _id {}'.format(data['kernel_type'], data['kernel_version_full'], data['date'], record.inserted_id))
 
 def strip_headers(dmesg_log):
     output = ''
@@ -85,7 +98,7 @@ def strip_headers(dmesg_log):
             output = output + line + '\n'
     return output
 
-def get_old_dmesg_log(db):
+def get_old_dmesg_log(db, logger):
     query = {}
     kernel_version = KernelVersion()
     query['kernel_version_full'] = {'$ne': kernel_version.full}
@@ -103,11 +116,18 @@ def get_old_dmesg_log(db):
         if db.count_documents(query):
             results = db.find(query).sort('date', pymongo.DESCENDING).limit(1)
         else:
-            print('INFO: No suitable previous dmesg log found')
+            # Keep this log in first line to help streak indexer group results. Diff hash will be populated at end.
+            logger.first_log('INFO: dmesg_diff: {} against <empty>, diff hash '.format(kernel_version.full))
+
+            logger.log('INFO: No suitable previous dmesg log found')
             return ''
 
     result = next(results)
-    print('INFO: Using previous dmesg log of "{}" kernel {} from {} with _id {}'.format(result['kernel_type'], result['kernel_version_full'], result['date'], result['_id']))
+
+    # Keep this log in first line to help streak indexer group results. Diff hash will be populated at end.
+    logger.first_log('INFO: dmesg_diff: {} against older log of {}, diff hash '.format(kernel_version.full, result['kernel_version_full']))
+
+    logger.log('INFO: Using previous dmesg log of "{}" kernel {} from {} with _id {}'.format(result['kernel_type'], result['kernel_version_full'], result['date'], result['_id']))
     dmesg_log = result['dmesg_log']
     return strip_headers(dmesg_log)
 
@@ -151,18 +171,24 @@ def prepare_log_for_diff(log):
     log.sort()
     return log
 
-def diff_logs(current_log, old_log):
+def diff_logs(current_log, old_log, logger):
     current_log = prepare_log_for_diff(current_log)
     old_log = prepare_log_for_diff(old_log)
     diff = list(difflib.unified_diff(old_log, current_log, n=0))
     if diff:
-        print('INFO: Starting diff')
+        # Add diff hash to first log
+        logger.logs[0] += hashlib.md5(''.join(diff).encode('utf-8')).hexdigest()
+
+        logger.log('INFO: Starting diff')
         for line in diff:
-            print(line)
-        print('INFO: End of diff')
+            logger.log(line)
+        logger.log('INFO: End of diff')
         return False
 
-    print('INFO: Empty diff')
+    # Add diff hash to first log
+    logger.logs[0] += '0'
+
+    logger.log('INFO: Empty diff')
     return True
 
 def parse_args():
@@ -173,14 +199,17 @@ def parse_args():
 
     return parser.parse_args()
 
+logger = Logger()
 args = parse_args()
 db = DB(args.server, args.user, args.password)
-old_dmesg_log = get_old_dmesg_log(db)
+old_dmesg_log = get_old_dmesg_log(db, logger)
 
 dmesg_log = get_dmesg_log()
-upload_log(db, dmesg_log)
+upload_log(db, dmesg_log, logger)
 
-result = diff_logs(dmesg_log, old_dmesg_log)
+result = diff_logs(dmesg_log, old_dmesg_log, logger)
+
+logger.report()
 
 if result:
     sys.exit(os.EX_OK)
