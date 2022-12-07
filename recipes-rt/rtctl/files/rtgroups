@@ -40,5 +40,6 @@
 # Default policy
 kthreadd:f:25:*:\[kthreadd\]$
 irqthread:f:15:*:\[irq\/.+\]$
+irq_work:f:12:*:\[irq_work\/.+\]$
 ksoftirqd:f:8:*:\[ksoftirqd\/.+\]$
 
