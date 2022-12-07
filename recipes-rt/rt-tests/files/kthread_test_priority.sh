@@ -43,7 +43,7 @@ check_prio_for_task ksoftirqd/0 FIFO 8
 ptest_report
 
 ptest_change_subtest 3 irq
-check_prio_for_task irq FIFO 15
+check_prio_for_task irq/ FIFO 15
 ptest_report
 
 exit $rc_first
