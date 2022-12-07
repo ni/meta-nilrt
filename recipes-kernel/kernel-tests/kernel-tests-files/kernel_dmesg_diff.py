@@ -156,7 +156,8 @@ replacement_patterns = [
         [r'audit\(\d+\.\d+:\d+\):', 'audit():'],
         [r', CDC EEM Device, \S+', ', CDC EEM Device, '],
         [r' HOST MAC \S+', ' HOST MAC '],
-        [r'NODE_DATA\(0\) allocated \[mem .*\]', 'NODE_DATA(0) allocated [mem ]']
+        [r'NODE_DATA\(0\) allocated \[mem .*\]', 'NODE_DATA(0) allocated [mem ]'],
+        [r'ACPI: SSDT 0x.*', 'ACPI: SSDT 0x']
 ]
 
 def strip_known_differences(log):
