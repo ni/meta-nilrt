@@ -1,5 +1,5 @@
 DESCRIPTION = "NILRT linux kernel full dynamic ticks (NO_HZ_FULL) build"
-NI_RELEASE_VERSION = "22.8"
+NI_RELEASE_VERSION = "23.0"
 LINUX_VERSION = "5.10"
 LINUX_KERNEL_TYPE = "nohz"
 
