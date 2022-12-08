@@ -1,6 +1,6 @@
 DESCRIPTION = "Cryptographic modules for Python."
 HOMEPAGE = "http://www.pycrypto.org/"
-LICENSE = "PSFv2"
+LICENSE = "PSF-2.0"
 LIC_FILES_CHKSUM = "file://COPYRIGHT;md5=35f354d199e8cb7667b059a23578e63d"
 
 DEPENDS += " gmp"
