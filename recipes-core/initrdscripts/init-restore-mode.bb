@@ -26,7 +26,7 @@ SRC_URI:append:x64 = "\
 	file://grub.cfg	\
 "
 
-RDEPENDS:${PN} += "bash rauc"
+RDEPENDS:${PN} += "bash"
 
 do_install() {
 	install -d ${D}${sysconfdir}/ni-provisioning
