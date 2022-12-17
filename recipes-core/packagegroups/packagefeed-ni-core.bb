@@ -26,8 +26,6 @@ RDEPENDS:${PN} = "\
 
 RDEPENDS:${PN}:append:x64 = "\
 	init-nilrt-ramfs \
-	rauc \
-	rauc-mark-good \
 	nilrt-grub-runmode \
 	nilrt-grub-safemode \
 "
