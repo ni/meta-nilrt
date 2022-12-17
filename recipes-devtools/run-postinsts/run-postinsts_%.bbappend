@@ -9,7 +9,7 @@ SRC_URI:append = " \
 "
 
 inherit ptest
-
+PTESTS_FAST += "${PN}-ptest"
 
 do_install:append() {
 
