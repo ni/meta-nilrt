@@ -7,7 +7,7 @@ LICENSE_CREATE_PACKAGE = "0"
 PV = "${DISTRO_VERSION}"
 BUNDLE = "minimal-nilrt-bundle"
 DEPENDS = "${BUNDLE}"
-RDEPENDS:${PN} += "bash rauc"
+RDEPENDS:${PN} += "bash"
 ALLOW_EMPTY:${PN}-dbg = "0"
 ALLOW_EMPTY:${PN}-dev = "0"
 
@@ -27,11 +27,9 @@ do_install:x64() {
     install -d ${D}/usr/share/licenses/${PN}
     install -m 0755 ${WORKDIR}/${PN}-install  ${D}/usr/share/nilrt/nilrt-install
     install -m 0755 ${WORKDIR}/MIT ${D}/usr/share/licenses/${PN}/MIT
-    install -m 0755 ${DEPLOY_DIR_IMAGE}/${BUNDLE}-${MACHINE}.raucb ${D}/usr/share/nilrt
 }
 
 FILES:${PN} = "\
-    /usr/share/nilrt/${BUNDLE}-${MACHINE}.raucb \
     /usr/share/nilrt/nilrt-install \
     /usr/share/licenses/${PN}/MIT \
 "
