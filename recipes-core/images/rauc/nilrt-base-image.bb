@@ -4,8 +4,6 @@ IMAGE_FEATURES += "x11"
 
 # boot management
 IMAGE_INSTALL = "\
-	rauc \
-	rauc-mark-good \
 "
 
 # user software
