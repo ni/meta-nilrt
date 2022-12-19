@@ -7,13 +7,13 @@ LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://COPYING;md5=b234ee4d69f5fce4486a80fdaf4a4263"
 
 
-PV = "3.0.6"
+PV = "3.0.9"
 
 
 SRC_URI = "git://github.com/dell/dkms.git;protocol=https;branch=master \
 "
 
-SRCREV = "8ff0bc21594fba4edac7173d11f02710044a5113"
+SRCREV = "3bbe8e704be8cd408ce8bd2e5b41b76d686719ed"
 
 S = "${WORKDIR}/git"
 
