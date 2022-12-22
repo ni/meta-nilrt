@@ -9,12 +9,10 @@ DEPENDS = "glibc"
 
 SRC_URI = "\
 	file://run-ptest \
-	file://rwlockbomb.c \
 	file://test_floating_point.cpp \
 	file://test_oom_handling.cpp \
 	file://test_overcomit_memory.sh \
 	file://test_overcomit_ratio.sh \
-	file://test_rwlockbomb.sh \
 	file://test_shmem.cpp \
 	file://test_stack_touch.cpp \
 "
@@ -31,7 +29,6 @@ do_compile() {
 	cd ${S}
 	${CC} -o test_floating_point test_floating_point.cpp
 
-	${CC} -o rwlockbomb rwlockbomb.c -lpthread
 	${CC} -o test_oom_handling test_oom_handling.cpp -lpthread
 	${CC} -o test_shmem        test_shmem.cpp        -lpthread
 	${CC} -o test_stack_touch  test_stack_touch.cpp  -lpthread
@@ -40,20 +37,18 @@ do_compile() {
 do_install() {
 	# source files
 	install -d ${D}${debugsrcdir}
-	install -m 0644 ${S}/*.c ${S}/*.cpp ${D}${debugsrcdir}/
+	install -m 0644 ${S}/*.cpp ${D}${debugsrcdir}/
 }
 
 do_install_ptest() {
 	install -m 0755 ${S}/run-ptest                ${D}${PTEST_PATH}
 
-	install -m 0744 ${S}/rwlockbomb               ${D}${PTEST_PATH}
 	install -m 0755 ${S}/test_floating_point      ${D}${PTEST_PATH}
 	install -m 0755 ${S}/test_oom_handling        ${D}${PTEST_PATH}
 	install -m 0755 ${S}/test_overcomit_memory.sh ${D}${PTEST_PATH}
 	install -m 0755 ${S}/test_overcomit_ratio.sh  ${D}${PTEST_PATH}
 	install -m 0755 ${S}/test_shmem               ${D}${PTEST_PATH}
 	install -m 0755 ${S}/test_stack_touch         ${D}${PTEST_PATH}
-	install -m 0744 ${S}/test_rwlockbomb.sh       ${D}${PTEST_PATH}
 }
 
 
@@ -69,9 +64,7 @@ RDEPENDS:${PN}-src = "\
 "
 
 # -ptest : ptest wrappers
-# coreutils: for `nproc` in test_rwlockbomb.sh
 RDEPENDS:${PN}-ptest += " \
 	bash \
-	coreutils \
 	ptest-utils-bash \
 "
