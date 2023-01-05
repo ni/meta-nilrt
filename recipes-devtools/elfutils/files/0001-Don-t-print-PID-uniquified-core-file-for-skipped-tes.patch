@@ -1,0 +1,32 @@
+From bb88dc47fdfda61e2120e95e984d05bf0ace308f Mon Sep 17 00:00:00 2001
+From: Mike Petersen <mike.petersen@ni.com>
+Date: Thu, 5 Jan 2023 09:16:08 -0600
+Subject: [PATCH] Don't print PID-uniquified core file for skipped test
+
+Signed-off-by: Mike Petersen <mike.petersen@ni.com>
+
+Upstream-Status: Inappropriate [other]
+This patch is NI specific. It removes the uniquified output to integrate
+better with our test systems, which recognize duplicate failures by
+comparing the error message to those seen previously.
+
+---
+ tests/backtrace-subr.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/backtrace-subr.sh b/tests/backtrace-subr.sh
+index b63e3814..fec10806 100644
+--- a/tests/backtrace-subr.sh
++++ b/tests/backtrace-subr.sh
+@@ -182,7 +182,7 @@ check_native_core()
+     fi
+   fi
+   if [ ! -f "$core" ]; then
+-    echo "No $core file generated";
++    echo "No core file generated";
+     exit 77;
+   fi
+ 
+-- 
+2.39.0
+
