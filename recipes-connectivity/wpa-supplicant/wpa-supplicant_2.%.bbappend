@@ -1,6 +1,7 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 SRC_URI =+ " \
+	file://0001-Add-error-handling-for-eapol-state-machine-not-reset.patch \
 	file://dbus-wpa_supplicant.conf;subdir=nilrt \
 	file://fi.epitest.hostap.WPASupplicant.service;subdir=nilrt \
 	file://fi.w1.wpa_supplicant1.service;subdir=nilrt \

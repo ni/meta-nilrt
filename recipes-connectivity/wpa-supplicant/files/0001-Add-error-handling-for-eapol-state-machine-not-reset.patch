@@ -1,0 +1,135 @@
+From 923b11cc3481706aa899f2bcc8e4c716f5a9e8e7 Mon Sep 17 00:00:00 2001
+From: Charlie Johnston <charlie.johnston@ni.com>
+Date: Fri, 6 Jan 2023 13:54:36 -0600
+Subject: [PATCH] Add error handling for eapol state machine not reseting.
+
+The eapol state machine does not reset authentication state
+when it transitions TO the inactive state. This change adds
+a check to see whether supplicant state is inactive BEFORE
+checking failed authentication state (for EAP security
+types only).
+
+Signed-off-by: Charlie Johnston <charlie.johnston@ni.com>
+
+Upstream-Status: Inappropriate [NI-specific patch that doesn't appear to add upstream value.]
+---
+ src/eap_peer/eap.c                      | 18 ++++++++++++++++++
+ src/eap_peer/eap.h                      |  1 +
+ src/eapol_supp/eapol_supp_sm.c          | 15 +++++++++++++++
+ src/eapol_supp/eapol_supp_sm.h          |  1 +
+ wpa_supplicant/dbus/dbus_new_handlers.c | 20 +++++++++++++++++++-
+ 5 files changed, 54 insertions(+), 1 deletion(-)
+
+diff --git a/src/eap_peer/eap.c b/src/eap_peer/eap.c
+index d07060213..88fdee01d 100644
+--- a/src/eap_peer/eap.c
++++ b/src/eap_peer/eap.c
+@@ -2457,6 +2457,24 @@ int eap_sm_get_status(struct eap_sm *sm, char *buf, size_t buflen, int verbose)
+ 
+ 	return len;
+ }
++
++
++/**
++ * eap_sm_has_authentication_failed - return true if EAP state machine reports authentication failure
++ * @sm: Pointer to EAP state machine allocated with eap_peer_sm_init()
++ * Returns: reports true if EAP state machine reports authentication failure
++ */
++bool eap_sm_has_authentication_failed(struct eap_sm *sm)
++{
++	if (sm == NULL)
++		return false;
++
++	if (sm->decision == DECISION_FAIL && sm->methodState == METHOD_MAY_CONT)
++		return true;
++	else
++		return false;
++}
++
+ #endif /* CONFIG_CTRL_IFACE */
+ 
+ 
+diff --git a/src/eap_peer/eap.h b/src/eap_peer/eap.h
+index a40d007d9..428569292 100644
+--- a/src/eap_peer/eap.h
++++ b/src/eap_peer/eap.h
+@@ -334,6 +334,7 @@ int eap_peer_sm_step(struct eap_sm *sm);
+ void eap_sm_abort(struct eap_sm *sm);
+ int eap_sm_get_status(struct eap_sm *sm, char *buf, size_t buflen,
+ 		      int verbose);
++bool eap_sm_has_authentication_failed(struct eap_sm *sm);
+ const char * eap_sm_get_method_name(struct eap_sm *sm);
+ struct wpabuf * eap_sm_buildIdentity(struct eap_sm *sm, int id, int encrypted);
+ void eap_sm_request_identity(struct eap_sm *sm);
+diff --git a/src/eapol_supp/eapol_supp_sm.c b/src/eapol_supp/eapol_supp_sm.c
+index 0bfe3c970..67fbdd2e8 100644
+--- a/src/eapol_supp/eapol_supp_sm.c
++++ b/src/eapol_supp/eapol_supp_sm.c
+@@ -1201,6 +1201,21 @@ int eapol_sm_get_status(struct eapol_sm *sm, char *buf, size_t buflen,
+ 	return len;
+ }
+ 
++/**
++ * eapol_sm_has_authentication_failed - Return true if EAPOL state machine reports authentication failed
++ * @sm: Pointer to EAPOL state machine allocated with eapol_sm_init()
++ * Returns: true if EAPOL state machine reports authentication failure
++ */
++bool eapol_sm_has_authentication_failed(struct eapol_sm *sm)
++{
++	if (sm == NULL)
++		return false;
++	if ((sm->suppPortStatus == Unauthorized && sm->SUPP_PAE_state == SUPP_PAE_HELD) ||
++	    eap_sm_has_authentication_failed(sm->eap))
++		return true;
++	else
++		return false;
++}
+ 
+ /**
+  * eapol_sm_get_mib - Get EAPOL state machine MIBs
+diff --git a/src/eapol_supp/eapol_supp_sm.h b/src/eapol_supp/eapol_supp_sm.h
+index 2b1aeff88..0ee30732d 100644
+--- a/src/eapol_supp/eapol_supp_sm.h
++++ b/src/eapol_supp/eapol_supp_sm.h
+@@ -326,6 +326,7 @@ void eapol_sm_deinit(struct eapol_sm *sm);1 
+ void eapol_sm_step(struct eapol_sm *sm);
+ int eapol_sm_get_status(struct eapol_sm *sm, char *buf, size_t buflen,
+ 			int verbose);
++bool eapol_sm_has_authentication_failed(struct eapol_sm *sm);
+ int eapol_sm_get_mib(struct eapol_sm *sm, char *buf, size_t buflen);
+ void eapol_sm_configure(struct eapol_sm *sm, int heldPeriod, int authPeriod,
+ 			int startPeriod, int maxStart);
+diff --git a/wpa_supplicant/dbus/dbus_new_handlers.c b/wpa_supplicant/dbus/dbus_new_handlers.c
+index 67ce970d0..4565ba0e1 100644
+--- a/wpa_supplicant/dbus/dbus_new_handlers.c
++++ b/wpa_supplicant/dbus/dbus_new_handlers.c
+@@ -3453,7 +3453,25 @@ dbus_bool_t wpas_dbus_getter_state(
+ 	char *state_ls, *tmp;
+ 	dbus_bool_t success = FALSE;
+ 
+-	str_state = wpa_supplicant_state_txt(wpa_s->wpa_state);
++	/**
++	 * Need to check whether supplicant state is inactive BEFORE
++	 * checking failed authentication state (for EAP security types only).
++	 * The eapol state machine does not reset authentication state
++	 * when it transitions TO the inactive state.
++	 */
++	if (wpa_s->wpa_state == WPA_INACTIVE)
++	{
++		str_state = wpa_supplicant_state_txt(wpa_s->wpa_state);
++	}
++	else if (wpa_s->key_mgmt == WPA_KEY_MGMT_IEEE8021X &&
++	    eapol_sm_has_authentication_failed(wpa_s->eapol))
++	{
++		str_state = "UNAUTHORIZED";
++	}
++	else
++	{
++		str_state = wpa_supplicant_state_txt(wpa_s->wpa_state);
++	}
+ 
+ 	/* make state string lowercase to fit new DBus API convention
+ 	 */
+-- 
+2.30.2
+
