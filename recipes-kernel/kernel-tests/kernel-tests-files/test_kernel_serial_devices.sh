@@ -46,6 +46,43 @@ function _check_machine_vendor_ni () {
 # Comma-separate a list
 function _commasep { local IFS=","; echo "$*"; }
 
+function _is_isa_bridge () {
+	DEVPATH=$1
+	PCI_CLASS=$(cat ${DEVPATH}/class)
+	# device subclass 06:01 == ISA bridge
+	if [ $(( $PCI_CLASS & 0xFFFF00 )) -eq $(( 0x060100 )) ]; then
+		return 0
+	fi
+	return 1
+}
+
+# Attempt to determine if this is an onboard serial port or not.
+function _is_onboard_serial () {
+	TTY=$1
+
+	case $(realpath /sys/class/tty/$TTY) in
+		/sys/devices/pnp*|/sys/devices/platform*)
+			# It's on the legacy PNP bus or is a platform
+			# device, so yes.
+			return 0
+			;;
+
+		/sys/devices/pci*)
+			# This _might_ be a PCI serial port, or it might be
+			# be connected to a PCI SMBUS bridge. If it's on such
+			# such a bridge, assume it's built-in.
+			PARENT=$(realpath /sys/class/tty/$TTY/../../..)
+			if _is_isa_bridge $PARENT; then
+				return 0
+			else
+				return 1
+			fi
+			;;
+	esac
+
+	return 1
+}
+
 function test_serial_devices () {
 	# Different targets have different numbers (and addresses) of serial
 	# ports; about the only guarantee we have is that if we have a
@@ -103,12 +140,10 @@ function test_serial_devices () {
 	for TTY in $(ls /sys/class/tty | sort -V); do
 		# We only want to care about ones that are on the pnp or
 		# platform buses (e.g., built into the controller)
-		case $(realpath /sys/class/tty/$TTY) in
-			/sys/devices/pnp*|/sys/devices/platform*)
-				PORT=$(cat /sys/class/tty/$TTY/port)
-				ACTUAL+=("$TTY:$PORT")
-				;;
-		esac
+		if _is_onboard_serial $TTY; then
+			PORT=$(cat /sys/class/tty/$TTY/port)
+			ACTUAL+=("$TTY:$PORT")
+		fi
 	done
 
 	# Compare the expected list and the actual list. Since we enumerated
