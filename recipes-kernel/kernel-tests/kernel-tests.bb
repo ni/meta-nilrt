@@ -11,7 +11,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}-files:"
 S = "${WORKDIR}"
 
 DEPENDS = "virtual/kernel libcap"
-RDEPENDS:${PN}-ptest += "bash libcap kmod dmidecode python3-pymongo"
+RDEPENDS:${PN}-ptest += "bash libcap kmod dmidecode python3-pymongo os-release"
 
 ALLOW_EMPTY:${PN} = "1"
 
