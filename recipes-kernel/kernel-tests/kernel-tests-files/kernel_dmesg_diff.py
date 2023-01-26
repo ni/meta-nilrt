@@ -59,13 +59,15 @@ class KernelVersion:
         self.major_minor = kernel_version.group(2)
         self.type = 'next' if kernel_version.group(3) else 'current'
 
+class OsVersion:
+    def __init__(self):
+        with open('/etc/os-release', 'rb') as file, mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ) as mfile:
+            build_id = re.search(br'BUILD_ID=\"((\d+\.\d+).*)\"', mfile)
+            self.full = build_id.group(1).decode()
+            self.major_minor = build_id.group(2).decode()
+
 def get_architecture():
     return run_cmd(['uname', '-m'])
-
-def get_os_version():
-    with open('/etc/os-release', 'rb') as file, mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ) as mfile:
-        build_id = re.search(br'BUILD_ID=\"(.*)\"', mfile)
-        return build_id.group(1).decode()
 
 def get_dmesg_log():
     dmesg_log = run_cmd(['dmesg'])
@@ -74,12 +76,14 @@ def get_dmesg_log():
 def upload_log(db, dmesg_log, logger):
     data = {}
     kernel_version = KernelVersion()
+    os_version = OsVersion()
     data['kernel_version_full'] = kernel_version.full
     data['kernel_version_major_minor'] = kernel_version.major_minor
     data['kernel_type'] = kernel_version.type
     data['device_desc'] = get_device_desc()
     data['architecture'] = get_architecture()
-    data['os_version'] = get_os_version()
+    data['os_version'] = os_version.full
+    data['os_version_major_minor'] = os_version.major_minor
     data['date'] = str(datetime.datetime.now())
 
     header = ''
@@ -101,26 +105,36 @@ def strip_headers(dmesg_log):
 def get_old_dmesg_log(db, logger):
     query = {}
     kernel_version = KernelVersion()
+    os_version = OsVersion()
     query['kernel_version_full'] = {'$ne': kernel_version.full}
     query['device_desc'] = get_device_desc()
     query['kernel_version_major_minor'] = kernel_version.major_minor
+    query['os_version_major_minor'] = os_version.major_minor
 
     if db.count_documents(query):
         results = db.find(query).sort('date', pymongo.DESCENDING).limit(1)
     else:
-        # If there aren't any results matching the kernel major minor version, broaden the search
-        # but limit it to same kernel type
-        del query['kernel_version_major_minor']
-        query['kernel_type'] = kernel_version.type
+        # If there are no results, there may not be a run from the current os version.
+        # Remove that requirement.
+        del query['os_version_major_minor']
+        logger.log('INFO: No prior logs from this OS Version found. Using previous version.')
 
         if db.count_documents(query):
             results = db.find(query).sort('date', pymongo.DESCENDING).limit(1)
         else:
-            # Keep this log in first line to help streak indexer group results. Diff hash will be populated at end.
-            logger.first_log('INFO: dmesg_diff: {} against <empty>, diff hash '.format(kernel_version.full))
+            # If there still aren't any results matching the kernel major minor version, broaden the
+            # search but limit it to same kernel type
+            del query['kernel_version_major_minor']
+            query['kernel_type'] = kernel_version.type
 
-            logger.log('INFO: No suitable previous dmesg log found')
-            return ''
+            if db.count_documents(query):
+                results = db.find(query).sort('date', pymongo.DESCENDING).limit(1)
+            else:
+                # Keep this log in first line to help streak indexer group results. Diff hash will be populated at end.
+                logger.first_log('INFO: dmesg_diff: {} against <empty>, diff hash '.format(kernel_version.full))
+
+                logger.log('INFO: No suitable previous dmesg log found')
+                return ''
 
     result = next(results)
 
