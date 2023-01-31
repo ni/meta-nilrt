@@ -106,7 +106,7 @@ def get_old_dmesg_log(db, logger):
     query = {}
     kernel_version = KernelVersion()
     os_version = OsVersion()
-    query['kernel_version_full'] = {'$ne': kernel_version.full}
+    query['kernel_version_full'] = {'$lt': kernel_version.full}
     query['device_desc'] = get_device_desc()
     query['kernel_version_major_minor'] = kernel_version.major_minor
     query['os_version_major_minor'] = os_version.major_minor
