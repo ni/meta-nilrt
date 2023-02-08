@@ -56,9 +56,15 @@ function add_system_info()
 function run_cyclictest()
 {
     LOG="$LOG_DIR/cyclictest-$1-`date +'%Y_%m_%d-%H_%M_%S'`.log"
+    INFLUXDB_INFO="/home/admin/.influxdb.info"
     cyclictest --smp --priority=98 --mlockall --interval=997 --quiet --duration="$TEST_DURATION" --histofall=1000 --histfile="$LOG" > /dev/null
     add_system_info "$LOG"
-    python3 upload_cyclictest_results.py "-i $LOG" "-s dso-db-influx-1.ni.systems" "-p 8086"
+    if [[ -f "$INFLUXDB_INFO" ]]; then
+        source "$INFLUXDB_INFO"
+        python3 upload_cyclictest_results.py "-i $LOG" "-s $INFLUXDB_SERVER" "-p $INFLUXDB_PORT"
+    else
+        echo "INFO: No InfluxDB Connection Info. Results will not be published."
+    fi
 
     LATENCY=$(grep -sw "# Max Latencies:" "$LOG" | awk '{max=$4; for(i=4; i<=NF; i++) if ($i>max) max=$i; gsub("^0*", "", max); print max}')
     if [ "$LATENCY" -le "$MAX_LATENCY" ]; then
