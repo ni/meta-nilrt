@@ -51,13 +51,24 @@ def get_device_desc():
     cmdoutput = run_cmd(['fw_printenv', 'DeviceDesc'])
     return cmdoutput.split('=')[1]
 
-class KernelVersion:
+class SemanticVersion:
+    def __init__(self, versionString):
+        # Regex below copied from https://semver.org/.
+        version = re.search(r'^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$', versionString)
+        self.full = version.group()
+        self.major = int(version.group('major'))
+        self.minor = int(version.group('minor'))
+        self.patch = int(version.group('patch'))
+        self.prerelease = version.group('prerelease')
+        self.build_metadata = version.group('buildmetadata')
+
+class KernelVersion(SemanticVersion):
     def __init__(self):
-        self.uname = run_cmd(['uname', '-r'])
-        kernel_version = re.search(r'((\d+\.\d+)\.\d+-rt\d+)(-next)?', self.uname)
-        self.full = kernel_version.group(1)
-        self.major_minor = kernel_version.group(2)
-        self.type = 'next' if kernel_version.group(3) else 'current'
+        version =run_cmd(['uname', '-r'])
+        SemanticVersion.__init__(self, version)
+        self.type = 'next' if self.build_metadata else 'current'
+        prerelease_version = int(re.search(r'0|[1-9]\d*', self.prerelease).group())
+        self.version_dict = { 'major': self.major, 'minor': self.minor, "patch": self.patch, 'prerelease': prerelease_version }
 
 class OsVersion:
     def __init__(self):
@@ -78,7 +89,7 @@ def upload_log(db, dmesg_log, logger):
     kernel_version = KernelVersion()
     os_version = OsVersion()
     data['kernel_version_full'] = kernel_version.full
-    data['kernel_version_major_minor'] = kernel_version.major_minor
+    data['kernel_version'] = kernel_version.version_dict
     data['kernel_type'] = kernel_version.type
     data['device_desc'] = get_device_desc()
     data['architecture'] = get_architecture()
@@ -106,9 +117,10 @@ def get_old_dmesg_log(db, logger):
     query = {}
     kernel_version = KernelVersion()
     os_version = OsVersion()
-    query['kernel_version_full'] = {'$lt': kernel_version.full}
+    query['kernel_version'] = { '$lt': kernel_version.version_dict }
     query['device_desc'] = get_device_desc()
-    query['kernel_version_major_minor'] = kernel_version.major_minor
+    query['kernel_version.major'] = kernel_version.major
+    query['kernel_version.minor'] = kernel_version.minor
     query['os_version_major_minor'] = os_version.major_minor
 
     if db.count_documents(query):
@@ -124,7 +136,8 @@ def get_old_dmesg_log(db, logger):
         else:
             # If there still aren't any results matching the kernel major minor version, broaden the
             # search but limit it to same kernel type
-            del query['kernel_version_major_minor']
+            del query['kernel_version.major']
+            del query['kernel_version.minor']
             query['kernel_type'] = kernel_version.type
 
             if db.count_documents(query):
