@@ -1,6 +1,6 @@
-SUMMARY = "Ptests for the nirtcfg utility"
+SUMMARY = "Ptests for the base system image"
 DESCRIPTION = "\
-Installs ptests for the nirtcfg utilty."
+Installs ptests for the base system image."
 
 SECTION = "tests"
 LICENSE = "MIT"
@@ -8,20 +8,13 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
+ALLOW_EMPTY:${PN} = "1"
+
 SRC_URI = "\
-    file://configs/ \
     file://run-ptest \
     file://ptest-format.sh \
-    file://section_chars \
-    file://setup.sh \
-    file://shared-functions.sh \
-    file://teardown.sh \
-    file://test_binary.sh \
-    file://test_clear.sh \
-    file://test_get.sh \
-    file://test_list.sh \
-    file://test_rm-if-empty.sh \
-    file://test_set.sh \
+    file://fs_permissions_diff.py \
+    file://test_fs_permissions_diff.sh \
 "
 
 S = "${WORKDIR}"
@@ -29,18 +22,13 @@ S = "${WORKDIR}"
 inherit ptest
 
 do_install_ptest() {
-    install -m 0755 -d ${D}${PTEST_PATH}/configs
-    install -m 0755 ${WORKDIR}/configs/*           ${D}${PTEST_PATH}/configs
-    install -m 0644 ${WORKDIR}/ptest-format.sh     ${D}${PTEST_PATH}
-    install -m 0755 ${WORKDIR}/run-ptest           ${D}${PTEST_PATH}
-    install -m 0755 ${WORKDIR}/section_chars       ${D}${PTEST_PATH}
-    install -m 0755 ${WORKDIR}/setup.sh            ${D}${PTEST_PATH}
-    install -m 0755 ${WORKDIR}/shared-functions.sh ${D}${PTEST_PATH}
-    install -m 0755 ${WORKDIR}/teardown.sh         ${D}${PTEST_PATH}
-    install -m 0755 ${WORKDIR}/test_*.sh           ${D}${PTEST_PATH}
+    install -m 0644 ${WORKDIR}/ptest-format.sh        ${D}${PTEST_PATH}
+    install -m 0755 ${WORKDIR}/run-ptest              ${D}${PTEST_PATH}
+    install -m 0644 ${WORKDIR}/fs_permissions_diff.py ${D}${PTEST_PATH}
+    install -m 0755 ${WORKDIR}/test_*.sh              ${D}${PTEST_PATH}
 }
 
 # We only want to build the -ptest package
 PACKAGES:remove = "${PN}-dev ${PN}-staticdev ${PN}-dbg"
 
-RDEPENDS:${PN}-ptest:append = " bash"
+RDEPENDS:${PN}-ptest:append = " bash python3-pymongo"
