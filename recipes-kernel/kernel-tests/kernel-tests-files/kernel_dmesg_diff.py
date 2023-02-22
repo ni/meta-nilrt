@@ -1,5 +1,4 @@
 import argparse
-from bson.binary import Binary
 import datetime
 import difflib
 import hashlib
@@ -16,7 +15,7 @@ class DB:
 
     def __init__(self, server, user, password):
         mongo_client = pymongo.MongoClient("mongodb://{user}:{pwd}@{server}".format(
-            user=args.user, pwd=args.password, server=args.server
+            user=user, pwd=password, server=server
             ),
             w=1)
         db = mongo_client[self.mongo_db_name]
@@ -107,11 +106,7 @@ def upload_log(db, dmesg_log, logger):
     logger.log('INFO: Uploaded dmesg log of "{}" kernel {} from {} with _id {}'.format(data['kernel_type'], data['kernel_version_full'], data['date'], record.inserted_id))
 
 def strip_headers(dmesg_log):
-    output = ''
-    for line in dmesg_log.splitlines():
-        if not line.startswith('#'):
-            output = output + line + '\n'
-    return output
+    return ''.join(line + '\n' for line in dmesg_log.splitlines() if not line.startswith('#'))
 
 def get_old_dmesg_log(db, logger):
     query = {}
