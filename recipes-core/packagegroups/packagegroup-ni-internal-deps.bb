@@ -47,3 +47,9 @@ RDEPENDS:${PN}:append:x64 = "\
 	python3-ctypes \
 	python3-threading \
 "
+
+# NI Test Systems Software
+# Contact: Christian Gutierrez <christian.gutierrez@ni.com>
+RDEPENDS:${PN} += "\
+	libxml-parser-perl \
+"
