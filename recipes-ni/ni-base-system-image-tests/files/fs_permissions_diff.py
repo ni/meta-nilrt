@@ -50,8 +50,6 @@ def run_cmd(cmd):
     return output.decode('utf-8')
 
 class OsVersion:
-    phase_number = { 'd': 0, 'a': 1, 'b': 2, 'f': 3 }
-
     def __init__(self):
         with open('/etc/os-release', 'rb') as file, mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ) as mfile:
             build_id = re.search(br'BUILD_ID=\"((\d+\.\d+).*)\"', mfile)
@@ -70,7 +68,6 @@ class OsVersion:
             'major': self.major,
             'minor': self.minor,
             'patch': self.patch,
-            'phase': self.phase_number[self.phase],
             'build': self.build
         }
 
@@ -93,12 +90,14 @@ def get_fs_manifest():
     )
     return fs_manifest
 
+def log_version_info(logger, label, codename, full_version, date, db_id):
+    logger.log(f'INFO: {label} = {codename} {full_version} from {date} with _id {db_id}')
+
 def upload_manifest(db, fs_manifest, logger):
     data = {}
     os_version = OsVersion()
     data['os_version_codename'] = os_version.codename
     data['os_version_full'] = os_version.full
-    data['os_version_major_minor'] = os_version.major_minor
     data['os_version'] = os_version.version_dict
     data['date'] = str(datetime.datetime.now())
 
@@ -109,110 +108,227 @@ def upload_manifest(db, fs_manifest, logger):
     data['fs_permissions'] = header + fs_manifest
 
     record = db.insert(data)
-    logger.log('INFO: Uploaded fs permissions of OS {} from {} with _id {}'.format(data['os_version_full'], data['date'], record.inserted_id))
+
+    log_version_info(
+        logger,
+        'current',
+        data['os_version_codename'],
+        data['os_version_full'],
+        data['date'],
+        record.inserted_id
+    )
 
 def strip_headers(fs_manifest):
     return ''.join(line + '\n' for line in fs_manifest.splitlines() if not line.startswith('#'))
 
-def get_old_fs_manifest(db, logger):
+def get_old_fs_manifests(db, logger):
+    def run_query(label, query):
+        nonlocal db
+        nonlocal logger
+
+        sort_order = [('os_version', pymongo.DESCENDING), ('date', pymongo.DESCENDING)]
+
+        if db.count_documents(query):
+            results = db.find(query).sort(sort_order).limit(1)
+        else:
+            # If there are no results, there must not be a run from the current os codename.
+            # Remove that requirement.
+            del query['os_version_codename']
+            logger.log('INFO: No prior fs permissions from this OS codename found. Relaxing that constraint.')
+
+            if db.count_documents(query):
+                results = db.find(query).sort(sort_order).limit(1)
+            else:
+                logger.log('INFO: No suitable previous fs permissions found')
+                return '', '<none>'
+
+        result = next(results)
+
+        log_version_info(
+            logger,
+            label,
+            result['os_version_codename'],
+            result['os_version_full'],
+            result['date'],
+            result['_id']
+        )
+
+        return strip_headers(result['fs_permissions']), result['os_version_full']
+
     os_version = OsVersion()
-    query = {
+
+    query_build = lambda build: {
         'os_version_codename': os_version.codename,
-        'os_version_major_minor': os_version.major_minor,
         'os_version': {
             '$lt': {
                 'major': os_version.major,
                 'minor': os_version.minor,
                 'patch': os_version.patch,
-                # $lt considers booleans to be greater than all numbers
-                'phase': False,
-                'build': False
+                'build': build
             }
-        },
-        'os_version.phase': OsVersion.phase_number['f']
+        }
     }
 
-    if db.count_documents(query):
-        results = db.find(query).sort('date', pymongo.DESCENDING).limit(1)
-    else:
-        # If there are no results, there may not be a run from the current os version.
-        # Remove that requirement.
-        del query['os_version_major_minor']
-        logger.log('INFO: No prior fs permissions from this OS Version found. Using previous version.')
+    # The "basis" manifest is from the latest version with a lesser MAJOR.MINOR.PATCH
+    basis_manifest, basis_version = run_query('basis', query_build(0))
+    # The "recent" manifest is from the latest version, likely the last run with the same MAJOR.MINOR.PATCH
+    recent_manifest, recent_version = run_query('recent', query_build(os_version.build))
 
-        if db.count_documents(query):
-            results = db.find(query).sort('date', pymongo.DESCENDING).limit(1)
-        else:
-            # Keep this log in first line to help streak indexer group results. Hashes will be populated at end.
-            logger.prefix_log('INFO: fs_permissions_diff: {} against <empty> '.format(os_version.full))
+    # Keep this log in first line to help streak indexer group results. Overall hash will be populated at end.
+    logger.prefix_log(f'INFO: fs_permissions_diff: {os_version.full} against {basis_version} ')
+    # Keep this log in second line to avoid using it for grouping, but keep it for tracking.
+    # Individual hashes to be populated at end.
+    logger.prefix_log(f'INFO:   and {recent_version} ')
 
-            logger.log('INFO: No suitable previous fs permissions found')
-            return ''
-
-    result = next(results)
-
-    # Keep this log in first line to help streak indexer group results. Hashes will be populated at end.
-    logger.prefix_log('INFO: fs_permissions_diff: {} against older log of {} '.format(os_version.full, result['os_version_full']))
-
-    logger.log('INFO: Using previous fs permissions of OS {} from {} with _id {}'.format(result['os_version_full'], result['date'], result['_id']))
-    fs_manifest = result['fs_permissions']
-    return strip_headers(fs_manifest)
+    return basis_manifest, recent_manifest
 
 def prepare_manifest_for_diff(manifest):
     reader = csv.DictReader(manifest.splitlines(), fieldnames=fs_manifest_columns, delimiter='\t')
     return {row['path']: row for row in reader}
 
-def diff_manifests(current_manifest, old_manifest, logger):
-    current_hash = hashlib.md5(current_manifest.encode('utf-8')).hexdigest()
-    current_manifest = prepare_manifest_for_diff(current_manifest)
-    old_hash = hashlib.md5(old_manifest.encode('utf-8')).hexdigest()
-    old_manifest = prepare_manifest_for_diff(old_manifest)
+class IntermediateDiff:
+    def __init__(self, old, mid, new):
+        # ignores symlink targets
+        is_same = lambda old, new: (old['mode'] == new['mode']
+                                    and old['user'] == new['user']
+                                    and old['group'] == new['group'])
+        changes = lambda old, new: {path for path in old.keys() & new.keys() if not is_same(old[path], new[path])}
+        adds = lambda old, new: new.keys() - old.keys()
+        diff = lambda old, new: {
+            'changed': changes(old, new),
+            'added': adds(old, new),
+            'removed': adds(new, old)
+        }
+        self.unseen = diff(mid, new)
+        self.net = diff(old, new)
+        self.seen = diff(old, mid)
 
-    removed_paths = old_manifest.keys() - current_manifest.keys()
-    added_paths = current_manifest.keys() - old_manifest.keys()
-    common_paths = old_manifest.keys() & current_manifest.keys()
+        self.all_unseen = self.unseen['changed'] | self.unseen['added'] | self.unseen['removed']
+        self.all_net = self.net['changed'] | self.net['added'] | self.net['removed']
+        self.all_seen = self.seen['changed'] | self.seen['added'] | self.seen['removed']
+        self.all_different = (list(sorted(self.all_unseen))
+                              + list(sorted(self.all_net - self.all_unseen))
+                              + list(sorted(self.all_seen - self.all_net - self.all_unseen)))
 
-    # ignores symlink targets
-    is_same = lambda old, new: (old['mode'] == new['mode']
-                                and old['user'] == new['user']
-                                and old['group'] == new['group'])
-    different_paths = set(path for path in common_paths if not is_same(old_manifest[path], current_manifest[path]))
+    def lookup_path(self, path):
+        result = {}
+        relations = ['unseen', 'net', 'seen']
+        operations = ['changed', 'added', 'removed']
+        for rel in relations:
+            if path in self.__dict__['all_' + rel]:
+                for op in operations:
+                    if path in self.__dict__[rel][op]:
+                        result[rel] = op
+                        if op in result:
+                            result[op] |= {rel}
+                        else:
+                            result[op] = {rel}
+        return result
 
-    detail_string = lambda entry: f"mode = {entry['mode']}, user = {entry['user']}, group = {entry['group']}"
+    def differences(self):
+        for path in self.all_different:
+            difference = self.lookup_path(path)
+            difference['path'] = path
+            yield difference
+
+
+def diff_manifests(current_manifest, basis_manifest, recent_manifest, logger):
+    hash_and_prep = lambda manifest: (hashlib.md5(manifest.encode('utf-8')).hexdigest(),
+                                      prepare_manifest_for_diff(manifest))
+    current_hash, current_manifest = hash_and_prep(current_manifest)
+    basis_hash, basis_manifest = hash_and_prep(basis_manifest)
+    recent_hash, recent_manifest = hash_and_prep(recent_manifest)
+
+    # Reduce to just one hash (recent is irrelevant to test failures, and causes duplicates)
+    overall_hash = hashlib.md5(f'{basis_hash}\n{current_hash}\n'.encode('utf-8')).hexdigest()
+    # Add hash to first line of log to allow review queue to distinguish runs,
+    logger.prefix_logs[0] += overall_hash
+    # and add each hash on second line for tracking
+    logger.prefix_logs[1] += f'(basis={basis_hash}, recent={recent_hash}, current={current_hash})'
+
+    diff = IntermediateDiff(basis_manifest, recent_manifest, current_manifest)
+
+    detail_string = lambda name, manifest: lambda path: (f'{name} '
+                                                         + ', '.join([
+                                                             f"mode = {manifest[path]['mode']}",
+                                                             f"user = {manifest[path]['user']}",
+                                                             f"group = {manifest[path]['group']}"]))
+    basis_detail =   detail_string('basis  ', basis_manifest)
+    recent_detail =  detail_string('recent ', recent_manifest)
+    current_detail = detail_string('current', current_manifest)
+
+    op_markers = {'changed': 'c', 'added': '+', 'removed': '-'}
+
+    logger.log('\n')
+    logger.log('###### Differences since last test run: current vs recent ######')
+    logger.log('(Note that these are not necessarily responsible for test failure; see full diff below)')
+    logger.log('LEGEND:')
+    logger.log('c: current changed relative to recent')
+    logger.log('+: current has a path that recent does not')
+    logger.log('-: recent has a path that current does not')
+    logger.log('###### begin last-run diff ######')
+
+    for path in sorted(diff.all_unseen):
+        difference = diff.lookup_path(path)
+        msg_lines = [f"{op_markers[difference['unseen']]} {path}"]
+        if 'changed' == difference['unseen']:
+            msg_lines += [f'{current_detail(path)}', f'{recent_detail(path)}']
+        elif 'added' == difference['unseen']:
+            msg_lines += [f'{current_detail(path)}']
+        elif 'removed' == difference['unseen']:
+            msg_lines += [f'{recent_detail(path)}']
+        logger.log('\n  '.join(msg_lines))
+
+    logger.log('###### end last-run diff ######')
+
+    logger.log('\n')
+    logger.log('###### Full three-way diff: current vs basis, recent vs basis, current vs recent ######')
+    logger.log('(Note that only the first column is responsible for test failure)')
+    logger.log('LEGEND:')
+    logger.log('c: X changed relative to Y')
+    logger.log('+: X has a path that Y does not')
+    logger.log('-: Y has a path that X does not')
+    logger.log('*   X=current Y=basis  (new issues since the last run for previous MAJOR.MINOR.PATCH)') # net
+    logger.log(' *  X=recent  Y=basis  (issues seen in the last run)') # seen
+    logger.log('  * X=current Y=recent (new issues since the last run, probably for this MAJOR.MINOR.PATCH)') # unseen
+    logger.log('###### begin full diff ######')
 
     any_differences = False
+    for difference in diff.differences():
+        path = difference['path']
+        msg_lines = ['']
+        show_basis = False
+        show_recent = False
+        show_current = False
+        if 'net' in difference:
+            any_differences = True
+            msg_lines[0] += op_markers[difference['net']]
+            show_basis = True
+            show_current = True
+        else:
+            msg_lines[0] += ' '
+        if 'seen' in difference:
+            msg_lines[0] += op_markers[difference['seen']]
+            show_basis = True
+            show_recent = True
+        else:
+            msg_lines[0] += ' '
+        if 'unseen' in difference:
+            msg_lines[0] += op_markers[difference['unseen']]
+            show_recent = True
+            show_current = True
+        else:
+            msg_lines[0] += ' '
+        msg_lines[0] += f' {path}'
+        if show_current and path in current_manifest:
+            msg_lines.append(current_detail(path))
+        if show_basis and path in basis_manifest:
+            msg_lines.append(basis_detail(path))
+        if show_recent and path in recent_manifest:
+            msg_lines.append(recent_detail(path))
+        logger.log('\n    '.join(msg_lines))
 
-    if 0 != len(removed_paths):
-        logger.log('INFO: Starting removed path list')
-        for path in removed_paths:
-            logger.log(f'{path}: {detail_string(old_manifest[path])}')
-        logger.log('INFO: End of removed path list')
-        any_differences = any_differences or True
-    else:
-        logger.log('INFO: No paths removed')
-
-    if 0 != len(added_paths):
-        logger.log('INFO: Starting added path list')
-        for path in added_paths:
-            logger.log(f'{path}: {detail_string(current_manifest[path])}')
-        logger.log('INFO: End of added path list')
-        any_differences = any_differences or True
-    else:
-        logger.log('INFO: No paths added')
-
-    # Add hashes to first line of log to allow review queue to distinguish runs
-    logger.prefix_logs[0] += f'(old={old_hash}, new={current_hash})'
-
-    if 0 != len(different_paths):
-        logger.log('INFO: Starting diff')
-        for path in different_paths:
-            logger.log('\n'.join([path,
-                                  f'\told: {detail_string(old_manifest[path])}',
-                                  f'\tnew: {detail_string(current_manifest[path])}']))
-        logger.log('INFO: End of diff')
-        any_differences = any_differences or True
-    else:
-        logger.log('INFO: Empty diff')
+    logger.log('###### end full diff ######')
 
     return not any_differences
 
@@ -227,12 +343,12 @@ def parse_args():
 logger = Logger()
 args = parse_args()
 db = DB(args.server, args.user, args.password)
-old_fs_manifest = get_old_fs_manifest(db, logger)
+basis_fs_manifest, recent_fs_manifest = get_old_fs_manifests(db, logger)
 
 fs_manifest = get_fs_manifest()
 upload_manifest(db, fs_manifest, logger)
 
-result = diff_manifests(fs_manifest, old_fs_manifest, logger)
+result = diff_manifests(fs_manifest, basis_fs_manifest, recent_fs_manifest, logger)
 
 logger.report()
 
