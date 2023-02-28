@@ -31,14 +31,17 @@ class DB:
         return self.fs_permissions_collection.count_documents(query)
 
 class Logger:
+    prefix_logs = []
     logs = []
     def log(self, log):
         self.logs.append(log)
 
-    def first_log(self, log):
-        self.logs.insert(0, log)
+    def prefix_log(self, log):
+        self.prefix_logs.append(log)
 
     def report(self):
+        for log in self.prefix_logs:
+            print(log)
         for log in self.logs:
             print(log)
 
@@ -141,7 +144,7 @@ def get_old_fs_manifest(db, logger):
             results = db.find(query).sort('date', pymongo.DESCENDING).limit(1)
         else:
             # Keep this log in first line to help streak indexer group results. Hashes will be populated at end.
-            logger.first_log('INFO: fs_permissions_diff: {} against <empty> '.format(os_version.full))
+            logger.prefix_log('INFO: fs_permissions_diff: {} against <empty> '.format(os_version.full))
 
             logger.log('INFO: No suitable previous fs permissions found')
             return ''
@@ -149,7 +152,7 @@ def get_old_fs_manifest(db, logger):
     result = next(results)
 
     # Keep this log in first line to help streak indexer group results. Hashes will be populated at end.
-    logger.first_log('INFO: fs_permissions_diff: {} against older log of {} '.format(os_version.full, result['os_version_full']))
+    logger.prefix_log('INFO: fs_permissions_diff: {} against older log of {} '.format(os_version.full, result['os_version_full']))
 
     logger.log('INFO: Using previous fs permissions of OS {} from {} with _id {}'.format(result['os_version_full'], result['date'], result['_id']))
     fs_manifest = result['fs_permissions']
@@ -198,7 +201,7 @@ def diff_manifests(current_manifest, old_manifest, logger):
         logger.log('INFO: No paths added')
 
     # Add hashes to first line of log to allow review queue to distinguish runs
-    logger.logs[0] += f'(old={old_hash}, new={current_hash})'
+    logger.prefix_logs[0] += f'(old={old_hash}, new={current_hash})'
 
     if 0 != len(different_paths):
         logger.log('INFO: Starting diff')
