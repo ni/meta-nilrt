@@ -43,7 +43,7 @@ class Logger:
             print(log)
 
 def run_cmd(cmd):
-    output = subprocess.check_output(cmd).strip()
+    output = subprocess.check_output(cmd)
     return output.decode('utf-8')
 
 class OsVersion:
