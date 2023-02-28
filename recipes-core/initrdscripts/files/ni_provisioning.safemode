@@ -140,6 +140,7 @@ set USBProductID=$PID
 set SerialNum=$SN
 set USBDevice=$TID
 set USBProduct=$PROD
+set enable_initramfs=1
 EOF
 		else
 			print_error "Details required for USB device mode are missing from SMBIOS! UPGRADE your BIOS if using NI Target. USB Gadget will not be functional."
