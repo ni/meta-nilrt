@@ -21,9 +21,24 @@ INITRAMFS_IMAGE = "nilrt-runmode-initramfs"
 do_rootfs[depends] += "${INITRAMFS_IMAGE}:do_image_complete"
 
 install_initramfs() {
+    # Install base runmode_initramfs
 	install -d ${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}
 	install -m 0644 ${DEPLOY_DIR_IMAGE}/${INITRAMFS_IMAGE}-${MACHINE}.cpio.gz \
 		${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/runmode_initramfs.gz
+
+    # Modify the image with BIOS fixes
+    mkdir -p kernel/firmware/acpi
+    PRODUCT_NAME=$(cat ${IMAGE_ROOTFS}/sys/class/dmi/id/product_name)
+    case "$PRODUCT_NAME" in
+        "NI cRIO-903"*)
+            cp ${THISDIR}/files/dsdt/903x.aml kernel/firmware/acpi/dsdt.aml
+            ;;
+		*)
+			;;
+	esac
+    find kernel | cpio -H newc --create > runmode_initramfs.gz
+    cat ${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/runmode_initramfs.gz >> runmode_initramfs.gz
+    install -m 0644 runmode_initramfs.gz ${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/runmode_initramfs.gz
 }
 
 ROOTFS_POSTPROCESS_COMMAND += "install_initramfs;"
