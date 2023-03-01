@@ -34,6 +34,7 @@ RDEPENDS:${PN} += "\
 	kernel-performance-tests \
 	ldd \
 	ltrace \
+	ni-base-system-image-tests \
 	ntp \
 	ntpdate \
 	nvme-cli \
