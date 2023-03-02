@@ -11,3 +11,4 @@
 ./test_kernel_dmesg_diff.sh
 ./test_user_stack_size.sh
 ./test_i915_firmware.sh
+./test_kernel_serial_devices.sh
