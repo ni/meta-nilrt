@@ -13,7 +13,6 @@ RDEPENDS:${PN} += "\
 
 RDEPENDS:${PN}:append:x64 = "\
 	packagegroup-ni-next-kernel \
-	kernel-test-nohz \
 "
 
 RDEPENDS:${PN} += "\
@@ -30,10 +29,8 @@ RDEPENDS:${PN} += "\
 	htop \
 	iperf2 \
 	iperf3 \
-	kernel-performance-tests \
 	ldd \
 	ltrace \
-	ni-base-system-image-tests \
 	ntp \
 	ntpdate \
 	openssl-dev \
@@ -50,4 +47,13 @@ RDEPENDS:${PN} += "\
 	strace \
 	valgrind \
 	vim \
+"
+
+# Testing packages
+RDEPENDS:${PN}:append += "\
+	kernel-performance-tests \
+	ni-base-system-image-tests \
+"
+RDEPENDS:${PN}:append:x64 += "\
+	kernel-test-nohz \
 "
