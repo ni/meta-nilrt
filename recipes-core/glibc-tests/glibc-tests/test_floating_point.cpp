@@ -118,30 +118,31 @@ int test_fp(int arr_size, result_t *result, operation op)
 	return 0;
 }
 
-void conf_sched(int cpu)
+int set_affinity(int cpu)
 {
 	cpu_set_t mask;
+
+	CPU_ZERO(&mask);
+	CPU_SET(cpu, &mask);
+	return sched_setaffinity(0, sizeof(cpu_set_t), &mask);
+}
+
+int set_scheduler(int policy, int priority)
+{
 	struct sched_param schedp;
 
-	if (cpu != -1) {
-		CPU_ZERO(&mask);
-		CPU_SET(cpu, &mask);
-	}
-
 	memset(&schedp, 0, sizeof(schedp));
-	schedp.sched_priority = 50; // use getmax() func to get the priority
-	sched_setscheduler(0, SCHED_FIFO, &schedp);
+	schedp.sched_priority = priority;
+	return sched_setscheduler(0, policy, &schedp);
 }
 
 void arithmetic_test(int cpu, int arr_size, operation op)
 {
 	result_t result;
-	conf_sched(cpu);
 	const char operation_name[][4]={"add","sub","mul","div"};
 
 	char cpu_str=' ';
-	if(cpu!=-1)
-		cpu_str=(char)cpu+'0';
+	cpu_str=(char)cpu+'0';
 
 	test_fp(arr_size, &result, op);
 	printf("# %s on CPU%c time=%dus arr_size=%d\n", operation_name[(int)op], cpu_str, result.op_time, arr_size);
@@ -153,15 +154,30 @@ void arithmetic_test(int cpu, int arr_size, operation op)
 
 int main(int argc, char** argv)
 {
+	int cpu;
+	int priority;
+
 	printf("#\n# Floating point benchmark\n#\n");
-	for(int cpu=-1; cpu<=1; cpu++) //-1 all cpu's, CPU0 and CPU1
-	{
-		for(int arr_size=10000; arr_size<=10000000; arr_size*=10)
-		{
-			for(int op=(int)addition; op<=(int)division; op++)
-			{
-				arithmetic_test(cpu, arr_size, (operation)op);
-			}
-		}
+
+	// To avoid interference run as a real-time process:
+	//  - priority 50: on smp systems where we can avoid using CPU 0 which
+	//    services irq threads on NILRT
+	//  - priority 1: on single core systems; to avoid starving irq threads
+	if (get_nprocs() > 1) {
+		cpu = 1;
+		priority = 50;
+	} else {
+		cpu = 0;
+		priority = 1;
 	}
+
+	if (set_scheduler(SCHED_FIFO, priority) < 0)
+		perror("error setting scheduler");
+
+	if (set_affinity(cpu) < 0)
+		perror("error setting CPU afinity");
+
+	for (int arr_size=10000; arr_size<=10000000; arr_size*=10)
+		for (int op=(int)addition; op<=(int)division; op++)
+			arithmetic_test(cpu, arr_size, (operation)op);
 }
