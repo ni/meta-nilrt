@@ -42,11 +42,6 @@ enum operation
 	division
 };
 
-static inline void my_gettime(struct timespec *t)
-{
-	int ret = clock_gettime(CLOCK_MONOTONIC, t);
-}
-
 static inline int64_t calcdiff_us(struct timespec *t1, struct timespec *t2)
 {
 	int64_t diff;
@@ -87,7 +82,7 @@ int test_fp(int arr_size, result_t *result, operation op)
 	z = (double *) malloc(sizeof(double) * arr_size);
 
 	init_arrays(x, y, z, arr_size);
-	my_gettime(&t1);
+	clock_gettime(CLOCK_MONOTONIC, &t1);
 	switch(op)
 	{
 	case addition:
@@ -111,15 +106,14 @@ int test_fp(int arr_size, result_t *result, operation op)
 		}
 		break;
 	}
-	my_gettime(&t2);
+	clock_gettime(CLOCK_MONOTONIC, &t2);
 	op_time = calcdiff_us(&t1, &t2);
 	free(x), free(y), free(z);
 
-	if(result!=NULL)
-		{
-			result->arr_size = arr_size;
-			result->op_time = op_time;
-		}
+	if(result!=NULL) {
+		result->arr_size = arr_size;
+		result->op_time = op_time;
+	}
 
 	return 0;
 }
