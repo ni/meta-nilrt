@@ -20,8 +20,6 @@
 #include <sys/utsname.h>
 #include <sys/mman.h>
 
-#define gettid() syscall(__NR_gettid)
-
 #define USEC_PER_SEC		1000000
 #define NSEC_PER_SEC		1000000000
 
@@ -59,17 +57,12 @@ static inline int64_t calcdiff_us(struct timespec *t1, struct timespec *t2)
 
 static inline double my_rand_double()
 {
-	//errno_t err;
 	double d = 0;
 	unsigned int max = 2043245235, number;
 
-	//err = rand_s(&number );
 	number = rand();
 
-	//if (err != 0)
-		//printf("The rand_s function failed!\n");
-	//else
-		d = (double) number / (double) UINT_MAX * max;
+	d = (double) number / (double) UINT_MAX * max;
 	return d;
 }
 
