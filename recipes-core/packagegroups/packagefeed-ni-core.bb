@@ -12,6 +12,7 @@ RDEPENDS:${PN} = "\
 	packagegroup-ni-graphical \
 	packagegroup-ni-internal-deps \
 	packagegroup-ni-nohz-kernel \
+	packagegroup-ni-ptest-smoke \
 	packagegroup-ni-restoremode \
 	packagegroup-ni-runmode \
 	packagegroup-ni-safemode \
