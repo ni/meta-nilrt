@@ -179,7 +179,9 @@ replacement_patterns = [
         [r', CDC EEM Device, \S+', ', CDC EEM Device, '],
         [r' HOST MAC \S+', ' HOST MAC '],
         [r'NODE_DATA\(0\) allocated \[mem .*\]', 'NODE_DATA(0) allocated [mem ]'],
-        [r'ACPI: SSDT 0x.*', 'ACPI: SSDT 0x']
+        [r'ACPI: SSDT 0x.*', 'ACPI: SSDT 0x'],
+        [r'tsc: Refined TSC clocksource calibration: \d+.\d+ MHz', 'tsc: Refined TSC clocksource calibration: MHz'],
+        [r'software IO TLB: mapped mem .*', 'software IO TLB: mapped mem']
 ]
 
 def strip_known_differences(log):
