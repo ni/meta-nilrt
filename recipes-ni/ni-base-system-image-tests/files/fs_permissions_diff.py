@@ -75,7 +75,7 @@ fs_manifest_format = '%p\t%M\t%u\t%g\t%l'
 fs_manifest_columns = ['path', 'mode', 'user', 'group', 'link_target']
 def get_fs_manifest():
     search_dirs = ['/bin', '/boot', '/etc', '/lib', '/lib64', '/sbin', '/usr', '/var']
-    omit_dirs = ['/lib/modules', '/var/cache', '/var/run', '/var/tmp', '/var/volatile']
+    omit_dirs = ['/etc/natinst/niskyline/Data/Assets/Cache', '/lib/modules', '/var/cache', '/var/run', '/var/tmp', '/var/volatile']
 
     omit_expr = []
     for d in omit_dirs:
