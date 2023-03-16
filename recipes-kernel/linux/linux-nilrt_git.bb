@@ -1,5 +1,5 @@
 DESCRIPTION = "Linux kernel based on nilrt branch"
-NI_RELEASE_VERSION = "master"
+NI_RELEASE_VERSION = "23.3"
 LINUX_VERSION = "5.15"
 LINUX_VERSION:xilinx-zynq = "4.14"
 
