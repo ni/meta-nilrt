@@ -28,4 +28,17 @@ ptest_change_subtest "1" "check for presence of expected aliases"
 expected_aliases_on_system
 ptest_report
 
+first_rc=$ptest_rc
+
+ptest_change_subtest "2" "wide character and multibyte string conversion functions"
+if [[ $first_rc -gt 0 ]]; then
+    echo "REASON: Cannot test aliases if they aren't installed or detected."
+    ptest_skip
+else
+    if (./test_locale_aliases); then
+        ptest_pass
+    fi
+fi
+ptest_report
+
 exit $ptest_rc
