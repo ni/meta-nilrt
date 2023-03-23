@@ -77,6 +77,16 @@ def get_fs_manifest():
     search_dirs = ['/bin', '/boot', '/etc', '/lib', '/lib64', '/sbin', '/usr', '/var']
     omit_dirs = ['/etc/natinst/niskyline/Data/Assets/Cache', '/lib/modules', '/var/cache', '/var/run', '/var/tmp', '/var/volatile']
 
+    # Don't diff files we know the permissions of already
+    with open('known-permissions.csv') as known_perm_file:
+        known_permissions = csv.reader(known_perm_file, delimiter = ',')
+        header_row = True
+        for row in known_permissions:
+            if header_row:
+                header_row = False
+                continue
+            omit_dirs.append(row[0])
+
     omit_expr = []
     for d in omit_dirs:
         omit_expr += ['-path', d, '-o']
