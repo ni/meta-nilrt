@@ -141,7 +141,15 @@ INITSCRIPT_PARAMS:${PN}-minion = "defaults"
 SUMMARY:${PN}-common = "shared libraries that salt requires for all packages"
 DESCRIPTION:${PN}-common ="${DESCRIPTION_COMMON} This particular package provides shared libraries that \
 salt-master, salt-minion, and salt-syndic require to function."
-RDEPENDS:${PN}-common = "python3-core python3-fcntl python3-dateutil python3-jinja2 python3-pyyaml python3-requests (>= 1.0.0) python3-tornado (>= 4.2.1)"
+RDEPENDS:${PN}-common = "\
+    python3-core \
+    python3-dateutil \
+    python3-fcntl \
+    python3-jinja2 \
+    python3-pyyaml \
+    python3-requests (>= 1.0.0) \
+    python3-tornado (>= 4.2.1) \
+"
 RRECOMMENDS:${PN}-common = "lsb-release"
 RSUGGESTS:${PN}-common = "python3-mako python3-git"
 RCONFLICTS:${PN}-common = "python3-mako (< 0.7.0)"
