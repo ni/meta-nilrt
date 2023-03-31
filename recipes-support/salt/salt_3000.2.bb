@@ -148,6 +148,7 @@ RDEPENDS:${PN}-common = "\
     python3-jinja2 \
     python3-pyyaml \
     python3-requests (>= 1.0.0) \
+    python3-singledispatch (>= 3.4.0.3) \
     python3-tornado (>= 4.2.1) \
 "
 RRECOMMENDS:${PN}-common = "lsb-release"
