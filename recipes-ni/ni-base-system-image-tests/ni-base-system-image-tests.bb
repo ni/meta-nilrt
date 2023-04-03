@@ -13,8 +13,11 @@ ALLOW_EMPTY:${PN} = "1"
 SRC_URI = "\
     file://run-ptest \
     file://ptest-format.sh \
+    file://fs_permissions_shared.py \
     file://fs_permissions_diff.py \
+    file://fs_permissions_known.py \
     file://test_fs_permissions_diff.sh \
+    file://test_fs_permissions_known.sh \
 "
 
 S = "${WORKDIR}"
@@ -22,10 +25,12 @@ S = "${WORKDIR}"
 inherit ptest
 
 do_install_ptest() {
-    install -m 0644 ${WORKDIR}/ptest-format.sh        ${D}${PTEST_PATH}
-    install -m 0755 ${WORKDIR}/run-ptest              ${D}${PTEST_PATH}
-    install -m 0644 ${WORKDIR}/fs_permissions_diff.py ${D}${PTEST_PATH}
-    install -m 0755 ${WORKDIR}/test_*.sh              ${D}${PTEST_PATH}
+    install -m 0644 ${WORKDIR}/ptest-format.sh          ${D}${PTEST_PATH}
+    install -m 0644 ${WORKDIR}/fs_permissions_shared.py ${D}${PTEST_PATH}
+    install -m 0644 ${WORKDIR}/fs_permissions_diff.py   ${D}${PTEST_PATH}
+    install -m 0644 ${WORKDIR}/fs_permissions_known.py  ${D}${PTEST_PATH}
+    install -m 0755 ${WORKDIR}/test_*.sh                ${D}${PTEST_PATH}
+    install -m 0755 ${WORKDIR}/run-ptest                ${D}${PTEST_PATH}
 }
 
 # We only want to build the -ptest package
