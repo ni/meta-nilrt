@@ -8,6 +8,8 @@ import pymongo
 import re
 import subprocess
 import sys
+import fs_permissions_shared
+import fs_permissions_known
 
 class DB:
     mongo_db_name = 'rtos'
@@ -29,25 +31,6 @@ class DB:
 
     def count_documents(self, query):
         return self.fs_permissions_collection.count_documents(query)
-
-class Logger:
-    prefix_logs = []
-    logs = []
-    def log(self, log):
-        self.logs.append(log)
-
-    def prefix_log(self, log):
-        self.prefix_logs.append(log)
-
-    def report(self):
-        for log in self.prefix_logs:
-            print(log)
-        for log in self.logs:
-            print(log)
-
-def run_cmd(cmd):
-    output = subprocess.check_output(cmd)
-    return output.decode('utf-8')
 
 class OsVersion:
     def __init__(self):
@@ -77,12 +60,16 @@ def get_fs_manifest():
     search_dirs = ['/bin', '/boot', '/etc', '/lib', '/lib64', '/sbin', '/usr', '/var']
     omit_dirs = ['/etc/natinst/niskyline/Data/Assets/Cache', '/lib/modules', '/var/cache', '/var/run', '/var/tmp', '/var/volatile']
 
+    # Don't diff files we know the permissions to
+    known_perms = fs_permissions_known.known_permissions()
+    omit_dirs.extend(list(known_perms.keys()))
+
     omit_expr = []
     for d in omit_dirs:
         omit_expr += ['-path', d, '-o']
     omit_expr.pop()
 
-    fs_manifest = run_cmd(
+    fs_manifest = fs_permissions_shared.run_cmd(
         ['find']
         + search_dirs
         + ['-printf', fs_manifest_format + '\n']
@@ -340,19 +327,23 @@ def parse_args():
 
     return parser.parse_args()
 
-logger = Logger()
-args = parse_args()
-db = DB(args.server, args.user, args.password)
-basis_fs_manifest, recent_fs_manifest = get_old_fs_manifests(db, logger)
+def main():
+    logger = fs_permissions_shared.Logger()
+    args = parse_args()
+    db = DB(args.server, args.user, args.password)
+    basis_fs_manifest, recent_fs_manifest = get_old_fs_manifests(db, logger)
 
-fs_manifest = get_fs_manifest()
-upload_manifest(db, fs_manifest, logger)
+    fs_manifest = get_fs_manifest()
+    upload_manifest(db, fs_manifest, logger)
 
-result = diff_manifests(fs_manifest, basis_fs_manifest, recent_fs_manifest, logger)
+    result = diff_manifests(fs_manifest, basis_fs_manifest, recent_fs_manifest, logger)
 
-logger.report()
+    logger.report()
+    if result:
+        sys.exit(os.EX_OK)
+    else:
+        sys.exit(os.EX_SOFTWARE)
 
-if result:
-    sys.exit(os.EX_OK)
-else:
-    sys.exit(os.EX_SOFTWARE)
+if __name__ == '__main__':
+    main()
+
