@@ -19,17 +19,17 @@ DEPENDS += "\
 	python3-native \
 "
 
-PV = "1.1.0"
+PV = "2.1.0"
 
 
 SRC_URI = "\
-	git://github.com/ni/grpc-device.git;name=grpc-device;branch=main;protocol=https \
+	git://github.com/ni/grpc-device.git;name=grpc-device;branch=releases/2.1;protocol=https \
 	file://0001-CMakeLists.txt-remove-local-protobuf-includes.patch \
 	file://0001-semaphore.h-fix-undefined-condition_variable-type.patch \
 	file://0002-CMakeLists-use-find_package-for-gtest-dep.patch \
 	file://ptest \
 "
-SRCREV_grpc-device = "15508bba63a6c289a32445ffb7f8986c99a2f286"
+SRCREV_grpc-device = "21288b78cd638f5edfd5b82b8d8013d4b5099074"
 SRCREV_FORMAT = "grpc-device"
 
 S = "${WORKDIR}/git"
