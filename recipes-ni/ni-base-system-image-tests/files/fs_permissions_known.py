@@ -20,12 +20,14 @@ def known_permissions_tree():
                 'grubenv': permissions(0o664, 'admin', 'ni', FT_REG),
                 'grubenv.bak': permissions(0o664, 'admin', 'ni', FT_REG),
                 'recoverytool-ni-version': permissions(0o0444, 'admin', 'administrators', FT_REG)
-            }, 'runmode': {
+            },
+            'runmode': {
                 '.': system_dir,
                 '*': system_file,
                 'bzImage': system_link(f'bzImage-{bash("$(uname -r)")[0]}'),
             }
-        }, 'lib': {
+        },
+        'lib': {
             '.': system_dir,
             'modules': {
                 '.': system_dir,
@@ -72,10 +74,7 @@ def log_mismatch(kind, exp, act, path, logger, md5sum):
 # Main check for file/directory permissions
 def permissions(mode, user, group, file_type):
     def ret(path, stats, logger, md5sum):
-        nonlocal mode
-        nonlocal user
-        nonlocal group
-        nonlocal file_type
+        nonlocal mode, user, group, file_type
         if file_type == FT_DIR and not stat.S_ISDIR(stats.st_mode):
             log_mismatch(
                 'file type', 'dir', 'reg' if file_type == FT_REG else 'lnk', path, logger, md5sum
