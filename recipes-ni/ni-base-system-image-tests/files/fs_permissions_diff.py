@@ -9,7 +9,6 @@ import re
 import subprocess
 import sys
 import fs_permissions_shared
-import fs_permissions_known
 
 class DB:
     mongo_db_name = 'rtos'
@@ -59,10 +58,6 @@ fs_manifest_columns = ['path', 'mode', 'user', 'group', 'link_target']
 def get_fs_manifest():
     search_dirs = ['/bin', '/boot', '/etc', '/lib', '/lib64', '/sbin', '/usr', '/var']
     omit_dirs = ['/etc/natinst/niskyline/Data/Assets/Cache', '/lib/modules', '/var/cache', '/var/run', '/var/tmp', '/var/volatile']
-
-    # Don't diff files we know the permissions to
-    known_perms = fs_permissions_known.known_permissions()
-    omit_dirs.extend(list(known_perms.keys()))
 
     omit_expr = []
     for d in omit_dirs:
