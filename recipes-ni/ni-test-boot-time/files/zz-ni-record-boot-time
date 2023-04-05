@@ -1,0 +1,8 @@
+#!/bin/sh
+# Copyright (c) 2023 National Instruments.
+# All rights reserved.
+[ "${VERBOSE}" != "no" ] && echo -n "Saving boot time:"
+
+awk '{ print $1 }' /proc/uptime > /var/log/boottime
+
+[ "${VERBOSE}" != "no" ] && echo "done"

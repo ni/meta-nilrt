@@ -1,0 +1,28 @@
+#!/bin/bash
+
+TEST_NAME="test_boot_time"
+TEST_LOG="/var/log/boottime"
+INFLUXDB_INFO="/home/admin/.influxdb.info"
+
+if [[ -f "$INFLUXDB_INFO" ]]; then
+	source "$INFLUXDB_INFO"
+	python3 upload_results.py "-i $TEST_LOG" "-s $INFLUXDB_SERVER" "-p $INFLUXDB_PORT"
+	RESULT=$?
+else
+	echo "INFO: InfluxDB connection information not found at '$INFLUXDB_INFO'"
+	RESULT=77
+fi
+
+case $RESULT in
+    0)
+	echo -n "PASS"
+	;;
+    77)
+	echo -n "SKIP"
+	;;
+    *)
+	echo -n "FAIL"
+	;;
+esac
+echo ": $TEST_NAME"
+exit $RESULT
