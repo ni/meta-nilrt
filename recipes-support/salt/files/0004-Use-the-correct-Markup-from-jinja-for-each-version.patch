@@ -1,0 +1,42 @@
+From 9d6a751eba97dd344fc54ac00e0b192f8d2303c0 Mon Sep 17 00:00:00 2001
+From: Megan Wilhite <mwilhite@vmware.com>
+Date: Fri, 25 Mar 2022 08:31:24 -0600
+Subject: [PATCH] Use the correct Markup from jinja for each version
+
+(cherry picked from commit 240e165ebcd06370a1aa47f37c6842581c82e3f8)
+
+Rebased to salt 3000.2.
+
+Signed-off-by: Alex Stewart <alex.stewart@ni.com>
+
+Upstream-Status: Inappropriate [Upstream stable EOL.]
+---
+ salt/utils/jinja.py | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/salt/utils/jinja.py b/salt/utils/jinja.py
+index 7f03e10571..e3c7d955c4 100644
+--- a/salt/utils/jinja.py
++++ b/salt/utils/jinja.py
+@@ -19,7 +19,7 @@ from xml.etree.ElementTree import Element, SubElement, tostring
+ # Import third party libs
+ import jinja2
+ from salt.ext import six
+-from jinja2 import BaseLoader, Markup, TemplateNotFound, nodes
++from jinja2 import BaseLoader, TemplateNotFound, nodes
+ from jinja2.environment import TemplateModule
+ from jinja2.exceptions import TemplateRuntimeError
+ from jinja2.ext import Extension
+@@ -43,6 +43,12 @@ except ImportError:
+     from collections import Hashable
+ 
+ 
++try:
++    from jinja2 import Markup
++except ImportError:
++    # Markup moved to markupsafe in jinja>= 3.1
++    from markupsafe import Markup
++
+ log = logging.getLogger(__name__)
+ 
+ __all__ = [

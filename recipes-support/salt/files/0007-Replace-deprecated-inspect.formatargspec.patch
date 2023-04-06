@@ -1,0 +1,167 @@
+From dad249590a4e5d2ac7d42d2963e3fabaa00eeee4 Mon Sep 17 00:00:00 2001
+From: Benjamin Drung <benjamin.drung@cloud.ionos.com>
+Date: Thu, 30 Jan 2020 12:17:29 +0100
+Subject: [PATCH] Replace deprecated inspect.formatargspec
+
+Python 3.7 raises a deprecation warning:
+
+salt/utils/decorators/signature.py:31: DeprecationWarning:
+`formatargspec` is deprecated since Python 3.5. Use `signature` and the
+`Signature` object directly
+
+`inspect.formatargspec` is only used in
+`salt.utils.decorators.signature.identical_signature_wrapper` which is
+only used in `salt.utils.decorators.path` for decorating the `which` and
+`which_bin` functions. The function `identical_signature_wrapper` can be
+simply replaced by Python's `functools.wraps` which is available since
+at least Python 2.7.
+
+When inspecting those wrapped functions, the underlying function (stored
+in the `__wrapped__` attribute) needs to be inspect instead.
+
+fixes #50911
+Signed-off-by: Benjamin Drung <benjamin.drung@cloud.ionos.com>
+
+(cherry picked from commit 61ec59375b6bd755b7fd73801e904d762d9008be)
+
+Rebased to salt 3000.2.
+
+Signed-off-by: Alex Stewart <alex.stewart@ni.com>
+
+Upstream-Status: Inappropriate [Upstream stable EOL.]
+---
+ salt/utils/args.py                 | 10 ++++++-
+ salt/utils/decorators/path.py      | 13 ++++++---
+ salt/utils/decorators/signature.py | 43 ------------------------------
+ 3 files changed, 19 insertions(+), 47 deletions(-)
+ delete mode 100644 salt/utils/decorators/signature.py
+
+diff --git a/salt/utils/args.py b/salt/utils/args.py
+index 8cc0f35196..97af72eff7 100644
+--- a/salt/utils/args.py
++++ b/salt/utils/args.py
+@@ -241,7 +241,12 @@ if six.PY3:
+ 
+ def get_function_argspec(func, is_class_method=None):
+     '''
+-    A small wrapper around getargspec that also supports callable classes
++    A small wrapper around getargspec that also supports callable classes and wrapped functions
++
++    If the given function is a wrapper around another function (i.e. has a
++    ``__wrapped__`` attribute), return the functions specification of the underlying
++    function.
++
+     :param is_class_method: Pass True if you are sure that the function being passed
+                             is a class method. The reason for this is that on Python 3
+                             ``inspect.ismethod`` only returns ``True`` for bound methods,
+@@ -253,6 +258,9 @@ def get_function_argspec(func, is_class_method=None):
+     if not callable(func):
+         raise TypeError('{0} is not a callable'.format(func))
+ 
++    if hasattr(func, "__wrapped__"):
++        func = func.__wrapped__
++
+     if six.PY2:
+         if is_class_method is True:
+             aspec = inspect.getargspec(func)
+diff --git a/salt/utils/decorators/path.py b/salt/utils/decorators/path.py
+index 4adacf0e4e..8ee7fb1d11 100644
+--- a/salt/utils/decorators/path.py
++++ b/salt/utils/decorators/path.py
+@@ -4,10 +4,11 @@ Decorators for salt.utils.path
+ '''
+ from __future__ import absolute_import, print_function, unicode_literals
+ 
++import functools
++
+ # Import Salt libs
+ import salt.utils.path
+ from salt.exceptions import CommandNotFoundError
+-from salt.utils.decorators.signature import identical_signature_wrapper
+ 
+ 
+ def which(exe):
+@@ -15,13 +16,16 @@ def which(exe):
+     Decorator wrapper for salt.utils.path.which
+     '''
+     def wrapper(function):
++        @functools.wraps(function)
+         def wrapped(*args, **kwargs):
+             if salt.utils.path.which(exe) is None:
+                 raise CommandNotFoundError(
+                     'The \'{0}\' binary was not found in $PATH.'.format(exe)
+                 )
+             return function(*args, **kwargs)
+-        return identical_signature_wrapper(function, wrapped)
++
++        return wrapped
++
+     return wrapper
+ 
+ 
+@@ -30,6 +34,7 @@ def which_bin(exes):
+     Decorator wrapper for salt.utils.path.which_bin
+     '''
+     def wrapper(function):
++        @functools.wraps(function)
+         def wrapped(*args, **kwargs):
+             if salt.utils.path.which_bin(exes) is None:
+                 raise CommandNotFoundError(
+@@ -39,5 +44,7 @@ def which_bin(exes):
+                     )
+                 )
+             return function(*args, **kwargs)
+-        return identical_signature_wrapper(function, wrapped)
++
++        return wrapped
++
+     return wrapper
+diff --git a/salt/utils/decorators/signature.py b/salt/utils/decorators/signature.py
+deleted file mode 100644
+index 8bb6c19528..0000000000
+--- a/salt/utils/decorators/signature.py
++++ /dev/null
+@@ -1,43 +0,0 @@
+-# -*- coding: utf-8 -*-
+-'''
+-A decorator which returns a function with the same signature of the function
+-which is being wrapped.
+-'''
+-# Import Python libs
+-from __future__ import absolute_import, print_function, unicode_literals
+-import inspect
+-from functools import wraps
+-
+-# Import Salt libs
+-import salt.utils.args
+-
+-# Import 3rd-party libs
+-from salt.ext import six
+-
+-
+-def identical_signature_wrapper(original_function, wrapped_function):
+-    '''
+-    Return a function with identical signature as ``original_function``'s which
+-    will call the ``wrapped_function``.
+-    '''
+-    context = {'__wrapped__': wrapped_function}
+-    function_def = compile(
+-        'def {0}({1}):\n'
+-        '    return __wrapped__({2})'.format(
+-            # Keep the original function name
+-            original_function.__name__,
+-            # The function signature including defaults, i.e., 'timeout=1'
+-            inspect.formatargspec(
+-                *salt.utils.args.get_function_argspec(original_function)
+-            )[1:-1],
+-            # The function signature without the defaults
+-            inspect.formatargspec(
+-                formatvalue=lambda val: '',
+-                *salt.utils.args.get_function_argspec(original_function)
+-            )[1:-1]
+-        ),
+-        '<string>',
+-        'exec'
+-    )
+-    six.exec_(function_def, context)
+-    return wraps(original_function)(context[original_function.__name__])

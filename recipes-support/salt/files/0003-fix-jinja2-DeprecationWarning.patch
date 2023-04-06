@@ -1,0 +1,26 @@
+From ebfd1f3a53d4df976be8fdf7ef57eae40bc44ea7 Mon Sep 17 00:00:00 2001
+From: jonyhy96 <hy352144278@gmail.com>
+Date: Thu, 3 Mar 2022 16:21:17 +0800
+Subject: [PATCH] fix: jinja2 DeprecationWarning
+
+(cherry picked from commit 90092fa126833e46475df22924bc61a6559d45a2)
+Signed-off-by: Alex Stewart <alex.stewart@ni.com>
+
+Upstream-Status: Inappropriate [Upstream stable EOL.]
+---
+ salt/utils/jinja.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/salt/utils/jinja.py b/salt/utils/jinja.py
+index 52a59da2d7..7f03e10571 100644
+--- a/salt/utils/jinja.py
++++ b/salt/utils/jinja.py
+@@ -662,7 +662,7 @@ def symmetric_difference(lst1, lst2):
+ if jinja2.__version__ < '3.0.0' :
+     contextfunction = jinja2.contextfunction
+ else:
+-    contextfunction =  jinja2.pass_context
++    contextfunction = jinja2.pass_context
+ @contextfunction
+ def show_full_context(ctx):
+     return salt.utils.data.simple_types_filter({key: value for key, value in ctx.items()})

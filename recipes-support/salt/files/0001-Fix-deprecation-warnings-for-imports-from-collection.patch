@@ -1,0 +1,224 @@
+From 49abf954d106048f993b0aceff69627320dac883 Mon Sep 17 00:00:00 2001
+From: Benjamin Drung <benjamin.drung@cloud.ionos.com>
+Date: Fri, 21 Feb 2020 14:01:58 +0100
+Subject: [PATCH] Fix deprecation warnings for imports from collections
+
+DeprecationWarning: Using or importing the ABCs from `collections`
+instead of from `collections.abc` is deprecated since Python 3.3, and in
+3.9 it will stop working.
+
+Therefore try to import the abstract base classes from `collections.abc`
+before falling back to `collections`.
+
+Signed-off-by: Benjamin Drung <benjamin.drung@cloud.ionos.com>
+
+Rebased to salt `ni/3000.2` and fixed minor conflicts.
+
+Signed-off-by: Alex Stewart <alex.stewart@ni.com>
+(cherry picked from commit 420bbe8)
+
+Upstream-Status: Inappropriate [Upstream stable EOL.]
+---
+ salt/client/mixins.py        | 17 ++++++++++++-----
+ salt/ext/tornado/httputil.py |  9 ++++++++-
+ salt/utils/jinja.py          | 22 ++++++++++++++--------
+ salt/utils/oset.py           |  9 +++++++--
+ 4 files changed, 41 insertions(+), 16 deletions(-)
+
+diff --git a/salt/client/mixins.py b/salt/client/mixins.py
+index 0eb38be744..49903b48b9 100644
+--- a/salt/client/mixins.py
++++ b/salt/client/mixins.py
+@@ -4,14 +4,14 @@ A collection of mixins useful for the various *Client interfaces
+ '''
+ 
+ # Import Python libs
+-from __future__ import absolute_import, print_function, with_statement, unicode_literals
++from __future__ import absolute_import, print_function, unicode_literals, with_statement
++
++import copy as pycopy
+ import fnmatch
+ import signal
+ import logging
+ import weakref
+ import traceback
+-import collections
+-import copy as pycopy
+ 
+ # Import Salt libs
+ import salt.exceptions
+@@ -35,6 +35,13 @@ from salt.ext import six
+ # Import 3rd-party libs
+ import salt.ext.tornado.stack_context
+ 
++try:
++    from collections.abc import Mapping, MutableMapping
++except ImportError:
++    # pylint: disable=no-name-in-module
++    from collections import Mapping, MutableMapping
++
++
+ log = logging.getLogger(__name__)
+ 
+ CLIENT_INTERNAL_KEYWORDS = frozenset([
+@@ -55,7 +62,7 @@ CLIENT_INTERNAL_KEYWORDS = frozenset([
+ ])
+ 
+ 
+-class ClientFuncsDict(collections.MutableMapping):
++class ClientFuncsDict(MutableMapping):
+     '''
+     Class to make a read-only dict for accessing runner funcs "directly"
+     '''
+@@ -141,7 +148,7 @@ class SyncClientMixin(object):
+                                                       crypt='clear',
+                                                       usage='master_call') as channel:
+             ret = channel.send(load)
+-            if isinstance(ret, collections.Mapping):
++            if isinstance(ret, Mapping):
+                 if 'error' in ret:
+                     salt.utils.error.raise_error(**ret['error'])
+             return ret
+diff --git a/salt/ext/tornado/httputil.py b/salt/ext/tornado/httputil.py
+index d49733481a..c5b9c242d5 100644
+--- a/salt/ext/tornado/httputil.py
++++ b/salt/ext/tornado/httputil.py
+@@ -36,6 +36,13 @@ from salt.ext.tornado.escape import native_str, parse_qs_bytes, utf8
+ from salt.ext.tornado.log import gen_log
+ from salt.ext.tornado.util import ObjectDict, PY3
+ 
++try:
++    from collections.abc import MutableMapping
++except ImportError:
++    # pylint: disable=no-name-in-module
++    from collections import MutableMapping
++
++
+ if PY3:
+     import http.cookies as Cookie
+     from http.client import responses
+@@ -104,7 +111,7 @@ class _NormalizedHeaderCache(dict):
+ _normalized_headers = _NormalizedHeaderCache(1000)
+ 
+ 
+-class HTTPHeaders(collections.MutableMapping):
++class HTTPHeaders(MutableMapping):
+     """A dictionary that maintains ``Http-Header-Case`` for all keys.
+ 
+     Supports multiple values per key via a pair of new methods,
+diff --git a/salt/utils/jinja.py b/salt/utils/jinja.py
+index 6e4261e68e..40bfb21bd2 100644
+--- a/salt/utils/jinja.py
++++ b/salt/utils/jinja.py
+@@ -6,7 +6,6 @@ Jinja loading utils to enable a more powerful backend for jinja templates
+ # Import python libs
+ from __future__ import absolute_import, unicode_literals
+ import atexit
+-import collections
+ import logging
+ import os.path
+ import pipes
+@@ -37,6 +36,13 @@ import salt.utils.yaml
+ from salt.utils.decorators.jinja import jinja_filter, jinja_test, jinja_global
+ from salt.utils.odict import OrderedDict
+ 
++try:
++    from collections.abc import Hashable
++except ImportError:
++    # pylint: disable=no-name-in-module
++    from collections import Hashable
++
++
+ log = logging.getLogger(__name__)
+ 
+ __all__ = [
+@@ -329,7 +335,7 @@ def to_bool(val):
+         return val.lower() in ('yes', '1', 'true')
+     if isinstance(val, six.integer_types):
+         return val > 0
+-    if not isinstance(val, collections.Hashable):
++    if not isinstance(val, Hashable):
+         return len(val) > 0
+     return False
+ 
+@@ -500,7 +506,7 @@ def unique(values):
+         ['a', 'b', 'c']
+     '''
+     ret = None
+-    if isinstance(values, collections.Hashable):
++    if isinstance(values, Hashable):
+         ret = set(values)
+     else:
+         ret = []
+@@ -564,7 +570,7 @@ def lst_avg(lst):
+ 
+         2.5
+     '''
+-    if not isinstance(lst, collections.Hashable):
++    if not isinstance(lst, Hashable):
+         return float(sum(lst)/len(lst))
+     return float(lst)
+ 
+@@ -585,7 +591,7 @@ def union(lst1, lst2):
+ 
+         [1, 2, 3, 4, 6]
+     '''
+-    if isinstance(lst1, collections.Hashable) and isinstance(lst2, collections.Hashable):
++    if isinstance(lst1, Hashable) and isinstance(lst2, Hashable):
+         return set(lst1) | set(lst2)
+     return unique(lst1 + lst2)
+ 
+@@ -606,7 +612,7 @@ def intersect(lst1, lst2):
+ 
+         [2, 4]
+     '''
+-    if isinstance(lst1, collections.Hashable) and isinstance(lst2, collections.Hashable):
++    if isinstance(lst1, Hashable) and isinstance(lst2, Hashable):
+         return set(lst1) & set(lst2)
+     return unique([ele for ele in lst1 if ele in lst2])
+ 
+@@ -627,7 +633,7 @@ def difference(lst1, lst2):
+ 
+         [1, 3, 6]
+     '''
+-    if isinstance(lst1, collections.Hashable) and isinstance(lst2, collections.Hashable):
++    if isinstance(lst1, Hashable) and isinstance(lst2, Hashable):
+         return set(lst1) - set(lst2)
+     return unique([ele for ele in lst1 if ele not in lst2])
+ 
+@@ -648,7 +654,7 @@ def symmetric_difference(lst1, lst2):
+ 
+         [1, 3]
+     '''
+-    if isinstance(lst1, collections.Hashable) and isinstance(lst2, collections.Hashable):
++    if isinstance(lst1, Hashable) and isinstance(lst2, Hashable):
+         return set(lst1) ^ set(lst2)
+     return unique([ele for ele in union(lst1, lst2) if ele not in intersect(lst1, lst2)])
+ 
+diff --git a/salt/utils/oset.py b/salt/utils/oset.py
+index acfd59b53b..9fc92ac114 100644
+--- a/salt/utils/oset.py
++++ b/salt/utils/oset.py
+@@ -22,7 +22,12 @@ Rob Speer's changes are as follows:
+     - added __getitem__
+ '''
+ from __future__ import absolute_import, unicode_literals, print_function
+-import collections
++
++try:
++    from collections.abc import MutableSet
++except ImportError:
++    # pylint: disable=no-name-in-module
++    from collections import MutableSet
+ 
+ SLICE_ALL = slice(None)
+ __version__ = '2.0.1'
+@@ -44,7 +49,7 @@ def is_iterable(obj):
+     return hasattr(obj, '__iter__') and not isinstance(obj, str) and not isinstance(obj, tuple)
+ 
+ 
+-class OrderedSet(collections.MutableSet):
++class OrderedSet(MutableSet):
+     """
+     An OrderedSet is a custom MutableSet that remembers its order, so that
+     every entry has an index that can be looked up.
