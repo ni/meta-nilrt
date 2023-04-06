@@ -1,0 +1,43 @@
+From da620aadc6605d1bed9489fbd4fe4efc70e10320 Mon Sep 17 00:00:00 2001
+From: Megan Wilhite <mwilhite@vmware.com>
+Date: Fri, 25 Mar 2022 09:38:01 -0600
+Subject: [PATCH] Use the correct Markup from jinja for each version
+
+(cherry picked from commit fb3033f03213b4bb077663a89d7329f62a4941f8)
+
+Rebased to salt 3000.2.
+
+Signed-off-by: Alex Stewart <alex.stewart@ni.com>
+
+Upstream-Status: Inappropriate [Upstream stable EOL.]
+---
+ changelog/61848.fixed | 1 +
+ salt/utils/jinja.py   | 4 +++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+ create mode 100644 changelog/61848.fixed
+
+diff --git a/changelog/61848.fixed b/changelog/61848.fixed
+new file mode 100644
+index 0000000000..e8e6fd3426
+--- /dev/null
++++ b/changelog/61848.fixed
+@@ -0,0 +1 @@
++Update Markup and contextfunction imports for jinja versions >=3.1.
+diff --git a/salt/utils/jinja.py b/salt/utils/jinja.py
+index e3c7d955c4..d2b91fb5a4 100644
+--- a/salt/utils/jinja.py
++++ b/salt/utils/jinja.py
+@@ -665,10 +665,12 @@ def symmetric_difference(lst1, lst2):
+     return unique([ele for ele in union(lst1, lst2) if ele not in intersect(lst1, lst2)])
+ 
+ 
+-if jinja2.__version__ < '3.0.0' :
++if jinja2.__version__ < "3.0.0":
+     contextfunction = jinja2.contextfunction
+ else:
+     contextfunction = jinja2.pass_context
++
++
+ @contextfunction
+ def show_full_context(ctx):
+     return salt.utils.data.simple_types_filter({key: value for key, value in ctx.items()})

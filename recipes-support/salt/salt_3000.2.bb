@@ -30,6 +30,14 @@ SRC_URI = "\
     file://cloud \
     file://roster \
     file://run-ptest \
+    file://0001-Fix-deprecation-warnings-for-imports-from-collection.patch \
+    file://0002-fix-jinja2-contextfuntion-base-on-version.patch \
+    file://0003-fix-jinja2-DeprecationWarning.patch \
+    file://0004-Use-the-correct-Markup-from-jinja-for-each-version.patch \
+    file://0005-Use-the-correct-Markup-from-jinja-for-each-version.patch \
+    file://0006-Fix-requested-feedback.patch \
+    file://0007-Replace-deprecated-inspect.formatargspec.patch \
+    file://0008-Only-import-ABCs-from-collections.abc.patch \
 "
 
 SRCREV = "${AUTOREV}"
