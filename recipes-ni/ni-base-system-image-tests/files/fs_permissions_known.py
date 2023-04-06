@@ -227,31 +227,32 @@ def log_mismatch(kind, exp, act, path, logger, md5sum):
 def permissions(mode, user, group, file_type):
     def ret(path, stats, logger, md5sum):
         nonlocal mode, user, group, file_type
+        success = True
         if file_type == FT_DIR and not stat.S_ISDIR(stats.st_mode):
             log_mismatch(
                 'file type', 'dir', 'reg' if file_type == FT_REG else 'lnk', path, logger, md5sum
             )
-            return False
+            success = False
         if file_type == FT_REG and not stat.S_ISREG(stats.st_mode):
             log_mismatch(
                 'file type', 'reg', 'dir' if file_type == FT_DIR else 'lnk', path, logger, md5sum
             )
-            return False
+            success = False
         if file_type == FT_LNK and not stat.S_ISLNK(stats.st_mode):
             log_mismatch(
                 'file type', 'lnk', 'dir' if file_type == FT_DIR else 'reg', path, logger, md5sum
             )
-            return False
+            success = False
         if mode != stat.S_IMODE(stats.st_mode):
             log_mismatch('mode', oct(mode), oct(stat.S_IMODE(stats.st_mode)), path, logger, md5sum)
-            return False
+            success = False
         if user != pwd.getpwuid(stats.st_uid).pw_name:
             log_mismatch('user', user, pwd.getpwuid(stats.st_uid).pw_name, path, logger, md5sum)
-            return False
+            success = False
         if group != grp.getgrgid(stats.st_gid).gr_name:
             log_mismatch('group', group, grp.getgrgid(stats.st_gid).gr_name, path, logger, md5sum)
-            return False
-        return True
+            success = False
+        return success
     return ret
 
 # Typical system file
