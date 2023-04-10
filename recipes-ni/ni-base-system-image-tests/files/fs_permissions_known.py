@@ -45,13 +45,6 @@ def known_permissions_tree():
                     '.': system_dir,
                     '**': system_hier,
                     'build': {
-                        'arch': {
-                            'x86': {
-                                'tools': {
-                                    'relocs': system_file_exec
-                                }
-                            }
-                        },
                         'include': {
                             'dt-bindings': {
                                 'clock': {
@@ -64,36 +57,7 @@ def known_permissions_tree():
                             }
                         },
                         'scripts': {
-                            '**/*.sh': system_file_exec,
-                            '**/*.pl': system_file_exec,
-                            'asn1_compiler': system_file_exec,
-                            'atomic': {
-                                'atomics.tbl': system_file_exec,
-                                'fallbacks': {
-                                    '*': system_file_exec
-                                }
-                            },
-                            'basic': {
-                                'fixdep': system_file_exec
-                            },
-                            'bloat-o-meter': system_file_exec,
-                            'bpf_doc.py': system_file_exec,
-                            'check-sysctl-docs': system_file_exec,
-                            'checkkconfigsymbols.py': system_file_exec,
-                            'clang-tools': {
-                                'gen_compile_commands.py': system_file_exec,
-                                'run-clang-tools.py': system_file_exec
-                            },
-                            'cleanfile': system_file_exec,
-                            'cleanpatch': system_file_exec,
-                            'coccicheck': system_file_exec,
-                            'config': system_file_exec,
-                            'decodecode': system_file_exec,
-                            'diffconfig': system_file_exec,
-                            'documentation-file-ref-check': system_file_exec,
                             'dtc': {
-                                'dt_to_config': system_file_exec,
-                                'dtx_diff': system_file_exec,
                                 'include-prefixes': {
                                     'arc': system_link('../../../arch/arc/boot/dts'),
                                     'arm': system_link('../../../arch/arm/boot/dts'),
@@ -110,77 +74,10 @@ def known_permissions_tree():
                                 }
                             },
                             'dummy-tools': {
-                                'gcc': system_file_exec,
-                                'ld': system_file_exec,
                                 'nm': system_link('ld'),
                                 'objcopy': system_link('ld')
                             },
-                            'extract-cert': system_file_exec,
-                            'extract-ikconfig': system_file_exec,
-                            'extract-vmlinux': system_file_exec,
-                            'faddr2line': system_file_exec,
-                            'gcc-ld': system_file_exec,
-                            'genksyms': {
-                                'genksyms': system_file_exec
-                            },
-                            'get_dvb_firmware': system_file_exec,
-                            'gfp-translate': system_file_exec,
-                            'jobserver-exec': system_file_exec,
-                            'kallsyms': system_file_exec,
-                            'kconfig': {
-                                'conf': system_file_exec
-                            },
-                            'kernel-doc': system_file_exec,
-                            'Lindent': system_file_exec,
-                            'makelst': system_file_exec,
-                            'mkcompile_h': system_file_exec,
-                            'mksysmap': system_file_exec,
-                            'mod': {
-                                'mk_elfconfig': system_file_exec,
-                                'modpost': system_file_exec
-                            },
-                            'objdiff': system_file_exec,
-                            'package': {
-                                '*': system_file_exec,
-                                'snapcraft.template': system_file
-                            },
-                            'patch-kernel': system_file_exec,
-                            'prune-kernel': system_file_exec,
-                            'remove-stale-files': system_file_exec,
-                            'selinux': {
-                                'genheaders': {
-                                    'genheaders': system_file_exec,
-                                },
-                                'mdp': {
-                                    'mdp': system_file_exec
-                                }
-                            },
-                            'setlocalversion': system_file_exec,
-                            'show_delta': system_file_exec,
-                            'sorttable': system_file_exec,
-                            'spdxcheck.py': system_file_exec,
-                            'spdxcheck-test.sh': system_file,
-                            'sphinx-pre-install': system_file_exec,
-                            'stackdelta': system_file_exec,
-                            'stackusage': system_file_exec,
-                            'tracing': {
-                                'draw_functrace.py': system_file_exec
-                            },
-                            'ver_linux': system_file_exec,
                         },
-                        'tools': {
-                            'lib': {
-                                'lockdep': {
-                                    'lockdep': system_file_exec,
-                                    'run_tests.sh': system_file_exec
-                                }
-                            },
-                            'objtool': {
-                                'fixdep': system_file_exec,
-                                'objtool': system_file_exec,
-                                'sync-check.sh': system_file_exec
-                            }
-                        }
                     },
                     'source': system_link('build')
                 }
@@ -270,7 +167,7 @@ def system_dir(path, stats, logger, md5sum):
 # Either system file or system dir
 def system_hier(path, stats, logger, md5sum):
     is_dir = stat.S_ISDIR(stats.st_mode)
-    mode = 0o0755 if is_dir else 0o0644
+    mode = 0o0755 if is_dir or stat.S_IMODE(stats.st_mode) == 0o0755 else 0o0644
     file_type = FT_DIR if is_dir else FT_REG
     return permissions(mode, 'admin', 'administrators', file_type)(path, stats, logger, md5sum)
 
