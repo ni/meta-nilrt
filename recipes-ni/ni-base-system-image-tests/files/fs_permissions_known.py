@@ -43,43 +43,7 @@ def known_permissions_tree():
                 '.': system_dir,
                 '$(uname -r)': {
                     '.': system_dir,
-                    '**': system_hier,
-                    'build': {
-                        'include': {
-                            'dt-bindings': {
-                                'clock': {
-                                    'qcom,dispcc-sm8150.h': system_link('qcom,dispcc-sm8250.h')
-                                },
-                                'input': {
-                                    'linux-event-codes.h':
-                                        system_link('../../uapi/linux/input-event-codes.h')
-                                }
-                            }
-                        },
-                        'scripts': {
-                            'dtc': {
-                                'include-prefixes': {
-                                    'arc': system_link('../../../arch/arc/boot/dts'),
-                                    'arm': system_link('../../../arch/arm/boot/dts'),
-                                    'arm64': system_link('../../../arch/arm64/boot/dts'),
-                                    'dt-bindings': system_link('../../../include/dt-bindings'),
-                                    'h8300': system_link('../../../arch/h8300/boot/dts'),
-                                    'microblaze': system_link('../../../arch/microblaze/boot/dts'),
-                                    'mips': system_link('../../../arch/mips/boot/dts'),
-                                    'nios2': system_link('../../../arch/nios2/boot/dts'),
-                                    'openrisc': system_link('../../../arch/openrisc/boot/dts'),
-                                    'powerpc': system_link('../../../arch/powerpc/boot/dts'),
-                                    'sh': system_link('../../../arch/sh/boot/dts'),
-                                    'xtensa': system_link('../../../arch/xtensa/boot/dts'),
-                                }
-                            },
-                            'dummy-tools': {
-                                'nm': system_link('ld'),
-                                'objcopy': system_link('ld')
-                            },
-                        },
-                    },
-                    'source': system_link('build')
+                    '**': system_hier
                 }
             }
         }
@@ -164,11 +128,14 @@ def system_file_exec(path, stats, logger, md5sum):
 def system_dir(path, stats, logger, md5sum):
     return permissions(0o0755, 'admin', 'administrators', FT_DIR)(path, stats, logger, md5sum)
 
-# Either system file or system dir
+# Only care about ownership and r/w access not link status, directory status, exec bit, etc
 def system_hier(path, stats, logger, md5sum):
     is_dir = stat.S_ISDIR(stats.st_mode)
-    mode = 0o0755 if is_dir or stat.S_IMODE(stats.st_mode) == 0o0755 else 0o0644
-    file_type = FT_DIR if is_dir else FT_REG
+    is_link = stat.S_ISLNK(stats.st_mode)
+    mode = 0o0777 if is_link else (
+        0o0755 if is_dir or stat.S_IMODE(stats.st_mode) == 0o0755 else 0o0644
+    )
+    file_type = FT_DIR if is_dir else (FT_LNK if is_link else FT_REG)
     return permissions(mode, 'admin', 'administrators', file_type)(path, stats, logger, md5sum)
 
 # What would be a typical system file but is actually a link
