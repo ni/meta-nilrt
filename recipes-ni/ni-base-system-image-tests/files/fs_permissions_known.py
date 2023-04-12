@@ -19,6 +19,7 @@ def known_permissions_tree():
                 '*': system_file,
                 'grubenv': permissions(0o664, 'admin', 'ni', FT_REG),
                 'grubenv.bak': permissions(0o664, 'admin', 'ni', FT_REG),
+                'grub-ni-version': permissions(0o0444, 'admin', 'administrators', FT_REG),
                 'recoverytool-ni-version': permissions(0o0444, 'admin', 'administrators', FT_REG)
             },
             'runmode': {
@@ -28,7 +29,7 @@ def known_permissions_tree():
             }
         },
         'etc': {
-            'fstab': permissions(0o0644, 'lvuser', 'ni', FT_REG)
+            'fstab': system_file
         },
         'home': {
             '.': system_dir,
