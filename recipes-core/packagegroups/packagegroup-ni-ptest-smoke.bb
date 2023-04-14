@@ -21,6 +21,7 @@ RDEPENDS:${PN}:append = "\
     ethtool-ptest \
     flex-ptest \
     gettext-ptest \
+    glibc-locale-tests-ptest \
     glibc-tests-ptest \
     kernel-tests-ptest \
     liberror-perl-ptest \
