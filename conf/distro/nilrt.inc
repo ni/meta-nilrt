@@ -19,7 +19,7 @@ DISTRO_FEATURES += "\
         pam \
         ptest \
         selinux \
-	virtualization \
+        virtualization \
 "
 
 # Because NIRLT uses opkg so intimately, assert that the rootfs should always
