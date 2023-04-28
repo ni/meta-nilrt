@@ -1,0 +1,5 @@
+#! /bin/bash
+
+./test-grubcfg.sh
+
+exit 0
