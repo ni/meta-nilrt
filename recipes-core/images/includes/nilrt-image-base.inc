@@ -11,12 +11,24 @@ do_rootfs[depends] += "${@oe.utils.conditional('BUILD_IMAGES_FROM_FEEDS', '1', '
 do_package_index[nostamp] = "1"
 do_package_index[depends] += "${PACKAGEINDEXDEPS}"
 
+# Normally no package index is created for the following DUMMYARCH but
+# we need one for building SDKs from feeds.
+PACKAGE_ARCHS:append:task-package-index = " sdk-provides-dummy-target"
+SDK_PACKAGE_ARCHS:append:task-package-index = " sdk-provides-dummy-${SDKPKGSUFFIX}"
+
 # without package-management update-rc.d gets removed from image
 IMAGE_FEATURES += "package-management"
 
 IMAGE_INSTALL += "\
 	packagegroup-ni-base \
 	packagegroup-ni-tzdata \
+"
+
+# Add the package sources needed when building the SDK
+IPK_FEED_URIS:append:task-populate-sdk = "\
+    NIOE-dummy-sdk##${NILRT_LOCAL_FEED_URI}/sdk-provides-dummy-target \
+    NIOE-nativesdk##${NILRT_LOCAL_FEED_URI}/${SDK_ARCH}-${SDKPKGSUFFIX} \
+    NIOE-dummy-nativesdk##${NILRT_LOCAL_FEED_URI}/sdk-provides-dummy-${SDKPKGSUFFIX} \
 "
 
 addtask image_build_test before do_rootfs
