@@ -6,6 +6,11 @@ do_rootfs[depends] += "shadow-native:do_populate_sysroot"
 # kernel recipe requires depmodwrapper to populate modules.dep
 do_rootfs[depends] += "depmodwrapper-cross:do_populate_sysroot"
 
+# Build package index before trying to build rootfs
+do_rootfs[depends] += "${@oe.utils.conditional('BUILD_IMAGES_FROM_FEEDS', '1', 'package-index:do_package_index', '', d)}"
+do_package_index[nostamp] = "1"
+do_package_index[depends] += "${PACKAGEINDEXDEPS}"
+
 # without package-management update-rc.d gets removed from image
 IMAGE_FEATURES += "package-management"
 
