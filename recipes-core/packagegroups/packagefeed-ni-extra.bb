@@ -1,7 +1,7 @@
 SUMMARY = "Package feed of potentially useful, but unsupported, packages for NI Linux RT"
 LICENSE = "MIT"
 
-inherit packagegroup
+inherit packagefeed
 
 # These packages are only built for the nilrt-xfce fork of the older NILRT distro
 # as opposed to nilrt-nxg which always enables x11 support. Also only for x64

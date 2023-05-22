@@ -1,7 +1,7 @@
 SUMMARY = "Package feed which contains all packages which are supported by NI."
 LICENSE = "MIT"
 
-inherit packagegroup
+inherit packagefeed
 
 RDEPENDS:${PN} = "\
 	packagegroup-base \
