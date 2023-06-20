@@ -18,7 +18,7 @@ PACKAGECONFIG[tcp] = ",,python3-pycrypto"
 PACKAGECONFIG[zeromq] = ",,python3-pycrypto python3-pyzmq"
 
 SRC_URI = "\
-    git://github.com/ni/salt.git;protocol=https;branch=ni/master/3000.2 \
+    git://github.com/ni/salt.git;protocol=https;branch=ni/skyline-23.5/3000.2 \
     file://minion \
     file://salt-minion \
     file://salt-common.bash_completion \
