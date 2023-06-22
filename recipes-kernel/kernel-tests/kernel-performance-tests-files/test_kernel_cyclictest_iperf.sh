@@ -2,10 +2,10 @@
 source ./run-cyclictest
 
 # start background network load
-source ./iperf.cfg
+source /home/admin/.iperf.info
 if [ -z "$IPERF_SERVER" ]; then
     echo "Warning: iperf server not configured; skipping iperf based network load test."
-    echo "Edit `pwd`/iperf.cfg file to configure a server to connect to for this test."
+    echo "Create/edit /home/admin/.iperf.info file with IPERF_SERVER=<server> and IPERF_PORT=<port> to configure a server to connect to for this test."
     echo "SKIP: test_kernel_cyclictest_iperf"
     exit 77
 fi
