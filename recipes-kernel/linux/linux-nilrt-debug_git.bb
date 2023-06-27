@@ -13,8 +13,8 @@ SRC_URI += "\
 
 # This is the place to overwrite the source AUTOREV from linux-nilrt.inc, if
 # the kernel recipe requires a particular ref.
-SRCREV_xilinx-zynq = "4442d176ee60b472252436950058a85fce08a3a3"
-SRCREV_qemu-zynq7 = "4442d176ee60b472252436950058a85fce08a3a3"
+SRCREV_xilinx-zynq = "e167d2ccda8e812cd7aa99fefc59269c854952ce"
+SRCREV_qemu-zynq7 = "e167d2ccda8e812cd7aa99fefc59269c854952ce"
 
 # Move vmlinux-${KERNEL_VERSION_NAME} from /boot to /lib/modules/${KERNEL_VERSION}/build/
 # to avoid filling the /boot partition.
