@@ -14,6 +14,7 @@ if [ "$SUBSYSTEM" == "net" ]; then
   # we do not need to run ifplugd on it
   # Also we should not run ifplugd on VPN interfaces or loopback
   case $interface in
+    can[0-9].*) exit 0 ;;
     mon.*) exit 0 ;;
     tapvpn[0-9]*) exit 0 ;;
     lo) exit 0 ;;
