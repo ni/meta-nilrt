@@ -14,8 +14,8 @@ DEPENDS += "\
 "
 
 PACKAGECONFIG = "tcp zeromq"
-PACKAGECONFIG[tcp] = ",,python3-pycrypto"
-PACKAGECONFIG[zeromq] = ",,python3-pycrypto python3-pyzmq"
+PACKAGECONFIG[tcp] = ",,python3-pycryptodome"
+PACKAGECONFIG[zeromq] = ",,python3-pycryptodome python3-pyzmq"
 
 SRC_URI = "\
     git://github.com/ni/salt.git;protocol=https;branch=ni/master/3000.2 \
@@ -137,8 +137,8 @@ Between the remote execution system, and state management Salt addresses the bac
 SUMMARY:${PN}-minion = "client package for salt, the distributed remote execution system"
 DESCRIPTION:${PN}-minion = "${DESCRIPTION_COMMON} This particular package provides the worker agent for salt."
 RDEPENDS:${PN}-minion = "${PN}-common (= ${EXTENDPKGV}) python3-core python3-msgpack python3-distro"
-RDEPENDS:${PN}-minion += "${@bb.utils.contains('PACKAGECONFIG', 'zeromq', 'python3-pycrypto python3-pyzmq (>= 13.1.0)', '',d)}"
-RDEPENDS:${PN}-minion += "${@bb.utils.contains('PACKAGECONFIG', 'tcp', 'python3-pycrypto', '',d)}"
+RDEPENDS:${PN}-minion += "${@bb.utils.contains('PACKAGECONFIG', 'zeromq', 'python3-pycryptodome python3-pyzmq (>= 13.1.0)', '',d)}"
+RDEPENDS:${PN}-minion += "${@bb.utils.contains('PACKAGECONFIG', 'tcp', 'python3-pycryptodome', '',d)}"
 RRECOMMENDS:${PN}-minion:append:x64 = "dmidecode"
 RSUGGESTS:${PN}-minion = "python3-augeas"
 CONFFILES:${PN}-minion = "${sysconfdir}/${PN}/minion ${sysconfdir}/init.d/${PN}-minion"
@@ -189,8 +189,8 @@ INITSCRIPT_PARAMS:${PN}-api = "defaults"
 SUMMARY:${PN}-master = "remote manager to administer servers via salt"
 DESCRIPTION:${PN}-master ="${DESCRIPTION_COMMON} This particular package provides the salt controller."
 RDEPENDS:${PN}-master = "${PN}-common (= ${EXTENDPKGV}) python3-core python3-msgpack"
-RDEPENDS:${PN}-master += "${@bb.utils.contains('PACKAGECONFIG', 'zeromq', 'python3-pycrypto python3-pyzmq (>= 13.1.0)', '',d)}"
-RDEPENDS:${PN}-master += "${@bb.utils.contains('PACKAGECONFIG', 'tcp', 'python3-pycrypto', '',d)}"
+RDEPENDS:${PN}-master += "${@bb.utils.contains('PACKAGECONFIG', 'zeromq', 'python3-pycryptodome python3-pyzmq (>= 13.1.0)', '',d)}"
+RDEPENDS:${PN}-master += "${@bb.utils.contains('PACKAGECONFIG', 'tcp', 'python3-pycryptodome', '',d)}"
 CONFFILES:${PN}-master="${sysconfdir}/init.d/${PN}-master  ${sysconfdir}/${PN}/master"
 RSUGGESTS:${PN}-master = "python3-git"
 FILES:${PN}-master = "${bindir}/${PN} ${bindir}/${PN}-cp ${bindir}/${PN}-key ${bindir}/${PN}-master ${bindir}/${PN}-run ${bindir}/${PN}-unity ${bindir}/spm ${CONFFILES:${PN}-master}"

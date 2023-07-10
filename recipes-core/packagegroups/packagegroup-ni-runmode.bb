@@ -101,7 +101,7 @@ RDEPENDS:${PN} += "\
 	python3-pyasn1 \
 	python3-pycares \
 	python3-pycparser \
-	python3-pycrypto \
+	python3-pycryptodome \
 	python3-pyiface \
 	python3-pyinotify \
 	python3-pyopenssl \
