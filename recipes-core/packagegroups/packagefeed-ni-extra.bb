@@ -564,7 +564,6 @@ RDEPENDS:${PN} += "\
 RDEPENDS:${PN} += "\
 	python3-future \
 	python3-gsocketpool \
-	python3-pycrypto \
 	python3-requests \
 	python3-pyzmq \
 	python3-m2crypto \
@@ -686,7 +685,6 @@ RDEPENDS:${PN} += "\
 	python3-prettytable \
 	python3-py \
 	python3-pyasn1 \
-	python3-pycrypto \
 	python3-pyflakes \
 	python3-pymongo \
 	python3-pyparsing \
@@ -781,7 +779,6 @@ RDEPENDS:${PN} += "\
 	clamav \
 	ecryptfs-utils \
 	libhtp \
-	python3-pycrypto \
 	samhain-server \
 "
 
