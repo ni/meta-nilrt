@@ -30,7 +30,6 @@ SRC_URI = "\
     file://cloud \
     file://roster \
     file://run-ptest \
-    file://0008-Only-import-ABCs-from-collections.abc.patch \
 "
 
 SRCREV = "${AUTOREV}"
