@@ -58,3 +58,8 @@ RDEPENDS:${PN}:append += "\
 RDEPENDS:${PN}:append:x64 += "\
 	kernel-test-nohz \
 "
+
+# Ruby: Used by setupscripts for pre-installer testing
+RDEPENDS:${PN}:append:x64 = "\
+	ruby \
+"
