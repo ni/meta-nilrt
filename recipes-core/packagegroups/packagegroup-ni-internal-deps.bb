@@ -61,3 +61,9 @@ RDEPENDS:${PN} += "\
 RDEPENDS:${PN} += "\
 	lz4 \
 "
+
+# Required by nisetupscripts for pre-installer testing
+# Contact: Zach Hindes <zach.hindes@ni.com>
+RDEPENDS:${PN}:append:x64 = "\
+	ruby \
+"
