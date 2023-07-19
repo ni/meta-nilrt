@@ -132,6 +132,22 @@ def get_test_results(path):
 
     return min_latency, avg_latency, max_latency
 
+def get_distro_info():
+    """Extract distro version and codename from os-release and return them as a tuple
+
+    Returns 'unknown' for either in case of file read exception or missing fields.
+
+    """
+    os_release_stmts = []
+    try:
+        with open('/etc/os-release') as os_release_file:
+            os_release_stmts = os_release_file.readlines()
+    except:
+        return ('unknown', 'unknown')
+    pairs = dict(map(lambda e: e.split('='), os_release_stmts))
+    version = pairs.get('VERSION_ID', 'unknown').strip()
+    name = pairs.get('DISTRO_CODENAME', 'unknown').strip()[1:-1]
+    return (version, name)
 
 def read_data(path):
     """Read test data and metadata from a cyclictest log file"""
@@ -139,6 +155,7 @@ def read_data(path):
     controller = get_device(path)
     test, time = get_test_params(path)
     min_latency, avg_latency, max_latency = get_test_results(path)
+    distro_version, distro_name = get_distro_info()
 
     data = {
         "measurement": "latency",
@@ -146,7 +163,9 @@ def read_data(path):
             "controller": controller,
             "test": test,
             "kernel_version": version,
-            "kernel_full_version": full_version
+            "kernel_full_version": full_version,
+            "distro_version": distro_version,
+            "distro_name": distro_name
         },
         "fields": {
             "min_latency": float(min_latency),
