@@ -53,3 +53,11 @@ RDEPENDS:${PN}:append:x64 = "\
 RDEPENDS:${PN} += "\
 	libxml-parser-perl \
 "
+
+# Required for a mobilize step that installs a specific Python version 
+# and requires building Python on the test system
+# Contact: ulf.glaeser@ni.com
+# Team: DAQ.SW.Ops@ni.com
+RDEPENDS:${PN} += "\
+	lz4 \
+"
