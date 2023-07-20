@@ -6,6 +6,7 @@ inherit packagegroup
 
 # essential packagegroups
 RDEPENDS:${PN} += "\
+	packagegroup-core-buildessential \
 	packagegroup-core-tools-debug \
 	packagegroup-ni-debug-kernel \
 	packagegroup-ni-selinux \
