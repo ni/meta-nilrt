@@ -73,3 +73,17 @@ RDEPENDS:${PN} += "\
 RDEPENDS:${PN}:append:x64 = "\
 	ruby \
 "
+
+# Required by aim-arinc-429
+# Maintainer: AIM GmbH
+# Contact: Karl Grosz
+RDEPENDS:${PN} += "\
+	coreutils \
+	g++ \
+	g++-symlinks \
+	gcc \
+	glibc \
+	libnl \
+	make \
+	pkgconfig \
+"
