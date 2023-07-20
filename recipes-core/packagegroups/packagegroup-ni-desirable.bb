@@ -52,10 +52,10 @@ RDEPENDS:${PN} += "\
 "
 
 # Testing packages
-RDEPENDS:${PN}:append += "\
+RDEPENDS:${PN} += "\
 	kernel-performance-tests \
 	ni-base-system-image-tests \
 "
-RDEPENDS:${PN}:append:x64 += "\
+RDEPENDS:${PN}:append:x64 = "\
 	kernel-test-nohz \
 "
