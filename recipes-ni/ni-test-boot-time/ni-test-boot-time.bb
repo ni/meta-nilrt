@@ -13,8 +13,8 @@ ALLOW_EMPTY:${PN} = "1"
 
 DEPENDS += "update-rc.d-native"
 RDEPENDS:${PN}-ptest += "bash gawk python3 python3-pip python3-requests"
-RDEPENDS:${PN}-ptest:append:x64 += "fw-printenv"
-RDEPENDS:${PN}-ptest:append:armv7a += "u-boot-fw-utils"
+RDEPENDS:${PN}-ptest:append:x64 = " fw-printenv"
+RDEPENDS:${PN}-ptest:append:armv7a = " u-boot-fw-utils"
 
 SRC_URI = "\
 	file://run-ptest \
