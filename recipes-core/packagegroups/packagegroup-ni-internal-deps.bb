@@ -1,7 +1,13 @@
 SUMMARY = "Open-source package dependencies of NI proprietary and internal products."
 LICENSE = "MIT"
 
+# Packagegroups which include recipes that dynamically rename their packages -
+# like libxkbcommon - may not use allarch.
+# https://www.mail-archive.com/openembedded-core@lists.openembedded.org/msg155223.html
+PACKAGE_ARCH = "${TUNE_PKGARCH}"
+
 inherit packagegroup
+
 
 # NI-RFSA/G
 # Contact: Dharaniprakash Kurdimath <dharaniprakash.kurdimath@ni.com>
