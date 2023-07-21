@@ -689,7 +689,6 @@ RDEPENDS:${PN} += "\
 	python3-pymongo \
 	python3-pyparsing \
 	python3-pyscss \
-	python3-pysnmp \
 	python3-pytest \
 	python3-pytz \
 	python3-pyudev \
