@@ -1,6 +1,6 @@
 DESCRIPTION = "Linux kernel based on nilrt branch"
 NI_RELEASE_VERSION = "master"
-LINUX_VERSION = "5.15"
+LINUX_VERSION = "6.1"
 LINUX_VERSION:xilinx-zynq = "4.14"
 
 require linux-nilrt.inc
