@@ -87,3 +87,10 @@ RDEPENDS:${PN} += "\
 	make \
 	pkgconfig \
 "
+
+# Required by PXIPS ATS events
+# Team: PXI PS
+# Contact: Kevin Khai-Wern Lim
+RDEPENDS:${PN} += "\
+	memtester \
+"
