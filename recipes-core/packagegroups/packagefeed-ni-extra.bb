@@ -232,7 +232,6 @@ RDEPENDS:${PN} += "\
 	iperf2 \
 	iperf3 \
 	lmbench \
-	memtester \
 	nbench-byte \
 	phoronix-test-suite \
 	tiobench \
