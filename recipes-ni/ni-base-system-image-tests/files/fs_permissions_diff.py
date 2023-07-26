@@ -70,7 +70,7 @@ def get_fs_manifest():
         + ['-printf', fs_manifest_format + '\n']
         + ['('] + omit_expr + [')', '-prune']
     )
-    return fs_manifest
+    return '\n'.join(sorted(fs_manifest.splitlines()))
 
 def log_version_info(logger, label, codename, full_version, date, db_id):
     logger.log(f'INFO: {label} = {codename} {full_version} from {date} with _id {db_id}')
