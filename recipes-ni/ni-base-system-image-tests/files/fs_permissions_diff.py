@@ -157,7 +157,7 @@ def get_old_fs_manifests(db, logger):
     recent_manifest, recent_version = run_query('recent', query_build(os_version.build))
 
     # Keep this log in first line to help streak indexer group results. Overall hash will be populated at end.
-    logger.prefix_log(f'INFO: fs_permissions_diff: {os_version.full} against {basis_version} ')
+    logger.prefix_log(f'INFO: fs_permissions_diff: current against {basis_version} ')
     # Keep this log in second line to avoid using it for grouping, but keep it for tracking.
     # Individual hashes to be populated at end.
     logger.prefix_log(f'INFO:   and {recent_version} ')
