@@ -181,7 +181,9 @@ replacement_patterns = [
         [r'NODE_DATA\(0\) allocated \[mem .*\]', 'NODE_DATA(0) allocated [mem ]'],
         [r'ACPI: SSDT 0x.*', 'ACPI: SSDT 0x'],
         [r'tsc: Refined TSC clocksource calibration: \d+.\d+ MHz', 'tsc: Refined TSC clocksource calibration: MHz'],
-        [r'software IO TLB: mapped mem .*', 'software IO TLB: mapped mem']
+        [r'software IO TLB: mapped mem .*', 'software IO TLB: mapped mem'],
+        [r'eth\d:', 'ethX:'],
+        [r'renamed from eth\d', 'renamed from ethX']
 ]
 
 def strip_known_differences(log):
