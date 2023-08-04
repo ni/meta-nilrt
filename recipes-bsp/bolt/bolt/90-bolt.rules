@@ -1,0 +1,16 @@
+# bolt udev rules
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# Copyright © 2017 Red Hat, Inc
+#
+# Authors:
+#       Christian J. Kellner <ckellner@redhat.com>
+#
+
+ACTION=="remove", GOTO="bolt_end"
+
+# start bolt service if we have a thunderbolt device connected
+ACTION=="add", SUBSYSTEM=="thunderbolt", ENV{DEVTYPE}=="thunderbolt_domain", RUN{program}+="/usr/bin/boltctl"
+
+LABEL="bolt_end"
