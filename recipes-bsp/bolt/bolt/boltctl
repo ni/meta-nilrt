@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# The purpose of this wrapper is to set LANG to UTF-8 so that non ASCII
+# characters in the output of boltctl can be displayed correctly
+LANG=en_US.UTF-8 /usr/libexec/boltctl "$@"

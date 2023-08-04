@@ -1,0 +1,36 @@
+From 26f0a98d57ddcc91a90730d98c0b5ccc298f9328 Mon Sep 17 00:00:00 2001
+From: Chaitanya Vadrevu <chaitanya.vadrevu@ni.com>
+Date: Fri, 11 Aug 2023 15:24:56 -0500
+Subject: [PATCH] exported: authorize all methods by default
+
+Without polkit, no method is authorized by default.
+We will be using dbus rules to control users' access to individual
+methods. So authorize all methods by default in bolt.
+
+Upstream-Status: Inappropriate [NI-specific changes]
+
+Signed-off-by: Chaitanya Vadrevu <chaitanya.vadrevu@ni.com>
+---
+ boltd/bolt-exported.c | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
+
+diff --git a/boltd/bolt-exported.c b/boltd/bolt-exported.c
+index 3c0ffb0..8a77b27 100644
+--- a/boltd/bolt-exported.c
++++ b/boltd/bolt-exported.c
+@@ -593,14 +593,7 @@ handle_authorize_method_default (BoltExported          *exported,
+                                  GDBusMethodInvocation *inv,
+                                  GError               **error)
+ {
+-  const char *method_name;
+-
+-  method_name = g_dbus_method_invocation_get_method_name (inv);
+-  g_set_error (error, G_DBUS_ERROR, G_DBUS_ERROR_ACCESS_DENIED,
+-               "bolt operation '%s' denied by default policy",
+-               method_name);
+-
+-  return FALSE;
++  return TRUE;
+ }
+ 
+ static gboolean

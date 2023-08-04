@@ -1,0 +1,186 @@
+From 86d2596b8da2bef9dd33579b104916aaafbff3ab Mon Sep 17 00:00:00 2001
+From: Christian Kellner <christian@kellner.me>
+Date: Mon, 28 Sep 2020 19:56:16 +0200
+Subject: [PATCH] daemon: support running without PolicyKit
+
+Make the dependency on PolicyKit optional. In that case, don't
+allow all methods and property access and fall back on the
+standard D-Bus policies. NB: These are designed to work with
+PolicyKit so most likely are not suitable at all. This is
+designed for a special use case not intended for general use.
+
+Since PolicyKit is the normal mode of operation, this feature
+requires explicit opt-in, via the new `require-polkit` configure
+option.
+
+Upstream-Status: Inappropriate [Upstream won't support no polkit]
+- This patch is commit 86d2596b of upstream that upstream kept in a
+  separate branch "no_polkit" specifically because they didn't want to
+  support bolt without polkit.
+
+---
+ boltd/bolt-bouncer.c | 27 ++++++++++++++++++++++++++-
+ config.h.in          |  1 +
+ meson.build          |  4 +++-
+ meson_options.txt    |  1 +
+ 4 files changed, 31 insertions(+), 2 deletions(-)
+
+diff --git a/boltd/bolt-bouncer.c b/boltd/bolt-bouncer.c
+index 1a65c46..e3218de 100644
+--- a/boltd/bolt-bouncer.c
++++ b/boltd/bolt-bouncer.c
+@@ -28,7 +28,10 @@
+ #include "bolt-exported.h"
+ 
+ #include <gio/gio.h>
++
++#if HAVE_POLKIT
+ #include <polkit/polkit.h>
++#endif
+ 
+ static void     bouncer_initable_iface_init (GInitableIface *iface);
+ 
+@@ -37,7 +40,7 @@ static gboolean bouncer_initialize (GInitable    *initable,
+                                     GCancellable *cancellable,
+                                     GError      **error);
+ 
+-#ifndef HAVE_POLKIT_AUTOPTR
++#if HAVE_POLKIT && !defined HAVE_POLKIT_AUTOPTR
+ G_DEFINE_AUTOPTR_CLEANUP_FUNC (PolkitAuthorizationResult, g_object_unref)
+ G_DEFINE_AUTOPTR_CLEANUP_FUNC (PolkitDetails, g_object_unref)
+ G_DEFINE_AUTOPTR_CLEANUP_FUNC (PolkitSubject, g_object_unref)
+@@ -48,7 +51,9 @@ struct _BoltBouncer
+   GObject object;
+ 
+   /* */
++#if HAVE_POLKIT
+   PolkitAuthority *authority;
++#endif
+ };
+ 
+ G_DEFINE_TYPE_WITH_CODE (BoltBouncer, bolt_bouncer, G_TYPE_OBJECT,
+@@ -61,7 +66,11 @@ bolt_bouncer_finalize (GObject *object)
+ {
+   BoltBouncer *bouncer = BOLT_BOUNCER (object);
+ 
++  g_assert (BOLT_IS_BOUNCER (bouncer));
++
++#if HAVE_POLKIT
+   g_clear_object (&bouncer->authority);
++#endif
+ 
+   G_OBJECT_CLASS (bolt_bouncer_parent_class)->finalize (object);
+ }
+@@ -86,11 +95,13 @@ bouncer_initable_iface_init (GInitableIface *iface)
+   iface->init = bouncer_initialize;
+ }
+ 
++#if HAVE_POLKIT
+ static gboolean
+ bouncer_initialize (GInitable    *initable,
+                     GCancellable *cancellable,
+                     GError      **error)
+ {
++
+   BoltBouncer *bnc = BOLT_BOUNCER (initable);
+ 
+   bolt_info (LOG_TOPIC ("bouncer"), "initializing polkit");
+@@ -98,9 +109,20 @@ bouncer_initialize (GInitable    *initable,
+ 
+   return bnc->authority != NULL;
+ }
++#else /* HAVE_POLKIT */
++static gboolean
++bouncer_initialize (GInitable    *initable,
++                    GCancellable *cancellable,
++                    GError      **error)
++{
++  bolt_info (LOG_TOPIC ("bouncer"), "Checking DISABLED (polkit missing)");
++  return TRUE;
++}
++#endif /* HAVE_POLKIT */
+ 
+ /* internal methods */
+ 
++#if HAVE_POLKIT
+ static gboolean
+ bolt_bouncer_check_action (BoltBouncer           *bnc,
+                            GDBusMethodInvocation *inv,
+@@ -252,6 +274,7 @@ handle_authorize_property (BoltExported          *exported,
+ 
+   return authorized;
+ }
++#endif
+ 
+ /* public methods */
+ BoltBouncer *
+@@ -271,6 +294,7 @@ bolt_bouncer_add_client (BoltBouncer *bnc,
+   g_return_if_fail (BOLT_IS_BOUNCER (bnc));
+   g_return_if_fail (BOLT_IS_EXPORTED (client));
+ 
++#if HAVE_POLKIT
+   g_signal_connect_object (client, "authorize-method",
+                            G_CALLBACK (handle_authorize_method),
+                            bnc, 0);
+@@ -278,4 +302,5 @@ bolt_bouncer_add_client (BoltBouncer *bnc,
+   g_signal_connect_object (client, "authorize-property",
+                            G_CALLBACK (handle_authorize_property),
+                            bnc, 0);
++#endif
+ }
+diff --git a/config.h.in b/config.h.in
+index eba23a3..0b94246 100644
+--- a/config.h.in
++++ b/config.h.in
+@@ -38,6 +38,7 @@
+ #mesondefine HAVE_FN_EXPLICIT_BZERO
+ #mesondefine HAVE_FN_GETRANDOM
+ #mesondefine HAVE_FN_COPY_FILE_RANGE
++#mesondefine HAVE_POLKIT
+ #mesondefine HAVE_POLKIT_AUTOPTR
+ 
+ /* constants */
+diff --git a/meson.build b/meson.build
+index 32e48d2..2073079 100644
+--- a/meson.build
++++ b/meson.build
+@@ -66,6 +66,7 @@ endforeach
+ 
+ build_man = get_option('man')
+ req_man = build_man == 'true'
++req_polkit = get_option('polkit-required')
+ 
+ # dependencies
+ 
+@@ -81,7 +82,7 @@ gio     = dependency('gio-2.0')
+ libudev = dependency('libudev')
+ unix    = dependency('gio-unix-2.0')
+ udev    = dependency('udev')
+-polkit  = dependency('polkit-gobject-1')
++polkit  = dependency('polkit-gobject-1', required: req_polkit)
+ mockdev = dependency('umockdev-1.0', required: false)
+ 
+ git     = find_program('git', required: false)
+@@ -152,6 +153,7 @@ foreach fn : [
+   conf.set10('HAVE_FN_' + fn[0].to_upper(), have)
+ endforeach
+ 
++conf.set10('HAVE_POLKIT', polkit.found())
+ if polkit.version().version_compare('>= 0.114')
+   conf.set('HAVE_POLKIT_AUTOPTR', '1')
+ endif
+diff --git a/meson_options.txt b/meson_options.txt
+index 467f73e..880ca3e 100644
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -3,6 +3,7 @@ option('db-path', type: 'string', description: 'DEPRECATED')
+ option('db-name', type: 'string', value: 'boltd', description: 'Name for the device database')
+ option('install-tests', type: 'boolean', value: 'false', description: 'Install the tests')
+ option('man', type: 'combo', choices: ['auto', 'true', 'false'], value: 'auto', description: 'Build man pages')
++option('polkit-required', type: 'boolean', value: 'true', description: 'Require PolicyKit integration')
+ option('privileged-group', type: 'string', value: 'wheel', description: 'Name of privileged group')
+ option('profiling', type: 'boolean', value: 'false', description: 'Build with profiling support')
+ option('systemd', type: 'boolean', value: 'true', description: 'DEPRECATED')
+-- 
+2.34.1
+

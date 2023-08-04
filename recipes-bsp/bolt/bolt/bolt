@@ -1,0 +1,17 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          bolt
+# Required-Start:    dbus
+# Required-Stop:
+# Default-Start:     2 3 5
+# Default-Stop:
+# Short-Description: Start boltd
+# Description:       Start boltd when thunderbolt devices are present at boot time.
+#                    For cases when thunderbolt is connected after boot, udev will
+#                    take care of starting it.
+### END INIT INFO
+
+# boltctl causes /usr/libexec/boltd to run as a daemon so just call it instead
+# of explicitly daemonizing boltd.
+[ -d "/sys/bus/thunderbolt" ] && boltctl
