@@ -94,3 +94,10 @@ RDEPENDS:${PN} += "\
 RDEPENDS:${PN} += "\
 	memtester \
 "
+
+# Required by aim-arinc-664
+# Maintainer: AIM GmbH
+# Contact: Michael Tillerson <michael.tillerson@ni.com>
+RDEPENDS:${PN} += "\
+	libpcap \
+"

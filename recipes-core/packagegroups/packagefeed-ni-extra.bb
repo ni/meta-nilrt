@@ -70,7 +70,6 @@ RDEPENDS:${PN} += "\
 	avahi \
 	bind \
 	cifs-utils \
-	libpcap \
 	ofono \
 	ppp \
 	ppp-dialin \
