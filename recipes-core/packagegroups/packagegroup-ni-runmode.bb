@@ -31,7 +31,6 @@ RDEPENDS:${PN} = "\
 	parted \
 	rtctl \
 	systemimageupdateinfo \
-	tbtadm \
 	util-linux-sfdisk \
 	vlan \
 	zip \
