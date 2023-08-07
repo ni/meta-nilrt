@@ -32,6 +32,7 @@ CONFFILES:${PN}:append := " \
 	${sysconfdir}/dconf/db/local.d/01-gnome-accessibility \
 "
 
+RDEPENDS:${PN}:append = " dconf"
 # Onboard uses unicode glyphs in its key_defs.xml file, which means
 # we need a font that has those glyphs present.
 RDEPENDS:${PN}:append = " ttf-dejavu-sans"
