@@ -1,19 +1,14 @@
-# Onboard uses unicode glyphs in its key_defs.xml file, which means
-# we need a font that has those glyphs present.
-RDEPENDS:${PN}:append = " ttf-dejavu-sans"
-
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-SRC_URI += "file://0001-add-xfce-to-autostart-onlyshowin.patch \
-            file://01-gnome-accessibility \
-            file://NI.colors \
-            file://NI.theme \
-            file://onboard-defaults.conf \
+
+SRC_URI += " \
+	file://0001-add-xfce-to-autostart-onlyshowin.patch \
+	file://01-gnome-accessibility \
+	file://NI.colors \
+	file://NI.theme \
+	file://onboard-defaults.conf \
 "
 
-CONFFILES:${PN}:append := " ${sysconfdir}/onboard/onboard-defaults.conf \
-                            ${sysconfdir}/dconf/db/local.d/01-gnome-accessibility \
-"
 
 do_install:append () {
 	install -d ${D}${sysconfdir}/dconf/db/local.d
@@ -30,3 +25,13 @@ do_install:append () {
 pkg_postinst:${PN} () {
 	dconf update
 }
+
+
+CONFFILES:${PN}:append := " \
+	${sysconfdir}/onboard/onboard-defaults.conf \
+	${sysconfdir}/dconf/db/local.d/01-gnome-accessibility \
+"
+
+# Onboard uses unicode glyphs in its key_defs.xml file, which means
+# we need a font that has those glyphs present.
+RDEPENDS:${PN}:append = " ttf-dejavu-sans"
