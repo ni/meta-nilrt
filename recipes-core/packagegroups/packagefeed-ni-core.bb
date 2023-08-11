@@ -22,6 +22,7 @@ RDEPENDS:${PN} = "\
 	packagegroup-core-standalone-sdk-target \
 	packagegroup-kernel-module-build \
 	dkms \
+	bolt \
 "
 
 RDEPENDS:${PN}:append:x64 = "\
