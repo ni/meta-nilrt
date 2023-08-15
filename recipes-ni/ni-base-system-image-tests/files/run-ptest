@@ -2,5 +2,6 @@
 
 ./test_fs_permissions_known.sh
 ./test_fs_permissions_diff.sh
+./test_disk_size.sh
 
 exit 0

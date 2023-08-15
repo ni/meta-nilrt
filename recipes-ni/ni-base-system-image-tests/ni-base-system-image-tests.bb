@@ -16,8 +16,10 @@ SRC_URI = "\
     file://fs_permissions_shared.py \
     file://fs_permissions_diff.py \
     file://fs_permissions_known.py \
+    file://disk_size.py \
     file://test_fs_permissions_diff.sh \
     file://test_fs_permissions_known.sh \
+    file://test_disk_size.sh \
 "
 
 S = "${WORKDIR}"
@@ -29,6 +31,7 @@ do_install_ptest() {
     install -m 0644 ${WORKDIR}/fs_permissions_shared.py ${D}${PTEST_PATH}
     install -m 0644 ${WORKDIR}/fs_permissions_diff.py   ${D}${PTEST_PATH}
     install -m 0644 ${WORKDIR}/fs_permissions_known.py  ${D}${PTEST_PATH}
+    install -m 0644 ${WORKDIR}/disk_size.py             ${D}${PTEST_PATH}
     install -m 0755 ${WORKDIR}/test_*.sh                ${D}${PTEST_PATH}
     install -m 0755 ${WORKDIR}/run-ptest                ${D}${PTEST_PATH}
 }
