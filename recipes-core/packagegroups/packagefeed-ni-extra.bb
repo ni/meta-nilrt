@@ -210,7 +210,6 @@ RDEPENDS:${PN} += "\
 	oprofile \
 	powertop \
 	systemtap \
-	trace-cmd \
 "
 
 # openembedded-gore/meta/recipes-multimedia
