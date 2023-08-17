@@ -237,11 +237,6 @@ RDEPENDS:${PN} += "\
 	tiobench \
 "
 
-
-# meta-openembedded/meta-oe/recipes-bsp
-RDEPENDS:${PN} += "\
-	tbtadm \
-"
 # meta-openembedded/meta-oe/recipes-connectivity
 RDEPENDS:${PN} += "\
 	gammu \
