@@ -41,15 +41,19 @@ struct histogram_data {
 	uint64_t *data;
 };
 
-static void error_exit(char* msg)
+static void error_exit(char* error, char *details)
 {
-	printf("error: %s\n", msg);
+	printf("error: %s\n", error);
+	if(details)
+		printf(details);
 	printf("FAIL: nohz_test\n");
 	exit(EXIT_FAILURE);
 }
 
-static void success_exit()
+static void success_exit(char* details)
 {
+	if(details)
+		printf(details);
 	printf("PASS: nohz_test\n");
 	exit(EXIT_SUCCESS);
 }
@@ -205,7 +209,7 @@ static int setup_cpu_sets()
 	int ncpus = get_nprocs();
 
 	if (ncpus < 2)
-		error_exit("Test requires a system with at least 2 CPUs available");
+		error_exit("Test requires a system with at least 2 CPUs available", NULL);
 
 	snprintf(system_set, 8, "0-%d", ncpus - 2);
 	ret = CPU_SET_MASK(SYSTEM_CPU_SET, system_set);
@@ -250,19 +254,19 @@ static void setup()
         signal(SIGHUP, SIG_IGN);
 
 	if (mlockall(MCL_CURRENT | MCL_FUTURE) < 0)
-		error_exit("Failed to mlockall memory");
+		error_exit("Failed to mlockall memory", NULL);
 
 	if (setup_cpu_sets() < 0)
-		error_exit("Failed to configure CPU sets");
+		error_exit("Failed to configure CPU sets", NULL);
 
 	if (set_rt_cpu_set_affinity(getpid()) < 0)
-		error_exit("Failed to affinitize test to CPU set");
+		error_exit("Failed to affinitize test to CPU set", NULL);
 
 	if (set_fifo_priority(TEST_PRIO) < 0)
-		error_exit("Failed to set the test scheduling priority");
+		error_exit("Failed to set the test scheduling priority", NULL);
 
 	if (flush_disk_io() < 0)
-		error_exit("Failed to flush disk caches");
+		error_exit("Failed to flush disk caches", NULL);
 }
 
 static inline uint64_t tsdiff(struct timespec *start, struct timespec *end)
@@ -363,26 +367,28 @@ static void validate_results(struct histogram_data *h)
 {
 	uint64_t p_99_999;
 	uint64_t p_99_9999;
+	const char *stats_summary = "Total count: %lu (samples)\n"
+                                    "Maximum latency: %lu (ns)\n"
+                                    "99.999 percentile: %lu (ns)\n"
+                                    "99.9999 percentile: %lu (ns)\n";
+	char buffer[512];
 
 	if (!h)
-		error_exit("Results validation failed; no histogram data");
+		error_exit("Results validation failed; no histogram data", NULL);
 
 	p_99_999 = get_percentile(99.999, h);
 	p_99_9999 = get_percentile(99.9999, h);
 
-	printf("Total count: %lu (samples)\n", h->cnt);
-	printf("Maximum latency: %lu (ns)\n", h->max);
-	printf("99.999 percentile: %lu (ns)\n", p_99_999);
-	printf("99.9999 percentile: %lu (ns)\n", p_99_9999);
+	sprintf(buffer, stats_summary, h->cnt, h->max, p_99_999, p_99_9999);
 
 	if (h->max > max_latency)
-		error_exit("Maximum latency exceeded");
+		error_exit("Maximum latency exceeded", buffer);
 	if (p_99_999 > percentile_99_999)
-		error_exit("99.999%% threshold exceeded");
+		error_exit("99.999%% threshold exceeded", buffer);
 	if (p_99_9999 > percentile_99_9999)
-		error_exit("99.9999%% threshold exceeded");
+		error_exit("99.9999%% threshold exceeded", buffer);
 
-	success_exit();
+	success_exit(buffer);
 }
 
 int main(int argc, char *argv[])
@@ -390,14 +396,14 @@ int main(int argc, char *argv[])
 	struct histogram_data histogram;
 
 	if (parse_options(argc, argv) < 0)
-		error_exit("Failed to parse arguments\n");
+		error_exit("Failed to parse arguments\n", NULL);
 
 	histogram.cnt = 0;
 	histogram.max = 0;
 	histogram.size = max_latency;
 	histogram.data = (uint64_t*)calloc(histogram.size, sizeof(uint64_t));
 	if (!histogram.data)
-		error_exit("Failed to allocate space for histogram data");
+		error_exit("Failed to allocate space for histogram data", NULL);
 
 	setup();
 
