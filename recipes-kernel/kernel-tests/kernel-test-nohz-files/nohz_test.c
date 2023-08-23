@@ -41,19 +41,29 @@ struct histogram_data {
 	uint64_t *data;
 };
 
-static void error_exit(char* error, char *details)
+static void error_exit(const char* error, const char *format, ...)
 {
+	va_list arglist;
+
 	printf("error: %s\n", error);
-	if(details)
-		printf(details);
+	if (format) {
+		va_start(arglist, format);
+		vprintf(format, arglist);
+		va_end(arglist);
+	}
 	printf("FAIL: nohz_test\n");
 	exit(EXIT_FAILURE);
 }
 
-static void success_exit(char* details)
+static void success_exit(const char *format, ...)
 {
-	if(details)
-		printf(details);
+	va_list arglist;
+
+	if (format) {
+		va_start(arglist, format);
+		vprintf(format, arglist);
+		va_end(arglist);
+	}
 	printf("PASS: nohz_test\n");
 	exit(EXIT_SUCCESS);
 }
@@ -371,7 +381,6 @@ static void validate_results(struct histogram_data *h)
                                     "Maximum latency: %lu (ns)\n"
                                     "99.999 percentile: %lu (ns)\n"
                                     "99.9999 percentile: %lu (ns)\n";
-	char buffer[512];
 
 	if (!h)
 		error_exit("Results validation failed; no histogram data", NULL);
@@ -379,16 +388,14 @@ static void validate_results(struct histogram_data *h)
 	p_99_999 = get_percentile(99.999, h);
 	p_99_9999 = get_percentile(99.9999, h);
 
-	sprintf(buffer, stats_summary, h->cnt, h->max, p_99_999, p_99_9999);
-
 	if (h->max > max_latency)
-		error_exit("Maximum latency exceeded", buffer);
+		error_exit("Maximum latency exceeded", stats_summary, h->cnt, h->max, p_99_999, p_99_9999);
 	if (p_99_999 > percentile_99_999)
-		error_exit("99.999%% threshold exceeded", buffer);
+		error_exit("99.999%% threshold exceeded", stats_summary, h->cnt, h->max, p_99_999, p_99_9999);
 	if (p_99_9999 > percentile_99_9999)
-		error_exit("99.9999%% threshold exceeded", buffer);
+		error_exit("99.9999%% threshold exceeded", stats_summary, h->cnt, h->max, p_99_999, p_99_9999);
 
-	success_exit(buffer);
+	success_exit(stats_summary, h->cnt, h->max, p_99_999, p_99_9999);
 }
 
 int main(int argc, char *argv[])
