@@ -9,6 +9,7 @@ SRC_URI =+ " \
             file://acpid.conf \
             file://acpid_poweroff.sh \
             file://acpid-logrotate.conf \
+            file://0001-ifplugd.c-Increase-buffer-size-for-netlink-binding.patch \
             file://zcip-allow-action-script-to-reject-chosen-IP.patch \
             file://login-utilities.cfg \
             file://udhcpd.wlan0.conf"
