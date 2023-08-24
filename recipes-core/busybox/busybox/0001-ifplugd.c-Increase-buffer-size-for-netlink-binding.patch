@@ -1,0 +1,57 @@
+From 0d3331b91bbb7430fa6a13ebe631d0784983ee87 Mon Sep 17 00:00:00 2001
+From: Charlie Johnston <charlie.johnston@ni.com>
+Date: Thu, 24 Aug 2023 09:59:44 -0500
+Subject: [PATCH] ifplugd.c: Increase buffer size for netlink binding.
+
+Currently when binding to netlink to monitor for new
+adapter events, ifplugd uses the default buffer size.
+In cases with a large number of ethernet adapters, the
+buffer can overflow as any network adapter configuration
+change results in message. The buffer overflow can cause
+network adapters to fail initialization and not be put
+into an up state with the proper configuration.
+
+This change modifies the create_and_bind_to_netlink call
+to use a buffer size higher than the typical system default
+for x64-based systems.
+
+Signed-off-by: Charlie Johnston <charlie.johnston@ni.com>
+
+Upstream-Status: Inappropriate [Large numbers of adapters
+are uncommon on embedded systems]
+---
+ networking/ifplugd.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/networking/ifplugd.c b/networking/ifplugd.c
+index a776d4121..ffdc296e5 100644
+--- a/networking/ifplugd.c
++++ b/networking/ifplugd.c
+@@ -134,6 +134,15 @@ enum { // constant fds
+ 	netlink_fd = 4,
+ };
+ 
++enum {
++	/* The default buffersize is not sufficient when there are a large number
++	/ of network adapters (> 30). This can cause network adapters to not receive
++	/ IPv4 configurations from ifplugd. This value uses 128MiB instead of the
++	/ typical system default of 212,992 for 64-bit systems.
++	*/
++	KERN_RCVBUF = 128 * 1024 * 1024,
++};
++
+ struct globals {
+ 	smallint iface_last_status;
+ 	smallint iface_prev_status;
+@@ -605,7 +614,7 @@ int ifplugd_main(int argc UNUSED_PARAM, char **argv)
+ 
+ 	xmove_fd(xsocket(AF_INET, SOCK_DGRAM, 0), ioctl_fd);
+ 	if (opts & FLAG_MONITOR) {
+-		int fd = create_and_bind_to_netlink(NETLINK_ROUTE, RTMGRP_LINK, 0);
++		int fd = create_and_bind_to_netlink(NETLINK_ROUTE, RTMGRP_LINK, KERN_RCVBUF);
+ 		xmove_fd(fd, netlink_fd);
+ 	}
+ 
+-- 
+2.41.0
+
