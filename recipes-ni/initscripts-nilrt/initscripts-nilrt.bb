@@ -12,6 +12,8 @@ SRC_URI = "\
 	file://cleanvarcache \
 	file://firewall \
 	file://iso3166-translation.txt \
+	file://lvrt-cgroup \
+	file://lvrt-cgroup.sh \
 	file://mountconfig \
 	file://mountdebugfs \
 	file://nicheckbiosconfig \
@@ -80,6 +82,11 @@ do_install () {
 	install -d ${D}${sysconfdir}/natinst
 	install -m 0644 ${WORKDIR}/iso3166-translation.txt ${D}${sysconfdir}/natinst
 
+	install -d ${D}${sysconfdir}/default
+	install -m 0644 lvrt-cgroup ${D}${sysconfdir}/default/lvrt-cgroup
+
+	install -d ${D}${datadir}/${BPN}
+	install -m 0755 lvrt-cgroup.sh ${D}${datadir}/${BPN}/lvrt-cgroup.sh
 }
 
 pkg_postinst_ontarget:${PN} () {
