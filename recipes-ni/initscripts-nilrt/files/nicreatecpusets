@@ -1,6 +1,11 @@
 #!/bin/sh
-# Copyright (c) 2012-2013 National Instruments.
+# Copyright (c) 2012-2023 National Instruments.
 # All rights reserved.
+
+# Exit early if LabVIEW RT does not use cgroup-v1
+. /usr/share/initscripts-nilrt/lvrt-cgroup.sh
+identify_lvrt_cgroup_version || exit 0
+[ "$LVRT_CGROUP_VERSION" -eq 1 ] || exit 0
 
 #echo -n "Creating CPU sets for National Instruments LabVIEW Real-Time:"
 [ "${VERBOSE}" != "no" ] && echo -n "Starting nicreatecpusets:"
