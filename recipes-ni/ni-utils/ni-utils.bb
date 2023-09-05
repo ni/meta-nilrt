@@ -20,6 +20,7 @@ FILES:${PN} += "\
 	${sysconfdir}/init.d/nisetled \
 	${sysconfdir}/init.d/nisetprimarymac \
 	${sysconfdir}/natinst/networking/functions.common \
+	/usr/local/natinst/bin/status_led \
 "
 
 DEPENDS += "shadow-native pseudo-native niacctbase update-rc.d-native"
@@ -49,4 +50,8 @@ do_install () {
 
 	chown 0:${LVRT_GROUP} ${D}${bindir}/status_led
 	chown 0:${LVRT_GROUP} ${D}${sysconfdir}/init.d/nisetbootmode
+
+	# legacy symlink location
+	install -d ${D}/usr/local/natinst/bin
+	ln -sf ${bindir}/status_led ${D}/usr/local/natinst/bin/status_led
 }
