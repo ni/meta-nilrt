@@ -12,9 +12,7 @@ P4NINES=3000
 
 # load device specific test parameters
 DEVICE=$(fw_printenv DeviceDesc | sed 's/DeviceDesc=//')
-if source "./$DEVICE.conf" 2>/dev/null ; then
-    echo "test parameters loaded from $DEVICE.conf"
-else
+if ! source "./$DEVICE.conf" 2>/dev/null ; then
     echo "warning: $DEVICE.conf not found; using default test parameters"
 fi
 
@@ -27,7 +25,7 @@ for file in `find /sys/devices/virtual/workqueue -name "cpumask"`; do
 done
 
 # delay the vmstat timer far away
-sysctl vm.stat_interval=999
+sysctl -q vm.stat_interval=999
 
 # create local results directory
 mkdir -p "$LOG_DIR"
