@@ -37,7 +37,6 @@ do_install:append () {
 		echo                                                       >>${D}${sysconfdir}/ssh/sshd_config
 		echo "# HostKeys for protocol version 2"                   >>${D}${sysconfdir}/ssh/sshd_config
 		echo "HostKey /etc/natinst/share/ssh/ssh_host_rsa_key"     >>${D}${sysconfdir}/ssh/sshd_config
-		echo "HostKey /etc/natinst/share/ssh/ssh_host_dsa_key"     >>${D}${sysconfdir}/ssh/sshd_config
 		echo "HostKey /etc/natinst/share/ssh/ssh_host_ecdsa_key"   >>${D}${sysconfdir}/ssh/sshd_config
 		echo "HostKey /etc/natinst/share/ssh/ssh_host_ed25519_key" >>${D}${sysconfdir}/ssh/sshd_config
 }
