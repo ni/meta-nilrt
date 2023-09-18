@@ -115,10 +115,6 @@ DISTRO_FEATURES_BACKFILL_CONSIDERED:arm = "gobject-introspection-data"
 # touchsreen calibration doesn't work with xf86-input-libinput, only with xf86-input-edev
 BAD_RECOMMENDATIONS += "xf86-input-libinput"
 
-# Do not "--enable-udev_sync" in lvm2/libdevmapper
-LVM2_PACKAGECONFIG:remove:class-target = "udev"
-RRECOMMENDS:libdevmapper:remove:class-target = "lvm2-udevrules"
-
 # these bbappends are constantly stale and since we don't use them
 # mask to avoid the bitbake warning noise
 BBMASK += "meta-cloud-services/meta-openstack/recipes-kernel"
