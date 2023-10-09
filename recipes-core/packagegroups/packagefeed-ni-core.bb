@@ -25,6 +25,10 @@ RDEPENDS:${PN} = "\
 	bolt \
 "
 
+RDEPENDS:${PN}:append = "\
+	docker \
+"
+
 RDEPENDS:${PN}:append:x64 = "\
 	init-nilrt-ramfs \
 	nilrt-grub-runmode \

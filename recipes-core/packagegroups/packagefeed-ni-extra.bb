@@ -750,7 +750,6 @@ RDEPENDS:${PN} += "\
 # meta-virtualization
 RDEPENDS:${PN} += "\
 	cgroup-lite \
-	docker \
 	lxc \
 	multipath-tools \
 	openvswitch \
