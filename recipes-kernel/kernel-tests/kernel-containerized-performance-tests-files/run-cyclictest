@@ -1,0 +1,83 @@
+#!/bin/bash
+source ./common.cfg
+
+function add_system_info()
+{
+	{
+	DESC=$(fw_printenv DeviceDesc)
+	DEVICE=${DESC#*=}
+	echo "# Device: $DEVICE"
+
+	echo -n "# Kernel: "
+	uname -a
+
+	echo -n "# Kernel parameters: "
+	cat /proc/cmdline
+
+	# save info on the current security mitigations
+	echo "# Security vulnerabilities settings: "
+	if [ -d "/sys/devices/system/cpu/vulnerabilities" ]; then
+		for f in  /sys/devices/system/cpu/vulnerabilities/*; do
+		VULN=$(basename "$f")
+		if [ -f "$f" ]; then
+			echo -n -e "#	 $VULN:\t"
+			cat "$f"
+		fi
+		done
+	else
+		echo "#	 vulnerability information not published"
+	fi
+
+	# save info on the current C state settings
+	echo "# C-states settings: "
+	for CPU in /sys/devices/system/cpu/cpu[0-9]; do
+		NCPU=$(basename "$CPU")
+		echo "#	 [$NCPU]"
+		for CSTATE in $CPU/cpuidle/state[0-9]; do
+		NSTATE=$(basename "$CSTATE")
+		if [ -f "$CSTATE/name" ] && [ -f "$CSTATE/disable" ]; then
+					NAME=$(cat "$CSTATE/name" 2>/dev/null)
+					STATUS=$(cat "$CSTATE/disable" 2>/dev/null)
+
+					echo -n "#	 $NSTATE: $NAME: "
+					if [ "$STATUS" = "0" ]; then
+						echo "enabled"
+					else
+						echo "disabled"
+					fi
+		else
+					echo "#	 information not available"
+		fi
+		done
+	done
+	} >> "$1"
+}
+
+function run_cyclictest()
+{
+	LOG="$LOG_DIR/cyclictest-$1-`date +'%Y_%m_%d-%H_%M_%S'`.log"
+	INFLUXDB_INFO="/home/admin/.influxdb.info"
+	cyclictest --smp --priority=98 --mlockall --interval=997 --quiet --duration="$TEST_DURATION" --histofall=1000 --histfile="$LOG" > /dev/null
+	add_system_info "$LOG"
+	if [[ -f "$INFLUXDB_INFO" ]]; then
+		source "$INFLUXDB_INFO"
+		python3 upload_cyclictest_results.py "-i $LOG" "-s $INFLUXDB_SERVER" "-p $INFLUXDB_PORT"
+	else
+		echo "INFO: No InfluxDB Connection Info. Results will not be published."
+	fi
+
+	LATENCY=$(grep -sw "# Max Latencies:" "$LOG" | awk '{max=$4; for(i=4; i<=NF; i++) if ($i>max) max=$i; gsub("^0*", "", max); print max}')
+	if [ "$LATENCY" -le "$MAX_LATENCY" ]; then
+	echo "cyclictest with $1 load latency: $LATENCY (usec) is less than max latency: $MAX_LATENCY (usec)"
+	echo "histogram log file: $LOG"
+	echo "PASS: test_kernel_cyclictest_$1"
+	CYCLICTEST_RESULT=0
+	else
+	echo "cyclictest with $1 load latency: $LATENCY (usec) is above the expected max latency: $MAX_LATENCY (usec)"
+	echo "histogram log file: $LOG"
+	echo "FAIL: test_kernel_cyclictest_$1"
+	CYCLICTEST_RESULT=1
+	fi
+}
+
+mkdir -p "$LOG_DIR"
