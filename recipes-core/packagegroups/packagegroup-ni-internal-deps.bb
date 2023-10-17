@@ -101,3 +101,10 @@ RDEPENDS:${PN} += "\
 RDEPENDS:${PN} += "\
 	libpcap \
 "
+
+# Required by LabVIEW Real-Time
+# Team: LabVIEW Real-Time
+# Contact: sharpk
+RDEPENDS:${PN} += "\
+	libglu \
+"
