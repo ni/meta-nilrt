@@ -55,6 +55,7 @@ RDEPENDS:${PN} += "\
 # Testing packages
 RDEPENDS:${PN} += "\
 	kernel-performance-tests \
+	kernel-containerized-performance-tests \
 	ni-base-system-image-tests \
 "
 RDEPENDS:${PN}:append:x64 = "\
