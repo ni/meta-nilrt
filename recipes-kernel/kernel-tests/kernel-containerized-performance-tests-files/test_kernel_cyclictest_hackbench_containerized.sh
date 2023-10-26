@@ -6,14 +6,20 @@ PTEST_LOCATION=/usr/lib/kernel-containerized-performance-tests/ptest
 if [ "$(docker images -q cyclictest-container:latest)" = "" ]; then
     echo "Building cyclictest-container..."
     DOCKER_BUILDKIT=1 \
-        docker build -t cyclictest-container --network=host ${PTEST_LOCATION}/cyclictest-container \
-        > /dev/null
+        docker build -t cyclictest-container --network=host ${PTEST_LOCATION}/cyclictest-container
+    if [ "$(docker images -q cyclictest-container:latest)" = "" ]; then
+        echo "Failed to build cyclictest-container"
+        exit 77
+    fi
 fi
 if [ "$(docker images -q parallel-container:latest)" = "" ]; then
     echo "Building parallel-container..."
     DOCKER_BUILDKIT=1 \
-        docker build -t parallel-container --network=host ${PTEST_LOCATION}/parallel-container \
-        > /dev/null
+        docker build -t parallel-container --network=host ${PTEST_LOCATION}/parallel-container
+    if [ "$(docker images -q parallel-container:latest)" = "" ]; then
+        echo "Failed to build parallel-container"
+        exit 77
+    fi
 fi
 
 # Start background scheduler load
