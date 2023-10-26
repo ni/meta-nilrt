@@ -16,6 +16,7 @@ RDEPENDS:${PN}:append = "\
     busybox-ptest \
     bzip2-ptest \
     coreutils-ptest \
+    docker-functional-ptest \
     e2fsprogs-ptest \
     elfutils-ptest \
     ethtool-ptest \
