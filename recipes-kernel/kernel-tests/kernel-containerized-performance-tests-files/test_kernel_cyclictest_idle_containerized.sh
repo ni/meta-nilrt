@@ -7,8 +7,11 @@ LOG_DIR="/var/local/ptest-results/kernel-containerized-performance-tests"
 if [ "$(docker images -q cyclictest-container:latest)" = "" ]; then
     echo "Building cyclictest-container..."
     DOCKER_BUILDKIT=1 \
-        docker build -t cyclictest-container --network=host ${PTEST_LOCATION}/cyclictest-container \
-        > /dev/null
+        docker build -t cyclictest-container --network=host ${PTEST_LOCATION}/cyclictest-container
+    if [ "$(docker images -q cyclictest-container:latest)" = "" ]; then
+        echo "Failed to build cyclictest-container"
+        exit 77
+    fi
 fi
 
 # Run cyclictest
