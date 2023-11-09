@@ -25,8 +25,6 @@
 #define NSEC_PER_USEC	1000ULL
 #define NSEC_PER_SEC	1000000000ULL
 
-#define RT_CPU_SET	"/dev/cgroup/cpuset/LabVIEW_tl_set"
-#define SYSTEM_CPU_SET	"/dev/cgroup/cpuset/system_set"
 #define LOG_DIR	"/var/local/ptest-results/kernel-test-nohz"
 
 static uint64_t max_latency = 0;
@@ -207,19 +205,16 @@ static int write_text_file(const char *path, const char* text)
 	return 0;
 }
 
+#define RT_CPU_SET	"/dev/cgroup/cpuset/LabVIEW_tl_set"
+#define SYSTEM_CPU_SET	"/dev/cgroup/cpuset/system_set"
 #define CPU_SET_TASK(_SET_, _TID_) (write_text_file(_SET_ "/tasks", _TID_))
 #define CPU_SET_MASK(_SET_, _MASK_) (write_text_file(_SET_ "/cpus", _MASK_))
 
-static int setup_cpu_sets()
+static int cgroup_v1_setup(int ncpus)
 {
 	char rt_set[8];
 	char system_set[8];
 	int ret = 0;
-
-	int ncpus = get_nprocs();
-
-	if (ncpus < 2)
-		error_exit("Test requires a system with at least 2 CPUs available", NULL);
 
 	snprintf(system_set, 8, "0-%d", ncpus - 2);
 	ret = CPU_SET_MASK(SYSTEM_CPU_SET, system_set);
@@ -233,12 +228,52 @@ static int setup_cpu_sets()
 	return ret;
 }
 
-static int set_rt_cpu_set_affinity(pid_t pid)
+static int cgroup_v1_assign_to_rt_set(pid_t pid)
 {
 	char pid_str[12];
 
 	snprintf(pid_str, 12, "%u", pid);
 	return CPU_SET_TASK(RT_CPU_SET, pid_str);
+}
+
+static bool is_lvrt_cgroup_v1()
+{
+	return (access(RT_CPU_SET, F_OK) == 0);
+}
+
+static int set_curr_affinity(int cpu)
+{
+	cpu_set_t set;
+
+	CPU_ZERO(&set);
+	CPU_SET(cpu, &set);
+
+	return sched_setaffinity(0, sizeof(set), &set);
+}
+
+static int set_cpu_affinities()
+{
+	int ret = -1;
+	int ncpus = get_nprocs();
+
+	if (ncpus < 2)
+		error_exit("Test requires a system with at least 2 CPUs available", NULL);
+
+	if (is_lvrt_cgroup_v1()) {
+		/* use cgroups with lvrt v1 layout to isolate the last available
+		   CPU for our test; move everything else to the other CPUs */
+		ret = cgroup_v1_setup(ncpus);
+		if (ret < 0)
+			return ret;
+
+		ret = cgroup_v1_assign_to_rt_set(getpid());
+	} else {
+		/* set our affinity to the last available CPU which is already
+		   isolated for this test via the 'isolcpus' boot parameter */
+		ret = set_curr_affinity(ncpus - 1);
+	}
+
+	return ret;
 }
 
 static int set_fifo_priority(int prio)
@@ -266,11 +301,8 @@ static void setup()
 	if (mlockall(MCL_CURRENT | MCL_FUTURE) < 0)
 		error_exit("Failed to mlockall memory", NULL);
 
-	if (setup_cpu_sets() < 0)
-		error_exit("Failed to configure CPU sets", NULL);
-
-	if (set_rt_cpu_set_affinity(getpid()) < 0)
-		error_exit("Failed to affinitize test to CPU set", NULL);
+	if (set_cpu_affinities() < 0)
+		error_exit("Failed to configure CPU affinities", NULL);
 
 	if (set_fifo_priority(TEST_PRIO) < 0)
 		error_exit("Failed to set the test scheduling priority", NULL);
