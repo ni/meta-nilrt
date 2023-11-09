@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Hack: Docker-CE must be restarted before containers can build. This is the first ran test
-/etc/init.d/docker.init restart
-
 PTEST_LOCATION=/usr/lib/kernel-containerized-performance-tests/ptest
 LOG_DIR="/var/local/ptest-results/kernel-containerized-performance-tests"
 
