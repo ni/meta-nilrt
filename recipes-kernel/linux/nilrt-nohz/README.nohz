@@ -41,24 +41,38 @@ Application Design Considerations
     for adaptive-ticks by setting the 'isolcpus' and 'nohz_full' kernel boot
     parameters[2]. For example:
 
-      fw_setenv othbootargs isolcpus=6,7 nohz_full=6,7
+      fw_setenv othbootargs isolcpus=nohz,domain,managed_irq,6,7 nohz_full=6,7
 
     Note: On NI Linux Real-Time (NILRT) systems, CPU 0 is configured to handle
     general interrupts, kernel and system tasks, and should not be reserved for
     critical RT tasks.
 
-  * Use CPU pools (also known as cgroup cpu sets) to configure CPUs reserved for
-    critical RT threads versus general system threads:
+  * CPU isolation can also be achieved using cgroups via the 'cpuset' controller
+    which allows you to create separate pools of CPUs for real-time tasks versus
+    general housekeeping workloads.
 
-      - in LabVIEW use the "Real-Time->RT SMP CPU Utilities" palette to
-        configure the CPU pools appropriately;
+    On NI Linux RT there are several options available depending on programming
+    environment used and software installed:
 
-      - when designing RT applications that are not LabVIEW based this can be
-        accomplished by setting the CPU mask of the 'system_set' and
-        'LabVIEW_tl_set'. For example:
+      1. In LabVIEW RT you can use the "Real-Time->RT SMP CPU Utilities" palette
+        to configure the CPU pools appropriately.
+
+      2. When designing RT applications which are not LabVIEW based but are
+      intended to be used in parallel with LabVIEW RT (i.e. LabVIEW RT is
+      installed on the target) the cgroup v1 controllers are mounted under
+      '/dev/cgroup/` and CPU isolation can be accomplished by setting the CPU
+      mask of the 'system_set' and 'LabVIEW_tl_set'.
+      For example:
 
           echo 0-5 > /dev/cgroup/cpuset/system_set/cpus
           echo 6-7 > /dev/cgroup/cpuset/LabVIEW_tl_set/cpus
+
+      3. If LabVIEW RT is not installed, cgroups are not mounted or configured
+      by default. This functionality can be added by installing the
+      'cgroups-lite' package from feeds. Follow the upstream documentation for
+      usage details on the 'cpuset' cgroup controller:
+
+        - https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v1/index.html
 
   * Set the CPU mask for kernel work queues /sys/devices/virtual/workqueue/*.
     Example follows,
