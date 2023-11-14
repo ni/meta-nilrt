@@ -33,5 +33,7 @@ if [ "${RESULT}" != "${EXP}" ]; then
     echo "ERROR: Received \"${RESULT}\" from background container, but expected \"${EXP}\""
     exit 1
 fi
+
+echo "PASS: Docker - test parallel"
 exit 0
 
