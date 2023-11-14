@@ -6,5 +6,7 @@ if ! docker run hello-world 2>&1; then
     exit 1
 fi
 
+echo "PASS: Docker - test daemon"
+
 exit 0
 
