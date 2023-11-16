@@ -1,6 +1,6 @@
 DESCRIPTION = "NILRT linux kernel next development build"
 NI_RELEASE_VERSION = "master"
-LINUX_VERSION = "6.6"
+LINUX_VERSION = "6.1"
 LINUX_KERNEL_TYPE = "next"
 
 require linux-nilrt-alternate.inc
