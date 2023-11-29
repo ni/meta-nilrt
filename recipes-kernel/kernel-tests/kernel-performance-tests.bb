@@ -11,7 +11,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}-files:"
 S = "${WORKDIR}"
 
 DEPENDS = "virtual/kernel"
-RDEPENDS:${PN}-ptest += "bash rt-tests fio iperf3 python3 python3-pip"
+RDEPENDS:${PN}-ptest += "bash rt-tests fio iperf3 python3 python3-pip docker"
 RDEPENDS:${PN}-ptest:append:x64 = " fw-printenv"
 RDEPENDS:${PN}-ptest:append:armv7a = " u-boot-fw-utils"
 
@@ -27,6 +27,8 @@ SRC_URI += "\
     file://test_kernel_cyclictest_hackbench.sh \
     file://test_kernel_cyclictest_fio.sh \
     file://test_kernel_cyclictest_iperf.sh \
+    file://run-container-load \
+    file://test_kernel_cyclictest_container_load.sh \
 "
 
 do_install_ptest:append() {
@@ -39,6 +41,8 @@ do_install_ptest:append() {
     install -m 0755 ${S}/test_kernel_cyclictest_hackbench.sh ${D}${PTEST_PATH}
     install -m 0755 ${S}/test_kernel_cyclictest_fio.sh ${D}${PTEST_PATH}
     install -m 0755 ${S}/test_kernel_cyclictest_iperf.sh ${D}${PTEST_PATH}
+    install -m 0755 ${S}/run-container-load ${D}${PTEST_PATH}
+    install -m 0755 ${S}/test_kernel_cyclictest_container_load.sh ${D}${PTEST_PATH}
 }
 
 pkg_postinst_ontarget:${PN}-ptest:append() {
