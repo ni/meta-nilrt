@@ -1,0 +1,46 @@
+From f2923412125d8dfecc0be6dc8d5cab97ede6e2e1 Mon Sep 17 00:00:00 2001
+From: Brenda Streiff <brenda.streiff@ni.com>
+Date: Wed, 29 Nov 2023 11:14:27 -0600
+Subject: [PATCH] dkms: autoinstall for all kernels by default
+
+If you have installed another kernel that would be the next one you
+boot into, but you're still on the old kernel, then if you install a
+dkms-enabled driver then by default the dkms common posting will only
+install for the "current" kernel and the "newest" (which in 3.0.10
+only has logic for dpkg and rpm distros-- e.g., not nilrt).
+
+On nilrt, if you do:
+- opkg install packagegroup-ni-next-kernel
+- opkg install ni-daqmx
+
+then the dkms-enabled packages will run their postinsts, but only build
+for the currently-running kernel; this will _not_ be the kernel you
+enter on next boot, because we've installed the -next kernel.
+
+dkms does have an option for building for all available kernels; turn
+this on for the nilrt distribution, as this better matches the user
+expectations for the way that kernels are treated on nilrt.
+
+Upstream-Status: Inappropriate [nilrt-specific quirk about how we handle kernels]
+Signed-off-by: Brenda Streiff <brenda.streiff@ni.com>
+
+---
+ dkms_framework.conf | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dkms_framework.conf b/dkms_framework.conf
+index 6ad6dd2..c792757 100644
+--- a/dkms_framework.conf
++++ b/dkms_framework.conf
+@@ -23,7 +23,7 @@
+ 
+ # Automatic installation and upgrade for all installed kernels if set to a
+ # non-null value:
+-# autoinstall_all_kernels=""
++autoinstall_all_kernels="true"
+ 
+ # Location of the sign-file kernel binary. $kernelver can be used in path to
+ # represent the target kernel version. (default: depends on distribution):
+-- 
+2.30.2
+
