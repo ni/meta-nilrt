@@ -10,7 +10,9 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=b234ee4d69f5fce4486a80fdaf4a4263"
 PV = "3.0.10"
 
 
-SRC_URI = "git://github.com/dell/dkms.git;protocol=https;branch=master \
+SRC_URI = "\
+	git://github.com/dell/dkms.git;protocol=https;branch=master \
+	file://0001-autoinstall-all-kernels.patch \
 "
 
 SRCREV = "3f72c9b059bccbc1ca1ff8b431c1763b1bdb60cd"
