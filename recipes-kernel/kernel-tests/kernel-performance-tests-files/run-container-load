@@ -1,0 +1,14 @@
+#!/bin/bash
+
+function setup_container_load()
+{
+   docker pull hello-world
+}
+
+function start_container_load()
+{
+   while true; do
+      docker run hello-world > /dev/null
+      sleep 1
+   done
+}
