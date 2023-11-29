@@ -4,4 +4,5 @@
 ./test_kernel_cyclictest_hackbench.sh
 ./test_kernel_cyclictest_fio.sh
 ./test_kernel_cyclictest_iperf.sh
+./test_kernel_cyclictest_container_load.sh
 exit 0
