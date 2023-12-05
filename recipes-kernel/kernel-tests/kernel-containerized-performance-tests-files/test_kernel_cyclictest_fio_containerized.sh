@@ -37,9 +37,11 @@ RESULT=$(docker run --privileged --network=host \
     bash call_run_ct.sh "fio_containerized" \
         | tr -d '\r' | tr -d '\n')
 
+# Make sure we print the PASS/FAIL message
+cat ${LOG_DIR}/run_cyclictest-fio_containerized.log
+
 # Clean up the background container
 docker exec ${LOAD_CONT} bash -c "killall -INT fio > /dev/null 2>&1"
 
-echo "Test Result: ${RESULT}"
 exit ${RESULT}
 
