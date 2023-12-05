@@ -37,10 +37,12 @@ RESULT=$(docker run --privileged --network=host \
     bash call_run_ct.sh "hackbench_containerized" \
         | tr -d '\r' | tr -d '\n')
 
+# Make sure we print the PASS/FAIL message
+cat ${LOG_DIR}/run_cyclictest-hackbench_containerized.log
+
 # Clean up the background container
 docker exec ${LOAD_CONT} \
     bash -c "killall -INT hackbench > /dev/null 2>&1"
 
-echo "Test Result: ${RESULT}"
 exit ${RESULT}
 

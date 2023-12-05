@@ -54,10 +54,12 @@ RESULT=$(docker run --privileged --network=host \
     bash call_run_ct.sh "iperf_containerized" \
         | tr -d '\r' | tr -d '\n')
 
+# Make sure we print the PASS/FAIL message
+cat ${LOG_DIR}/run_cyclictest-iperf_containerized.log
+
 # Clean up the background container
 docker exec ${LOAD_CONT} \
     bash -c "killall -INT iperf3 > /dev/null 2>&1"
 
-echo "Test result: ${RESULT}"
 exit ${RESULT}
 
