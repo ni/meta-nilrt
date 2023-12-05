@@ -56,7 +56,7 @@ log_reset_source () {
 			log INFO "reset_source=${reason}  # RT watchdog timer expired"
 			;;
 		*)
-			log ERROR "Unkown reset_source string: \"$reason\""
+			log ERROR "Unknown reset_source string: \"$reason\""
 			;;
 	esac
 }
