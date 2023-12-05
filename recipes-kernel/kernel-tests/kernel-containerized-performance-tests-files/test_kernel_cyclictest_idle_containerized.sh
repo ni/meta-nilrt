@@ -24,6 +24,8 @@ RESULT=$(docker run --privileged --network=host \
     bash call_run_ct.sh "idle_containerized" \
         | tr -d '\r' | tr -d '\n')
 
-echo "Test result: ${RESULT}"
+# Make sure we print the PASS/FAIL message
+cat ${LOG_DIR}/run_cyclictest-idle_containerized.log
+
 exit ${RESULT}
 
