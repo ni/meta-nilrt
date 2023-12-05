@@ -8,7 +8,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 DEPENDS += "update-rc.d-native"
 
-PV = "2.0"
+PV = "2.1"
 
 
 SRC_URI += "\

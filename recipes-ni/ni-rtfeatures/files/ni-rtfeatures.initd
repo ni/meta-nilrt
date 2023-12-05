@@ -46,6 +46,9 @@ log_reset_source () {
 		ironclad)
 			log INFO "reset_source=${reason}  # Ironclad watchdog timer expired"
 			;;
+		poweron)
+			log INFO "reset_source=${reason}  # System powered-on; not reset."
+			;;
 		processor)
 			log INFO "reset_source=${reason}  # Reset from MAX or command line"
 			;;
