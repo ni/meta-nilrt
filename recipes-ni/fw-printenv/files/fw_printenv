@@ -194,35 +194,67 @@ show_variable(){
 add_rem_vars(){
 	value=""
 
-	#SMBIOS - are read only variables
-	if is_ni_bios || is_ni_device; then
-		if show_variable_smbios "$var_name"; then
-			echo "Can't overwrite" "\"$var_name\"" >&2
+	case "$table" in
+		smbios)	echo "SMBIOS variables are read-only" >&2
 			exit 1
-		fi
-	fi
+			;;
+		efi)	if [ -n "$new_value" ]; then
+				if [ "${efi_funcs[$var_name]}" ]; then
+					${efi_funcs[$var_name]} $new_value
+					return
+				else
+					echo "Not a valid EFI variable: $var_name" >&2
+					exit 1
+				fi
+			else
+				echo "EFI variables can't be deleted" >&2
+				exit 1
+			fi
+			;;
+		grub)	if readonly_grub_variable "$var_name"; then
+				echo "Can't overwrite" "\"$var_name\"" >&2
+				exit 1
+			fi
+			if [[ $new_value ]]; then
+				grub-editenv - set "$var_name=$new_value"
+			else
+				grub-editenv - unset "$var_name"
+			fi
+			;;
+		all)	#SMBIOS - are read only variables
+			if is_ni_bios || is_ni_device; then
+				if show_variable_smbios "$var_name"; then
+					echo "Can't overwrite" "\"$var_name\"" >&2
+					exit 1
+				fi
+			fi
 
-	#EFI
-	if [ "${efi_funcs[$var_name]}" ]; then
-		if [ -n "$new_value" ]; then
-			${efi_funcs[$var_name]} $new_value
-			return
-		else
-			echo "Can't delete" "\"$var_name\"" >&2
-			exit 1
-		fi
-	fi
+			#EFI
+			if [ "${efi_funcs[$var_name]}" ]; then
+				if [ -n "$new_value" ]; then
+					${efi_funcs[$var_name]} $new_value
+					return
+				else
+					echo "Can't delete" "\"$var_name\"" >&2
+					exit 1
+				fi
+			fi
 
-	#Grub
-	if readonly_grub_variable "$var_name"; then
-		echo "Can't overwrite" "\"$var_name\"" >&2
-		exit 1
-	fi
-	if [[ $new_value ]]; then
-		grub-editenv - set "$var_name=$new_value"
-	else
-		grub-editenv - unset "$var_name"
-	fi
+			#Grub
+			if readonly_grub_variable "$var_name"; then
+				echo "Can't overwrite" "\"$var_name\"" >&2
+				exit 1
+			fi
+			if [[ $new_value ]]; then
+				grub-editenv - set "$var_name=$new_value"
+			else
+				grub-editenv - unset "$var_name"
+			fi
+			;;
+		*)	echo "Bug: unhandled table type" >&2
+			exit 2
+			;;
+	esac
 }
 
 read_vars_from_file(){
