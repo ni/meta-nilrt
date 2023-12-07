@@ -137,13 +137,50 @@ show_variable_efi(){
 #wraps together smbios, efi and grub variable query
 show_variable(){
 	if [ $# -eq 0 ]; then
-		#show all variables
-		show_variable_smbios && show_variable_efi && show_variable_grub
-		return $?
+		case "$table" in
+			smbios)	show_variable_smbios
+				return $?
+				;;
+			efi)	show_variable_efi
+				return $?
+				;;
+			grub)	show_variable_grub
+				return $?
+				;;
+			all)	show_variable_smbios && show_variable_efi && show_variable_grub
+				return $?
+				;;
+			*) 	echo "Bug: unhandled table type" >&2
+				exit 2
+				;;
+		esac
 	else
 		value=""
-		#check for single variable
-		if show_variable_smbios $1 || show_variable_efi $1 || show_variable_grub $1; then
+		case "$table" in
+			smbios)	show_variable_smbios "$1"
+				success=$?
+				;;
+			efi)	show_variable_efi "$1"
+				success=$?
+				;;
+			grub)	show_variable_grub "$1"
+				success=$?
+				;;
+			all)	# TODO this isn't "all," this is "first successful"
+				if show_variable_smbios $1 || show_variable_efi $1 || show_variable_grub $1; then
+					(( n_opt )) || printf '%s=' "$var_name"
+					printf '%s\n' "$value"
+					return 0
+				else
+					echo "## Error: \"$var_name\" not defined " >&2
+					exit 1
+				fi
+				;;
+			*)	echo "Bug: unhandled table type" >&2
+				exit  2
+				;;
+		esac
+		if [ 0 -eq $success ]; then
 			(( n_opt )) || printf '%s=' "$var_name"
 			printf '%s\n' "$value"
 			return 0
