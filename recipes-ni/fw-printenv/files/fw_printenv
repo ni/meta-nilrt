@@ -9,10 +9,10 @@
 print_help(){
 cat <<EOF
 fw_printenv/fw_setenv, an implementation of the U-Boot environment variable facility in Grub/EFI
-usage:  fw_printenv [-n] [variable name]
-	fw_setenv [variable name] [variable value]
-	fw_setenv -s [ file ]
-	fw_setenv -s - < [ file ]
+usage:  fw_printenv [-t table name] [-n] [variable name]
+        fw_setenv [-t table name] [variable name] [variable value]
+        fw_setenv [-t table name] -s [ file ]
+        fw_setenv [-t table name] -s - < [ file ]
 
 File syntax example:
 	# Any line starting with # is treated as comment
@@ -23,6 +23,12 @@ File syntax example:
 In this case, var1 will be deleted, var2 and other_value
 will be set with the values passed. The value can contain any
 number of spaces.
+
+Table names:
+	smbios
+	efi
+	grub
+	all (the default)
 EOF
 }
 
@@ -209,7 +215,7 @@ print_invalid_opt(){
 }
 
 parse_opt(){
-	while getopts ":hn:s:-:" opt;
+	while getopts ":hn:t:s:-:" opt;
 	do
 		case "${opt}" in
 
@@ -225,6 +231,19 @@ parse_opt(){
 			h)	#print help and exit
 				print_help >&2
 				exit
+				;;
+			t)	if [ -n "$table" ]; then
+					echo "$0: -t argument cannot be repeated" >&2
+					exit 1
+				fi
+				case "${OPTARG}" in
+					smbios | efi | grub | all)
+						table="${OPTARG}"
+						;;
+					*)	echo "$0: -t argument must be one of \"smbios\", \"efi\", \"grub\", or \"all\"" >&2
+						exit 1
+						;;
+				esac
 				;;
 			s)	s_opt=1; s_file=$OPTARG ;;
 			n)	n_opt=1; varnames=$OPTARG ;;
@@ -255,6 +274,8 @@ parse_opt(){
 		echo "## Error: '-n' option requires exactly one argument" >&2
 		exit 1
 	fi
+
+	table="${table:-all}"
 }
 
 if [[ $0 =~ fw_setenv ]]; then
@@ -270,6 +291,7 @@ fi
 s_opt=0
 s_file=""
 n_opt=0
+table=""
 varnames=$@
 
 #parse opt for both printenv and setenv
