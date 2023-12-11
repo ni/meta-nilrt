@@ -322,7 +322,8 @@ parse_opt(){
 	done
 
 	#check if there are other options passed incorrectly
-	shift $(($OPTIND - 1))
+	shift_amount="$(($OPTIND - 1))"
+	shift $shift_amount
 	if [ "x$(echo $* | grep ' \-')" != "x" ]; then
 		echo "$0:  invalid syntax" >&2
 		echo "Try '$0 --help' for more information"
@@ -361,10 +362,12 @@ s_opt=0
 s_file=""
 n_opt=0
 table=""
-varnames=$@
+shift_amount=0
 
 #parse opt for both printenv and setenv
 parse_opt $@
+shift $shift_amount
+varnames=$@
 
 if (( ! is_setenv )) ; then
 	if [ $# -eq 0 ] ; then # if no arguments, list the variables
