@@ -6,6 +6,5 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} = "\
-    onboard \
     packagegroup-ni-xfce \
 "

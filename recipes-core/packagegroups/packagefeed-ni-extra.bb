@@ -26,7 +26,6 @@ RDEPENDS:${PN}:append:x64 = "\
 		networkmanager \
 		numlockx \
 		openbox \
-		onboard \
 		sessreg \
 		setxkbmap \
 		sysconfig-settings-ui \
