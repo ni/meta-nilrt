@@ -1,4 +1,4 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From 16f0b287ad5dfda7df059094464a26620d0d5ff7 Mon Sep 17 00:00:00 2001
 From: Jonathan David <jonathan.david@ni.com>
 Date: Mon, 21 Jul 2014 14:25:07 -0500
 Subject: [PATCH] Added curl_share_setopt_va() API function
@@ -6,13 +6,26 @@ Subject: [PATCH] Added curl_share_setopt_va() API function
 Added API function with `va_list` variable argument parameter in
 addition to cURL's function using `...`.
 
-Upstream-Status: Submitted [curl-library@cool.haxx.se]
+Upstream-Status: Denied
+
+https://curl.se/mail/lib-2017-01/0139.html
+
+This patchset was denied by upstream because they did not agree that our
+usecase for these added functions were valid - and we did not have a
+defense.
+
+https://curl.se/mail/lib-2017-01/0146.html
+
+Signed-off-by: Alex Stewart <alex.stewart@ni.com>
+---
+ lib/share.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
 diff --git a/lib/share.c b/lib/share.c
-index a2d896042..ab215daf9 100644
+index c0a8d80..60a4b5d 100644
 --- a/lib/share.c
 +++ b/lib/share.c
-@@ -48,11 +48,9 @@ curl_share_init(void)
+@@ -49,11 +49,9 @@ curl_share_init(void)
    return share;
  }
  
@@ -25,7 +38,7 @@ index a2d896042..ab215daf9 100644
    int type;
    curl_lock_function lockfunc;
    curl_unlock_function unlockfunc;
-@@ -64,8 +62,6 @@ curl_share_setopt(struct Curl_share *share, CURLSHoption option, ...)
+@@ -68,8 +66,6 @@ curl_share_setopt(struct Curl_share *share, CURLSHoption option, ...)
         using this share */
      return CURLSHE_IN_USE;
  
@@ -34,7 +47,7 @@ index a2d896042..ab215daf9 100644
    switch(option) {
    case CURLSHOPT_SHARE:
      /* this is a type this share will share */
-@@ -176,6 +172,18 @@ curl_share_setopt(struct Curl_share *share, CURLSHoption option, ...)
+@@ -202,6 +198,18 @@ curl_share_setopt(struct Curl_share *share, CURLSHoption option, ...)
      break;
    }
  
@@ -53,6 +66,3 @@ index a2d896042..ab215daf9 100644
    va_end(param);
  
    return res;
--- 
-2.28.0
-
