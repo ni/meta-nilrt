@@ -31,5 +31,5 @@ do_install_ptest:append() {
 }
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
-RDEPENDS:${PN}-ptest += "bash docker-ce"
+RDEPENDS:${PN}-ptest += "bash docker"
 
