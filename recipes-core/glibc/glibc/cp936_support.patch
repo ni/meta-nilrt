@@ -2,6 +2,8 @@ From a78510f2e89476bd1405ff6ded58c45e65790db9 Mon Sep 17 00:00:00 2001
 From: Ben Shelton <ben.shelton@ni.com>
 Date: Fri, 19 Jun 2020 14:15:16 -0500
 
+Upstream-Status: Inappropriate [NI-specific]
+
 ---
  iconv/skeleton.c   |     4 +
  iconvdata/Makefile |     2 +-
