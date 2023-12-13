@@ -13,6 +13,8 @@ delegate the complexity of this problem to the action script, by letting
 it reject the chosen IP by returning error 67 (ASCII 'C'). It is assumed
 that the action script has left the interface deconfigured.
 
+Upstream-Status: Inappropriate [NI specific]
+
 Signed-off-by: Richard Tollerton <rich.tollerton@ni.com>
 ---
  networking/zcip.c | 11 ++++++++++-
