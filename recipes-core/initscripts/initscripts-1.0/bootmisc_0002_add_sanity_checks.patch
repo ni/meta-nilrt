@@ -1,3 +1,6 @@
+Upstream-Status: Inappropriate [NI specific]
+
+---
 --- a/bootmisc.sh
 +++ b/bootmisc.sh
 @@ -60,6 +60,20 @@ fi
