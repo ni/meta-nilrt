@@ -1,7 +1,5 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-SRC_URI += "file://0001-skip-btrfs-tests-if-kernel-support-for-btrfs-is-miss.patch"
-
 DEPENDS:append:class-target = " shadow-native pseudo-native busybox"
 
 RDEPENDS:${PN}-hwclock:append = " niacctbase busybox-hwclock"
