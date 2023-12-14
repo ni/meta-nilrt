@@ -29,7 +29,6 @@ SRC_URI += "\
     file://test_kernel_cyclictest_fio_containerized.sh \
     file://test_kernel_cyclictest_iperf_containerized.sh \
     file://cyclictest-container/Dockerfile \
-    file://cyclictest-container/call_run_ct.sh \
     file://parallel-container/Dockerfile \
     file://parallel-container/run_hackbench.sh \
     file://parallel-container/run_fio.sh \
@@ -47,10 +46,10 @@ do_install_ptest:append() {
     install -m 0755 ${S}/test_kernel_cyclictest_hackbench_containerized.sh ${D}${PTEST_PATH}
     install -m 0755 ${S}/test_kernel_cyclictest_fio_containerized.sh ${D}${PTEST_PATH}
     install -m 0755 ${S}/test_kernel_cyclictest_iperf_containerized.sh ${D}${PTEST_PATH}
+
     mkdir -p ${D}${PTEST_PATH}/cyclictest-container
     install -m 0755 ${S}/cyclictest-container/Dockerfile ${D}${PTEST_PATH}/cyclictest-container
-    install -m 0755 ${S}/cyclictest-container/call_run_ct.sh \
-        ${D}${PTEST_PATH}/cyclictest-container/call_run_ct.sh
+
     mkdir -p ${D}${PTEST_PATH}/parallel-container
     install -m 0755 ${S}/parallel-container/Dockerfile ${D}${PTEST_PATH}/parallel-container
     install -m 0755 ${S}/parallel-container/run_hackbench.sh \
