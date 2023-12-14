@@ -1,9 +1,10 @@
 #!/bin/bash
 
+./build-containers || exit $?
+
 ./test_kernel_cyclictest_idle_containerized.sh
 ./test_kernel_cyclictest_hackbench_containerized.sh
 ./test_kernel_cyclictest_fio_containerized.sh
 ./test_kernel_cyclictest_iperf_containerized.sh
 
 exit 0
-
