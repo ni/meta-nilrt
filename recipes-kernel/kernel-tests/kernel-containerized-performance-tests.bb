@@ -18,6 +18,7 @@ RDEPENDS:${PN}-ptest:append:armv7a = " u-boot-fw-utils"
 ALLOW_EMPTY:${PN} = "1"
 
 SRC_URI += "\
+    file://build-containers \
     file://run-ptest \
     file://run-cyclictest \
     file://upload_cyclictest_results.py \
@@ -36,6 +37,7 @@ SRC_URI += "\
 "
 
 do_install_ptest:append() {
+    install -m 0755 ${S}/build-containers ${D}${PTEST_PATH}
     install -m 0755 ${S}/run-ptest ${D}${PTEST_PATH}
     install -m 0755 ${S}/run-cyclictest ${D}${PTEST_PATH}
     install -m 0755 ${S}/upload_cyclictest_results.py ${D}${PTEST_PATH}
