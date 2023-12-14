@@ -1,5 +1,5 @@
 #!/bin/bash
-source ./common.cfg
+source "$(dirname "$0")"/common.cfg
 
 function add_system_info()
 {
@@ -81,3 +81,8 @@ function run_cyclictest()
 }
 
 mkdir -p "$LOG_DIR"
+
+if [ "$#" -ge 1 ]; then
+	run_cyclictest "${@:1}"
+	exit $CYCLICTEST_RESULT
+fi
