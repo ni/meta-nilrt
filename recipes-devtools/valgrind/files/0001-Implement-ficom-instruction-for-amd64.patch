@@ -6,6 +6,8 @@ Subject: [PATCH 1/2] Implement ficom instruction for amd64
 This should fix #103594 for amd64 previous commit
 was for x86 only.
 
+Upstream-Status: Inappropriate [NI specific]
+
 Signed-off-by: Bill Pittman <bill.pittman@ni.com>
 ---
  VEX/priv/guest_amd64_toIR.c | 79 ++++++++++++++++++++++++++++++++++++++++++++-

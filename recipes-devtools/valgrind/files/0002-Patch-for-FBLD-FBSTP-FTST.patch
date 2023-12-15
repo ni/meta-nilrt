@@ -6,6 +6,8 @@ Subject: [PATCH 2/2] Patch for FBLD/FBSTP/FTST
 Pulled from a third party patch set that was
 not upstreamed.
 
+Upstream-Status: Denied
+
 Signed-off-by: Bill Pittman <bill.pittman@ni.com>
 ---
  VEX/priv/guest_amd64_defs.h    |  3 ++
