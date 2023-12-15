@@ -2,7 +2,7 @@ SUMMARY = "NILRT XFCE Initialization."
 DESCRIPTION = "Used to initialize XFCE when the embedded UI is enabled."
 SECTION = "x11"
 LICENSE = "GPL-2.0-only"
-LIC_FILES_CHKSUM = "file://COPYING;md5=751419260aa954499f7abaabaa882bbe"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0-only;md5=801f80980d171dd6425610833a22dbe6"
 
 
 PV = "1.0"
@@ -10,7 +10,6 @@ PV = "1.0"
 
 SRC_URI = " \
 	file://xserver-xfce \
-	file://gplv2-license.patch \
 	file://xserver-xfce.service \
 	file://xserver-xfce.conf \
 	file://xserver-logrotate.conf \
