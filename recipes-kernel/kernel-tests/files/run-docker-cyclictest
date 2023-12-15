@@ -1,19 +1,37 @@
 #!/bin/bash
 source "$(dirname "$0")"/common.cfg
 
-if [ "$#" -lt 1 ]; then
-	echo echo "Usage: $0 {test_name}"
-	exit 1
-fi
-
-docker run --privileged --network=host \
-       -v ${LOG_DIR}:${LOG_DIR} \
-       -v ${TEST_DIR}:${TEST_DIR} \
-       -v /home/admin:/home/admin \
-       -v /usr/share/fw_printenv:/usr/share/fw_printenv \
-       -v /sbin/fw_printenv:/sbin/fw_printenv \
-       -v /usr/share/nisysinfo:/usr/share/nisysinfo \
-       -v /dev:/dev \
-       -t cyclictest-container \
-       "${TEST_DIR}/run-cyclictest" "$1"
-CYCLICTEST_RESULT=$?
+case "$#" in
+	1)
+		docker run --privileged --network=host \
+		       -v ${LOG_DIR}:${LOG_DIR} \
+		       -v ${TEST_DIR}:${TEST_DIR} \
+		       -v /home/admin:/home/admin \
+		       -v /usr/share/fw_printenv:/usr/share/fw_printenv \
+		       -v /sbin/fw_printenv:/sbin/fw_printenv \
+		       -v /usr/share/nisysinfo:/usr/share/nisysinfo \
+		       -v /dev:/dev \
+		       -w ${TEST_DIR} \
+		       -t cyclictest-container \
+		       "${TEST_DIR}/run-cyclictest" "$1"
+		CYCLICTEST_RESULT=$?
+		;;
+	2)
+		docker run --privileged --network=host \
+		       --cpuset-cpus "$2" \
+		       -v ${LOG_DIR}:${LOG_DIR} \
+		       -v ${TEST_DIR}:${TEST_DIR} \
+		       -v /home/admin:/home/admin \
+		       -v /usr/share/fw_printenv:/usr/share/fw_printenv \
+		       -v /sbin/fw_printenv:/sbin/fw_printenv \
+		       -v /usr/share/nisysinfo:/usr/share/nisysinfo \
+		       -v /dev:/dev \
+		       -w ${TEST_DIR} \
+		       -t cyclictest-container \
+		       "${TEST_DIR}/run-cyclictest" "$1"
+		;;
+	*)
+		echo echo "Usage: $0 {test_name} [{cpu}]"
+		exit 1
+		;;
+esac
