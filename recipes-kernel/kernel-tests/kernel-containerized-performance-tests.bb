@@ -21,6 +21,7 @@ SRC_URI += "\
     file://build-containers \
     file://run-ptest \
     file://run-cyclictest \
+    file://run-docker-cyclictest \
     file://upload_cyclictest_results.py \
     file://common.cfg \
     file://fio.cfg \
@@ -39,6 +40,7 @@ do_install_ptest:append() {
     install -m 0755 ${S}/build-containers ${D}${PTEST_PATH}
     install -m 0755 ${S}/run-ptest ${D}${PTEST_PATH}
     install -m 0755 ${S}/run-cyclictest ${D}${PTEST_PATH}
+    install -m 0755 ${S}/run-docker-cyclictest ${D}${PTEST_PATH}
     install -m 0755 ${S}/upload_cyclictest_results.py ${D}${PTEST_PATH}
     install -m 0644 ${S}/common.cfg ${D}${PTEST_PATH}
     install -m 0644 ${S}/fio.cfg ${D}${PTEST_PATH}
