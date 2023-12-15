@@ -5,6 +5,8 @@ Subject: [PATCH] add inbit command to io module
 
 * grub-core/commands/iorw.c: Add grub_cmd_read_bit and register inbit
 command
+
+Upstream-Status: Inappropriate [NI specific]
 ---
  grub-core/commands/iorw.c | 33 ++++++++++++++++++++++++++++++++-
  1 file changed, 32 insertions(+), 1 deletion(-)

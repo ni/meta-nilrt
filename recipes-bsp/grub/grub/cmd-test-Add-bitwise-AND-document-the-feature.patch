@@ -11,6 +11,8 @@ Here, we add a more generic ability to test the bitwise AND of a
 value available to the grub scripting environment. This obviates the
 need for the inbit command.
 
+Upstream-Status: Inappropriate [NI specific]
+
 Signed-off-by: Brad Mouring <brad.mouring@ni.com>
 ---
  docs/grub.texi            |  2 ++

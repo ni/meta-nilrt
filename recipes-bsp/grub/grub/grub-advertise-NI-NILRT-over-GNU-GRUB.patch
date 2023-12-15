@@ -8,6 +8,8 @@ they can be entered anyway. Presumably advanced users already know about
 them and can use them without being told and this discourages behaviour
 like "uu what does this button do?" from unknowledgeable users.
 
+Upstream-Status: Inappropriate [NI specific]
+
 Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
 ---
  grub-core/normal/main.c      | 2 +-
