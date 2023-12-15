@@ -11,7 +11,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}-files:"
 S = "${WORKDIR}"
 
 DEPENDS = "virtual/kernel"
-RDEPENDS:${PN}-ptest += "bash rt-tests fio iperf3 python3 python3-pip docker-ce"
+RDEPENDS:${PN}-ptest += "bash python3 docker-ce"
 RDEPENDS:${PN}-ptest:append:x64 = " fw-printenv"
 RDEPENDS:${PN}-ptest:append:armv7a = " u-boot-fw-utils"
 
@@ -24,15 +24,15 @@ SRC_URI += "\
     file://upload_cyclictest_results.py \
     file://common.cfg \
     file://fio.cfg \
+    file://fio-load \
+    file://hackbench-load \
+    file://iperf-load \
     file://test_kernel_cyclictest_idle_containerized.sh \
     file://test_kernel_cyclictest_hackbench_containerized.sh \
     file://test_kernel_cyclictest_fio_containerized.sh \
     file://test_kernel_cyclictest_iperf_containerized.sh \
     file://cyclictest-container/Dockerfile \
     file://parallel-container/Dockerfile \
-    file://parallel-container/run_hackbench.sh \
-    file://parallel-container/run_fio.sh \
-    file://parallel-container/run_iperf.sh \
 "
 
 do_install_ptest:append() {
@@ -42,26 +42,19 @@ do_install_ptest:append() {
     install -m 0755 ${S}/upload_cyclictest_results.py ${D}${PTEST_PATH}
     install -m 0644 ${S}/common.cfg ${D}${PTEST_PATH}
     install -m 0644 ${S}/fio.cfg ${D}${PTEST_PATH}
+    install -m 0755 ${S}/fio-load ${D}${PTEST_PATH}
+    install -m 0755 ${S}/hackbench-load ${D}${PTEST_PATH}
+    install -m 0755 ${S}/iperf-load ${D}${PTEST_PATH}
     install -m 0755 ${S}/test_kernel_cyclictest_idle_containerized.sh ${D}${PTEST_PATH}
     install -m 0755 ${S}/test_kernel_cyclictest_hackbench_containerized.sh ${D}${PTEST_PATH}
     install -m 0755 ${S}/test_kernel_cyclictest_fio_containerized.sh ${D}${PTEST_PATH}
     install -m 0755 ${S}/test_kernel_cyclictest_iperf_containerized.sh ${D}${PTEST_PATH}
 
     mkdir -p ${D}${PTEST_PATH}/cyclictest-container
-    install -m 0755 ${S}/cyclictest-container/Dockerfile ${D}${PTEST_PATH}/cyclictest-container
+    install -m 0644 ${S}/cyclictest-container/Dockerfile ${D}${PTEST_PATH}/cyclictest-container
 
     mkdir -p ${D}${PTEST_PATH}/parallel-container
-    install -m 0755 ${S}/parallel-container/Dockerfile ${D}${PTEST_PATH}/parallel-container
-    install -m 0755 ${S}/parallel-container/run_hackbench.sh \
-        ${D}${PTEST_PATH}/parallel-container/run_hackbench.sh
-    install -m 0755 ${S}/parallel-container/run_fio.sh \
-        ${D}${PTEST_PATH}/parallel-container/run_fio.sh
-    install -m 0755 ${S}/parallel-container/run_iperf.sh \
-        ${D}${PTEST_PATH}/parallel-container/run_iperf.sh
-}
-
-pkg_postinst_ontarget:${PN}-ptest:append() {
-    python3 -m pip install influxdb
+    install -m 0644 ${S}/parallel-container/Dockerfile ${D}${PTEST_PATH}/parallel-container
 }
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
