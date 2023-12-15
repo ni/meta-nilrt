@@ -1,0 +1,17 @@
+#!/bin/bash
+source "$(dirname "$0")"/common.cfg
+
+case "$1" in
+	start)
+		hackbench -l 36000000 -g 10 2>/dev/null >"$LOG_DIR/hackbench-`date +'%Y_%m_%d-%H_%M_%S'`.log" &
+		;;
+	stop)
+		killall -INT hackbench > /dev/null 2>&1
+		;;
+	*)
+		echo "Usage: $0 {start|stop}"
+		exit 1
+		;;
+esac
+
+exit 0

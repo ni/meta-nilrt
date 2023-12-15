@@ -1,0 +1,19 @@
+#!/bin/bash
+source "$(dirname "$0")"/common.cfg
+
+case "$1" in
+	start)
+		mkdir -p /var/cache/fio
+		fio fio.cfg --ioengine="sync" --runtime="$TEST_DURATION" --ramp_time=1m --output="$LOG_DIR/fio-sync-`date +'%Y_%m_%d-%H_%M_%S'`.log" > /dev/null &
+		;;
+	stop)
+		killall -INT fio > /dev/null 2>&1
+		rm -rf /var/cache/fio
+		;;
+	*)
+		echo "Usage: $0 {start|stop}"
+		exit 1
+		;;
+esac
+
+exit 0

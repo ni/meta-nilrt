@@ -12,7 +12,7 @@ docker run --privileged --network=host \
        -v /usr/share/nisysinfo:/usr/share/nisysinfo \
        -v /dev:/dev \
        -t cyclictest-container \
-       bash "${TEST_DIR}/run-cyclictest" "idle_containerized"
+       "${TEST_DIR}/run-cyclictest" "idle_containerized"
 RESULT=$?
 
 exit ${RESULT}

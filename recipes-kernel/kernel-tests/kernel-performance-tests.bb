@@ -23,6 +23,9 @@ SRC_URI += "\
     file://upload_cyclictest_results.py \
     file://common.cfg \
     file://fio.cfg \
+    file://fio-load \
+    file://hackbench-load \
+    file://iperf-load \
     file://test_kernel_cyclictest_idle.sh \
     file://test_kernel_cyclictest_hackbench.sh \
     file://test_kernel_cyclictest_fio.sh \
@@ -37,6 +40,9 @@ do_install_ptest:append() {
     install -m 0755 ${S}/upload_cyclictest_results.py ${D}${PTEST_PATH}
     install -m 0644 ${S}/common.cfg ${D}${PTEST_PATH}
     install -m 0644 ${S}/fio.cfg ${D}${PTEST_PATH}
+    install -m 0755 ${S}/fio-load ${D}${PTEST_PATH}
+    install -m 0755 ${S}/hackbench-load ${D}${PTEST_PATH}
+    install -m 0755 ${S}/iperf-load ${D}${PTEST_PATH}
     install -m 0755 ${S}/test_kernel_cyclictest_idle.sh ${D}${PTEST_PATH}
     install -m 0755 ${S}/test_kernel_cyclictest_hackbench.sh ${D}${PTEST_PATH}
     install -m 0755 ${S}/test_kernel_cyclictest_fio.sh ${D}${PTEST_PATH}
