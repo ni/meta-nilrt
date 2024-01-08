@@ -9,6 +9,6 @@ function start_container_load()
 {
    while true; do
       docker run hello-world > /dev/null
-      sleep 1
+      docker container prune -f > /dev/null
    done
 }
