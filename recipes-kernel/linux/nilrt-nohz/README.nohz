@@ -92,6 +92,20 @@ Application Design Considerations
 
 	echo 0 > "/sys/kernel/debug/tracing/tracing_on"
 
+  * Significant delays and freezes have been observed using the NOHZ kernel on
+    some early versions of the cRIO-9030 (Intel Atom E3825). These delays and
+    freezes are present only on older revisions of that processor, and appear
+    to be caused by the processor attempting to enter a lower power cstate. To
+    see your processor revision, examine the cpuinfo ("cat /proc/cpuinfo"). If
+    your processor is an E3825 with "stepping : 3", you can work around this
+    issue issue by adding either "idle=poll" or "intel_idle.max_cstate=1" to
+    the kernel command line. For example:
+
+      fw_setenv othbootargs <other options as mentioned above> idle=poll
+
+    This kernel command-line option may also result in higher performance for
+    some applications regardless of the processor being used.
+
 
 Additional considerations for C applications:
 
