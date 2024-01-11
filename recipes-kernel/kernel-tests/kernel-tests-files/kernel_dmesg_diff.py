@@ -1,4 +1,5 @@
 import argparse
+import copy
 import datetime
 import difflib
 import hashlib
@@ -62,8 +63,11 @@ class SemanticVersion:
         self.build_metadata = version.group('buildmetadata')
 
 class KernelVersion(SemanticVersion):
-    def __init__(self):
-        version =run_cmd(['uname', '-r'])
+    def __init__(self, versionString=None):
+        if versionString == None:
+            version = run_cmd(['uname', '-r'])
+        else:
+            version = versionString
         SemanticVersion.__init__(self, version)
         self.type = 'next' if self.build_metadata else 'current'
         prerelease_version = int(re.search(r'0|[1-9]\d*', self.prerelease).group())
@@ -108,23 +112,25 @@ def upload_log(db, dmesg_log, logger):
 def strip_headers(dmesg_log):
     return ''.join(line + '\n' for line in dmesg_log.splitlines() if not line.startswith('#'))
 
-def get_old_dmesg_log(db, logger):
-    query = {}
-    kernel_version = KernelVersion()
-    os_version = OsVersion()
-    query['kernel_version'] = { '$lt': kernel_version.version_dict }
-    query['device_desc'] = get_device_desc()
-    query['kernel_version.major'] = kernel_version.major
-    query['kernel_version.minor'] = kernel_version.minor
-    query['os_version_major_minor'] = os_version.major_minor
+def get_old_dmesg_log(db, logger, query=None, kernel_version=None, log_type="previous"):
+    if query == None:
+        query = {}
+        kernel_version = KernelVersion()
+        os_version = OsVersion()
+        query['kernel_version'] = { '$lt': kernel_version.version_dict }
+        query['device_desc'] = get_device_desc()
+        query['kernel_version.major'] = kernel_version.major
+        query['kernel_version.minor'] = kernel_version.minor
+        query['os_version_major_minor'] = os_version.major_minor
 
+    log_dmesg_diff_line = True if log_type == "previous" else False
     if db.count_documents(query):
         results = db.find(query).sort('date', pymongo.DESCENDING).limit(1)
     else:
         # If there are no results, there may not be a run from the current os version.
         # Remove that requirement.
         del query['os_version_major_minor']
-        logger.log('INFO: No prior logs from this OS Version found. Using previous version.')
+        logger.log('INFO: No prior logs from this OS Version found. Allowing other OS versions.')
 
         if db.count_documents(query):
             results = db.find(query).sort('date', pymongo.DESCENDING).limit(1)
@@ -134,22 +140,25 @@ def get_old_dmesg_log(db, logger):
             del query['kernel_version.major']
             del query['kernel_version.minor']
             query['kernel_type'] = kernel_version.type
+            logger.log('INFO: No prior logs from this kernel version. Allowing other kernel versions.')
 
             if db.count_documents(query):
                 results = db.find(query).sort('date', pymongo.DESCENDING).limit(1)
             else:
                 # Keep this log in first line to help streak indexer group results. Diff hash will be populated at end.
-                logger.first_log('INFO: dmesg_diff: {} against <empty>, diff hash '.format(kernel_version.full))
+                if log_dmesg_diff_line:
+                    logger.first_log('INFO: dmesg_diff: {} against <empty>, diff hash '.format(kernel_version.full))
 
-                logger.log('INFO: No suitable previous dmesg log found')
+                logger.log('INFO: No suitable {} dmesg log found'.format(log_type))
                 return ''
 
     result = next(results)
 
     # Keep this log in first line to help streak indexer group results. Diff hash will be populated at end.
-    logger.first_log('INFO: dmesg_diff: {} against older log of {}, diff hash '.format(kernel_version.full, result['kernel_version_full']))
+    if log_dmesg_diff_line:
+        logger.first_log('INFO: dmesg_diff: {} against older log of {}, diff hash '.format(kernel_version.full, result['kernel_version_full']))
 
-    logger.log('INFO: Using previous dmesg log of "{}" kernel {} from {} with _id {}'.format(result['kernel_type'], result['kernel_version_full'], result['date'], result['_id']))
+    logger.log('INFO: Using {} dmesg log of "{}" kernel {} from {} with _id {}'.format(log_type, result['kernel_type'], result['kernel_version_full'], result['date'], result['_id']))
     dmesg_log = result['dmesg_log']
     return strip_headers(dmesg_log)
 
@@ -223,16 +232,47 @@ def parse_args():
     parser.add_argument('--server', required=True, help='Mongo server hostname')
     parser.add_argument('--user', required=True, help='Mongo server username')
     parser.add_argument('--password', required=True, help='Mongo server password')
-
-    return parser.parse_args()
+    parser.add_argument('--get_current_log_from_db',
+                        help='Specify this flag to use a log from the database as the current dmesg log. This is useful for debugging. Specify the details of the log you want with additional options.',
+                        action="store_true")
+    parser.add_argument('--get_current_log_kernel_version',
+                        help='The kernel version of the log to use as the current dmesg log. Should be of the format "6.1.59-rt17" or "6.1.59-rt17-next". Use in conjunction with --get_current_log_from_db.')
+    parser.add_argument('--get_current_log_device_desc',
+                        help='The device description of the log to use as the current dmesg log. Should be of the format "cRIO-9035" or "PXI-8881". Use in conjunction with --get_current_log_from_db.')
+    parser.add_argument('--get_current_log_os_version',
+                        help='The kernel version of the log to use as the current dmesg log. Should be of the format "24.0". Use in conjunction with --get_current_log_from_db.')
+    args = parser.parse_args()
+    if args.get_current_log_from_db:
+        if args.get_current_log_kernel_version == None or args.get_current_log_device_desc == None or args.get_current_log_os_version == None:
+           parser.error('When passing --get_current_log_from_db, you must also specify --get_current_log_kernel_version, --get_current_log_device_desc, and --get_current_log_os_version.')
+    return args
 
 logger = Logger()
 args = parse_args()
 db = DB(args.server, args.user, args.password)
-old_dmesg_log = get_old_dmesg_log(db, logger)
 
-dmesg_log = get_dmesg_log()
-upload_log(db, dmesg_log, logger)
+if args.get_current_log_from_db:
+    previous_query = {}
+    kernel_version = KernelVersion(args.get_current_log_kernel_version)
+    previous_query['kernel_version'] = { '$lt': kernel_version.version_dict }
+    previous_query['device_desc'] = args.get_current_log_device_desc
+    previous_query['kernel_version.major'] = kernel_version.major
+    previous_query['kernel_version.minor'] = kernel_version.minor
+    previous_query['os_version_major_minor'] = args.get_current_log_os_version
+
+    current_query = copy.copy(previous_query)
+    dmesg_log = get_old_dmesg_log(db, logger, current_query, kernel_version, "current")
+    assert dmesg_log, "Could not find matching current log from database."
+
+    # Add +1 to the prerelease version so the query (which looks for an earlier version) will return the version we actually want.
+    kernel_version.version_dict["prerelease"] += 1
+    old_dmesg_log = get_old_dmesg_log(db, logger, previous_query, kernel_version)
+else:
+    dmesg_log = get_dmesg_log()
+    old_dmesg_log = get_old_dmesg_log(db, logger)
+
+if not args.get_current_log_from_db:
+    upload_log(db, dmesg_log, logger)
 
 result = diff_logs(dmesg_log, old_dmesg_log, logger)
 
