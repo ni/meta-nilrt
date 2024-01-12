@@ -23,6 +23,9 @@ File syntax example:
 In this case, var1 will be deleted, var2 and other_value
 will be set with the values passed. The value can contain any
 number of spaces.
+
+Variables defined in multiple places will have the
+following preference order: BIOS -> EFI -> GRUB
 EOF
 }
 
@@ -30,32 +33,23 @@ EOF
 #they will write the value of the "$1" variable name
 
 show_variable_grub(){
-	if [ $# -eq 0 ] ; then
-		#show all variables
-		grub-editenv list
-		if [ $? -ne 0 ]; then
-			return 1
+	set -o pipefail
+	value=$(grub-editenv - list | grep -- "$1=" | while read -r line; do
+		key=$(echo "$line" | cut -d "=" -f 1)
+		#if the $1 matches exactly the key, extract the value
+		if [ "$key" = "$1" ] ; then
+			value_tmp=$(echo "$line" | cut -d "=" -f 2-)
+			echo "$value_tmp"
+			break
 		fi
-		return 0
-	else
-		set -o pipefail
-		value=$(grub-editenv - list | grep -- "$1=" | while read -r line; do
-			key=$(echo "$line" | cut -d "=" -f 1)
-			#if the $1 matches exactly the key, extract the value
-			if [ "$key" = "$1" ] ; then
-				value_tmp=$(echo "$line" | cut -d "=" -f 2-)
-				echo "$value_tmp"
-				break
-			fi
-		done)
-		if [ $? -ne 0 ]; then
-			return 1
-		fi
-		if [[ $value ]]; then
-			return 0
-		fi
+	done)
+	if [ $? -ne 0 ]; then
 		return 1
 	fi
+	if [[ $value ]]; then
+		return 0
+	fi
+	return 1
 }
 
 readonly_grub_variable()
@@ -82,17 +76,7 @@ if [[ "$DISTRIB_ID" == "nilrt-nxg" ]] ; then
 fi
 
 show_variable_smbios(){
-	# We show all variables when no args passed
-	if [ $# -eq 0 ]; then
-		if is_ni_bios || is_ni_device; then
-			for var in ${!smbios_funcs[@]}; do
-				echo ${var}=`${smbios_funcs[${var}]}`
-			done
-		fi
-		# else, return nothing and exit successfully
-		return 0
-	fi
-	# Otherwise, return the value that was requested only on NI targets
+	# Return the value that was requested only on NI targets
 	if is_ni_bios || is_ni_device; then
 		if [ "${smbios_funcs[$1]}" ]; then
 			value=`${smbios_funcs[$1]}`
@@ -107,20 +91,7 @@ declare -A efi_funcs=(
 ["IsNILinuxRTBoot"]=get_set_nilrt_boot)
 
 show_variable_efi(){
-	# We show all variables when no args passed
-	if [ $# -eq 0 ]; then
-		for var in ${!efi_funcs[@]}; do
-			local key=${var}
-			local val=`${efi_funcs[${var}]}`
-
-			if [ -n "$val" ]; then
-				echo $key=$val
-			fi
-		done
-		# else, return nothing and exit successfully
-		return 0
-	fi
-	# Otherwise, return the value that was requested only on NI targets
+	# Return the value that was requested only on NI targets
 	if [ "${efi_funcs[$1]}" ]; then
 		${efi_funcs[$1]} >/dev/null
 		return $?
@@ -128,23 +99,36 @@ show_variable_efi(){
 	return 1
 }
 
+show_all_variables(){
+	# Show all variables by compiling list of all available variables and
+	# printing individually (ensures that the same priority order is
+	# enforced as a single variable print case)
+	all_variables=$(grub-editenv - list | awk -F= '{print $1}')
+	# Add a newline since one is missing from the above command
+	all_variables+=$'\n'
+	for var in ${!smbios_funcs[@]}; do all_variables+=$var; all_variables+=$'\n'; done
+	for var in ${!efi_funcs[@]}; do all_variables+=$var; all_variables+=$'\n'; done
+	all_variables=$(echo $all_variables | tr " " "\n" | sort -u)
+	for var in $all_variables; do
+		var_name=$var
+		show_variable_smbios $var || show_variable_efi $var || show_variable_grub $var
+		if [ -n "$value" ]; then
+			echo $var_name=$value
+		fi
+	done
+}
+
 #wraps together smbios, efi and grub variable query
 show_variable(){
-	if [ $# -eq 0 ]; then
-		#show all variables
-		show_variable_smbios && show_variable_efi && show_variable_grub
-		return $?
+	value=""
+	#check for single variable
+	if show_variable_smbios $1 || show_variable_efi $1 || show_variable_grub $1; then
+		(( n_opt )) || printf '%s=' "$var_name"
+		printf '%s\n' "$value"
+		return 0
 	else
-		value=""
-		#check for single variable
-		if show_variable_smbios $1 || show_variable_efi $1 || show_variable_grub $1; then
-			(( n_opt )) || printf '%s=' "$var_name"
-			printf '%s\n' "$value"
-			return 0
-		else
-			echo "## Error: \"$var_name\" not defined " >&2
-			exit 1
-		fi
+		echo "## Error: \"$var_name\" not defined " >&2
+		exit 1
 	fi
 }
 
@@ -277,7 +261,7 @@ parse_opt $@
 
 if (( ! is_setenv )) ; then
 	if [ $# -eq 0 ] ; then # if no arguments, list the variables
-		show_variable || exit $?
+		show_all_variables || exit $?
 	else
 		#show all variables passed by name
 		for var_name in $varnames
