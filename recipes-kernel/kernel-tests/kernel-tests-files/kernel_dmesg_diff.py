@@ -68,7 +68,7 @@ class KernelVersion(SemanticVersion):
         else:
             version = versionString
         SemanticVersion.__init__(self, version)
-        self.type = 'next' if self.build_metadata else 'current'
+        self.type = 'next' if 'next' in self.prerelease else 'current'
         prerelease_version = int(re.search(r'0|[1-9]\d*', self.prerelease).group())
         self.version_dict = { 'major': self.major, 'minor': self.minor, "patch": self.patch, 'prerelease': prerelease_version }
 
