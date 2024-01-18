@@ -116,7 +116,7 @@ def get_dmesg_record_by_date(db, date, logger):
     if count == 1:
         results = db.find(query).limit(1)
         result = next(results)
-        logger.log('INFO: Found dmesg record with date: {}'.format(date))
+        logger.log('INFO: Found dmesg record with date: {} with kernel version: {} and OS version: {}'.format(date, result['kernel_version_full'], result['os_version']))
         return result
     elif count > 1:
         logger.log('INFO: Found multiple dmesg records with the same date: {}'.format(date))
@@ -129,37 +129,37 @@ def get_previous_dmesg_record(db, kernel_version, os_version_major_minor, device
     query = {}
     query['kernel_version'] = { '$lt': kernel_version.version_dict }
     query['device_desc'] = device_desc
-    query['kernel_version.major'] = kernel_version.major
-    query['kernel_version.minor'] = kernel_version.minor
-    query['os_version_major_minor'] = os_version_major_minor
 
     if db.count_documents(query):
-        results = db.find(query).sort('date', pymongo.DESCENDING).limit(1)
-    else:
-        # If there are no results, there may not be a run from the current os version.
-        # Remove that requirement.
-        del query['os_version_major_minor']
-        logger.log('INFO: No previous log found from OS version {}. Allowing other OS versions.'.format(os_version_major_minor))
+        # The goal of this test is to automate the identification of any dmesg differences due to a kernel upgrade, so they can be reviewed by a developer.
+        # Reviewing those differences is easier when the differences are small. This tends to be true when we diff between closer kernel versions.
+        # Therefore, this logic prefers the highest kernel version less than the kernel version under test, above all other factors. I'll refer to this as the DESIRED version.
+        # Some dmesg differences are due to a change in the OS rather than the kernel. We would like to reduce these differences, but not at the cost of increasing the differences between kernel versions.
+        # Therefore, if a record exists that matches against the DESIRED kernel version and a matching OS major.minor version, then we choose the most recently dated record that matches both.
+        # If no such record exists, then we simply choose the most recently dated record that matches against only the DESIRED kernel version.
+        results = db.find(query).sort('kernel_version', pymongo.DESCENDING).limit(1)
+        result = next(results)
+        previous_kernel_version = result['kernel_version']
+        previous_kernel_version_str = "{}.{}.{}-{}".format(previous_kernel_version['major'], previous_kernel_version['minor'], previous_kernel_version['patch'], previous_kernel_version['prerelease'])
+        query['kernel_version'] = { '$eq': previous_kernel_version }
+        logger.log('INFO: Most recent previous kernel version in database is {}.'.format(previous_kernel_version_str))
 
+        # If a record exists that also matches the OS major.minor version, then give preference to that in order to minimize differences due to non-kernel OS changes. Use the most recently dated matching record.
+        query['os_version_major_minor'] = os_version_major_minor
         if db.count_documents(query):
             results = db.find(query).sort('date', pymongo.DESCENDING).limit(1)
         else:
-            # If there still aren't any results matching the kernel major minor version, broaden the
-            # search but limit it to same kernel type
-            del query['kernel_version.major']
-            del query['kernel_version.minor']
-            query['kernel_type'] = kernel_version.type
-            logger.log('INFO: No previous log found from kernel version {}.{}. Allowing other kernel versions.'.format(kernel_version.major, kernel_version.minor))
-
-            if db.count_documents(query):
-                results = db.find(query).sort('date', pymongo.DESCENDING).limit(1)
-            else:
-                # Keep this log in first line to help streak indexer group results. Diff hash will be populated at end.
-                logger.first_log('INFO: dmesg_diff: {} against <empty>, diff hash '.format(kernel_version.full))
-
-                logger.log('INFO: No suitable previous log found. The following query was used:')
-                logger.log('INFO: {}'.format(query))
-                return False
+            # If no record exists that also matches the OS major.minor version, then drop that requirement. Use the most recently dated matching record.
+            del query['os_version_major_minor']
+            logger.log('INFO: No database record found for {} kernel version with OS version {}. Allowing other OS versions.'.format(previous_kernel_version_str, os_version_major_minor))
+            assert db.count_documents(query), "Could not find previously located log record in database."
+            results = db.find(query).sort('date', pymongo.DESCENDING).limit(1)
+    else:
+        # Keep this log in first line to help streak indexer group results. Diff hash will be populated at end.
+        logger.first_log('INFO: dmesg_diff: {} against <empty>, diff hash '.format(kernel_version.full))
+        logger.log('INFO: No suitable previous log found. The following query was used:')
+        logger.log('INFO: {}'.format(query))
+        return False
 
     result = next(results)
 
