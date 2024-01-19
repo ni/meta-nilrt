@@ -34,15 +34,7 @@ EOF
 
 show_variable_grub(){
 	set -o pipefail
-	value=$(grub-editenv - list | grep -- "$1=" | while read -r line; do
-		key=$(echo "$line" | cut -d "=" -f 1)
-		#if the $1 matches exactly the key, extract the value
-		if [ "$key" = "$1" ] ; then
-			value_tmp=$(echo "$line" | cut -d "=" -f 2-)
-			echo "$value_tmp"
-			break
-		fi
-	done)
+	value=$(grub-editenv - list | awk -F= -v key="$1" '{ if ($1 == key) { print $2; exit }}')
 	if [ $? -ne 0 ]; then
 		return 1
 	fi
