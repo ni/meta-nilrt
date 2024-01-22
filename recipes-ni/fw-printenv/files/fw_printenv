@@ -34,7 +34,7 @@ EOF
 
 show_variable_grub(){
 	set -o pipefail
-	value=$(grub-editenv - list | awk -F= -v key="$1" '{ if ($1 == key) { print $2; exit }}')
+	value=$(grub-editenv - list | sed -n -e "/^$1=/p" | sed -e "s/$1=//")
 	if [ $? -ne 0 ]; then
 		return 1
 	fi
