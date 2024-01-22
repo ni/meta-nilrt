@@ -18,18 +18,19 @@ PACKAGECONFIG[tcp] = ",,python3-pycryptodome"
 PACKAGECONFIG[zeromq] = ",,python3-pycryptodome python3-pyzmq"
 
 SRC_URI = "\
-    git://github.com/ni/salt.git;protocol=https;branch=ni/master/3000.2 \
-    file://minion \
-    file://salt-minion \
-    file://salt-common.bash_completion \
-    file://salt-common.logrotate \
-    file://salt-api \
-    file://salt-master \
-    file://master \
-    file://salt-syndic \
-    file://cloud \
-    file://roster \
-    file://run-ptest \
+	git://github.com/ni/salt.git;protocol=https;branch=ni/master/3000.2 \
+	file://minion \
+	file://salt-minion \
+	file://salt-common.bash_completion \
+	file://salt-common.logrotate \
+	file://salt-api \
+	file://salt-master \
+	file://master \
+	file://salt-syndic \
+	file://cloud \
+	file://roster \
+	file://run-ptest \
+	file://0001-version.py-merge-upstream-version.py-implementation.patch \
 "
 
 SRCREV = "${AUTOREV}"
