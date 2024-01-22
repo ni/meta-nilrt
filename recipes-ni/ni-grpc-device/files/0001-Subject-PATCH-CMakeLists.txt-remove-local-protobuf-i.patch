@@ -1,0 +1,35 @@
+From aca928177133eea00462fa720034bc203a959add Mon Sep 17 00:00:00 2001
+From: Alex Stewart <alex.stewart@ni.com>
+Date: Thu, 18 Jan 2024 14:37:36 -0500
+Subject: [PATCH] Subject: [PATCH] CMakeLists.txt: remove local protobuf
+ includes
+
+When building grpc from within OE, protobuf is supplied by the native
+sysroot. Do not add an includes path to the un-checked-out submodule.
+
+Upstream-Status: Inappropriate [Would break non-cross-compile builds]
+
+Signed-off-by: Alex Stewart <alex.stewart@ni.com>
+---
+ CMakeLists.txt | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index d52498d7..5471d6cd 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -250,7 +250,6 @@ function(GenerateGrpcSources)
+     ARGS --grpc_out "${proto_out_path}"
+       --cpp_out "${proto_out_path}"
+       -I "${proto_path}"
+-      -I ${CMAKE_SOURCE_DIR}/third_party/grpc/third_party/protobuf/src/
+       -I ${CMAKE_SOURCE_DIR}/imports/protobuf
+       --plugin=protoc-gen-grpc="${_GRPC_CPP_PLUGIN_EXECUTABLE}"
+       "${proto_file}"
+@@ -787,4 +786,4 @@ endif()
+ # add_test( NAME UnitTests COMMAND UnitTestsRunner )
+ add_test( NAME UnitTests COMMAND UnitTestsRunner )
+ add_test( NAME IntegrationTests COMMAND IntegrationTestsRunner )
+-add_test( NAME SystemTests COMMAND SystemTestsRunner )
+\ No newline at end of file
++add_test( NAME SystemTests COMMAND SystemTestsRunner )

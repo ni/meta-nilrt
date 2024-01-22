@@ -1,0 +1,54 @@
+From 6536cafe3d6e753fdc4de70b3cfc3360e39cdfb5 Mon Sep 17 00:00:00 2001
+From: Alex Stewart <alex.stewart@ni.com>
+Date: Mon, 22 Jan 2024 10:37:19 -0500
+Subject: [PATCH] CMakeLists: use native python3 binaries
+
+The existing CMakeLists implementation assumes that you want to setup a
+python virtual environment, instead of using what is provided by the
+local system. For OE, this isn't sensible since part of the missions is
+to build the whole native toolchain.
+
+So remove this functionality.
+
+Signed-off-by: Alex Stewart <alex.stewart@ni.com>
+---
+ CMakeLists.txt | 12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 48b5c07e..6c966a2b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -41,14 +41,7 @@ else()
+ endif()
+ 
+ #----------------------------------------------------------------------
+-CreateVirtualEnvironment(virtual_environment
+-  REQUIREMENTS_TXT
+-    ${CMAKE_SOURCE_DIR}/python_build_requirements.txt
+-  ENV_NAME
+-    venv
+-  OUT_PYTHON_EXE
+-    PYTHON_EXE
+-)
++set(PYTHON_EXE ${Python3_EXECUTABLE})
+ 
+ #----------------------------------------------------------------------
+ # Use the utfcpp targets directly from this build, only when not cross-compiling.
+@@ -191,7 +184,7 @@ foreach(api ${nidrivers})
+       ${nidriver_client_srcs}
+       "${service_output_dir}/${api}/${api}_client.cpp")
+   endif()
+-  set(proto_dependencies ${codegen_dependencies} ${codegen_scripts} virtual_environment)
++  set(proto_dependencies ${codegen_dependencies} ${codegen_scripts})
+   add_custom_command(OUTPUT ${output_files}
+     ${gen_command}
+     COMMENT "Generating proto file and service for ${api}"
+@@ -211,7 +204,6 @@ add_custom_command(
+   DEPENDS
+     ${all_codegen_dependencies}
+     ${codegen_scripts}
+-    virtual_environment
+ )
+ 
+ set(nidriver_service_srcs
