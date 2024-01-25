@@ -38,7 +38,7 @@ bootimg_fixup() {
 }
 
 symlink_iso () {
-	ln -sf ${PN}-${MACHINE}.wic ${DEPLOY_DIR_IMAGE}/${PN}-${MACHINE}.iso
+	ln -sf ${PN}-${MACHINE}.rootfs.wic ${DEPLOY_DIR_IMAGE}/${PN}-${MACHINE}.iso
 }
 
 ROOTFS_POSTPROCESS_COMMAND += "symlink_iso;"
