@@ -18,7 +18,7 @@ ROOTFS_IMAGE = "nilrt-runmode-rootfs"
 do_rootfs[depends] += "${ROOTFS_IMAGE}:do_image_complete"
 
 bootimg_fixup() {
-	install -m 0644 "${DEPLOY_DIR_IMAGE}/${ROOTFS_IMAGE}-${MACHINE}.tar.gz" "${IMAGE_ROOTFS}/data.tar.gz"
+	install -m 0644 "${DEPLOY_DIR_IMAGE}/${ROOTFS_IMAGE}-${MACHINE}.rootfs.tar.gz" "${IMAGE_ROOTFS}/data.tar.gz"
 	install -m 0755 "${THISDIR}/files/${BPN}.postinst" "${IMAGE_ROOTFS}/postinst"
 
 	# Remove everything that is not data.tar.gz nor the postinst
