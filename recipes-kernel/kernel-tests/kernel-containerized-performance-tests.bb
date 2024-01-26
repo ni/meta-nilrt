@@ -11,7 +11,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}-files:"
 S = "${WORKDIR}"
 
 DEPENDS = "virtual/kernel"
-RDEPENDS:${PN}-ptest += "bash python3 docker-ce"
+RDEPENDS:${PN}-ptest += "bash python3 docker"
 RDEPENDS:${PN}-ptest:append:x64 = " fw-printenv"
 RDEPENDS:${PN}-ptest:append:armv7a = " u-boot-fw-utils"
 
