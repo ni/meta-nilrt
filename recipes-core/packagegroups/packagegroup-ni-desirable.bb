@@ -33,7 +33,6 @@ RDEPENDS:${PN} += "\
 	ldd \
 	ltrace \
 	ntp \
-	ntpdate \
 	nvme-cli \
 	openssl-dev \
 	perf \
