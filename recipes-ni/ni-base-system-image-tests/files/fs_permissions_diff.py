@@ -9,6 +9,7 @@ import re
 import subprocess
 import sys
 import fs_permissions_shared
+import re
 
 class DB:
     mongo_db_name = 'rtos'
@@ -164,9 +165,30 @@ def get_old_fs_manifests(db, logger):
 
     return basis_manifest, recent_manifest
 
+def strip_versions_from_path(path):
+    # Strip all things that look like version numbers to simplify the diff
+    # 
+    # The below order matters, since the last sub will prevent previous ones from working correctly
+
+    # Strip all versions for salt (2 forms of this)
+    stripped_path = re.sub(r"salt-\d+\.\d+_\d+_g[0-9a-f]+", "salt-SALTVERSION", path)
+    stripped_path = re.sub(r"salt-\d+\.\d+\+\d+\.g[0-9a-f]+", "salt-SALTVERSION", stripped_path)
+    # Strip everything that looks like an RT kernel version (so module and kernel version changes are ignored)
+    stripped_path = re.sub(r"\d+\.\d+\.\d+-rt\d+", "VERSION.VERSION.VERSION-rtVERSION", stripped_path)
+    # Strip everything that looks like 1.2.3
+    stripped_path = re.sub(r"\d+\.\d+\.\d+", "VERSION.VERSION.VERSION", stripped_path)
+    # Strip everything that looks like 1.2
+    stripped_path = re.sub(r"\d+\.\d+", "VERSION.VERSION", stripped_path)
+
+    return stripped_path
+
 def prepare_manifest_for_diff(manifest):
     reader = csv.DictReader(manifest.splitlines(), fieldnames=fs_manifest_columns, delimiter='\t')
-    return {row['path']: row for row in reader}
+    result = {}
+    for row in reader:
+        stripped_path = strip_versions_from_path(row['path'])
+        result[stripped_path] = row
+    return result
 
 class IntermediateDiff:
     def __init__(self, old, mid, new):
