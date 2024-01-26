@@ -104,7 +104,32 @@ def upload_manifest(db, fs_manifest, logger):
 def strip_headers(fs_manifest):
     return ''.join(line + '\n' for line in fs_manifest.splitlines() if not line.startswith('#'))
 
-def get_old_fs_manifests(db, logger):
+def get_previous_fs_manifest_as_current(db, previous_date, logger):
+    query = {}
+    query['date'] = previous_date
+    count = db.count_documents(query)
+    logger.log('!!!!!OVERRIDING CURRENT MANIFEST!!!!!\n'.format(count))
+    logger.log('Found {} records\n'.format(count))
+    if count == 1:
+        results = db.find(query).limit(1)
+        result = next(results)
+        logger.log('INFO: Found fs_manifest record with these details')
+        log_version_info(logger,
+                         'current',
+                         result['os_version_codename'],
+                         result['os_version_full'],
+                         result['date'],
+                         result['_id']
+                         )
+        return strip_headers(result['fs_permissions'])
+    elif count > 1:
+        logger.log('INFO: Found multiple fs manifest records with the same date: {}'.format(previous_date))
+        exit(1)
+    else:
+        logger.log('INFO: Could not find fs manifest record with date: {}'.format(previous_date))
+        exit(1)
+
+def get_old_fs_manifests(db, logger, basis_override):
     def run_query(label, query):
         nonlocal db
         nonlocal logger
@@ -116,8 +141,9 @@ def get_old_fs_manifests(db, logger):
         else:
             # If there are no results, there must not be a run from the current os codename.
             # Remove that requirement.
-            del query['os_version_codename']
-            logger.log('INFO: No prior fs permissions from this OS codename found. Relaxing that constraint.')
+            if 'os_version_codename' in query:
+                del query['os_version_codename']
+                logger.log('INFO: No prior fs permissions from this OS codename found. Relaxing that constraint.')
 
             if db.count_documents(query):
                 results = db.find(query).sort(sort_order).limit(1)
@@ -140,7 +166,7 @@ def get_old_fs_manifests(db, logger):
 
     os_version = OsVersion()
 
-    query_build = lambda build: {
+    query_version_build = lambda build: {
         'os_version_codename': os_version.codename,
         'os_version': {
             '$lt': {
@@ -152,10 +178,17 @@ def get_old_fs_manifests(db, logger):
         }
     }
 
+    query_date_build = lambda date: {
+        'date': date
+    }
+
     # The "basis" manifest is from the latest version with a lesser MAJOR.MINOR.PATCH
-    basis_manifest, basis_version = run_query('basis', query_build(0))
+    if basis_override is not None:
+        basis_manifest, basis_version = run_query('basis', query_date_build(basis_override))
+    else:
+        basis_manifest, basis_version = run_query('basis', query_version_build(0))
     # The "recent" manifest is from the latest version, likely the last run with the same MAJOR.MINOR.PATCH
-    recent_manifest, recent_version = run_query('recent', query_build(os_version.build))
+    recent_manifest, recent_version = run_query('recent', query_version_build(os_version.build))
 
     # Keep this log in first line to help streak indexer group results. Overall hash will be populated at end.
     logger.prefix_log(f'INFO: fs_permissions_diff: current against {basis_version} ')
@@ -341,6 +374,16 @@ def parse_args():
     parser.add_argument('--server', required=True, help='Mongo server hostname')
     parser.add_argument('--user', required=True, help='Mongo server username')
     parser.add_argument('--password', required=True, help='Mongo server password')
+    parser.add_argument('--current_log_db_date', metavar="<date>",
+                        help='Use this flag to supply a date string that will be used to locate a filesystem manifest in the database. That log will be used as the current filesystem manifest. '\
+                             'Should be of the format "2023-03-30 15:32:43.203476". Date strings for previous filesystem manifest can be found in the output of previous runs of this '\
+                             'test or can be extracted from the Mongo database using a viewer tool like Compass. This flag also skips the upload of the filesystem manifest record to the '\
+                             'database, so the --skip_upload flag is not needed. This flag is useful for debugging issues with this test.')
+    parser.add_argument('--basis_log_db_date', metavar="<date>",
+                        help='Use this flag to supply a date string that will be used to locate a filesystem manifest in the database. That log will be used as the basis filesystem manifest. '\
+                             'Should be of the format "2023-03-30 15:32:43.203476". Date strings for previous filesystem manifest can be found in the output of previous runs of this '\
+                             'test or can be extracted from the Mongo database using a viewer tool like Compass. This flag is useful for resetting the comparison baseline for the test.')
+    parser.add_argument('--skip_upload', help='Skip upload of fs manifest record to database. Useful when debugging.', action="store_true")
 
     return parser.parse_args()
 
@@ -348,10 +391,16 @@ def main():
     logger = fs_permissions_shared.Logger()
     args = parse_args()
     db = DB(args.server, args.user, args.password)
-    basis_fs_manifest, recent_fs_manifest = get_old_fs_manifests(db, logger)
 
-    fs_manifest = get_fs_manifest()
-    upload_manifest(db, fs_manifest, logger)
+    basis_fs_manifest, recent_fs_manifest = get_old_fs_manifests(db, logger, args.basis_log_db_date)
+
+    if args.current_log_db_date:
+        fs_manifest = get_previous_fs_manifest_as_current(db, args.current_log_db_date, logger)
+    else:
+        fs_manifest = get_fs_manifest()
+
+    if not args.current_log_db_date and not args.skip_upload:
+        upload_manifest(db, fs_manifest, logger)
 
     result = diff_manifests(fs_manifest, basis_fs_manifest, recent_fs_manifest, logger)
 
