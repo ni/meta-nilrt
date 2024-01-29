@@ -20,6 +20,11 @@ SRC_URI += "\
 S = "${WORKDIR}"
 
 
+inherit allarch
+PACKAGE_ARCH = "all"
+PACKAGES:remove = "${PN}-staticdev ${PN}-dev ${PN}-dbg"
+
+
 do_install:append () {
 	install -d ${D}${sysconfdir}/init.d/
 	install -m 0755 ${S}/handle_cpld_ip_reset.initd  ${D}${sysconfdir}/init.d/handle_cpld_ip_reset
@@ -49,9 +54,6 @@ pkg_postrm:${PN} () {
 	update-rc.d $OPT ni-rtfeatures remove
 }
 
-
-PACKAGE_ARCH = "all"
-PACKAGES:remove = "${PN}-staticdev ${PN}-dev ${PN}-dbg"
 
 FILES:${PN} += "\
 	${sysconfdir}/init.d/* \
