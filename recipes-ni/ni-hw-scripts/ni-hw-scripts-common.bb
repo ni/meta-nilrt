@@ -16,6 +16,11 @@ SRC_URI += "\
 S = "${WORKDIR}"
 
 
+inherit allarch
+PACKAGE_ARCH = "all"
+PACKAGES:remove = "${PN}-staticdev ${PN}-dev ${PN}-dbg"
+
+
 do_install () {
 	install -d ${D}${sysconfdir}/init.d/
 
@@ -45,9 +50,6 @@ pkg_postrm:${PN} () {
 	update-rc.d $OPT nisetserialnumber remove
 }
 
-
-PACKAGE_ARCH = "all"
-PACKAGES:remove = "${PN}-staticdev ${PN}-dev ${PN}-dbg"
 
 FILES:${PN} += "\
 	${sysconfdir}/init.d/ni-rename-ifaces \
