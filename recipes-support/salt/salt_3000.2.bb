@@ -72,7 +72,6 @@ RDEPENDS:${PN}-common += " \
     python3-configparser \
     python3-dateutil \
     python3-difflib \
-    python3-distutils \
     python3-misc \
     python3-multiprocessing \
     python3-profile \
