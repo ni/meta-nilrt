@@ -67,7 +67,6 @@ RDEPENDS:${PN} += "\
 	python3-dateutil \
 	python3-dbus \
 	python3-difflib \
-	python3-distutils \
 	python3-email \
 	python3-fcntl \
 	python3-html \
@@ -112,7 +111,6 @@ RDEPENDS:${PN} += "\
 	python3-setuptools \
 	python3-shell \
 	python3-six \
-	python3-smtpd \
 	python3-stringold \
 	python3-terminal \
 	python3-threading \
