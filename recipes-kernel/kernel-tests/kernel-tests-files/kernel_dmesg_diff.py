@@ -61,6 +61,8 @@ class SemanticVersion:
         self.prerelease = version.group('prerelease')
         self.build_metadata = version.group('buildmetadata')
 
+RELEASE_KERNEL_RC_VALUE = 999
+
 class KernelVersion(SemanticVersion):
     def __init__(self, versionString=None):
         if versionString == None:
@@ -69,8 +71,16 @@ class KernelVersion(SemanticVersion):
             version = versionString
         SemanticVersion.__init__(self, version)
         self.type = 'next' if 'next' in self.prerelease else 'current'
-        prerelease_version = int(re.search(r'0|[1-9]\d*', self.prerelease).group())
-        self.version_dict = { 'major': self.major, 'minor': self.minor, "patch": self.patch, 'prerelease': prerelease_version }
+        re_match = re.search(r'rc(0|[1-9]\d*)', self.prerelease)
+        if re_match:
+            self.rc = int(re_match.group(1))
+        else:
+            # If no rcX value is present in the prerelease field of the kernel version string, then this should be a released kernel.
+            # Use 999 as the rc value in this case, as this value should be larger than any actual rcX value. This means that sorting
+            # by this field will correctly order a release version of a specific M.m.p version as higher than any actual rc version of M.m.p.
+            self.rc = RELEASE_KERNEL_RC_VALUE
+        self.rt_patch = int(re.search(r'rt(0|[1-9]\d*)', self.prerelease).group(1))
+        self.version_dict = { 'major': self.major, 'minor': self.minor, 'patch': self.patch, 'rc': self.rc, 'rt_patch': self.rt_patch }
 
 class OsVersion:
     def __init__(self):
@@ -140,7 +150,10 @@ def get_previous_dmesg_record(db, kernel_version, os_version_major_minor, device
         results = db.find(query).sort('kernel_version', pymongo.DESCENDING).limit(1)
         result = next(results)
         previous_kernel_version = result['kernel_version']
-        previous_kernel_version_str = "{}.{}.{}-{}".format(previous_kernel_version['major'], previous_kernel_version['minor'], previous_kernel_version['patch'], previous_kernel_version['prerelease'])
+        if previous_kernel_version['rc'] == RELEASE_KERNEL_RC_VALUE:
+            previous_kernel_version_str = "{}.{}.{}-rt{}".format(previous_kernel_version['major'], previous_kernel_version['minor'], previous_kernel_version['patch'], previous_kernel_version['rt_patch'])
+        else:
+            previous_kernel_version_str = "{}.{}.{}-rc{}-rt{}".format(previous_kernel_version['major'], previous_kernel_version['minor'], previous_kernel_version['patch'], previous_kernel_version['rc'], previous_kernel_version['rt_patch'])
         query['kernel_version'] = { '$eq': previous_kernel_version }
         logger.log('INFO: Most recent previous kernel version in database is {}.'.format(previous_kernel_version_str))
 
