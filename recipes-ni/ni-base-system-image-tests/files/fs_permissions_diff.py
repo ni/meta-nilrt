@@ -369,6 +369,11 @@ def diff_manifests(current_manifest, basis_manifest, recent_manifest, logger):
 
     return not any_differences
 
+def prepare_system_for_manifest():
+    # logrotate may not have run yet, so run it now to generate
+    # the logrotate.status
+    subprocess.run(["/usr/sbin/logrotate", "/etc/logrotate.conf"])
+
 def parse_args():
     parser = argparse.ArgumentParser(description='diff fs permissions with previous')
     parser.add_argument('--server', required=True, help='Mongo server hostname')
@@ -397,6 +402,7 @@ def main():
     if args.current_log_db_date:
         fs_manifest = get_previous_fs_manifest_as_current(db, args.current_log_db_date, logger)
     else:
+        prepare_system_for_manifest()
         fs_manifest = get_fs_manifest()
 
     if not args.current_log_db_date and not args.skip_upload:
