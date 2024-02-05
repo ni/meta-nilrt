@@ -63,6 +63,12 @@ class SemanticVersion:
 
 RELEASE_KERNEL_RC_VALUE = 999
 
+def get_short_kernel_version(version_dict):
+    if version_dict['rc'] == RELEASE_KERNEL_RC_VALUE:
+        return "{}.{}.{}-rt{}".format(version_dict['major'], version_dict['minor'], version_dict['patch'], version_dict['rt_patch'])
+    else:
+        return "{}.{}.{}-rc{}-rt{}".format(version_dict['major'], version_dict['minor'], version_dict['patch'], version_dict['rc'], version_dict['rt_patch'])
+
 class KernelVersion(SemanticVersion):
     def __init__(self, versionString=None):
         if versionString == None:
@@ -139,6 +145,7 @@ def get_previous_dmesg_record(db, kernel_version, os_version_major_minor, device
     query = {}
     query['kernel_version'] = { '$lt': kernel_version.version_dict }
     query['device_desc'] = device_desc
+    kernel_version_short = get_short_kernel_version(kernel_version.version_dict)
 
     if db.count_documents(query):
         # The goal of this test is to automate the identification of any dmesg differences due to a kernel upgrade, so they can be reviewed by a developer.
@@ -150,12 +157,9 @@ def get_previous_dmesg_record(db, kernel_version, os_version_major_minor, device
         results = db.find(query).sort('kernel_version', pymongo.DESCENDING).limit(1)
         result = next(results)
         previous_kernel_version = result['kernel_version']
-        if previous_kernel_version['rc'] == RELEASE_KERNEL_RC_VALUE:
-            previous_kernel_version_str = "{}.{}.{}-rt{}".format(previous_kernel_version['major'], previous_kernel_version['minor'], previous_kernel_version['patch'], previous_kernel_version['rt_patch'])
-        else:
-            previous_kernel_version_str = "{}.{}.{}-rc{}-rt{}".format(previous_kernel_version['major'], previous_kernel_version['minor'], previous_kernel_version['patch'], previous_kernel_version['rc'], previous_kernel_version['rt_patch'])
+        previous_kernel_version_short = get_short_kernel_version(previous_kernel_version)
         query['kernel_version'] = { '$eq': previous_kernel_version }
-        logger.log('INFO: Most recent previous kernel version in database is {}.'.format(previous_kernel_version_str))
+        logger.log('INFO: Most recent previous kernel version in database is {}.'.format(previous_kernel_version_short))
 
         # If a record exists that also matches the OS major.minor version, then give preference to that in order to minimize differences due to non-kernel OS changes. Use the most recently dated matching record.
         query['os_version_major_minor'] = os_version_major_minor
@@ -164,12 +168,12 @@ def get_previous_dmesg_record(db, kernel_version, os_version_major_minor, device
         else:
             # If no record exists that also matches the OS major.minor version, then drop that requirement. Use the most recently dated matching record.
             del query['os_version_major_minor']
-            logger.log('INFO: No database record found for {} kernel version with OS version {}. Allowing other OS versions.'.format(previous_kernel_version_str, os_version_major_minor))
+            logger.log('INFO: No database record found for {} kernel version with OS version {}. Allowing other OS versions.'.format(previous_kernel_version_short, os_version_major_minor))
             assert db.count_documents(query), "Could not find previously located log record in database."
             results = db.find(query).sort('date', pymongo.DESCENDING).limit(1)
     else:
         # Keep this log in first line to help streak indexer group results. Diff hash will be populated at end.
-        logger.first_log('INFO: dmesg_diff: {} against <empty>, diff hash '.format(kernel_version.full))
+        logger.first_log('INFO: dmesg_diff: {} against <empty>, diff hash '.format(kernel_version_short))
         logger.log('INFO: No suitable previous log found. The following query was used:')
         logger.log('INFO: {}'.format(query))
         return False
@@ -177,7 +181,7 @@ def get_previous_dmesg_record(db, kernel_version, os_version_major_minor, device
     result = next(results)
 
     # Keep this log in first line to help streak indexer group results. Diff hash will be populated at end.
-    logger.first_log('INFO: dmesg_diff: {} against older log of {}, diff hash '.format(kernel_version.full, result['kernel_version_full']))
+    logger.first_log('INFO: dmesg_diff: {} against {}, diff '.format(kernel_version_short, previous_kernel_version_short))
 
     logger.log('INFO: Using previous dmesg log of "{}" kernel {} from OS version {} dated {} with _id {}'.format(result['kernel_type'], result['kernel_version_full'], result['os_version'], result['date'], result['_id']))
     return result
