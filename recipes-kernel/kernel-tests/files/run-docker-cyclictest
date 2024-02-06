@@ -10,6 +10,7 @@ case "$#" in
 		       -v /usr/share/fw_printenv:/usr/share/fw_printenv \
 		       -v /sbin/fw_printenv:/sbin/fw_printenv \
 		       -v /usr/share/nisysinfo:/usr/share/nisysinfo \
+		       -v /etc/os-release:/etc/os-release \
 		       -v /dev:/dev \
 		       -w ${TEST_DIR} \
 		       -t cyclictest-container \
@@ -25,6 +26,7 @@ case "$#" in
 		       -v /usr/share/fw_printenv:/usr/share/fw_printenv \
 		       -v /sbin/fw_printenv:/sbin/fw_printenv \
 		       -v /usr/share/nisysinfo:/usr/share/nisysinfo \
+		       -v /etc/os-release:/etc/os-release \
 		       -v /dev:/dev \
 		       -w ${TEST_DIR} \
 		       -t cyclictest-container \
