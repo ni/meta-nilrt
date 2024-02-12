@@ -1,4 +1,4 @@
-From 16f0b287ad5dfda7df059094464a26620d0d5ff7 Mon Sep 17 00:00:00 2001
+From 63db75b1009c15ba646e439b8c055879cb11e479 Mon Sep 17 00:00:00 2001
 From: Jonathan David <jonathan.david@ni.com>
 Date: Mon, 21 Jul 2014 14:25:07 -0500
 Subject: [PATCH] Added curl_share_setopt_va() API function
@@ -22,7 +22,7 @@ Signed-off-by: Alex Stewart <alex.stewart@ni.com>
  1 file changed, 13 insertions(+), 5 deletions(-)
 
 diff --git a/lib/share.c b/lib/share.c
-index c0a8d80..60a4b5d 100644
+index 8fa5cda..d3121ff 100644
 --- a/lib/share.c
 +++ b/lib/share.c
 @@ -49,11 +49,9 @@ curl_share_init(void)

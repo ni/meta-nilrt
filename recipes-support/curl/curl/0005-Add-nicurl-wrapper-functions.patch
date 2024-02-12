@@ -1,4 +1,4 @@
-From d0899b9330a87677eff449f8eddcd544d3eeb1b8 Mon Sep 17 00:00:00 2001
+From 855ee1bb2b597617c2421f4429a4359c7de4999e Mon Sep 17 00:00:00 2001
 From: Jonathan David <jonathan.david@ni.com>
 Date: Tue, 15 Mar 2016 13:26:34 -0500
 Subject: [PATCH] Add nicurl wrapper functions
@@ -23,10 +23,10 @@ Signed-off-by: Alex Stewart <alex.stewart@ni.com>
  4 files changed, 55 insertions(+)
 
 diff --git a/lib/easy.c b/lib/easy.c
-index 8e06b16..0abddf3 100644
+index fd75910..3ab98f7 100644
 --- a/lib/easy.c
 +++ b/lib/easy.c
-@@ -382,6 +382,16 @@ struct Curl_easy *curl_easy_init(void)
+@@ -374,6 +374,16 @@ struct Curl_easy *curl_easy_init(void)
    return data;
  }
  
@@ -43,7 +43,7 @@ index 8e06b16..0abddf3 100644
  #ifdef CURLDEBUG
  
  struct socketmonitor {
-@@ -843,6 +853,17 @@ CURLcode curl_easy_getinfo(struct Curl_easy *data, CURLINFO info, ...)
+@@ -839,6 +849,17 @@ CURLcode curl_easy_getinfo(struct Curl_easy *data, CURLINFO info, ...)
    return result;
  }
  
@@ -62,7 +62,7 @@ index 8e06b16..0abddf3 100644
  {
    CURLcode result = CURLE_OK;
 diff --git a/lib/formdata.c b/lib/formdata.c
-index 11f142f..60de2f8 100644
+index d4e0303..18f384f 100644
 --- a/lib/formdata.c
 +++ b/lib/formdata.c
 @@ -709,6 +709,18 @@ CURLFORMcode curl_formadd(struct curl_httppost **httppost,
@@ -85,10 +85,10 @@ index 11f142f..60de2f8 100644
   * curl_formget()
   * Serialize a curl_httppost struct.
 diff --git a/lib/multi.c b/lib/multi.c
-index 6c35014..8828962 100644
+index d78f8b2..6d4d365 100644
 --- a/lib/multi.c
 +++ b/lib/multi.c
-@@ -3373,6 +3373,17 @@ CURLMcode curl_multi_setopt(struct Curl_multi *multi,
+@@ -3398,6 +3398,17 @@ CURLMcode curl_multi_setopt_va(struct Curl_multi *multi,
    return res;
  }
  
@@ -107,7 +107,7 @@ index 6c35014..8828962 100644
  #undef curl_multi_socket
  
 diff --git a/lib/share.c b/lib/share.c
-index 60a4b5d..5acb4de 100644
+index d3121ff..8113567 100644
 --- a/lib/share.c
 +++ b/lib/share.c
 @@ -215,6 +215,17 @@ curl_share_setopt(struct Curl_share *share, CURLSHoption option, ...)
