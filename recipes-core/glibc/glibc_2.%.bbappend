@@ -4,15 +4,15 @@ FILESEXTRAPATHS:prepend := "${THISDIR}:${THISDIR}/${PN}:"
 # Chinese support.
 #file://cp936-gconv-modules.patch
 SRC_URI =+ " \
-	file://cp936_support.patch \
 	file://gconv-modules-extra-remove-CP936-to-GBK-mapping.patch \
+	file://0001-glibc-add-cp936-support.patch \
 "
 
 # Add patches to build the ja_JP.WINDOWS-31J and zh_CN.CP936 locales for
 # LabVIEW Japanese and Chinese language support.
 SRC_URI =+ " \
 	file://windows-31j_support.patch \
-	file://cp936_charmap_support.patch \
+	file://0002-glibc-add-CP936-charmap-and-zh_CN.CP936-locale.patch \
 "
 
 # Add patch to alias custom LabVIEW locales to the equivalent

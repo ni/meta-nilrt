@@ -1,8 +1,9 @@
-From 50acca0fba51a116e108b6549f4a88ce38d8ac80 Mon Sep 17 00:00:00 2001
+From 317d15193531d2beafaffcb7d8dff1f43951578f Mon Sep 17 00:00:00 2001
 From: Charlie Johnston <charlie.johnston@ni.com>
 Date: Wed, 25 May 2022 10:37:37 -0500
-Subject: [PATCH] Adding CP936 charmap and zh_CN.CP936 locale. These are
- equivalent to the GBK charmap and zh_CN.GBK locale.
+Subject: [PATCH] glibc: add CP936 charmap and zh_CN.CP936 locale
+
+These are equivalent to the GBK charmap and zh_CN.GBK locale.
 
 Some NI Software expects that the charmap for Chinese language specifically
 be CP936. While this is equivalent to the GBK charmap, the naming appears
@@ -10,6 +11,10 @@ to matter. This patch adds in a CP936 charmap and equivalent locale
 with the expected values.
 
 Upstream-Status: Inappropriate [NI-specific changes]
+
+Reapplied to glibc-2.39-22-g0244a37d2c.
+
+Signed-off-by: Alex Stewart <alex.stewart@ni.com>
 ---
  localedata/SUPPORTED      |     1 +
  localedata/charmaps/CP936 | 22037 ++++++++++++++++++++++++++++++++++++
@@ -17,13 +22,13 @@ Upstream-Status: Inappropriate [NI-specific changes]
  create mode 100644 localedata/charmaps/CP936
 
 diff --git a/localedata/SUPPORTED b/localedata/SUPPORTED
-index 1ee5b5e8c8..0bf665834d 100644
+index f3ea3267f3..c7efe08ae4 100644
 --- a/localedata/SUPPORTED
 +++ b/localedata/SUPPORTED
-@@ -475,6 +475,7 @@ yi_US/CP1255 \
- yo_NG/UTF-8 \
+@@ -485,6 +485,7 @@ yo_NG/UTF-8 \
  yue_HK/UTF-8 \
  yuw_PG/UTF-8 \
+ zgh_MA/UTF-8 \
 +zh_CN.CP936/CP936 \
  zh_CN.GB18030/GB18030 \
  zh_CN.GBK/GBK \
@@ -22071,6 +22076,3 @@ index 0000000000..a469702bee
 +WIDTH
 +<U4E02>...<UFA29> 2
 +END WIDTH
--- 
-2.30.2
-
