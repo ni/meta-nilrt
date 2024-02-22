@@ -346,7 +346,7 @@ elif [ "$ARCH" = "x86_64" ]; then
 			echo "Configuring EFI for A/B image boot..."
 
 			# Delete existing NILRT entries with "-B" option
-			for ENTRY in $(efibootmgr | egrep -i '(LabVIEW RT)|(niboota)|(nibootb)' | egrep -o '[0-9A-Fa-f]{4}' || true);
+			for ENTRY in $(efibootmgr | grep -Ei '(LabVIEW RT)|(niboota)|(nibootb)' | grep -Eo '[0-9A-Fa-f]{4}' || true);
 			do
 				do_silent echo "Drop entry $ENTRY"
 				EFIMGR=$(efibootmgr -b "$ENTRY" -B 2>&1) || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
@@ -383,19 +383,19 @@ elif [ "$ARCH" = "x86_64" ]; then
 			#  first two boot entries and niboota is BootNext
 			echo -n "Check EFI boot configuration: "
 
-			boot_order=$(echo "$efi_boot_config" | egrep "^BootOrder: [0-9,]+" | cut -d" " -f2)
+			boot_order=$(echo "$efi_boot_config" | grep -E "^BootOrder: [0-9,]+" | cut -d" " -f2)
 			boot_A_numb=$(echo "$boot_order" | cut -d"," -f1)
 			boot_B_numb=$(echo "$boot_order" | cut -d"," -f2)
 
-			if ! echo "$efi_boot_config" | egrep -q "^Boot${boot_A_numb}.* niboota"$'\t'"+HD\(1,"; then
+			if ! echo "$efi_boot_config" | grep -Eq "^Boot${boot_A_numb}.* niboota"$'\t'"+HD\(1,"; then
 				die "niboota is not at Boot${boot_A_numb}, boot_order=$boot_order"
 			fi
 
-			if ! echo "$efi_boot_config" | egrep -q "^Boot${boot_B_numb}.* nibootb"$'\t'"+HD\(2,"; then
+			if ! echo "$efi_boot_config" | grep -Eq "^Boot${boot_B_numb}.* nibootb"$'\t'"+HD\(2,"; then
 				die "nibootb is not at Boot${boot_B_numb}, boot_order=$boot_order"
 			fi
 
-			boot_next=$(echo "$efi_boot_config" | egrep "^BootNext: [0-9]+ *$" | cut -d" " -f2)
+			boot_next=$(echo "$efi_boot_config" | grep -E "^BootNext: [0-9]+ *$" | cut -d" " -f2)
 			[ "$boot_next" == "$boot_A_numb" ] || die "BootNext=$boot_next, expecting niboota at $boot_A_numb"
 
 			echo "OK"
@@ -599,7 +599,7 @@ check_answer_file()
 	if [ -r "$filePath" ]; then
 		# Answer file may only contain lines beginning with '#' or 'PROVISION_*=' variables
 		if [ "`head -1 "$filePath"`" == "#NI_PROVISIONING_ANSWERS_V1" ]; then
-			if ! egrep -q -v '(^$|^#|^PROVISION_[A-Z0-9_]+=)' "$filePath"; then
+			if ! grep -E -q -v '(^$|^#|^PROVISION_[A-Z0-9_]+=)' "$filePath"; then
 				return 0
 			fi
 		fi
