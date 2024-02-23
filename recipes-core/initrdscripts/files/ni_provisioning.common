@@ -346,10 +346,11 @@ elif [ "$ARCH" = "x86_64" ]; then
 			echo "Configuring EFI for A/B image boot..."
 
 			# Delete existing NILRT entries with "-B" option
-			for ENTRY in $(efibootmgr | grep -Ei '(LabVIEW RT)|(niboota)|(nibootb)' | grep -Eo '[0-9A-Fa-f]{4}' || true);
+			for ENTRY in $(efibootmgr | grep -Ei '(LabVIEW RT)|(niboota)|(nibootb)' | grep -Eo 'Boot[0-9A-Fa-f]{4}' || true);
 			do
-				do_silent echo "Drop entry $ENTRY"
-				EFIMGR=$(efibootmgr -b "$ENTRY" -B 2>&1) || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
+				ENTRY_NUMBER=${ENTRY: 4:4}
+				do_silent echo "Drop entry $ENTRY_NUMBER"
+				EFIMGR=$(efibootmgr -b "$ENTRY_NUMBER" -B 2>&1) || print_warning "efibootmgr -b $ENTRY_NUMBER -B failed with: $EFIMGR"
 			done
 
 			# Add nibootX entries with "-c" option

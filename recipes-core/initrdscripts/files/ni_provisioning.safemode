@@ -211,10 +211,11 @@ install_grub()
 	GRUB_TARGET=$(uname -m)
 	cp /boot/EFI/BOOT/bootx64.efi $GRUB_TARGET_DIR
 	# Delete existing NILRT entries with "-B" option
-	for ENTRY in $(efibootmgr | grep -Ei '(LabVIEW RT)|(niboota)|(nibootb)' | grep -Eo '[0-9A-Fa-f]{4}' || true);
+	for ENTRY in $(efibootmgr | grep -Ei '(LabVIEW RT)|(niboota)|(nibootb)' | grep -Eo 'Boot[0-9A-Fa-f]{4}' || true);
 	do
-		print_info " Drop entry $ENTRY."
-		EFIMGR=$(efibootmgr -b "$ENTRY" -B 2>&1) || print_warning "efibootmgr -b $ENTRY -B failed with: $EFIMGR"
+		ENTRY_NUMBER=${ENTRY: 4:4}
+		print_info " Drop entry $ENTRY_NUMBER."
+		EFIMGR=$(efibootmgr -b "$ENTRY_NUMBER" -B 2>&1) || print_warning "efibootmgr -b $ENTRY_NUMBER -B failed with: $EFIMGR"
 	done
 	efibootmgr $VERBOSE_ARGS -c -d ${TARGET_DISK} -p 1 -L 'LabVIEW RT' -l '\efi\boot\bootx64.efi'
 	print_done
