@@ -217,7 +217,8 @@ replacement_patterns = [
         [r'software IO TLB: mapped mem .*', 'software IO TLB: mapped mem'],
         [r'eth\d:', 'ethX:'],
         [r'renamed from eth\d', 'renamed from ethX'],
-        [r'mounted filesystem [0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}', 'mounted filesystem xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx']
+        [r'mounted filesystem [0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}', 'mounted filesystem xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'],
+        [r'clocksource: tsc: mask: 0x[0-9a-fA-F]+ max_cycles: 0x[0-9a-fA-F]+, max_idle_ns: \d+ ns', 'clocksource: tsc: mask: 0x max_cycles: 0x, max_idle_ns: ns']
 ]
 
 def strip_known_differences(log):
