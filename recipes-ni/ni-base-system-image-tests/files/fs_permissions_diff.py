@@ -129,7 +129,7 @@ def get_previous_fs_manifest_as_current(db, previous_date, logger):
         logger.log('INFO: Could not find fs manifest record with date: {}'.format(previous_date))
         exit(1)
 
-def get_old_fs_manifests(db, logger, basis_override):
+def get_old_fs_manifests(db, logger, basis_override, recent_override):
     def run_query(label, query):
         nonlocal db
         nonlocal logger
@@ -164,19 +164,20 @@ def get_old_fs_manifests(db, logger, basis_override):
 
         return strip_headers(result['fs_permissions']), result['os_version_full']
 
-    os_version = OsVersion()
+    if basis_override is None or recent_override is None:
+        os_version = OsVersion()
 
-    query_version_build = lambda build: {
-        'os_version_codename': os_version.codename,
-        'os_version': {
-            '$lt': {
-                'major': os_version.major,
-                'minor': os_version.minor,
-                'patch': os_version.patch,
-                'build': build
+        query_version_build = lambda build: {
+            'os_version_codename': os_version.codename,
+            'os_version': {
+                '$lt': {
+                    'major': os_version.major,
+                    'minor': os_version.minor,
+                    'patch': os_version.patch,
+                    'build': build
+                }
             }
         }
-    }
 
     query_date_build = lambda date: {
         'date': date
@@ -188,7 +189,10 @@ def get_old_fs_manifests(db, logger, basis_override):
     else:
         basis_manifest, basis_version = run_query('basis', query_version_build(0))
     # The "recent" manifest is from the latest version, likely the last run with the same MAJOR.MINOR.PATCH
-    recent_manifest, recent_version = run_query('recent', query_version_build(os_version.build))
+    if recent_override is not None:
+        recent_manifest, recent_version = run_query('recent', query_date_build(recent_override))
+    else:
+        recent_manifest, recent_version = run_query('recent', query_version_build(os_version.build))
 
     # Keep this log in first line to help streak indexer group results. Overall hash will be populated at end.
     logger.prefix_log(f'INFO: fs_permissions_diff: current against {basis_version} ')
@@ -388,6 +392,10 @@ def parse_args():
                         help='Use this flag to supply a date string that will be used to locate a filesystem manifest in the database. That log will be used as the basis filesystem manifest. '\
                              'Should be of the format "2023-03-30 15:32:43.203476". Date strings for previous filesystem manifest can be found in the output of previous runs of this '\
                              'test or can be extracted from the Mongo database using a viewer tool like Compass. This flag is useful for resetting the comparison baseline for the test.')
+    parser.add_argument('--recent_log_db_date', metavar="<date>",
+                        help='Use this flag to supply a date string that will be used to locate a filesystem manifest in the database. That log will be used as the recent filesystem manifest. '\
+                             'Should be of the format "2023-03-30 15:32:43.203476". Date strings for previous filesystem manifest can be found in the output of previous runs of this '\
+                             'test or can be extracted from the Mongo database using a viewer tool like Compass. This flag is useful for debugging issues with this test.')
     parser.add_argument('--skip_upload', help='Skip upload of fs manifest record to database. Useful when debugging.', action="store_true")
 
     return parser.parse_args()
@@ -397,7 +405,7 @@ def main():
     args = parse_args()
     db = DB(args.server, args.user, args.password)
 
-    basis_fs_manifest, recent_fs_manifest = get_old_fs_manifests(db, logger, args.basis_log_db_date)
+    basis_fs_manifest, recent_fs_manifest = get_old_fs_manifests(db, logger, args.basis_log_db_date, args.recent_log_db_date)
 
     if args.current_log_db_date:
         fs_manifest = get_previous_fs_manifest_as_current(db, args.current_log_db_date, logger)
