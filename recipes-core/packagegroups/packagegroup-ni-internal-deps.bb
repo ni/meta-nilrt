@@ -93,6 +93,7 @@ RDEPENDS:${PN} += "\
 # Contact: Kevin Khai-Wern Lim
 RDEPENDS:${PN} += "\
 	memtester \
+	ntfs-3g-ntfsprogs \
 "
 
 # Required by aim-arinc-664
