@@ -33,13 +33,19 @@ class DB:
         return self.fs_permissions_collection.count_documents(query)
 
 class OsVersion:
-    def __init__(self):
-        with open('/etc/os-release', 'rb') as file, mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ) as mfile:
-            build_id = re.search(br'BUILD_ID=\"((\d+\.\d+).*)\"', mfile)
-            self.full = build_id.group(1).decode()
-            self.major_minor = build_id.group(2).decode()
-            codename = re.search(br'VERSION_CODENAME=\"(.*)\"', mfile)
-            self.codename = codename.group(1).decode()
+    def __init__(self, os_version_full=None, os_version_codename=None):
+        if os_version_full is not None:
+            self.full = os_version_full
+            major_minor_version = re.match(r'(\d+.\d+).*', self.full)
+            self.major_minor = major_minor_version.group(1)
+            self.codename = os_version_codename
+        else:
+            with open('/etc/os-release', 'rb') as file, mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ) as mfile:
+                build_id = re.search(br'BUILD_ID=\"((\d+\.\d+).*)\"', mfile)
+                self.full = build_id.group(1).decode()
+                self.major_minor = build_id.group(2).decode()
+                codename = re.search(br'VERSION_CODENAME=\"(.*)\"', mfile)
+                self.codename = codename.group(1).decode()
 
         decomposed_version = re.match(r'(\d+).(\d+).(\d+)([dabf])(\d+)', self.full)
         self.major = int(decomposed_version.group(1))
@@ -76,9 +82,8 @@ def get_fs_manifest():
 def log_version_info(logger, label, codename, full_version, date, db_id):
     logger.log(f'INFO: {label} = {codename} {full_version} from {date} with _id {db_id}')
 
-def upload_manifest(db, fs_manifest, logger):
+def upload_manifest(db, fs_manifest, os_version, logger):
     data = {}
-    os_version = OsVersion()
     data['os_version_codename'] = os_version.codename
     data['os_version_full'] = os_version.full
     data['os_version'] = os_version.version_dict
@@ -121,7 +126,7 @@ def get_previous_fs_manifest_as_current(db, previous_date, logger):
                          result['date'],
                          result['_id']
                          )
-        return strip_headers(result['fs_permissions'])
+        return strip_headers(result['fs_permissions']), result['os_version_full'], result['os_version_codename']
     elif count > 1:
         logger.log('INFO: Found multiple fs manifest records with the same date: {}'.format(previous_date))
         exit(1)
@@ -129,7 +134,7 @@ def get_previous_fs_manifest_as_current(db, previous_date, logger):
         logger.log('INFO: Could not find fs manifest record with date: {}'.format(previous_date))
         exit(1)
 
-def get_old_fs_manifests(db, logger, basis_override):
+def get_old_fs_manifests(db, logger, os_version, basis_override):
     def run_query(label, query):
         nonlocal db
         nonlocal logger
@@ -163,8 +168,6 @@ def get_old_fs_manifests(db, logger, basis_override):
         )
 
         return strip_headers(result['fs_permissions']), result['os_version_full']
-
-    os_version = OsVersion()
 
     query_version_build = lambda build: {
         'os_version_codename': os_version.codename,
@@ -397,13 +400,15 @@ def main():
     args = parse_args()
     db = DB(args.server, args.user, args.password)
 
-    basis_fs_manifest, recent_fs_manifest = get_old_fs_manifests(db, logger, args.basis_log_db_date)
-
     if args.current_log_db_date:
-        fs_manifest = get_previous_fs_manifest_as_current(db, args.current_log_db_date, logger)
+        fs_manifest, os_version_full, os_version_codename = get_previous_fs_manifest_as_current(db, args.current_log_db_date, logger)
+        os_version = OsVersion(os_version_full, os_version_codename)
     else:
         prepare_system_for_manifest()
         fs_manifest = get_fs_manifest()
+        os_version = OsVersion()
+
+    basis_fs_manifest, recent_fs_manifest = get_old_fs_manifests(db, logger, os_version, args.basis_log_db_date)
 
     if not args.current_log_db_date and not args.skip_upload:
         upload_manifest(db, fs_manifest, logger)
