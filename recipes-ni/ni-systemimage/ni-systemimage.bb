@@ -30,6 +30,8 @@ FILES:${PN} += "\
 RDEPENDS:${PN} += "\
 	bash \
 	findutils \
+	gzip \
 	ni-netcfgutil \
 	niacctbase \
+	tar \
 "

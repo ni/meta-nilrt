@@ -49,6 +49,13 @@ BLACKLIST_LISTS=()
 BLACKLIST_PATHS=(
 	# syslog-ng socket (sockets can't be tar'd)
 	/var/syslog-ng.ctl
+	/var/volatile
+	# Systemlink Configuration Files
+	/etc/salt/minion_id
+	/etc/salt/pki
+)
+
+BLACKLIST_PATHS_get=(
 	# Safe mode
 	/boot/.safe
 	# Grub variables
@@ -57,13 +64,13 @@ BLACKLIST_PATHS=(
 	/boot/.defbit
 	# User bitfile
 	/boot/user.bit*
-	/var/volatile
 	# Restore-mode fail-safe files
 	/.restore
-	# Systemlink Configuration Files
-	/etc/salt/minion_id
-	/etc/salt/pki
 )
+
+if [[ "${MODE}" == "get" ]]; then
+	BLACKLIST_PATHS+=(${BLACKLIST_PATHS_get[*]})
+fi
 
 # All excludes to pass to `tar`. Includes BLACKLIST_PATHS and contents of all
 # files in BLACKLIST_LISTS. The contents of EXCLUDES are paths relative to
@@ -92,9 +99,16 @@ IMAGE_FILE_TEMP=
 ORIG_USERFS=/mnt/userfs
 ORIG_BOOTFS=/boot
 ORIG_CONFIGFS=/etc/natinst/share
+
+USERFS_LABEL=nirootfs
+BOOTFS_LABEL=nibootfs
+CONFIGFS_LABEL=niconfig
+GRUBFS_LABEL=nigrub
+
 WORKING_USERFS=/mnt/.userfs.tmp
 WORKING_BOOTFS=${WORKING_USERFS}${ORIG_BOOTFS}
 WORKING_CONFIGFS=${WORKING_USERFS}${ORIG_CONFIGFS}
+WORKING_GRUBFS=${WORKING_USERFS}/${GRUBFS_LABEL}
 
 # tar xattr extract defaults to only extract user xattrs, not system xattrs.
 # Override this with --xattrs-include=*.
@@ -147,7 +161,7 @@ declare -Ar EXITCODES=(
 	[FILE_NOT_FOUND]=11
 	[FS_PREP_FAILED]=12
 	[NETCFG_FAIL]=13
-        [ILLTIMED]=14
+	[ILLTIMED]=14
 )
 
 # $@: text
@@ -232,6 +246,10 @@ protect_stdout () {
 
 in_safemode () {
 	[[ -f /etc/natinst/safemode ]]
+}
+
+in_restoremode () {
+	[[ -f /ni_provisioning ]]
 }
 
 ##
@@ -366,6 +384,15 @@ init_fs_get () {
 	fi
 }
 
+init_fs_getall () {
+	init_fs_get
+
+	is_mounted $WORKING_GRUBFS && run_cmd_always umount -f $WORKING_GRUBFS || true
+	run_cmd_always mkdir -p $WORKING_GRUBFS
+	run_cmd_always mount -L $GRUBFS_LABEL $WORKING_GRUBFS -o ro \
+		|| die FS_PREP_FAILED "Couldn't mount $GRUBFS_LABEL to $WORKING_GRUBFS"
+}
+
 init_fd_get () {
 	if [[ $IMAGE_FILE ]] ; then
 		rm -f -- "$IMAGE_FILE" || die UNKNOWN "Couldn't clear '$IMAGE_FILE'"
@@ -377,12 +404,20 @@ init_fd_get () {
 	fi
 }
 
+init_fd_getall () {
+	init_fd_get
+}
+
 image_get () {
 	image_get_${IMAGE_TYPE}
 	if [[ $IMAGE_FILE ]]; then
 		mv "$IMAGE_FILE_TEMP" "$IMAGE_FILE" || die UNKNOWN \
 			"Couldn't move image from '$IMAGE_FILE_TEMP' to final destination '$IMAGE_FILE'"
 	fi
+}
+
+image_getall () {
+	image_get
 }
 
 ##
@@ -601,6 +636,27 @@ init_fs () {
 	init_fs_$MODE
 }
 
+init_fs_restoremode () {
+	# If the util did not previously exit cleanly, it's possible that the
+	# working mount points didn't get unmount them. To avoid double-mounts,
+	# try to unmount them first
+	is_mounted $WORKING_BOOTFS && run_cmd_always umount -f $WORKING_BOOTFS || true
+	is_mounted $WORKING_CONFIGFS && run_cmd_always umount -f $WORKING_CONFIGFS || true
+	is_mounted $WORKING_USERFS && run_cmd_always umount -f $WORKING_USERFS || true
+
+	run_cmd_always mkdir -p $WORKING_USERFS
+	run_cmd_always mount -L $USERFS_LABEL $WORKING_USERFS \
+		|| die FS_PREP_FAILED "Couldn't mount label $USERFS_LABEL to $WORKING_USERFS"
+	run_cmd_always mkdir -p $WORKING_BOOTFS
+	run_cmd_always mount -L $BOOTFS_LABEL $WORKING_BOOTFS \
+		|| die FS_PREP_FAILED "Couldn't mount label $BOOTFS_LABEL to $WORKING_BOOTFS"
+	run_cmd_always mkdir -p $WORKING_CONFIGFS
+	run_cmd_always mount -L $CONFIGFS_LABEL $WORKING_CONFIGFS \
+		|| die FS_PREP_FAILED "Couldn't mount label CONFIGFS_LABEL to $WORKING_CONFIGFS"
+
+	init_fs_$MODE
+}
+
 ##
 ## Cleanup
 ##
@@ -608,13 +664,16 @@ cleanup_fs () {
 	cd $ORIG_PWD || true
 	echo_verbose 1 "starting fs cleanup: PWD=$PWD"
 
-	# For set, mount -o mount,rw appears to have the indirect effect
-	# of forcing a sync
-	run_cmd_always mount -o remount,rw $ORIG_USERFS || true
-	run_cmd_always mount -o remount,rw $ORIG_BOOTFS || true
+	if ! in_restoremode; then
+		# For set, mount -o mount,rw appears to have the indirect effect
+		# of forcing a sync
+		run_cmd_always mount -o remount,rw $ORIG_USERFS || true
+		run_cmd_always mount -o remount,rw $ORIG_BOOTFS || true
+	fi
 
 	is_mounted $WORKING_BOOTFS && run_cmd_always umount -f $WORKING_BOOTFS || true
 	is_mounted $WORKING_CONFIGFS && run_cmd_always umount -f $WORKING_CONFIGFS || true
+	is_mounted $WORKING_GRUBFS && run_cmd_always umount -f $WORKING_GRUBFS || true
 	is_mounted $WORKING_USERFS && run_cmd_always umount -f $WORKING_USERFS || true
 	[[ -d $WORKING_USERFS ]] && run_cmd_always rmdir $WORKING_USERFS || true
 	[[ -f $IMAGE_FILE_TEMP ]] && run_cmd_always rm -f "$IMAGE_FILE_TEMP" || true
@@ -673,7 +732,7 @@ parse_settings () {
 
 check_settings () {
 	case "$MODE" in
-		get|set|wipelist) ;;
+		get|set|wipelist|getall) ;;
 		"-h") print_help; exit 0 ;;
 		"") die_with_help "Mode must be specified" ;;
 		*) die_with_help "Unknown mode '$MODE'";;
@@ -784,9 +843,11 @@ trap 'handle_err ${BASH_SOURCE} ${LINENO} ${FUNCNAME:-unknown} $?' ERR
 [[ -f $SCRIPT_ROOTFS ]] && . "$SCRIPT_ROOTFS"
 [[ -f $SCRIPT_PRE ]] && . "$SCRIPT_PRE"
 
-case "$(runlevel)" in
-*\ 6|*\ 0) die ILLTIMED "Called during shutdown; aborting." ;;
-esac
+if ! in_restoremode; then
+	case "$(runlevel)" in
+	*\ 6|*\ 0) die ILLTIMED "Called during shutdown; aborting." ;;
+	esac
+fi
 
 # Process settings
 run_hook hook_settings_pre
@@ -797,7 +858,11 @@ dump_settings
 run_hook hook_settings_post
 
 # Initialize filesystem and file descriptor state
-init_fs
+if in_restoremode; then
+	init_fs_restoremode
+else
+	init_fs
+fi
 init_fd
 
 # Perform the image operation
