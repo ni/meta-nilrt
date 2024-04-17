@@ -31,6 +31,5 @@ RDEPENDS:${PN} += "\
 	bash \
 	findutils \
 	ni-netcfgutil \
-	ni-utils \
 	niacctbase \
 "
