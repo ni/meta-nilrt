@@ -5,8 +5,6 @@
 set -eEu -o pipefail
 shopt -s dotglob nullglob
 
-. /etc/natinst/networking/functions.common
-
 ##
 ## Globals
 ##
