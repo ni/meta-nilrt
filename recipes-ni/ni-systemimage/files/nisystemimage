@@ -210,6 +210,10 @@ is_set () {
 	[[ "${MODE}" == "set" ]]
 }
 
+is_setall () {
+	[[ "${MODE}" == "setall" ]]
+}
+
 # $1: mount point
 is_mounted () {
 	if (( $VERBOSE >= 2 )); then
@@ -570,6 +574,10 @@ image_set () {
 	netcfg_reset
 }
 
+image_setall () {
+	image_set_tgz
+}
+
 init_fd_set () {
 	if [[ $IMAGE_FILE ]] ; then
 		exec {FD_IMAGE}<"$IMAGE_FILE" \
@@ -577,6 +585,10 @@ init_fd_set () {
 	else
 		exec {FD_IMAGE}<&0
 	fi
+}
+
+init_fd_setall () {
+	init_fd_set
 }
 
 init_fs_set () {
@@ -591,6 +603,15 @@ init_fs_set () {
 	if ! run_cmd_always mount -o remount,rw $WORKING_CONFIGFS; then
 		die FS_PREP_FAILED "Couldn't remount $WORKING_CONFIGFS read-only"
 	fi
+}
+
+init_fs_setall () {
+	init_fs_set
+
+	is_mounted $WORKING_GRUBFS && run_cmd_always umount -f $WORKING_GRUBFS || true
+	run_cmd_always mkdir -p $WORKING_GRUBFS
+	run_cmd_always mount -L $GRUBFS_LABEL $WORKING_GRUBFS -o rw \
+		|| die FS_PREP_FAILED "Couldn't mount $GRUBFS_LABEL to $WORKING_GRUBFS"
 }
 
 # Undocumented debugging mode: Print NUL-delimited list of files that would get
@@ -733,13 +754,13 @@ parse_settings () {
 
 check_settings () {
 	case "$MODE" in
-		get|set|wipelist|getall) ;;
+		get|set|wipelist|getall|setall) ;;
 		"-h") print_help; exit 0 ;;
 		"") die_with_help "Mode must be specified" ;;
 		*) die_with_help "Unknown mode '$MODE'";;
 	esac
 
-	if ! is_set; then
+	if ! is_set && ! is_setall; then
 		if [[ $PRIMARY_SETTING || $SECONDARY_SETTING ]]; then
 			die_with_help "-p, -s only allowed on nisystemimage set"
 		fi
@@ -764,7 +785,7 @@ check_settings () {
 	esac
 
 
-	if ! is_set && [[ $IMAGE_FILE ]]; then
+	if ! is_set && ! is_setall && [[ $IMAGE_FILE ]]; then
 		# Convert relative image path to absolute path
 		[[ "$IMAGE_FILE" =~ ^/ ]] \
 			|| IMAGE_FILE="$PWD/$IMAGE_FILE"
