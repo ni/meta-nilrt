@@ -96,15 +96,7 @@ def upload_manifest(db, fs_manifest, os_version, logger):
     data['fs_permissions'] = header + fs_manifest
 
     record = db.insert(data)
-
-    log_version_info(
-        logger,
-        'current',
-        data['os_version_codename'],
-        data['os_version_full'],
-        data['date'],
-        record.inserted_id
-    )
+    return data['date'], record.inserted_id
 
 def strip_headers(fs_manifest):
     return ''.join(line + '\n' for line in fs_manifest.splitlines() if not line.startswith('#'))
@@ -119,14 +111,7 @@ def get_previous_fs_manifest_as_current(db, previous_date, logger):
         results = db.find(query).limit(1)
         result = next(results)
         logger.log('INFO: Found fs_manifest record with these details')
-        log_version_info(logger,
-                         'current',
-                         result['os_version_codename'],
-                         result['os_version_full'],
-                         result['date'],
-                         result['_id']
-                         )
-        return strip_headers(result['fs_permissions']), result['os_version_full'], result['os_version_codename']
+        return strip_headers(result['fs_permissions']), result['os_version_full'], result['os_version_codename'], result['date'], result['_id']
     elif count > 1:
         logger.log('INFO: Found multiple fs manifest records with the same date: {}'.format(previous_date))
         exit(1)
@@ -271,7 +256,6 @@ class IntermediateDiff:
             difference['path'] = path
             yield difference
 
-
 def diff_manifests(current_manifest, basis_manifest, recent_manifest, logger):
     hash_and_prep = lambda manifest: (hashlib.md5(manifest.encode('utf-8')).hexdigest(),
                                       prepare_manifest_for_diff(manifest))
@@ -401,17 +385,21 @@ def main():
     db = DB(args.server, args.user, args.password)
 
     if args.current_log_db_date:
-        fs_manifest, os_version_full, os_version_codename = get_previous_fs_manifest_as_current(db, args.current_log_db_date, logger)
+        fs_manifest, os_version_full, os_version_codename, db_date, db_id = get_previous_fs_manifest_as_current(db, args.current_log_db_date, logger)
         os_version = OsVersion(os_version_full, os_version_codename)
     else:
         prepare_system_for_manifest()
         fs_manifest = get_fs_manifest()
         os_version = OsVersion()
+        db_date = "<not uploaded to database>"
+        db_id = "<not uploaded to database>"
 
     basis_fs_manifest, recent_fs_manifest = get_old_fs_manifests(db, logger, os_version, args.basis_log_db_date)
 
     if not args.current_log_db_date and not args.skip_upload:
-        upload_manifest(db, fs_manifest, logger)
+        db_date, db_id = upload_manifest(db, fs_manifest, logger)
+
+    log_version_info(logger, 'current', os_version.codename, os_version.full, db_date, db_id)
 
     result = diff_manifests(fs_manifest, basis_fs_manifest, recent_fs_manifest, logger)
 
