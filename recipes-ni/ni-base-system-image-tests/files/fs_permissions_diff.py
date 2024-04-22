@@ -397,7 +397,7 @@ def main():
     basis_fs_manifest, recent_fs_manifest = get_old_fs_manifests(db, logger, os_version, args.basis_log_db_date)
 
     if not args.current_log_db_date and not args.skip_upload:
-        db_date, db_id = upload_manifest(db, fs_manifest, logger)
+        db_date, db_id = upload_manifest(db, fs_manifest, os_version, logger)
 
     log_version_info(logger, 'current', os_version.codename, os_version.full, db_date, db_id)
 
