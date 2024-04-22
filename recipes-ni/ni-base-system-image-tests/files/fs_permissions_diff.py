@@ -139,7 +139,7 @@ def get_old_fs_manifests(db, logger, os_version, basis_override):
                 results = db.find(query).sort(sort_order).limit(1)
             else:
                 logger.log('INFO: No suitable previous fs permissions found')
-                return '', '<none>'
+                return '', '<none>', '<none>'
 
         result = next(results)
 
@@ -152,7 +152,7 @@ def get_old_fs_manifests(db, logger, os_version, basis_override):
             result['_id']
         )
 
-        return strip_headers(result['fs_permissions']), result['os_version_full']
+        return strip_headers(result['fs_permissions']), result['os_version_full'], result['date']
 
     query_version_build = lambda build: {
         'os_version_codename': os_version.codename,
@@ -170,19 +170,30 @@ def get_old_fs_manifests(db, logger, os_version, basis_override):
         'date': date
     }
 
-    # The "basis" manifest is from the latest version with a lesser MAJOR.MINOR.PATCH
     if basis_override is not None:
-        basis_manifest, basis_version = run_query('basis', query_date_build(basis_override))
+        logger.log(f'INFO: Basis manifest was specified to have date: {basis_override}')
+        basis_manifest, basis_version_full, basis_date = run_query('basis', query_date_build(basis_override))
     else:
-        basis_manifest, basis_version = run_query('basis', query_version_build(0))
-    # The "recent" manifest is from the latest version, likely the last run with the same MAJOR.MINOR.PATCH
-    recent_manifest, recent_version = run_query('recent', query_version_build(os_version.build))
+        # If not specified, the "basis" manifest is the most recent version with a lesser MAJOR.MINOR.PATCH than the current manifest.
+        # In general, it should be the last final build of the previous MAJOR.MINOR.PATCH version.
+        basis_manifest, basis_version_full, basis_date = run_query('basis', query_version_build(0))
+
+    # If the current version and basis version are the same (most likely scenario is if basis version is pinned to the most recent build available),
+    # then just set recent to the same version as well. The normal mechanism of querying for the most recent MAJOR.MINOR.PATCH.BUILD less than the
+    # current version is going to result in a recent version that is *older* than the basis version, which doesn't make any sense.
+    if os_version.full == basis_version_full:
+        recent_manifest, recent_version_full, unused = run_query('recent', query_date_build(basis_date))
+    else:
+        # If not specified, the "recent" manifest is the most recent version less than the current manifest.
+        # In general, it will be the previous build with the same MAJOR.MINOR.PATCH. Or if current is the first build of a new MAJOR.MINOR.PATCH,
+        # then it will be the same as the basis version.
+        recent_manifest, recent_version_full, unused = run_query('recent', query_version_build(os_version.build))
 
     # Keep this log in first line to help streak indexer group results. Overall hash will be populated at end.
-    logger.prefix_log(f'INFO: fs_permissions_diff: current against {basis_version} ')
+    logger.prefix_log(f'INFO: fs_permissions_diff: current against {basis_version_full} ')
     # Keep this log in second line to avoid using it for grouping, but keep it for tracking.
     # Individual hashes to be populated at end.
-    logger.prefix_log(f'INFO:   and {recent_version} ')
+    logger.prefix_log(f'INFO:   and {recent_version_full} ')
 
     return basis_manifest, recent_manifest
 
