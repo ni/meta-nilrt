@@ -184,7 +184,7 @@ def get_old_fs_manifests(db, logger, os_version, basis_override):
     if os_version.full == basis_version_full:
         recent_manifest, recent_version_full, unused = run_query('recent', query_date_build(basis_date))
     else:
-        # If not specified, the "recent" manifest is the most recent version less than the current manifest.
+        # The "recent" manifest is the most recent version less than the current manifest.
         # In general, it will be the previous build with the same MAJOR.MINOR.PATCH. Or if current is the first build of a new MAJOR.MINOR.PATCH,
         # then it will be the same as the basis version.
         recent_manifest, recent_version_full, unused = run_query('recent', query_version_build(os_version.build))
