@@ -21,6 +21,7 @@ SRC_URI:append:xilinx-zynqhf = "\
 "
 
 SRC_URI:append:x64 = "\
+	file://ni_provisioning.safemode.common \
 	file://ni_provisioning.safemode \
 	file://disk_config_x64 \
 	file://grub.cfg	\
@@ -43,6 +44,7 @@ do_install() {
 }
 
 do_install:append:x64() {
+	install -m 0644 ${WORKDIR}/ni_provisioning.safemode.common ${D}/
 	install -m 0644 ${WORKDIR}/ni_provisioning.safemode ${D}/
 	install -m 0755 ${WORKDIR}/disk_config_x64 ${D}/disk_config
 	install -m 0644 ${WORKDIR}/grub.cfg ${D}/
