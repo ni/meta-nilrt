@@ -1,0 +1,23 @@
+#!/bin/bash
+set -e
+
+# MODE determines the operation to be performed
+# get or set
+declare -r MODE="${1:-}"
+
+image_get () {
+	nisystemimage getall -x tgz -f getall.tgz
+}
+
+image_set () {
+	source /ni_provisioning.common
+	early_setup
+	source /ni_provisioning.safemode.common
+	nisystemimage setall -x tgz -f getall.tgz -p reset -s reset
+
+	# save rootfs UUID for grub to reference
+	ROOTUUID=`lsblk ${TARGET_DISK}${PART_SEPARATOR}4 -n -o PARTUUID`
+	echo set rootuuid=$ROOTUUID >> $GRUB_MOUNTPOINT/grubvar_readonly
+}
+
+image_${MODE}
