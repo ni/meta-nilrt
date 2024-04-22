@@ -29,7 +29,7 @@ RDEPENDS:${PN} += "\
 	init-restore-mode \
 	kmod \
 	ni-smbios-helper \
-	ni-systemimage \
+	ni-systemreplication \
 	parted \
 	procps \
 	sed \
