@@ -55,7 +55,7 @@ BLACKLIST_PATHS=(
 	/etc/salt/pki
 )
 
-BLACKLIST_PATHS_get=(
+BLACKLIST_PATHS_get_set=(
 	# Safe mode
 	/boot/.safe
 	# Grub variables
@@ -68,8 +68,8 @@ BLACKLIST_PATHS_get=(
 	/.restore
 )
 
-if [[ "${MODE}" == "get" ]]; then
-	BLACKLIST_PATHS+=(${BLACKLIST_PATHS_get[*]})
+if [[ "${MODE}" == "get" || "${MODE}" == "set" ]]; then
+	BLACKLIST_PATHS+=(${BLACKLIST_PATHS_get_set[*]})
 fi
 
 # All excludes to pass to `tar`. Includes BLACKLIST_PATHS and contents of all
