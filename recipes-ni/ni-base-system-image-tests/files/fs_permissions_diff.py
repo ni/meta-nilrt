@@ -219,6 +219,7 @@ def prepare_manifest_for_diff(manifest):
     result = {}
     for row in reader:
         stripped_path = strip_versions_from_path(row['path'])
+        del row['path']
         result[stripped_path] = row
     return result
 
@@ -267,9 +268,11 @@ class IntermediateDiff:
             difference['path'] = path
             yield difference
 
+def hash_and_prep(manifest):
+    manifest = prepare_manifest_for_diff(manifest)
+    return hashlib.md5(str(manifest).encode('utf-8')).hexdigest(), manifest
+
 def diff_manifests(current_manifest, basis_manifest, recent_manifest, logger):
-    hash_and_prep = lambda manifest: (hashlib.md5(manifest.encode('utf-8')).hexdigest(),
-                                      prepare_manifest_for_diff(manifest))
     current_hash, current_manifest = hash_and_prep(current_manifest)
     basis_hash, basis_manifest = hash_and_prep(basis_manifest)
     recent_hash, recent_manifest = hash_and_prep(recent_manifest)
