@@ -674,6 +674,7 @@ cleanup_fs () {
 	is_mounted $WORKING_BOOTFS && run_cmd_always umount -f $WORKING_BOOTFS || true
 	is_mounted $WORKING_CONFIGFS && run_cmd_always umount -f $WORKING_CONFIGFS || true
 	is_mounted $WORKING_GRUBFS && run_cmd_always umount -f $WORKING_GRUBFS || true
+	[[ -d $WORKING_GRUBFS ]] && run_cmd_always rmdir $WORKING_GRUBFS || true
 	is_mounted $WORKING_USERFS && run_cmd_always umount -f $WORKING_USERFS || true
 	[[ -d $WORKING_USERFS ]] && run_cmd_always rmdir $WORKING_USERFS || true
 	[[ -f $IMAGE_FILE_TEMP ]] && run_cmd_always rm -f "$IMAGE_FILE_TEMP" || true
