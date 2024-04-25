@@ -12,12 +12,34 @@ image_get () {
 image_set () {
 	source /ni_provisioning.common
 	early_setup
+
 	source /ni_provisioning.safemode.common
+	install_safemode
+
 	nisystemimage setall -x tgz -f getall.tgz -p reset -s reset
 
-	# save rootfs UUID for grub to reference
-	ROOTUUID=`lsblk ${TARGET_DISK}${PART_SEPARATOR}4 -n -o PARTUUID`
-	echo set rootuuid=$ROOTUUID >> $GRUB_MOUNTPOINT/grubvar_readonly
+	# Retain some grubenv settings
+	if grep --quiet "^consoleoutenable=" $BOOTFS_MOUNTPOINT/grub/grubenv; then
+		grubenv_consoleoutenable=$(grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv list |grep "^consoleoutenable=" | cut -f 2 -d '=')
+	fi
+	if grep --quiet "^bootdelay=" $BOOTFS_MOUNTPOINT/grub/grubenv; then
+		grubenv_bootdelay=$(grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv list |grep "^bootdelay=" | cut -f 2 -d '=')
+	fi
+	rm -rf mkdir $BOOTFS_MOUNTPOINT/grub
+
+	install_grubenv
+	set_versions
+
+	echo $LOG_LEVEL > /proc/sys/kernel/printk
+	sanity_check
+
+	print_info "Re-enabling automount..."
+	enable_automount
+	print_done
+
+	trap - ERR
+	exec 1>&3
+	exec 2>&4
 }
 
 image_${MODE}

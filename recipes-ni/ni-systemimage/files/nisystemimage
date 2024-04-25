@@ -58,8 +58,6 @@ BLACKLIST_PATHS=(
 BLACKLIST_PATHS_get_set=(
 	# Safe mode
 	/boot/.safe
-	# Grub variables
-	/boot/grub
 	# Default bitfile
 	/boot/.defbit
 	# User bitfile
