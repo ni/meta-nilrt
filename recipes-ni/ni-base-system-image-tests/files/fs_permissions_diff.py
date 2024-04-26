@@ -380,13 +380,13 @@ def parse_args():
     parser.add_argument('--server', required=True, help='Mongo server hostname')
     parser.add_argument('--user', required=True, help='Mongo server username')
     parser.add_argument('--password', required=True, help='Mongo server password')
-    parser.add_argument('--current_log_db_date', metavar="<date>",
-                        help='Use this flag to supply a date string that will be used to locate a filesystem manifest in the database. That log will be used as the current filesystem manifest. '\
+    parser.add_argument('--current_manifest_db_date', metavar="<date>",
+                        help='Use this flag to supply a date string that will be used to locate a filesystem manifest in the database. That manifest will be used as the current filesystem manifest. '\
                              'Should be of the format "2023-03-30 15:32:43.203476". Date strings for previous filesystem manifest can be found in the output of previous runs of this '\
                              'test or can be extracted from the Mongo database using a viewer tool like Compass. This flag also skips the upload of the filesystem manifest record to the '\
                              'database, so the --skip_upload flag is not needed. This flag is useful for debugging issues with this test.')
-    parser.add_argument('--basis_log_db_date', metavar="<date>",
-                        help='Use this flag to supply a date string that will be used to locate a filesystem manifest in the database. That log will be used as the basis filesystem manifest. '\
+    parser.add_argument('--basis_manifest_db_date', metavar="<date>",
+                        help='Use this flag to supply a date string that will be used to locate a filesystem manifest in the database. That manifest will be used as the basis filesystem manifest. '\
                              'Should be of the format "2023-03-30 15:32:43.203476". Date strings for previous filesystem manifest can be found in the output of previous runs of this '\
                              'test or can be extracted from the Mongo database using a viewer tool like Compass. This flag is useful for resetting the comparison baseline for the test.')
     parser.add_argument('--skip_upload', help='Skip upload of fs manifest record to database. Useful when debugging.', action="store_true")
@@ -398,8 +398,8 @@ def main():
     args = parse_args()
     db = DB(args.server, args.user, args.password)
 
-    if args.current_log_db_date:
-        fs_manifest, os_version_full, os_version_codename, db_date, db_id = get_previous_fs_manifest_as_current(db, args.current_log_db_date, logger)
+    if args.current_manifest_db_date:
+        fs_manifest, os_version_full, os_version_codename, db_date, db_id = get_previous_fs_manifest_as_current(db, args.current_manifest_db_date, logger)
         os_version = OsVersion(os_version_full, os_version_codename)
     else:
         prepare_system_for_manifest()
@@ -408,9 +408,9 @@ def main():
         db_date = "<not uploaded to database>"
         db_id = "<not uploaded to database>"
 
-    basis_fs_manifest, recent_fs_manifest = get_old_fs_manifests(db, logger, os_version, args.basis_log_db_date)
+    basis_fs_manifest, recent_fs_manifest = get_old_fs_manifests(db, logger, os_version, args.basis_manifest_db_date)
 
-    if not args.current_log_db_date and not args.skip_upload:
+    if not args.current_manifest_db_date and not args.skip_upload:
         db_date, db_id = upload_manifest(db, fs_manifest, os_version, logger)
 
     log_version_info(logger, 'current', os_version.codename, os_version.full, db_date, db_id)
