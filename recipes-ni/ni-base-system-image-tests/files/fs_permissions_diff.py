@@ -80,7 +80,7 @@ def get_fs_manifest():
     return '\n'.join(sorted(fs_manifest.splitlines()))
 
 def log_version_info(logger, label, codename, full_version, date, db_id):
-    logger.log(f'INFO: {label} = {codename} {full_version} from {date} with _id {db_id}')
+    logger.log(f'INFO: {label: <7} = {codename} {full_version: <14} from {date} with _id {db_id}')
 
 def upload_manifest(db, fs_manifest, os_version, logger):
     data = {}
@@ -105,18 +105,19 @@ def get_previous_fs_manifest_as_current(db, previous_date, logger):
     query = {}
     query['date'] = previous_date
     count = db.count_documents(query)
-    logger.log('!!!!!OVERRIDING CURRENT MANIFEST!!!!!\n'.format(count))
-    logger.log('Found {} records\n'.format(count))
+    logger.log('!!!!! OVERRIDING CURRENT MANIFEST !!!!!'.format(count))
     if count == 1:
         results = db.find(query).limit(1)
         result = next(results)
-        logger.log('INFO: Found fs_manifest record with these details')
+        logger.log(f'INFO: Found manifest with the specified date: {previous_date}')
         return strip_headers(result['fs_permissions']), result['os_version_full'], result['os_version_codename'], result['date'], result['_id']
     elif count > 1:
-        logger.log('INFO: Found multiple fs manifest records with the same date: {}'.format(previous_date))
+        logger.log(f'INFO: Found multiple manifests with the specified date ({previous_date})')
+        logger.report()
         exit(1)
     else:
-        logger.log('INFO: Could not find fs manifest record with date: {}'.format(previous_date))
+        logger.log(f'INFO: Could not find manifest with the specified date ({previous_date})')
+        logger.report()
         exit(1)
 
 def get_old_fs_manifests(db, logger, os_version, basis_override):
@@ -133,12 +134,12 @@ def get_old_fs_manifests(db, logger, os_version, basis_override):
             # Remove that requirement.
             if 'os_version_codename' in query:
                 del query['os_version_codename']
-                logger.log('INFO: No prior fs permissions from this OS codename found. Relaxing that constraint.')
+                logger.log('INFO: No prior manifest from this OS codename found. Relaxing that constraint.')
 
             if db.count_documents(query):
                 results = db.find(query).sort(sort_order).limit(1)
             else:
-                logger.log('INFO: No suitable previous fs permissions found')
+                logger.log('INFO: No suitable previous manifest found')
                 return '', '<none>', '<none>'
 
         result = next(results)
@@ -193,7 +194,7 @@ def get_old_fs_manifests(db, logger, os_version, basis_override):
     logger.prefix_log(f'INFO: fs_permissions_diff: current against {basis_version_full} ')
     # Keep this log in second line to avoid using it for grouping, but keep it for tracking.
     # Individual hashes to be populated at end.
-    logger.prefix_log(f'INFO:   and {recent_version_full} ')
+    logger.prefix_log(f'INFO: Manifest hashes: ')
 
     return basis_manifest, recent_manifest
 
@@ -282,7 +283,7 @@ def diff_manifests(current_manifest, basis_manifest, recent_manifest, logger):
     # Add hash to first line of log to allow review queue to distinguish runs,
     logger.prefix_logs[0] += overall_hash
     # and add each hash on second line for tracking
-    logger.prefix_logs[1] += f'(basis={basis_hash}, recent={recent_hash}, current={current_hash})'
+    logger.prefix_logs[1] += f'basis={basis_hash}, recent={recent_hash}, current={current_hash}'
 
     diff = IntermediateDiff(basis_manifest, recent_manifest, current_manifest)
 
