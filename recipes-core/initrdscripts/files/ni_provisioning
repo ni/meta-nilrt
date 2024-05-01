@@ -102,10 +102,23 @@ elif [[ $restore == "provision" ]]; then
 			restore_runmode_image "$nilrt_path" "$uuid" "$PROVISION_PART_NILRT_LABEL"
 		fi
 	fi
-
 elif [[ $restore == "migrate" ]]; then
 	PROVISION_REBOOT_METHOD="reboot"
 	provision_target onboard
+elif [[ $restore == "get-image" ]]; then
+	echo "Get Image"
+	source /sbin/nisystemreplication get
+	if [[ "${FORCE_PROVISIONING}" -eq 1 ]]; then
+		PROVISION_REBOOT_METHOD=${RESTART_OPTION}
+	fi
+	ASK_BEFORE_REBOOT=1
+elif [[ $restore == "set-image" ]]; then
+	echo "Set Image"
+	source /sbin/nisystemreplication set
+	if [[ "${FORCE_PROVISIONING}" -eq 1 ]]; then
+		PROVISION_REBOOT_METHOD=${RESTART_OPTION}
+	fi
+	ASK_BEFORE_REBOOT=1
 else
 	die "Invalid restore mode."
 fi
