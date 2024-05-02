@@ -40,4 +40,9 @@ FILES:${PN} += "\
 	/etc/natinst/networking/ninetcfgutil_platdep.sh \
 "
 
-RDEPENDS:${PN} += "bash"
+RDEPENDS:${PN} += "\
+	bash \
+	initscripts \
+	initscripts-nilrt \
+	ni-utils \
+"
