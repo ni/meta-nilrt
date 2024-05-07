@@ -8,6 +8,8 @@ PACKAGE_INSTALL = "${ROOTFS_BOOTSTRAP_INSTALL} \
 
 IMAGE_FEATURES += "empty-root-password"
 
+IMAGE_INSTALL_NODEPS += "nirtcfg"
+
 DEPENDS += "init-restore-mode"
 
 INITRAMFS_MAXSIZE = "524288"
