@@ -573,7 +573,14 @@ image_set () {
 }
 
 image_setall () {
-	image_set_tgz
+	netcfg_pre_apply_reset
+	netcfg_pre_preserve
+	# TODO: Fix wipe_fs to work in restoremode
+	# wipe_fs
+	image_set_${IMAGE_TYPE}
+	netcfg_apply
+	netcfg_preserve
+	netcfg_reset
 }
 
 init_fd_set () {
@@ -634,9 +641,34 @@ init_fd () {
 	init_fd_$MODE
 }
 
-init_fs () {
+init_fs_restoremode () {
 	# If the util did not previously exit cleanly, it's possible that the
-	# working mount points didn't get unmount them. To avoid double-mounts,
+	# working mount points didn't get unmounted. To avoid double-mounts,
+	# try to unmount them first
+	is_mounted $ORIG_BOOTFS && run_cmd_always umount -f $ORIG_BOOTFS || true
+	is_mounted $ORIG_CONFIGFS && run_cmd_always umount -f $ORIG_CONFIGFS || true
+	is_mounted $ORIG_USERFS && run_cmd_always umount -f $ORIG_USERFS || true
+
+	run_cmd_always mkdir -p $ORIG_USERFS
+	run_cmd_always mount -L $USERFS_LABEL $ORIG_USERFS \
+		|| die FS_PREP_FAILED "Couldn't mount label $USERFS_LABEL to $ORIG_USERFS "
+	run_cmd_always mkdir -p $ORIG_BOOTFS
+	run_cmd_always mount -L $BOOTFS_LABEL $ORIG_BOOTFS \
+		|| die FS_PREP_FAILED "Couldn't mount label $BOOTFS_LABEL to $ORIG_BOOTFS "
+	run_cmd_always mkdir -p $ORIG_CONFIGFS
+	run_cmd_always mount -L $CONFIGFS_LABEL $ORIG_CONFIGFS \
+		|| die FS_PREP_FAILED "Couldn't mount label $CONFIGFS_LABEL to $ORIG_CONFIGFS"
+}
+
+init_fs () {
+	if in_restoremode; then
+		# Tools such as ninetcfg and nirtcfg expect same mountpoints as safemode and runmode.
+		# So mount userfs, bootfs, configfs at expected locations.
+		init_fs_restoremode
+	fi
+
+	# If the util did not previously exit cleanly, it's possible that the
+	# working mount points didn't get unmounted. To avoid double-mounts,
 	# try to unmount them first
 	is_mounted $WORKING_BOOTFS && run_cmd_always umount -f $WORKING_BOOTFS || true
 	is_mounted $WORKING_CONFIGFS && run_cmd_always umount -f $WORKING_CONFIGFS || true
@@ -655,31 +687,20 @@ init_fs () {
 	init_fs_$MODE
 }
 
-init_fs_restoremode () {
-	# If the util did not previously exit cleanly, it's possible that the
-	# working mount points didn't get unmount them. To avoid double-mounts,
-	# try to unmount them first
-	is_mounted $WORKING_BOOTFS && run_cmd_always umount -f $WORKING_BOOTFS || true
-	is_mounted $WORKING_CONFIGFS && run_cmd_always umount -f $WORKING_CONFIGFS || true
-	is_mounted $WORKING_USERFS && run_cmd_always umount -f $WORKING_USERFS || true
-
-	run_cmd_always mkdir -p $WORKING_USERFS
-	run_cmd_always mount -L $USERFS_LABEL $WORKING_USERFS \
-		|| die FS_PREP_FAILED "Couldn't mount label $USERFS_LABEL to $WORKING_USERFS"
-	run_cmd_always mkdir -p $WORKING_BOOTFS
-	run_cmd_always mount -L $BOOTFS_LABEL $WORKING_BOOTFS \
-		|| die FS_PREP_FAILED "Couldn't mount label $BOOTFS_LABEL to $WORKING_BOOTFS"
-	run_cmd_always mkdir -p $WORKING_CONFIGFS
-	run_cmd_always mount -L $CONFIGFS_LABEL $WORKING_CONFIGFS \
-		|| die FS_PREP_FAILED "Couldn't mount label CONFIGFS_LABEL to $WORKING_CONFIGFS"
-
-	init_fs_$MODE
+cleanup_fs_restoremode () {
+	is_mounted $ORIG_BOOTFS && run_cmd_always umount -f $ORIG_BOOTFS || true
+	is_mounted $ORIG_CONFIGFS && run_cmd_always umount -f $ORIG_CONFIGFS || true
+	is_mounted $ORIG_USERFS && run_cmd_always umount -f $ORIG_USERFS || true
 }
 
 ##
 ## Cleanup
 ##
 cleanup_fs () {
+	if in_restoremode; then
+		cleanup_fs_restoremode
+	fi
+
 	cd $ORIG_PWD || true
 	echo_verbose 1 "starting fs cleanup: PWD=$PWD"
 
@@ -834,7 +855,7 @@ check_settings () {
 
 	# NOTE: "Set Image" under run mode is guaranteed to fail. "Get Image" is
 	# merely unsupported and probably won't work.
-	if ! in_safemode; then ORIG_USERFS=/; fi
+	if ! in_safemode && ! in_restoremode ; then ORIG_USERFS=/; fi
 
 	local -a escaped_excludes=()
 	escaped_excludes+=("${BLACKLIST_PATHS[@]:+${BLACKLIST_PATHS[@]#/}}")
@@ -878,11 +899,7 @@ dump_settings
 run_hook hook_settings_post
 
 # Initialize filesystem and file descriptor state
-if in_restoremode; then
-	init_fs_restoremode
-else
-	init_fs
-fi
+init_fs
 init_fd
 
 # Perform the image operation
