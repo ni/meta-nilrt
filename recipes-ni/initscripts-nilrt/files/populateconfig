@@ -54,7 +54,7 @@ then
 	mkdir -p "/etc/natinst/share/certstore/server_certs"
 	mkdir -p "/etc/natinst/share/certstore/temp"
 
-	if [ ! -x /var/local/natinst/certstore ]; then
+	if [ ! -x /var/local/natinst/certstore ] && [ -d /var/local/natinst ]; then
 		ln -sf -T /etc/natinst/share/certstore /var/local/natinst/certstore
 	fi
 
