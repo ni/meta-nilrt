@@ -56,32 +56,6 @@ PACKAGES += "\
     ${PN}-bash-completion \
 "
 
-RDEPENDS:${PN}-minion += "\
-    python3-aiodns \
-    python3-aiohttp \
-    python3-avahi \
-    python3-mmap \
-    python3-pyinotify \
-    python3-pyroute2 \
-    python3-pika \
-    python3-psutil \
-"
-
-# NI Skyline dependencies only; not needed for base salt.
-RDEPENDS:${PN}-common += " \
-    python3-configparser \
-    python3-dateutil \
-    python3-difflib \
-    python3-misc \
-    python3-multiprocessing \
-    python3-profile \
-    python3-pyiface \
-    python3-resource \
-    python3-terminal \
-    python3-unixadmin \
-    python3-xmlrpc \
-"
-
 INITSCRIPT_PARAMS:${PN}-minion = "defaults 93 7"
 
 do_install:append() {
