@@ -16,6 +16,7 @@ RDEPENDS:${PN} = "\
 	packagegroup-ni-restoremode \
 	packagegroup-ni-runmode \
 	packagegroup-ni-safemode \
+	packagegroup-ni-skyline \
 	packagegroup-ni-tzdata \
 	packagegroup-ni-wifi \
 	packagegroup-core-x11 \
