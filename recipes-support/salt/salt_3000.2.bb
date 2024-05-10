@@ -142,6 +142,7 @@ DESCRIPTION:${PN}-common ="${DESCRIPTION_COMMON} This particular package provide
 salt-master, salt-minion, and salt-syndic require to function."
 RDEPENDS:${PN}-common = "\
     python3-backports-ssl-match-hostname \
+    python3-charset-normalizer \
     python3-core \
     python3-dateutil \
     python3-fcntl \
