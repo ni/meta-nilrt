@@ -14,7 +14,6 @@ RDEPENDS:${PN}:append:x64 = "\
 		geany \
 		gimp \
 		gnuplot \
-		gnuradio \
 		gtk+3 \
 		iceauth \
 		fltk \
@@ -29,7 +28,6 @@ RDEPENDS:${PN}:append:x64 = "\
 		sessreg \
 		setxkbmap \
 		sysconfig-settings-ui \
-		toscoterm \
 		tk \
 		twm \
 		upower \
@@ -193,7 +191,6 @@ RDEPENDS:${PN} += "\
 	nss-myhostname \
 	pinentry \
 	ptest-runner \
-	sqlite \
 "
 
 # openembedded-core/meta/recipes-kernel
@@ -355,7 +352,6 @@ RDEPENDS:${PN}:append:x64 = "\
 
 # meta-openembedded/meta-oe/recipes-multimedia
 RDEPENDS:${PN} += "\
-	alsa-oss \
 	audiofile \
 	jack \
 	media-ctl \
@@ -497,19 +493,10 @@ RDEPENDS:${PN} += "\
 	tftp-hpa \
 	conntrack-tools \
 	ebtables \
-	netkit-ftp \
-	netkit-rpc \
-	netkit-rsh-client \
-	netkit-rsh-server \
-	netkit-rwho-server \
-	netkit-tftp-client \
-	netkit-tftp-server \
-	netkit-telnet \
 	net-snmp \
 	openflow \
 	openl2tp \
 	pptp-linux \
-	quagga \
 	radiusclient-ng \
 	rp-pppoe \
 	xl2tpd \
