@@ -8,7 +8,10 @@ declare -r MODE="${1:-}"
 NIRECOVERY_MOUNTPOINT=/mnt/NIRECOVERY
 
 image_get () {
-	mount -o remount,rw $NIRECOVERY_MOUNTPOINT
+	if ! mount -o remount,rw $NIRECOVERY_MOUNTPOINT; then
+		echo "Make sure the media is labeled NIRECOVERY and is writable" && false
+	fi
+
 	mkdir -p $NIRECOVERY_MOUNTPOINT/replication_images
 	nisystemimage getall -x tgz -f $NIRECOVERY_MOUNTPOINT/replication_images/systemimage.tgz
 	mount -o remount,ro $NIRECOVERY_MOUNTPOINT
