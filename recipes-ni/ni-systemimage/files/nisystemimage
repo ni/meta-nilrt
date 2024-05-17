@@ -369,7 +369,7 @@ image_get_tgz () {
 
 	cd $WORKING_USERFS
 	CMDLINE+=(*)
-	run_cmd "${CMDLINE[@]}" 1>&"$FD_IMAGE"
+	run_cmd "${CMDLINE[@]}" | pv 1>&"$FD_IMAGE"
 	echo_verbose 2 "finished"
 }
 
@@ -551,7 +551,7 @@ image_set_tgz () {
 
 	cd $WORKING_USERFS
 	if [[ ! $NOEXEC ]]; then
-		"${CMDLINE[@]}" 0<&"$FD_IMAGE"
+		pv 0<&"$FD_IMAGE" | "${CMDLINE[@]}"
 	else
 		if (( $VERBOSE > 0 )); then
 			echo_verbose 1 "skipping extraction; 'tar t' output:"
