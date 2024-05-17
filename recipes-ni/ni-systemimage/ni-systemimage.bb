@@ -33,5 +33,6 @@ RDEPENDS:${PN} += "\
 	gzip \
 	ni-netcfgutil \
 	niacctbase \
+	pv \
 	tar \
 "

@@ -99,6 +99,7 @@ image_get () {
 	fi
 
 	mkdir -p $NIRECOVERY_MOUNTPOINT/Images/$image_name
+	echo "Getting system image $image_name. This may take a while" >&2
 	nisystemimage getall -x tgz -f $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz
 	echo "DeviceDesc=$(get_device_desc)" > $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.conf
 
@@ -168,6 +169,7 @@ image_set () {
 		source /ni_provisioning.safemode.common
 		install_safemode
 
+		echo "Applying system image $image_name. This may take a while" >&2
 		nisystemimage setall -x tgz -f $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz -p reset -s reset
 
 		# Retain some grubenv settings
