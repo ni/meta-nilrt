@@ -7,13 +7,49 @@ declare -r MODE="${1:-}"
 
 NIRECOVERY_MOUNTPOINT=/mnt/NIRECOVERY
 
+get_default_image_name () {
+	local DeviceDesc=$(fw_printenv -n DeviceDesc 2>/dev/null)
+	if [ -z "$DeviceDesc" ]; then
+		DeviceDesc="UnknownDevice"
+	fi
+
+	local Date=$(date +%F-%H-%M-%S)
+
+	echo $DeviceDesc-$Date
+}
+
+get_image_name () {
+	local default_image_name=$(get_default_image_name)
+	read -e -p "Enter image name (no spaces, no special chars except '-'): " -i "$default_image_name" image_name
+	echo $image_name
+}
+
+is_image_valid () {
+	local image_name=$1
+	if [ -z "$image_name" ]; then
+		echo "No image name specified. Please specify an image name" && return 1
+	fi
+	# If image already exists, confirm if it should be overwritten
+	if [ -f $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz ]; then
+		read -e -p "An image already exits with this name. Overwrite? (y/N): " -i "N" overwrite 
+		[ $overwrite != "y" ] && return 1
+	fi
+	return 0
+}
+
 image_get () {
 	if ! mount -o remount,rw $NIRECOVERY_MOUNTPOINT; then
 		echo "Make sure the media is labeled NIRECOVERY and is writable" && false
 	fi
 
-	mkdir -p $NIRECOVERY_MOUNTPOINT/replication_images
-	nisystemimage getall -x tgz -f $NIRECOVERY_MOUNTPOINT/replication_images/systemimage.tgz
+	# If no image name is provided, retry
+	local image_name=$(get_image_name)
+	while ! is_image_valid $image_name; do
+		image_name=$(get_image_name)
+	done
+
+	mkdir -p $NIRECOVERY_MOUNTPOINT/Images/$image_name
+	nisystemimage getall -x tgz -f $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz
 	mount -o remount,ro $NIRECOVERY_MOUNTPOINT
 	echo "Done getting image"
 }
@@ -29,7 +65,7 @@ image_set () {
 	source /ni_provisioning.safemode.common
 	install_safemode
 
-	nisystemimage setall -x tgz -f $NIRECOVERY_MOUNTPOINT/replication_images/systemimage.tgz -p reset -s reset
+	nisystemimage setall -x tgz -f $NIRECOVERY_MOUNTPOINT/Images/systemimage.tgz -p reset -s reset
 
 	# Retain some grubenv settings
 	if grep --quiet "^consoleoutenable=" $BOOTFS_MOUNTPOINT/grub/grubenv; then
