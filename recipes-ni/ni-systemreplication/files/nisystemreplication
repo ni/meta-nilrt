@@ -7,6 +7,8 @@ declare -r MODE="${1:-}"
 
 NIRECOVERY_MOUNTPOINT=/mnt/NIRECOVERY
 
+# ---------------------- Get Image ----------------------
+
 get_default_image_name () {
 	local DeviceDesc=$(fw_printenv -n DeviceDesc 2>/dev/null)
 	if [ -z "$DeviceDesc" ]; then
@@ -54,6 +56,31 @@ image_get () {
 	echo "Done getting image"
 }
 
+# ---------------------- Set Image ----------------------
+
+# Presents a list of existing images and let's user select one
+select_image_from_list () {
+	[ ! -d $NIRECOVERY_MOUNTPOINT/Images ] && return
+
+	readarray -t images <<< "$(find $NIRECOVERY_MOUNTPOINT/Images -name systemimage.tgz | sort | sed "s,$NIRECOVERY_MOUNTPOINT/Images/,," | sed 's,/systemimage.tgz,,')"
+	[ -z $images ] && return
+	local no_of_images=${#images[@]}
+
+	echo "System images found on media:" >&2
+
+	PS3="Select an image to use for provisioning: "
+	select opt in "${images[@]}"; do
+		case $opt in
+			*)
+				if [[ "$REPLY" =~ ^[0-9]+$ ]] && [ $REPLY -gt 0 ] && [ $REPLY -le $no_of_images ]; then
+					echo $opt
+					break
+				fi
+				;;
+		esac
+	done
+}
+
 image_set () {
 	if [[ $(type -t early_setup) != function ]]; then
 		# If we're here, the script was invoked manually i.e., not from init.
@@ -62,10 +89,13 @@ image_set () {
 		early_setup
 	fi
 
+	local image_name=$(select_image_from_list)
+	[ -z "$image_name" ] && die "No system images found on the media"
+
 	source /ni_provisioning.safemode.common
 	install_safemode
 
-	nisystemimage setall -x tgz -f $NIRECOVERY_MOUNTPOINT/Images/systemimage.tgz -p reset -s reset
+	nisystemimage setall -x tgz -f $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz -p reset -s reset
 
 	# Retain some grubenv settings
 	if grep --quiet "^consoleoutenable=" $BOOTFS_MOUNTPOINT/grub/grubenv; then
