@@ -53,7 +53,7 @@ ask_for_continue()
 	variable=${2:-"PROVISION_REPARTITION_TARGET"}
 
 	BUILD_IDENTIFIER=$(get_image_info BUILD_IDENTIFIER)
-	IMAGE_DISPLAY_NAME=$(get_image_info IMAGE_DISPLAY_NAME)
+	IMAGE_DISPLAY_NAME=${3:-$(get_image_info IMAGE_DISPLAY_NAME)}
 
 	printf "\nNI Linux Real-Time $type $BUILD_IDENTIFIER. \n\n"
 	printf "Continuing will partition the disk, format, and install $IMAGE_DISPLAY_NAME to the target.\n\n"
