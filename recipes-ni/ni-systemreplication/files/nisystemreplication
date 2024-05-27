@@ -92,29 +92,35 @@ image_set () {
 	local image_name=$(select_image_from_list)
 	[ -z "$image_name" ] && die "No system images found on the media"
 
-	source /ni_provisioning.safemode.common
-	install_safemode
-
-	nisystemimage setall -x tgz -f $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz -p reset -s reset
-
-	# Retain some grubenv settings
-	if grep --quiet "^consoleoutenable=" $BOOTFS_MOUNTPOINT/grub/grubenv; then
-		grubenv_consoleoutenable=$(grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv list |grep "^consoleoutenable=" | cut -f 2 -d '=')
+	if [[ "$PROVISION_REPARTITION_TARGET" != "y" ]]; then
+		ask_for_continue "ReplicateImage" "PROVISION_REPARTITION_TARGET" "$image_name"
 	fi
-	if grep --quiet "^bootdelay=" $BOOTFS_MOUNTPOINT/grub/grubenv; then
-		grubenv_bootdelay=$(grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv list |grep "^bootdelay=" | cut -f 2 -d '=')
+
+	if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
+		source /ni_provisioning.safemode.common
+		install_safemode
+
+		nisystemimage setall -x tgz -f $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz -p reset -s reset
+
+		# Retain some grubenv settings
+		if grep --quiet "^consoleoutenable=" $BOOTFS_MOUNTPOINT/grub/grubenv; then
+			grubenv_consoleoutenable=$(grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv list |grep "^consoleoutenable=" | cut -f 2 -d '=')
+		fi
+		if grep --quiet "^bootdelay=" $BOOTFS_MOUNTPOINT/grub/grubenv; then
+			grubenv_bootdelay=$(grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv list |grep "^bootdelay=" | cut -f 2 -d '=')
+		fi
+		rm -rf mkdir $BOOTFS_MOUNTPOINT/grub
+
+		install_grubenv
+		set_versions
+
+		echo $LOG_LEVEL > /proc/sys/kernel/printk
+		sanity_check
+
+		print_info "Re-enabling automount..."
+		enable_automount
+		print_done
 	fi
-	rm -rf mkdir $BOOTFS_MOUNTPOINT/grub
-
-	install_grubenv
-	set_versions
-
-	echo $LOG_LEVEL > /proc/sys/kernel/printk
-	sanity_check
-
-	print_info "Re-enabling automount..."
-	enable_automount
-	print_done
 
 	trap - ERR
 	exec 1>&3
