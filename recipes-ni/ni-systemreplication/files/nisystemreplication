@@ -74,7 +74,7 @@ is_image_valid () {
 }
 
 image_get () {
-	if ! mount -o remount,rw $NIRECOVERY_MOUNTPOINT; then
+	if ! mount -o remount,rw,async $NIRECOVERY_MOUNTPOINT; then
 		die "ERROR: Mount failure. No writable media labelled NIRECOVERY."
 	fi
 
@@ -92,6 +92,8 @@ image_get () {
 
 	mkdir -p $NIRECOVERY_MOUNTPOINT/Images/$image_name
 	nisystemimage getall -x tgz -f $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz
+
+	sync
 	mount -o remount,ro $NIRECOVERY_MOUNTPOINT
 	echo "Image $image_name saved."
 }
