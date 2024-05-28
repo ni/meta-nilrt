@@ -9,12 +9,17 @@ NIRECOVERY_MOUNTPOINT=/mnt/NIRECOVERY
 
 # ---------------------- Get Image ----------------------
 
-get_default_image_name () {
+get_device_desc () {
 	local DeviceDesc=$(fw_printenv -n DeviceDesc 2>/dev/null)
 	if [ -z "$DeviceDesc" ]; then
 		DeviceDesc="UnknownDevice"
 	fi
 
+	echo $DeviceDesc
+}
+
+get_default_image_name () {
+	local DeviceDesc=$(get_device_desc)
 	local Date=$(date +%F-%H-%M-%S)
 
 	echo $DeviceDesc-$Date
@@ -92,6 +97,7 @@ image_get () {
 
 	mkdir -p $NIRECOVERY_MOUNTPOINT/Images/$image_name
 	nisystemimage getall -x tgz -f $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz
+	echo "DeviceDesc=$(get_device_desc)" > $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.conf
 
 	sync
 	mount -o remount,ro $NIRECOVERY_MOUNTPOINT
@@ -100,15 +106,29 @@ image_get () {
 
 # ---------------------- Set Image ----------------------
 
-# Presents a list of existing images and let's user select one
+# Presents a list of existing compatible images and let's user select one
 select_image_from_list () {
 	[ ! -d $NIRECOVERY_MOUNTPOINT/Images ] && return
 
-	readarray -t images <<< "$(find $NIRECOVERY_MOUNTPOINT/Images -name systemimage.tgz | sort | sed "s,$NIRECOVERY_MOUNTPOINT/Images/,," | sed 's,/systemimage.tgz,,')"
+	images=()
+
+	for image in $(ls $NIRECOVERY_MOUNTPOINT/Images); do
+		if [ ! -f $NIRECOVERY_MOUNTPOINT/Images/$image/systemimage.tgz ] || [ ! -f $NIRECOVERY_MOUNTPOINT/Images/$image/systemimage.conf ]; then
+			echo "WARNING: Image \"$image\" is missing systemimage.tgz or systemimage.conf" >&2
+			continue
+		fi
+
+		local ImageDeviceDesc=$(awk -F= '{if ($1 == "DeviceDesc") print $2}' $NIRECOVERY_MOUNTPOINT/Images/$image/systemimage.conf)
+		if [ "$(get_device_desc)" = "$ImageDeviceDesc" ]; then
+			images+=($image)
+		fi
+	done
+
 	[ -z $images ] && return
 	local no_of_images=${#images[@]}
 
-	echo "System images found on media:" >&2
+	echo "" >&2
+	echo "Compatible system images found on media:" >&2
 
 	PS3="Select an image to use for provisioning: "
 	select opt in "${images[@]}"; do
@@ -132,7 +152,7 @@ image_set () {
 	fi
 
 	local image_name=$(select_image_from_list)
-	[ -z "$image_name" ] && die "No system images found on the media"
+	[ -z "$image_name" ] && die "No compatible system images found on the media"
 
 	if [[ "$PROVISION_REPARTITION_TARGET" != "y" ]]; then
 		ask_for_continue "ReplicateImage" "PROVISION_REPARTITION_TARGET" "$image_name"
