@@ -26,6 +26,40 @@ get_image_name () {
 	echo $image_name
 }
 
+get_filesystem_attribute () {
+	local label=$1
+	local column=$2
+
+	local tempdir=$(mktemp -d)
+
+	if ! mount -L $label $tempdir &>/dev/null; then
+		echo "Error mounting $label partition" >&2 && return
+	fi
+
+	available_space=$(df $tempdir | tail -1 | awk -v column="$column" '{print $column}')
+	umount $tempdir
+	rmdir $tempdir
+	echo $available_space
+}
+
+get_used_filesystem_size () {
+	get_filesystem_attribute $1 3
+}
+
+get_available_filesystem_size () {
+	get_filesystem_attribute $1 4
+}
+
+get_estimated_image_size () {
+	nigrub_size=$(get_used_filesystem_size "nigrub")
+	nibootfs_size=$(get_used_filesystem_size "nibootfs")
+	niconfig_size=$(get_used_filesystem_size "niconfig")
+	nirootfs_size=$(get_used_filesystem_size "nirootfs")
+
+	total_size=$(($nigrub_size + $nibootfs_size + $niconfig_size + $nirootfs_size))
+	echo $total_size
+}
+
 is_image_valid () {
 	local image_name=$1
 	if [ -z "$image_name" ]; then
@@ -41,8 +75,14 @@ is_image_valid () {
 
 image_get () {
 	if ! mount -o remount,rw $NIRECOVERY_MOUNTPOINT; then
-		echo "Make sure the media is labeled NIRECOVERY and is writable" && false
+		die "ERROR: Mount failure. No writable media labelled NIRECOVERY."
 	fi
+
+	local nirecovery_available_space=$(get_available_filesystem_size "NIRECOVERY")
+	local estimated_image_size=$(get_estimated_image_size)
+
+	[ $estimated_image_size -eq "0" ] && die "Error estimating image size"
+	[ $nirecovery_available_space -lt $estimated_image_size ] && die "Image might not fit on media. Estimated image size: $estimated_image_size. Available space on media: $nirecovery_available_space"
 
 	# If no image name is provided, retry
 	local image_name=$(get_image_name)
@@ -53,7 +93,7 @@ image_get () {
 	mkdir -p $NIRECOVERY_MOUNTPOINT/Images/$image_name
 	nisystemimage getall -x tgz -f $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz
 	mount -o remount,ro $NIRECOVERY_MOUNTPOINT
-	echo "Done getting image"
+	echo "Image $image_name saved."
 }
 
 # ---------------------- Set Image ----------------------
