@@ -45,3 +45,7 @@ PROVISION_PART_NILRT_LABEL="nilrt"
 # A hostname to configure after provisioning.
 # An empty string means hostname is generated on first boot.
 PROVISION_HOSTNAME=""
+
+# System Image name used for "Get Image" and "Set Image"
+# No spaces, no special characters except '-'
+PROVISION_SYSTEMIMAGE_NAME=""
