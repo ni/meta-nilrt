@@ -89,11 +89,14 @@ image_get () {
 	[ $estimated_image_size -eq "0" ] && die "Error estimating image size"
 	[ $nirecovery_available_space -lt $estimated_image_size ] && die "Image might not fit on media. Estimated image size: $estimated_image_size. Available space on media: $nirecovery_available_space"
 
-	# If no image name is provided, retry
-	local image_name=$(get_image_name)
-	while ! is_image_valid $image_name; do
+	local image_name=$PROVISION_SYSTEMIMAGE_NAME
+	if [ -z $image_name ]; then
 		image_name=$(get_image_name)
-	done
+		# If no image name is provided, retry
+		while ! is_image_valid $image_name; do
+			image_name=$(get_image_name)
+		done
+	fi
 
 	mkdir -p $NIRECOVERY_MOUNTPOINT/Images/$image_name
 	nisystemimage getall -x tgz -f $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz
@@ -151,8 +154,11 @@ image_set () {
 		early_setup
 	fi
 
-	local image_name=$(select_image_from_list)
-	[ -z "$image_name" ] && die "No compatible system images found on the media"
+	local image_name=$PROVISION_SYSTEMIMAGE_NAME
+	if [ -z $image_name ]; then
+		image_name=$(select_image_from_list)
+		[ -z "$image_name" ] && die "No compatible system images found on the media"
+	fi
 
 	if [[ "$PROVISION_REPARTITION_TARGET" != "y" ]]; then
 		ask_for_continue "ReplicateImage" "PROVISION_REPARTITION_TARGET" "$image_name"
