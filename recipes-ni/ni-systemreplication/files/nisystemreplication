@@ -100,7 +100,7 @@ image_get () {
 
 	mkdir -p $NIRECOVERY_MOUNTPOINT/Images/$image_name
 	echo "Getting system image $image_name. This may take a while" >&2
-	nisystemimage getall -x tgz -f $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz
+	nisystemimage getall -d -x tgz -f $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz
 	echo "DeviceDesc=$(get_device_desc)" > $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.conf
 
 	sync
@@ -170,7 +170,7 @@ image_set () {
 		install_safemode
 
 		echo "Applying system image $image_name. This may take a while" >&2
-		nisystemimage setall -x tgz -f $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz -p reset -s reset
+		nisystemimage setall -d -x tgz -f $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz -p reset -s reset
 
 		# Retain some grubenv settings
 		if grep --quiet "^consoleoutenable=" $BOOTFS_MOUNTPOINT/grub/grubenv; then
