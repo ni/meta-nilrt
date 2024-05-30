@@ -70,6 +70,10 @@ if [[ "${MODE}" == "get" || "${MODE}" == "set" ]]; then
 	BLACKLIST_PATHS+=(${BLACKLIST_PATHS_get_set[*]})
 fi
 
+# Passed as argument to pv. The default "-q" shows no progress.
+# Set this to empty string to display progress.
+DISPLAY_PROGRESS_ARG="-q"
+
 # All excludes to pass to `tar`. Includes BLACKLIST_PATHS and contents of all
 # files in BLACKLIST_LISTS. The contents of EXCLUDES are paths relative to
 # /mnt/userfs; the contents of BLACKLIST_PATHS and the contents of the files in
@@ -145,9 +149,9 @@ print_help () {
 cat <<EOF
 Usage:
 
-$BASENAME get -x <format> [-hnv] [-b <file>] [-B <path>] [-f <file>]
+$BASENAME get -x <format> [-dhnv] [-b <file>] [-B <path>] [-f <file>]
 
-$BASENAME set -x <format> [-hnv] [-b <file>] [-B <path>] [-f <file>]
+$BASENAME set -x <format> [-dhnv] [-b <file>] [-B <path>] [-f <file>]
 	-p reset|preserve|apply -s reset|preserve|apply
 
 EOF
@@ -369,7 +373,7 @@ image_get_tgz () {
 
 	cd $WORKING_USERFS
 	CMDLINE+=(*)
-	run_cmd "${CMDLINE[@]}" | pv 1>&"$FD_IMAGE"
+	run_cmd "${CMDLINE[@]}" | pv $DISPLAY_PROGRESS_ARG 1>&"$FD_IMAGE"
 	echo_verbose 2 "finished"
 }
 
@@ -551,7 +555,7 @@ image_set_tgz () {
 
 	cd $WORKING_USERFS
 	if [[ ! $NOEXEC ]]; then
-		pv 0<&"$FD_IMAGE" | "${CMDLINE[@]}"
+		pv $DISPLAY_PROGRESS_ARG 0<&"$FD_IMAGE" | "${CMDLINE[@]}"
 	else
 		if (( $VERBOSE > 0 )); then
 			echo_verbose 1 "skipping extraction; 'tar t' output:"
@@ -755,10 +759,11 @@ dump_settings () {
 }
 
 parse_settings () {
-	while getopts :b:B:f:hnp:s:vx: opt ; do
+	while getopts :b:B:df:hnp:s:vx: opt ; do
 		case $opt in
 			b) BLACKLIST_LISTS+=("$OPTARG") ;;
 			B) BLACKLIST_PATHS+=("$OPTARG") ;;
+			d) DISPLAY_PROGRESS_ARG="" ;;
 			f) IMAGE_FILE="$OPTARG" ;;
 			h) print_help; exit 0 ;;
 			n) NOEXEC=1 ;;
