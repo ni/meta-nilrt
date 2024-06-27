@@ -31,6 +31,11 @@ get_image_name () {
 	echo $image_name
 }
 
+get_ext4_features () {
+	local bootfs_device=$(blkid -L nibootfs)
+	echo $(debugfs -R features $bootfs_device 2>/dev/null | awk -F: '{if ($1 == "Filesystem features") print $2}' | xargs | sed 's/ /,/g')
+}
+
 get_filesystem_attribute () {
 	local label=$1
 	local column=$2
@@ -100,8 +105,11 @@ image_get () {
 
 	mkdir -p $NIRECOVERY_MOUNTPOINT/Images/$image_name
 	echo "Getting system image $image_name. This may take a while" >&2
+	local ext4_features=$(get_ext4_features)
 	nisystemimage getall -d -x tgz -f $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz
+
 	echo "DeviceDesc=$(get_device_desc)" > $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.conf
+	echo "Ext4Features=$ext4_features" >> $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.conf
 
 	sync
 	mount -o remount,ro $NIRECOVERY_MOUNTPOINT
@@ -166,6 +174,9 @@ image_set () {
 	fi
 
 	if [[ $PROVISION_REPARTITION_TARGET == "y" ]]; then
+		ext4_features=$(awk -F= '{if ($1 == "Ext4Features") print $2}' $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.conf)
+		# Start with "none" so that default features are not enabled if not listed in $ext4_features
+		MKFS_ARGS="${MKFS_ARGS} -O none,$ext4_features"
 		source /ni_provisioning.safemode.common
 		install_safemode
 
