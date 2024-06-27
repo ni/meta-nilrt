@@ -36,6 +36,10 @@ get_ext4_features () {
 	echo $(debugfs -R features $bootfs_device 2>/dev/null | awk -F: '{if ($1 == "Filesystem features") print $2}' | xargs | sed 's/ /,/g')
 }
 
+ext4_has_unsupported_features () {
+	e2fsck -n LABEL=nibootfs 2>&1 | grep "unsupported feature"
+}
+
 get_filesystem_attribute () {
 	local label=$1
 	local column=$2
@@ -85,7 +89,11 @@ is_image_valid () {
 
 image_get () {
 	if ! mount -o remount,rw,async $NIRECOVERY_MOUNTPOINT; then
-		die "ERROR: Mount failure. No writable media labelled NIRECOVERY."
+		die "Mount failure. No writable media labelled NIRECOVERY."
+	fi
+
+	if ext4_has_unsupported_features; then
+		die "Unsupported filesystem features detected. Please use a newer version of recovery media."
 	fi
 
 	local nirecovery_available_space=$(get_available_filesystem_size "NIRECOVERY")
