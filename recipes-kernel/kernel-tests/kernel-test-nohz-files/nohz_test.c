@@ -20,7 +20,7 @@
 #include <signal.h>
 #include <linux/limits.h>
 
-#define TEST_PRIO	98
+#define TEST_PRIO	1
 
 #define NSEC_PER_USEC	1000ULL
 #define NSEC_PER_SEC	1000000000ULL
