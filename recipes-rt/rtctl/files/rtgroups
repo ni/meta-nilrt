@@ -41,5 +41,6 @@
 kthreadd:f:25:*:\[kthreadd\]$
 irqthread:f:15:*:\[irq\/.+\]$
 irq_work:f:12:*:\[irq_work\/.+\]$
+ktimers:f:10:*:\[ktimers\/.+\]$
 ksoftirqd:f:8:*:\[ksoftirqd\/.+\]$
 

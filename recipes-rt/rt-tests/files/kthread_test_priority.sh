@@ -50,4 +50,8 @@ ptest_change_subtest 4 irq_work
 check_prio_for_task irq_work/ FIFO 12
 ptest_report
 
+ptest_change_subtest 5 ktimers
+check_prio_for_task ktimers/ FIFO 10
+ptest_report
+
 exit $rc_first
