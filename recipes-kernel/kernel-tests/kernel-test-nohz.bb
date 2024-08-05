@@ -40,7 +40,7 @@ pkg_postinst_ontarget:${PN}-ptest:append() {
     ISOLATED_CPU=$((CPUS - 1))
 
     if [ $ISOLATED_CPU -gt 0 ]; then
-        echo 'set otherbootargs="${otherbootargs} isolcpus=nohz,domain,managed_irq,'$ISOLATED_CPU' nohz_full='$ISOLATED_CPU' mitigations=off intel_pstate=disable intel_idle.max_cstate=0 processor.max_cstate=0 nosoftlockup mce=ignore_ce audit=0 tsc=nowatchdog"' > /boot/runmode/no-hz-full-params.cfg
+        echo 'set otherbootargs="${otherbootargs} isolcpus=nohz,domain,managed_irq,'$ISOLATED_CPU' nohz_full='$ISOLATED_CPU' mitigations=off intel_pstate=disable intel_idle.max_cstate=0 processor.max_cstate=0 nosoftlockup mce=ignore_ce audit=0 tsc=reliable"' > /boot/runmode/no-hz-full-params.cfg
         grep -qsxF 'source /runmode/no-hz-full-params.cfg' /boot/runmode/bootimage.cfg || echo 'source /runmode/no-hz-full-params.cfg' >> /boot/runmode/bootimage.cfg
     else
         echo "[kernel-test-nohz:error] This test requires a system with 2 or more CPUs"
