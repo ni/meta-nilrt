@@ -420,7 +420,7 @@ static void validate_results(struct histogram_data *h)
 	p_99_999 = get_percentile(99.999, h);
 	p_99_9999 = get_percentile(99.9999, h);
 
-	if (h->max > max_latency)
+	if (h->max >= max_latency)
 		error_exit("Maximum latency exceeded", stats_summary, h->cnt, h->max, p_99_999, p_99_9999);
 	if (p_99_999 > percentile_99_999)
 		error_exit("99.999%% threshold exceeded", stats_summary, h->cnt, h->max, p_99_999, p_99_9999);
