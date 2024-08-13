@@ -6,6 +6,9 @@ inherit packagegroup
 RDEPENDS:${PN} = "\
 	packagegroup-base \
 	packagegroup-core-boot \
+	packagegroup-core-standalone-sdk-target \
+	packagegroup-core-x11 \
+	packagegroup-kernel-module-build \
 	packagegroup-ni-base \
 	packagegroup-ni-contributors \
 	packagegroup-ni-crio \
@@ -17,11 +20,9 @@ RDEPENDS:${PN} = "\
 	packagegroup-ni-runmode \
 	packagegroup-ni-safemode \
 	packagegroup-ni-skyline \
+	packagegroup-ni-snac \
 	packagegroup-ni-tzdata \
 	packagegroup-ni-wifi \
-	packagegroup-core-x11 \
-	packagegroup-core-standalone-sdk-target \
-	packagegroup-kernel-module-build \
 	dkms \
 	bolt \
 "
