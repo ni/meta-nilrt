@@ -8,4 +8,7 @@ inherit packagegroup
 RDEPENDS:${PN} = ""
 
 RDEPENDS:${PN}:append = "\
+	cryptsetup \
+	ntp \
+	tmux \
 "
