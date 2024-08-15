@@ -16,7 +16,7 @@ RDEPENDS:${PN} += "\
 "
 
 # nissl and nissleay
-# Contact: Haris Okanovic <haris.okanovic@ni.com>
+# Contact: Rich Tollerton <rich.tollerton@ni.com>
 RDEPENDS:${PN} += "\
 	apache-websocket \
 	apache2 \
