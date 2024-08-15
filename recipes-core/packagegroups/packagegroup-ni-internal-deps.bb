@@ -60,7 +60,7 @@ RDEPENDS:${PN} += "\
 	libxml-parser-perl \
 "
 
-# Required for a mobilize step that installs a specific Python version 
+# Required for a mobilize step that installs a specific Python version
 # and requires building Python on the test system
 # Contact: ulf.glaeser@ni.com
 # Team: DAQ.SW.Ops@ni.com
@@ -108,4 +108,14 @@ RDEPENDS:${PN} += "\
 # Contact: sharpk
 RDEPENDS:${PN} += "\
 	libglu \
+"
+# Required by PAtools Runtimesystem
+# Team: Transportation BU - Modern Battery Lab
+# Contact: Deborah Bryant
+RDEPENDS:${PN} += "\
+	libxslt \
+	samba \
+	ntp \
+	ntp-tickadj \
+	ntp-utils \
 "
