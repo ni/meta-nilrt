@@ -1,6 +1,6 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-CONFFILES += "\
+SRC_URI += "\
     file://tmux.conf \
 "
 
