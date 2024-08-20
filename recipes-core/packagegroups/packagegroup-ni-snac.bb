@@ -9,4 +9,5 @@ RDEPENDS:${PN} = "\
 	cryptsetup \
 	ntp \
 	tmux \
+	libpwquality \
 "
