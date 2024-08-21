@@ -33,6 +33,21 @@ function check_prio_for_task() {
 	fi
 }
 
+# Check if there are any tasks running as SCHED_FIFO priority 1. On NILRT
+# systems we expect this RT policy/priority level to be used only by the
+# ksoftirqd/x tasks.
+function check_tasks_fifo_1() {
+	ptest_pass
+
+	fifo_1_tasks=$(ps -e -x -o policy,rtprio,comm | awk '$1 == "FF" && $2 == 1 && $3 !~ /^ksoftirqd\/[0-9]+/ {print $3}')
+
+	if [ ! -z "$fifo_1_tasks" ]; then
+		echo "unexpected tasks found running at FIFO/1 priority:"
+		echo "$fifo_1_tasks"
+		ptest_fail
+	fi
+}
+
 ptest_change_subtest 1 kthreadd
 check_prio_for_task kthreadd FIFO 25
 ptest_report
@@ -68,6 +83,10 @@ ptest_report
 
 ptest_change_subtest 9 rcu_preempt
 check_prio_for_task rcu_preempt FIFO 2
+ptest_report
+
+ptest_change_subtest 10 fifo_1
+check_tasks_fifo_1
 ptest_report
 
 exit $rc_first
