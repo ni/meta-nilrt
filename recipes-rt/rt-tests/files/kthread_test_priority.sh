@@ -39,7 +39,7 @@ ptest_report
 rc_first=$ptest_rc
 
 ptest_change_subtest 2 ksoftirqd
-check_prio_for_task ksoftirqd/0 FIFO 8
+check_prio_for_task ksoftirqd/0 FIFO 1
 ptest_report
 
 ptest_change_subtest 3 irq
@@ -52,6 +52,22 @@ ptest_report
 
 ptest_change_subtest 5 ktimers
 check_prio_for_task ktimers/ FIFO 10
+ptest_report
+
+ptest_change_subtest 6 rcub
+check_prio_for_task rcub/ FIFO 2
+ptest_report
+
+ptest_change_subtest 7 rcuc
+check_prio_for_task rcuc/ FIFO 2
+ptest_report
+
+ptest_change_subtest 8 rcuog
+check_prio_for_task rcuog/ FIFO 2
+ptest_report
+
+ptest_change_subtest 9 rcu_preempt
+check_prio_for_task rcu_preempt FIFO 2
 ptest_report
 
 exit $rc_first
