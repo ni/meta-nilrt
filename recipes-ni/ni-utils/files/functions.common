@@ -695,19 +695,6 @@ update_all_interface_info () {
     done
 }
 
-update_driver_priorities () {
-    for d in /proc/irq/*; do
-        # Adjust wl12xx priority to something
-        # that allows reclamation of RCU objects
-        # through ksoftirqd under prolonged heavy
-        # wireless traffic conditions
-        if [ -d "$d"/wl12xx ]; then
-                echo 7 > "$d"/priority
-                break
-        fi
-    done
-}
-
 # Usage: enable_net_hotplug
 # Sets the flag so that enables hotplug.script to run
 enable_net_hotplug () {
