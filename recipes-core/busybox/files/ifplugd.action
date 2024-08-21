@@ -10,9 +10,6 @@
 
 export INTERFACE=$1
 
-# If there are drivers that need priorities changed, do it
-update_driver_priorities
-
 case "$2" in
    up)
       # On link-up, we're not guaranteed to be on the same network as
