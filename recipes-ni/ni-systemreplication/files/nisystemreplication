@@ -80,7 +80,7 @@ is_image_valid () {
 		echo "No image name specified. Please specify an image name" && return 1
 	fi
 	# If image already exists, confirm if it should be overwritten
-	if [ -f $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz ]; then
+	if [ -f $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.conf ]; then
 		read -e -p "An image already exits with this name. Overwrite? (y/N): " -i "N" overwrite 
 		[ $overwrite != "y" ] && return 1
 	fi
@@ -111,10 +111,13 @@ image_get () {
 		done
 	fi
 
+	# Cleanup any existing image files with same name first
+	rm -rf $NIRECOVERY_MOUNTPOINT/Images/$image_name
 	mkdir -p $NIRECOVERY_MOUNTPOINT/Images/$image_name
 	echo "Getting system image $image_name. This may take a while" >&2
 	local ext4_features=$(get_ext4_features)
-	nisystemimage getall -d -x tgz -f $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz
+	# Split files at FAT32's max file size i.e., 2^32 - 1
+	nisystemimage getall -d -x tgz | split --bytes=$((2**32 - 1)) -d -a4 - $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz
 
 	echo "DeviceDesc=$(get_device_desc)" > $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.conf
 	echo "Ext4Features=$ext4_features" >> $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.conf
@@ -133,8 +136,8 @@ select_image_from_list () {
 	images=()
 
 	for image in $(ls $NIRECOVERY_MOUNTPOINT/Images); do
-		if [ ! -f $NIRECOVERY_MOUNTPOINT/Images/$image/systemimage.tgz ] || [ ! -f $NIRECOVERY_MOUNTPOINT/Images/$image/systemimage.conf ]; then
-			echo "WARNING: Image \"$image\" is missing systemimage.tgz or systemimage.conf" >&2
+		if [ ! -f $NIRECOVERY_MOUNTPOINT/Images/$image/systemimage.tgz0000 ] || [ ! -f $NIRECOVERY_MOUNTPOINT/Images/$image/systemimage.conf ]; then
+			echo "WARNING: Image \"$image\" is missing systemimage.tgz* or systemimage.conf" >&2
 			continue
 		fi
 
@@ -189,7 +192,7 @@ image_set () {
 		install_safemode
 
 		echo "Applying system image $image_name. This may take a while" >&2
-		nisystemimage setall -d -x tgz -f $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz -p reset -s reset
+		cat $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz* | nisystemimage setall -d -x tgz -p reset -s reset
 
 		# Retain some grubenv settings
 		if grep --quiet "^consoleoutenable=" $BOOTFS_MOUNTPOINT/grub/grubenv; then
