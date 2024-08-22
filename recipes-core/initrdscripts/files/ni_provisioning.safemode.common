@@ -110,6 +110,7 @@ check_all_used_binaries()
 
 override_primaryport_grubenv()
 {
+	local grubenv_file=$1
 	# Add target-specific override of primary ethernet port if the lowest ifIndex is not to be used
 	local device_code=$(get_target_id)
 	# CVS-1458RT
@@ -117,7 +118,7 @@ override_primaryport_grubenv()
 		# Set eth0 (note: renamed to eth0 via udev) as the primary port. Do not let the primary
 		# port selection logic decide since it selects the 'eth' port with the lowest ifIndex
 		# value. (Renaming the port via udev does not alter ifIndex, so eth0 is not the lowest)
-		grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "ethaddr=`cat /sys/class/net/eth0/address`"
+		grub-editenv $grubenv_file set "ethaddr=`cat /sys/class/net/eth0/address`"
 	fi
 }
 
@@ -199,17 +200,8 @@ create_filesystems()
 	print_done
 }
 
-install_grub()
+set_efiboot_entry()
 {
-	GRUB_MOUNTPOINT=/var/volatile/grub
-	mkdir $GRUB_MOUNTPOINT -p
-	MOUNT_ERROR=`mount -L $PART1_LABEL $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
-
-	print_info "Configuring EFI grub2..."
-	GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/efi/boot
-	mkdir -p $GRUB_TARGET_DIR
-	GRUB_TARGET=$(uname -m)
-	cp /boot/EFI/BOOT/bootx64.efi $GRUB_TARGET_DIR
 	# Delete existing NILRT entries with "-B" option
 	for ENTRY in $(efibootmgr | egrep -i '(LabVIEW RT)|(niboota)|(nibootb)' | egrep -o '[0-9A-Fa-f]{4}' || true);
 	do
@@ -218,6 +210,26 @@ install_grub()
 	done
 	efibootmgr $VERBOSE_ARGS -c -d ${TARGET_DISK} -p 1 -L 'LabVIEW RT' -l '\efi\boot\bootx64.efi'
 	print_done
+}
+
+mount_grub_partition()
+{
+	GRUB_MOUNTPOINT=/var/volatile/grub
+	mkdir $GRUB_MOUNTPOINT -p
+	MOUNT_ERROR=`mount -L $PART1_LABEL $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
+}
+
+install_grub()
+{
+	mount_grub_partition
+
+	print_info "Configuring EFI grub2..."
+	GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/efi/boot
+	mkdir -p $GRUB_TARGET_DIR
+	GRUB_TARGET=$(uname -m)
+	cp /boot/EFI/BOOT/bootx64.efi $GRUB_TARGET_DIR
+
+	set_efiboot_entry
 
 	print_info "Installing grub.cfg..."
 
@@ -227,16 +239,21 @@ install_grub()
 	print_done
 }
 
+mount_bootfs_partition()
+{
+	BOOTFS_MOUNTPOINT=/var/volatile/bootfs
+	mkdir $BOOTFS_MOUNTPOINT -p
+	BOOTFS_ERROR=`mount -L $PART2_LABEL $BOOTFS_MOUNTPOINT 2>&1` || die "$BOOTFS_ERROR"
+}
+
 install_safemode()
 {
 	print_info "Installing safemode kernel and ramdisk..."
 
-	BOOTFS_MOUNTPOINT=/var/volatile/bootfs
-	mkdir $BOOTFS_MOUNTPOINT -p
-	BOOTFS_ERROR=`mount -L $PART2_LABEL $BOOTFS_MOUNTPOINT 2>&1` || die "$BOOTFS_ERROR"
+	mount_bootfs_partition
 	mkdir -p $BOOTFS_MOUNTPOINT/.safe
 
-	cp "$SOURCE_DIR"/*Image	   "$BOOTFS_MOUNTPOINT/.safe/"
+	cp "$SOURCE_DIR"/*Image		"$BOOTFS_MOUNTPOINT/.safe/"
 	cp "$SOURCE_DIR"/ramdisk.*	"$BOOTFS_MOUNTPOINT/.safe/"
 	cp "$SOURCE_DIR"/bootimage.*  "$BOOTFS_MOUNTPOINT/.safe/"
 
@@ -249,6 +266,13 @@ install_bootmode_file()
 	print_info "Installing bootmode file..."
 	echo "set BOOT_MODE=safemode" >$BOOTFS_MOUNTPOINT/bootmode
 	print_done
+}
+
+add_rootuuid_to_grubenv()
+{
+	# save rootfs UUID for grub to reference
+	ROOTUUID=`lsblk ${TARGET_DISK}${PART_SEPARATOR}4 -n -o PARTUUID`
+	echo set rootuuid=$ROOTUUID >> $GRUB_MOUNTPOINT/grubvar_readonly
 }
 
 install_grubenv()
@@ -266,7 +290,7 @@ install_grubenv()
 		cp $SOURCE_DIR/SMBIOS_NI_vars $BOOTFS_MOUNTPOINT/.safe
 		cp $SOURCE_DIR/EFI_NI_vars $BOOTFS_MOUNTPOINT/.safe
 		add_USB_gadget_args_to_grubenv
-		override_primaryport_grubenv
+		override_primaryport_grubenv $BOOTFS_MOUNTPOINT/grub/grubenv
 	else
 		cp $SOURCE_DIR/grubenv_non_ni_target $BOOTFS_MOUNTPOINT/grub/grubenv
 	fi
@@ -281,9 +305,7 @@ install_grubenv()
 		echo "$varname" >> "$BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars"
 	done
 
-	# save rootfs UUID for grub to reference
-	ROOTUUID=`lsblk ${TARGET_DISK}${PART_SEPARATOR}4 -n -o PARTUUID`
-	echo set rootuuid=$ROOTUUID >> $GRUB_MOUNTPOINT/grubvar_readonly
+	add_rootuuid_to_grubenv
 
 	# set proper permissions on and backup firmware variable files
 	chown 0:500 $BOOTFS_MOUNTPOINT/grub/grubenv
@@ -322,6 +344,26 @@ install_grubenv()
 	if [ -n "$grubenv_bootdelay" ]; then
 		grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "bootdelay=$grubenv_bootdelay"
 	fi
+}
+
+fix_grubenv_after_usbreplication()
+{
+		# Fix files in nigrub filesystem
+		rm $GRUB_MOUNTPOINT/grubvar_readonly
+		if is_ni_device ; then
+			add_USB_gadget_args_to_grubenv
+		fi
+		set_serial_port
+		add_rootuuid_to_grubenv
+
+		# Fix files in nibootfs filesystem
+		if is_ni_device ; then
+			override_primaryport_grubenv $BOOTFS_MOUNTPOINT/grub/grubenv
+			override_primaryport_grubenv $BOOTFS_MOUNTPOINT/grub/grubenv.bak
+		else
+			grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "serial#=ABCDEFG"
+		fi
+		grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv unset primaryethaddr
 }
 
 set_versions()
@@ -403,20 +445,4 @@ sanity_check()
 	print_done
 }
 
-check_all_used_binaries
-
-echo "Installing safemode to: $TARGET_DISK."
-echo 6 > /proc/sys/kernel/printk
-
 SOURCE_DIR=/payload
-
-print_info "Disabling automount..."
-disable_automount
-print_done
-
-partitioning_disk
-wait_for_partitions $TARGET_DISK
-create_filesystems
-
-prune_efi_crash_vars
-install_grub
