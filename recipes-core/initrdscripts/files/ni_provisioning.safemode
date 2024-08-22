@@ -3,6 +3,22 @@ set -e
 
 source /ni_provisioning.safemode.common
 
+check_all_used_binaries
+
+echo "Installing safemode to: $TARGET_DISK."
+echo 6 > /proc/sys/kernel/printk
+
+print_info "Disabling automount..."
+disable_automount
+print_done
+
+partitioning_disk
+wait_for_partitions $TARGET_DISK
+create_filesystems
+
+prune_efi_crash_vars
+install_grub
+
 install_safemode
 install_bootmode_file
 install_grubenv
