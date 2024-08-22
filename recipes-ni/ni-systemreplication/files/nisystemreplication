@@ -189,22 +189,30 @@ image_set () {
 		# Start with "none" so that default features are not enabled if not listed in $ext4_features
 		MKFS_ARGS="${MKFS_ARGS} -O none,$ext4_features"
 		source /ni_provisioning.safemode.common
-		install_safemode
+
+		check_all_used_binaries
+
+		echo "Installing to: $TARGET_DISK."
+		echo 6 > /proc/sys/kernel/printk
+
+		print_info "Disabling automount..."
+		disable_automount
+		print_done
+
+		partitioning_disk
+		wait_for_partitions $TARGET_DISK
+		create_filesystems
+
+		prune_efi_crash_vars
 
 		echo "Applying system image $image_name. This may take a while" >&2
 		cat $NIRECOVERY_MOUNTPOINT/Images/$image_name/systemimage.tgz* | nisystemimage setall -d -x tgz -p reset -s reset
 
-		# Retain some grubenv settings
-		if grep --quiet "^consoleoutenable=" $BOOTFS_MOUNTPOINT/grub/grubenv; then
-			grubenv_consoleoutenable=$(grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv list |grep "^consoleoutenable=" | cut -f 2 -d '=')
-		fi
-		if grep --quiet "^bootdelay=" $BOOTFS_MOUNTPOINT/grub/grubenv; then
-			grubenv_bootdelay=$(grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv list |grep "^bootdelay=" | cut -f 2 -d '=')
-		fi
-		rm -rf mkdir $BOOTFS_MOUNTPOINT/grub
+		set_efiboot_entry
 
-		install_grubenv
-		set_versions
+		mount_grub_partition
+		mount_bootfs_partition
+		fix_grubenv_after_usbreplication
 
 		echo $LOG_LEVEL > /proc/sys/kernel/printk
 		sanity_check
