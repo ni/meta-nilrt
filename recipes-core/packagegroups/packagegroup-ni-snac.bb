@@ -7,6 +7,7 @@ inherit packagegroup
 
 RDEPENDS:${PN} = "\
 	cryptsetup \
+	firewalld \
 	ntp \
 	tmux \
 	libpwquality \
