@@ -44,6 +44,7 @@ RDEPENDS:${PN} += "\
 	libpython3 \
 	libyaml \
 	mpfr \
+	nftables \
 	python3-modules \
 	python3-aiodns \
 	python3-aiohttp \
