@@ -40,6 +40,7 @@ RDEPENDS:${PN} = "\
 RDEPENDS:${PN} += "\
 	cpp \
 	cpp-symlinks \
+	firewalld \
 	libmpc \
 	libpython3 \
 	libyaml \
