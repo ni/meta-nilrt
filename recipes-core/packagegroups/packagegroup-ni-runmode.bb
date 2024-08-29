@@ -23,6 +23,7 @@ RDEPENDS:${PN} = "\
 	librtpi \
 	linux-firmware-radeon \
 	lldpd \
+	nftables \
 	ni-configpersistentlogs \
 	ni-locale-alias \
 	ni-modules-autoload \
