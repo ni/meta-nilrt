@@ -1,6 +1,6 @@
-From f2923412125d8dfecc0be6dc8d5cab97ede6e2e1 Mon Sep 17 00:00:00 2001
-From: Brenda Streiff <brenda.streiff@ni.com>
-Date: Wed, 29 Nov 2023 11:14:27 -0600
+From 8710a50df29093facb1f3f4413dda571ae3276f2 Mon Sep 17 00:00:00 2001
+From: Rajendra Desai <rajendra.desai@ni.com>
+Date: Fri, 6 Sep 2024 13:26:06 +0530
 Subject: [PATCH] dkms: autoinstall for all kernels by default
 
 If you have installed another kernel that would be the next one you
@@ -22,16 +22,15 @@ this on for the nilrt distribution, as this better matches the user
 expectations for the way that kernels are treated on nilrt.
 
 Upstream-Status: Inappropriate [nilrt-specific quirk about how we handle kernels]
-Signed-off-by: Brenda Streiff <brenda.streiff@ni.com>
-
+Signed-off-by: Rajendra Desai <rajendra.desai@ni.com>
 ---
- dkms_framework.conf | 2 +-
+ dkms_framework.conf.in | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/dkms_framework.conf b/dkms_framework.conf
-index 6ad6dd2..c792757 100644
---- a/dkms_framework.conf
-+++ b/dkms_framework.conf
+diff --git a/dkms_framework.conf.in b/dkms_framework.conf.in
+index b3ea3e9..30d5f1d 100644
+--- a/dkms_framework.conf.in
++++ b/dkms_framework.conf.in
 @@ -23,7 +23,7 @@
  
  # Automatic installation and upgrade for all installed kernels if set to a
@@ -42,5 +41,5 @@ index 6ad6dd2..c792757 100644
  # Location of the sign-file kernel binary. $kernelver can be used in path to
  # represent the target kernel version. (default: depends on distribution):
 -- 
-2.30.2
+2.34.1
 

@@ -7,7 +7,7 @@ LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=b234ee4d69f5fce4486a80fdaf4a4263"
 
 
-PV = "3.0.10"
+PV = "3.0.13"
 
 
 SRC_URI = "\
@@ -15,7 +15,7 @@ SRC_URI = "\
 	file://0001-autoinstall-all-kernels.patch \
 "
 
-SRCREV = "3f72c9b059bccbc1ca1ff8b431c1763b1bdb60cd"
+SRCREV = "4d466bf727347408307aa28ab4f090488360b592"
 
 S = "${WORKDIR}/git"
 
@@ -28,7 +28,7 @@ EXTRA_OEMAKE += " -o tarball"
 INSANE_SKIP:${PN} += "dev-deps"
 
 
-FILES:${PN} += " ${datadir}/bash-completion/*"
+FILES:${PN} += " ${datadir}/bash-completion/* ${datadir}/zsh/*"
 
 RDEPENDS:${PN} += " \
 	bash \
