@@ -5,10 +5,9 @@ LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE.md;md5=feb42903281464837bc0c9a861b1e7a1"
 
 SRC_URI = "git://github.com/modelon-community/fmi-library;protocol=https;branch=master \
-           file://0001-fmixml-use-system-expat-instead-of-building-own-with.patch \
            "
 
-SRCREV = "917964fa0a6b30c4f2acc62b5f04df1ecae07c68"
+SRCREV = "29523c20aec17277fc517900e3506d17d3f64642"
 
 S = "${WORKDIR}/git"
 
