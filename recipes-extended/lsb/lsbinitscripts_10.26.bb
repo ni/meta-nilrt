@@ -8,7 +8,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=b234ee4d69f5fce4486a80fdaf4a4263"
 DEPENDS = "popt glib-2.0"
 
 SRC_URI = "git://github.com/fedora-sysv/initscripts;protocol=https;branch=main"
-SRCREV = "d2243a0912bbad57b1b413f2c15599341cb2aa76"
+SRCREV = "79ec53026623b76d890b6dcdebf30d0c52d11a8b"
 UPSTREAM_CHECK_GITTAGREGEX = "^(?P<pver>\d+(\.\d+)+)"
 
 
