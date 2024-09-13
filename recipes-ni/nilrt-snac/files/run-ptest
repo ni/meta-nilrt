@@ -1,0 +1,8 @@
+#!/usr/bin/env python3
+
+import pytest
+
+pytest.main([
+	"-v",
+	"/usr/lib/nilrt-snac/tests/integration",
+])
