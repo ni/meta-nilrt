@@ -39,9 +39,8 @@ RDEPENDS:${PN} = "\
 "
 
 FILES:${PN}-ptest += "${libdir}/${PN}/tests/integration"
-RDEPENDS:${PN}-ptest = "\
+RDEPENDS:${PN}-ptest += "\
 	bash \
-	nilrt-snac \
 	python3-core \
 	python3-pytest \
 "
