@@ -10,37 +10,36 @@ LIC_FILES_CHKSUM = "\
 
 
 DEPENDS += "\
-	grpc-native \
 	googletest-native \
+	grpc \
+	grpc-native \
 	nlohmann-json-native \
+	protobuf \
 	protobuf-native \
 	python3-grpcio-tools-native \
 	python3-mako-native \
 	python3-native \
-	utf8cpp-native \
 	python3-schema-native \
+	utf8cpp-native \
 "
 
-PV = "2.4.0"
+PV = "2.6.0"
 
 
 SRC_URI = "\
 	git://github.com/ni/grpc-device.git;name=grpc-device;branch=main;protocol=https \
 	file://ptest \
-	file://0001-Subject-PATCH-CMakeLists.txt-remove-local-protobuf-i.patch \
-	file://0002-CMakeLists-fixup-utf8cpp-library-link.patch \
-	file://0003-CMakeLists-use-native-python3-binaries.patch \
-	file://0001-CMakeLists-find-gpr-library.patch \
+	file://0001-CMakeLists-Make-grpc-device-buildable-on-NILRT-11-10.patch \
 "
-SRCREV_grpc-device = "aeef9995eb634ed5dc4d87dc5adbfd7c66d9fa64"
+
+SRCREV_grpc-device = "609fdf8c7ec99597373cf35f2b9608422b1955c9"
 SRCREV_FORMAT = "grpc-device"
 
 S = "${WORKDIR}/git"
 
-
 inherit cmake python3native
 
-EXTRA_OECMAKE += "-DCMAKE_CROSSCOMPILING=True -DCMAKE_BUILD_TYPE=Release"
+EXTRA_OECMAKE += "-DCMAKE_CROSSCOMPILING=True -DCMAKE_BUILD_TYPE=Release -DUSE_SUBMODULE_LIBS=OFF -DUSE_PYTHON_VIRTUALENV=OFF"
 OECMAKE_TARGET_COMPILE = "ni_grpc_device_server"
 OECMAKE_GENERATOR = "Unix Makefiles"
 
@@ -94,7 +93,6 @@ do_install () {
 	install -d ${D}${datadir}/${BPN}
 	cp -r ${S}/examples ${D}${datadir}/${BPN}
 }
-
 
 PACKAGE_BEFORE_PN = "${PN}-examples"
 
