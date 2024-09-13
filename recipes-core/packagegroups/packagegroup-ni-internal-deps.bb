@@ -24,9 +24,9 @@ RDEPENDS:${PN} += "\
 "
 
 # ni-sync
-#RDEPENDS:${PN} += "\
-#	ni-grpc-device \
-#"
+RDEPENDS:${PN} += "\
+	ni-grpc-device \
+"
 
 # Required components for Veristand.
 # Engineering contact: Marcelo Izaguirre
