@@ -3,6 +3,6 @@
 import pytest
 
 pytest.main([
-	"-v",
+	"--automake",
 	"/usr/lib/nilrt-snac/tests/integration",
 ])
