@@ -9,6 +9,6 @@ import pytest
 os.environ["PATH"] = "/usr/local/natinst/bin:" + os.environ.get("PATH", "")
 
 pytest.main([
-	"--automake",
-	"/usr/lib/nilrt-snac/tests/integration",
+    "--automake",
+    "/usr/lib/nilrt-snac/tests/integration",
 ])
