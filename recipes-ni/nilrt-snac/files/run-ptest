@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 
+import os
+
 import pytest
+
+
+# nirtcfg is installed to a non-standard path
+os.environ["PATH"] = "/usr/local/natinst/bin:" + os.environ.get("PATH", "")
 
 pytest.main([
 	"--automake",
