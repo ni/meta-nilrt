@@ -43,4 +43,5 @@ RDEPENDS:${PN}-ptest += "\
 	bash \
 	python3-core \
 	python3-pytest \
+	python3-unittest-automake-output \
 "
