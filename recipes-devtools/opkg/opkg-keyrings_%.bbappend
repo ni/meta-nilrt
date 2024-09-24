@@ -1,5 +1,7 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
+PV = "${DISTRO_VERSION}"
+
 SRC_URI += " \
 	file://nilrt-feed-2019.gpg \
 	file://nilrt-feed-2023.gpg \
