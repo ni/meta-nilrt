@@ -221,14 +221,31 @@ replacement_patterns = [
         [r'clocksource: tsc: mask: 0x[0-9a-fA-F]+ max_cycles: 0x[0-9a-fA-F]+, max_idle_ns: \d+ ns', 'clocksource: tsc: mask: 0x max_cycles: 0x, max_idle_ns: ns']
 ]
 
-def strip_known_differences(log):
+def apply_replacement_patterns(log):
     for pattern in replacement_patterns:
         log = re.sub(pattern[0], pattern[1], log, flags=re.MULTILINE)
     return log
 
+known_intermittent_messages = [
+    [r'.+ [0-9a-fA-F]{4}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}.[0-9a-fA-F]: \[drm\] Cannot find any crtc or sizes'],
+    [r'hid-generic ([0-9a-fA-F]{4}:){2}[0-9a-fA-F]{4}\.[0-9a-fA-F]{4}: input,hidraw\d+: USB HID v\d\.\d{2} Keyboard \[.+\] on usb-[0-9a-fA-F]{4}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}\.[0-9a-fA-F]{1}-\d+/input\d'],
+    [r'hid-generic ([0-9a-fA-F]{4}:){2}[0-9a-fA-F]{4}\.[0-9a-fA-F]{4}: input,hidraw\d+: USB HID v\d\.\d{2} Mouse \[.+\] on usb-[0-9a-fA-F]{4}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}\.[0-9a-fA-F]{1}-\d+/input\d'],
+    [r'input: .+USB Keyboard & Mouse as \/devices\/pci[0-9a-fA-F]{4}:[0-9a-fA-F]{2}\/[0-9a-fA-F]{4}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}.\d\/usb\d\/\d-\d\/\d-\d:\d.\d\/([0-9a-fA-F]{4}:){2}[0-9a-fA-F]{4}.[0-9a-fA-F]{4}\/input\/input\d'],
+    [r'mousedev: PS\/2 mouse device common for all mice'],
+    [r'usb \d+-\d+: new low-speed USB device number \d+ using xhci_hcd']
+]
+
+def remove_known_intermittent_messages(log):
+    for pattern in known_intermittent_messages:
+        log = re.sub(pattern[0], '', log, flags=re.MULTILINE)
+    # Remove any resulting empty lines or extra whitespace
+    log = re.sub(r'\n\s*\n', '\n', log).strip()
+    return log
+
 def prepare_log_for_diff(log):
     log = strip_timestamps(log)
-    log = strip_known_differences(log)
+    log = remove_known_intermittent_messages(log)
+    log = apply_replacement_patterns(log)
     log = log.splitlines()
     log.sort()
     return log
