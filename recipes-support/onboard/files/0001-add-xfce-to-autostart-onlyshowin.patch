@@ -1,0 +1,10 @@
+diff --git a/data/onboard-autostart.desktop.in b/data/onboard-autostart.desktop.in
+index 8fb55ac..cf022a0 100644
+--- a/data/onboard-autostart.desktop.in
++++ b/data/onboard-autostart.desktop.in
+@@ -9,4 +9,4 @@ NoDisplay=true
+ X-Ubuntu-Gettext-Domain=onboard
+ AutostartCondition=GSettings org.gnome.desktop.a11y.applications screen-keyboard-enabled
+ X-GNOME-AutoRestart=true
+-OnlyShowIn=GNOME;Unity;MATE;
++OnlyShowIn=GNOME;Unity;MATE;XFCE;

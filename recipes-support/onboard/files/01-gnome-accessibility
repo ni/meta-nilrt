@@ -1,0 +1,3 @@
+# We need accessibility on in order to use Onboard's auto-show.
+[org/gnome/desktop/interface]
+toolkit-accessibility=true
