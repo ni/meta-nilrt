@@ -19,7 +19,6 @@ ftp:x:393:
 nobody:x:392:
 ntp:x:391:
 shutdown:x:390:
-quagga:x:389:
 pulse:x:388:
 rpcuser:x:387:
 rpc:x:386:
