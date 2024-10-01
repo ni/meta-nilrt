@@ -14,6 +14,7 @@ RDEPENDS:${PN}:append:x64 = "\
 		geany \
 		gimp \
 		gnuplot \
+		gnuradio \
 		gtk+3 \
 		iceauth \
 		fltk \
@@ -191,6 +192,7 @@ RDEPENDS:${PN} += "\
 	nss-myhostname \
 	pinentry \
 	ptest-runner \
+	sqlite3 \
 "
 
 # openembedded-core/meta/recipes-kernel
@@ -207,7 +209,7 @@ RDEPENDS:${PN} += "\
 	systemtap \
 "
 
-# openembedded-gore/meta/recipes-multimedia
+# openembedded-core/meta/recipes-multimedia
 RDEPENDS:${PN} += "\
 	alsa-tools \
 	alsa-utils \
