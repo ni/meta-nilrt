@@ -27,7 +27,6 @@ RDEPENDS:${PN}:append = "\
     kernel-tests-ptest \
     liberror-perl-ptest \
     libxml2-ptest \
-    mdadm-ptest \
     nettle-ptest \
     ni-hw-scripts-ptest \
     ni-test-boot-time-ptest \
@@ -35,15 +34,9 @@ RDEPENDS:${PN}:append = "\
     pango-ptest \
     parted-ptest \
     perl-ptest \
-    pstore-save-ptest \
-    python3-appdirs-ptest \
     python3-atomicwrites-ptest \
     python3-bcrypt-ptest \
-    python3-cryptography-ptest \
-    python3-markupsafe-ptest \
     python3-more-itertools-ptest \
-    python3-msgpack-ptest \
-    python3-multidict-ptest \
     python3-pluggy-ptest \
     python3-pyasn1-ptest \
     python3-pyroute2-ptest \
@@ -57,3 +50,12 @@ RDEPENDS:${PN}:append = "\
     xorg-fonts-100dpi-ptest \
     zeromq-ptest \
 "
+
+# ptest packages that don't execute
+# RDEPENDS:${PN}:append = "\
+#    mdadm-ptest \
+#    pstore-save-ptest \
+#    python3-crytpography-ptest \
+#    python3-markupsafe-ptest \
+#    python3-msgpack-ptest \
+#    python3-multidict-ptest
