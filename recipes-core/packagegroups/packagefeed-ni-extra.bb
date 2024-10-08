@@ -192,7 +192,6 @@ RDEPENDS:${PN} += "\
 	nss-myhostname \
 	pinentry \
 	ptest-runner \
-	sqlite3 \
 "
 
 # openembedded-core/meta/recipes-kernel
