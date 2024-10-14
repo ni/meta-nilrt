@@ -1,5 +1,6 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
+
 SRC_URI += " \
 	file://0001-add-xfce-to-autostart-onlyshowin.patch \
 	file://0002-onboard-onhover-seg-fault-fix.patch \
@@ -21,6 +22,9 @@ do_install:append () {
 
 	install -m 644 ${WORKDIR}/NI.colors ${D}${datadir}/onboard/themes/
 	install -m 644 ${WORKDIR}/NI.theme ${D}${datadir}/onboard/themes/
+
+	install -d ${D}/etc/xdg/autostart
+	install -m 0644 ${WORKDIR}/${PN}-${PV}/data/onboard-autostart.desktop.in ${D}/etc/xdg/autostart/onboard-autostart.desktop
 }
 
 pkg_postinst:${PN} () {
