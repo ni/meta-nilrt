@@ -10,7 +10,7 @@ SRC_URI += " \
 	file://onboard-defaults.conf \
 "
 
-CFLAGS += "-Werror=declaration-after-statement"
+CXXFLAGS += "-Werror=declaration-after-statement"
 
 do_install:append () {
 	install -d ${D}${sysconfdir}/dconf/db/local.d
@@ -22,13 +22,11 @@ do_install:append () {
 
 	install -m 644 ${WORKDIR}/NI.colors ${D}${datadir}/onboard/themes/
 	install -m 644 ${WORKDIR}/NI.theme ${D}${datadir}/onboard/themes/
-
-	install -d ${D}/etc/xdg/autostart
-	install -m 0644 ${WORKDIR}/${PN}-${PV}/data/onboard-autostart.desktop.in ${D}/etc/xdg/autostart/onboard-autostart.desktop
 }
 
 pkg_postinst:${PN} () {
 	dconf update
+	mv ${PYTHON_SITEPACKAGES_DIR}/etc/xdg/autostart/onboard-autostart.desktop ${sysconfdir}/xdg/autostart/onboard-autostart.desktop
 }
 
 
