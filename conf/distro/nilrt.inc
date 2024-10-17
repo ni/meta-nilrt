@@ -138,9 +138,9 @@ NILRT_MAIN_FEED_VERSION            ?= "${NILRT_FEED_NAME}"
 NILRT_MACHINE_FEED_URI_nimain      ?= "${NILRT_FEEDS_URI}/${NILRT_MAIN_FEED_VERSION}/ni-main"
 
 # OE Packages with TUNEARCHes
-PACKAGE_FEED_URIS       = "${NILRT_MACHINE_FEED_URI}"
-PACKAGE_FEED_BASE_PATHS = "extra main"
-PACKAGE_FEED_ARCHS      = "all ${MACHINE} ${TUNE_PKGARCH}"
+PACKAGE_FEED_URIS       ?= "${NILRT_MACHINE_FEED_URI}"
+PACKAGE_FEED_BASE_PATHS ?= "extra main"
+PACKAGE_FEED_ARCHS      ?= "all ${MACHINE} ${TUNE_PKGARCH}"
 
 # NI Packages, which are flat feeds
 # Add additional (non-constructed) opkg sources with the pattern:
