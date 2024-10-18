@@ -10,13 +10,13 @@ inherit packagegroup
 
 
 # NI-RFSA/G
-# Contact: Dharaniprakash Kurdimath <dharaniprakash.kurdimath@ni.com>
+# Contact: Dharaniprakash Kurdimath <dharaniprakash.kurdimath@emerson.com>
 RDEPENDS:${PN} += "\
 	tbb \
 "
 
 # nissl and nissleay
-# Contact: Rich Tollerton <rich.tollerton@ni.com>
+# Contact: Rich Tollerton <rich.tollerton@emerson.com>
 RDEPENDS:${PN} += "\
 	apache-websocket \
 	apache2 \
@@ -28,56 +28,10 @@ RDEPENDS:${PN} += "\
 	ni-grpc-device \
 "
 
-# Required components for Veristand.
-# Engineering contact: Marcelo Izaguirre
+# Required components for Veristand/aim-arinc-429.
+# Engineering contact:
 RDEPENDS:${PN} += "\
 	libfmi \
-"
-
-# Required for VCOM Toolkit
-# Contact: Stefano Caiola <stefano.caiola@ni.com>
-RDEPENDS:${PN}:append:x64 = "\
-	qtbase \
-"
-
-# ni-rdma, libnirdma
-# Contact: Eric Gross <eric.gross@ni.com>
-RDEPENDS:${PN} += "\
-	rdma-core \
-"
-
-# ni-flexrio-integratedio-libs, required for csi2serdesconfig
-# Contact: Michael Strain <michael.strain@ni.com>
-RDEPENDS:${PN}:append:x64 = "\
-	python3-core \
-	python3-ctypes \
-	python3-threading \
-"
-
-# NI Test Systems Software
-# Contact: Christian Gutierrez <christian.gutierrez@ni.com>
-RDEPENDS:${PN} += "\
-	libxml-parser-perl \
-"
-
-# Required for a mobilize step that installs a specific Python version
-# and requires building Python on the test system
-# Contact: ulf.glaeser@ni.com
-# Team: DAQ.SW.Ops@ni.com
-RDEPENDS:${PN} += "\
-	lz4 \
-"
-
-# Required by nisetupscripts for pre-installer testing
-# Contact: Zach Hindes <zach.hindes@ni.com>
-RDEPENDS:${PN}:append:x64 = "\
-	ruby \
-"
-
-# Required by aim-arinc-429
-# Maintainer: AIM GmbH
-# Contact: Karl Grosz
-RDEPENDS:${PN} += "\
 	coreutils \
 	g++ \
 	g++-symlinks \
@@ -88,9 +42,49 @@ RDEPENDS:${PN} += "\
 	pkgconfig \
 "
 
+# Required for VCOM Toolkit
+# Contact: Hovhannes Harutyunyan <hovhannes.harutyunyan@emerson.com>
+RDEPENDS:${PN}:append:x64 = "\
+	qtbase \
+"
+
+# ni-rdma, libnirdma
+# Contact: Kevin Khai-Wern Lim <khai-wern.lim@emerson.com>
+RDEPENDS:${PN} += "\
+	rdma-core \
+"
+
+# ni-flexrio-integratedio-libs, required for csi2serdesconfig
+# Contact: Michael Strain <michael.strain@emerson.com>
+RDEPENDS:${PN}:append:x64 = "\
+	python3-core \
+	python3-ctypes \
+	python3-threading \
+"
+
+# NI Test Systems Software
+# Contact:
+RDEPENDS:${PN} += "\
+	libxml-parser-perl \
+"
+
+# Required for a mobilize step that installs a specific Python version
+# and requires building Python on the test system
+# Contact: ulf.glaeser@emerson.com
+# Team: DAQ.SW.Ops@emerson.com
+RDEPENDS:${PN} += "\
+	lz4 \
+"
+
+# Required by nisetupscripts for pre-installer testing
+# Contact: Zach Hindes <zach.hindes@emerson.com>
+RDEPENDS:${PN}:append:x64 = "\
+	ruby \
+"
+
 # Required by PXIPS ATS events
 # Team: PXI PS
-# Contact: Kevin Khai-Wern Lim
+# Contact: Kevin Khai-Wern Lim <khai-wern.lim@emerson.com>
 RDEPENDS:${PN} += "\
 	memtester \
 	ntfs-3g-ntfsprogs \
@@ -98,7 +92,7 @@ RDEPENDS:${PN} += "\
 
 # Required by aim-arinc-664
 # Maintainer: AIM GmbH
-# Contact: Michael Tillerson <michael.tillerson@ni.com>
+# Contact: Michael Tillerson <michael.tillerson@emerson.com>
 RDEPENDS:${PN} += "\
 	libpcap \
 "

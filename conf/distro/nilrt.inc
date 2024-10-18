@@ -1,4 +1,4 @@
-MAINTAINER = "NI Linux Real-Time Maintainers <nilrt@ni.com>"
+MAINTAINER = "NI Linux Real-Time Maintainers <nilrt@emerson.com>"
 
 TARGET_VENDOR = "-nilrt"
 

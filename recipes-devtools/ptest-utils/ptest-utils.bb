@@ -1,6 +1,6 @@
 SUMMARY = "Yocto ptest helper utilities"
 DESCRIPTION = "Libraries, scripts, and source files which help developers to write and emit valid yocto ptests."
-AUTHOR = "NI RTOS <rtos@ni.com>"
+AUTHOR = "NI RTOS <rtos@emerson.com>"
 HOMEPAGE = "https://github.com/ni/meta-nilrt"
 BUGTRACKER = "https://github.com/ni/meta-nilrt/issues"
 LICENSE = "BSD-3-Clause"

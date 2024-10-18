@@ -14,8 +14,8 @@ To build the meta-nilrt layer, follow the instructions available on [Github].
 
 Contact
 ----
-Email [licensing@ni.com]
+Email [licensing@emerson.com]
 
 [NI Linux Real-Time Portal]:http://www.ni.com/white-paper/14627/en/
 [Github]:https://www.github.com/ni/nilrt
-[licensing@ni.com]:mailto:licensing@ni.com
+[licensing@emerson.com]:mailto:licensing@emerson.com
