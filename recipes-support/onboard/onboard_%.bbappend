@@ -22,11 +22,12 @@ do_install:append () {
 
 	install -m 644 ${WORKDIR}/NI.colors ${D}${datadir}/onboard/themes/
 	install -m 644 ${WORKDIR}/NI.theme ${D}${datadir}/onboard/themes/
+
+	install -m 644 ${WORKDIR}/${PN}-${PV}/build/share/autostart/onboard-autostart.desktop ${D}${sysconfdir}/xdg/autostart/
 }
 
 pkg_postinst:${PN} () {
 	dconf update
-	mv ${PYTHON_SITEPACKAGES_DIR}/etc/xdg/autostart/onboard-autostart.desktop ${sysconfdir}/xdg/autostart/onboard-autostart.desktop
 }
 
 
