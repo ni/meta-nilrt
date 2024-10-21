@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>NI Service Locator</short>
+  <description>The NI Service Locator is a legacy port mapping facility for NI software.</description>
+  <port protocol="tcp" port="3580"/>
+</service>

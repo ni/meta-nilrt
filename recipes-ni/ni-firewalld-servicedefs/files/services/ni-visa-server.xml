@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>NI-VISA Server</short>
+  <description></description>
+  <port protocol="tcp" port="3537"/>
+</service>

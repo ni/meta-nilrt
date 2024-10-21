@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>NI Logos XT</short>
+  <description>NI Logos XT is a publish-subscribe protocol used for data transfer between applications written in LabVIEW, CVI, and other elements of the NI software platform.</description>
+  <port protocol="tcp" port="2343"/>
+  <port protocol="tcp" port="59110-59209"/>
+  <port protocol="udp" port="6000-6010"/>
+</service>

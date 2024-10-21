@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>LabVIEW Real-Time</short>
+  <description>LabVIEW Real-Time permits interactive deployment, execution, and debugging of LabVIEW VIs on remote machines running real-time operating systems.</description>
+  <port protocol="tcp" port="3079"/>
+</service>

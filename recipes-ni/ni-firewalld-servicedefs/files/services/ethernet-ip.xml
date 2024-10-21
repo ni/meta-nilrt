@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>Ethernet/IP</short>
+  <description>Ethernet/IP is an industrial communications protocol which adapts the object-oriented Control and Information Protocol (CIP) to TCP/UDP.</description>
+  <include service="ethernet-ip-implicit"/>
+  <include service="ethernet-ip-explicit"/>
+</service>
