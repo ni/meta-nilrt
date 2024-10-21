@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>DNP3</short>
+  <description>DNP3 is an older smart grid protocol.</description>
+  <port protocol="tcp" port="20000"/>
+  <port protocol="udp" port="20000"/>
+</service>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>NI-RFSA Classic Soft Front Panel</short>
+  <description></description>
+  <port protocol="tcp" port="3303"/>
+</service>

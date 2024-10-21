@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>LabVIEW VI Server</short>
+  <description>The LabVIEW VI Server protocol permits deployment and manipulation of LabVIEW VIs and other resources on a remote LabVIEW application instance.</description>
+  <port protocol="tcp" port="3363"/>
+</service>

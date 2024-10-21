@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>Ethernet/IP Explicit Messaging</short>
+  <description>Ethernet/IP is an industrial communications protocol which adapts the object-oriented Control and Information Protocol (CIP) to TCP/UDP.</description>
+  <port protocol="udp" port="2222"/>
+  <port protocol="tcp" port="44818"/>
+</service>

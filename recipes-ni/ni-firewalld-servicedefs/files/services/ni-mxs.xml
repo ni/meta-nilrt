@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>NI MXS</short>
+  <description>The NI Configuration Manager ("MXS") stores configuration information on behalf of components of the NI software platform.</description>
+  <port protocol="tcp" port="51700"/>
+</service>
