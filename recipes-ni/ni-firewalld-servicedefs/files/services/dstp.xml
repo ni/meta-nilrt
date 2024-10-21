@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>DSTP</short>
+  <description>The DataSocket Transport Protocol (DSTP) is a legacy protocol for transferring measurement data to/from DataSocket Servers.</description>
+  <port protocol="tcp" port="3015"/>
+</service>

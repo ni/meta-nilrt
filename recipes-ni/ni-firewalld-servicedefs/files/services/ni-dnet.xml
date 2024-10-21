@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>NI-DNET</short>
+  <description></description>
+  <port protocol="tcp" port="1492"/>
+</service>
