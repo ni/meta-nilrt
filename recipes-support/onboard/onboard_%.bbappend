@@ -16,6 +16,7 @@ do_install:append () {
 	install -d ${D}${sysconfdir}/dconf/db/local.d
 	install -d ${D}${sysconfdir}/onboard
 	install -d ${D}${datadir}/onboard/themes
+	install -d ${D}${sysconfdir}/xdg/autostart
 
 	install -m 644 ${WORKDIR}/01-gnome-accessibility ${D}${sysconfdir}/dconf/db/local.d/
 	install -m 644 ${WORKDIR}/onboard-defaults.conf ${D}${sysconfdir}/onboard/
@@ -23,7 +24,7 @@ do_install:append () {
 	install -m 644 ${WORKDIR}/NI.colors ${D}${datadir}/onboard/themes/
 	install -m 644 ${WORKDIR}/NI.theme ${D}${datadir}/onboard/themes/
 
-	install -m 644 ${WORKDIR}/${PN}-${PV}/build/share/autostart/onboard-autostart.desktop ${D}${sysconfdir}/xdg/autostart/
+	mv ${D}${PYTHON_SITEPACKAGES_DIR}${sysconfdir}/xdg/autostart/onboard-autostart.desktop ${D}${sysconfdir}/xdg/autostart
 }
 
 pkg_postinst:${PN} () {
