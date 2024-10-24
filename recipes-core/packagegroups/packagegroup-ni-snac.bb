@@ -12,4 +12,5 @@ RDEPENDS:${PN} = "\
 	nilrt-snac \
 	ntp \
 	tmux \
+	wireguard-tools \
 "
