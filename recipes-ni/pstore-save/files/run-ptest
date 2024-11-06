@@ -2,9 +2,6 @@
 
 set -euo pipefail
 
-# close stdin
-exec 0<&-
-
 # redirect stderr to stdout
 exec 2>&1
 
