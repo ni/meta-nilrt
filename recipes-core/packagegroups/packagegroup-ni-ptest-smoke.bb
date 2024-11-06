@@ -35,6 +35,7 @@ RDEPENDS:${PN}:append = "\
 	pango-ptest \
 	parted-ptest \
 	perl-ptest \
+	pstore-save-ptest \
 	python3-appdirs-ptest \
 	python3-atomicwrites-ptest \
 	python3-bcrypt-ptest \
