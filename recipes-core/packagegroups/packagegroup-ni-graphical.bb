@@ -6,5 +6,6 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} = "\
-    packagegroup-ni-xfce \
+	packagegroup-ni-xfce \
+	sysconfig-settings-ui \
 "

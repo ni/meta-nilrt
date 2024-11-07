@@ -28,7 +28,6 @@ RDEPENDS:${PN}:append:x64 = "\
 		openbox \
 		sessreg \
 		setxkbmap \
-		sysconfig-settings-ui \
 		tk \
 		twm \
 		upower \

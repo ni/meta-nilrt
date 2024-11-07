@@ -126,7 +126,6 @@ RDEPENDS:${PN} += "\
 	salt-common \
 	salt-minion \
 	sysconfig-settings \
-	sysconfig-settings-ui \
 "
 
 # Required components for Veristand.
