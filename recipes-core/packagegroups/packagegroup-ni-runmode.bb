@@ -1,7 +1,3 @@
-# (C) Copyright 2013,
-#  National Instruments Corporation.
-#  All rights reserved.
-
 SUMMARY = "Runmode specific packages for NI Linux Realtime distribution"
 LICENSE = "MIT"
 
