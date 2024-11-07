@@ -10,6 +10,8 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} = "\
+	cpp \
+	cpp-symlinks \
 	dosfstools \
 	e2fsprogs \
 	e2fsprogs-e2fsck \
@@ -20,9 +22,13 @@ RDEPENDS:${PN} = "\
 	glibc-gconv-cp936 \
 	glibc-gconv-iso8859-1 \
 	iproute2-tc \
+	libmpc \
+	libpython3 \
 	librtpi \
+	libyaml \
 	linux-firmware-radeon \
 	lldpd \
+	mpfr \
 	nftables \
 	ni-configpersistentlogs \
 	ni-locale-alias \
@@ -30,22 +36,6 @@ RDEPENDS:${PN} = "\
 	niwatchdogpet \
 	opkg-utils-shell-tools \
 	parted \
-	rtctl \
-	systemimageupdateinfo \
-	util-linux-sfdisk \
-	vlan \
-	zip \
-"
-
-# Packages required by SystemLink
-RDEPENDS:${PN} += "\
-	cpp \
-	cpp-symlinks \
-	libmpc \
-	libpython3 \
-	libyaml \
-	mpfr \
-	python3-modules \
 	python3-aiodns \
 	python3-aiohttp \
 	python3-asn1crypto \
@@ -82,6 +72,7 @@ RDEPENDS:${PN} += "\
 	python3-mime \
 	python3-misc \
 	python3-mmap \
+	python3-modules \
 	python3-msgpack \
 	python3-multidict \
 	python3-multiprocessing \
@@ -123,9 +114,14 @@ RDEPENDS:${PN} += "\
 	python3-xml \
 	python3-xmlrpc \
 	python3-yarl \
+	rtctl \
 	salt-common \
 	salt-minion \
 	sysconfig-settings \
+	systemimageupdateinfo \
+	util-linux-sfdisk \
+	vlan \
+	zip \
 "
 
 # Required components for Veristand.
