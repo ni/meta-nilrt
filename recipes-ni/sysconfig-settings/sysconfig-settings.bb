@@ -175,5 +175,6 @@ INITSCRIPT_NAME:${PN}-ui = "nisetembeddeduixml"
 INITSCRIPT_PARAMS:${PN}-ui = "start 20 5 ."
 
 pkg_prerm_ontarget:${PN}-ui () {
+	nirtcfg --set "section=systemsettings,token=ui.enabled,value=False"
 	rm -f ${systemsettingsdir}/ui_enable.ini
 }
