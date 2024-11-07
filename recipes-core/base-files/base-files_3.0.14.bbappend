@@ -11,6 +11,7 @@ SRC_URI += "\
 	file://issue.net \
 	file://natinst-path.sh \
 	file://safemode-ps1.sh \
+	file://tmout.sh \
 "
 
 BASEFILESISSUEINSTALL = ""
@@ -35,6 +36,8 @@ do_install:append () {
 	install -m 644 ${WORKDIR}/issue.net  ${D}${sysconfdir}
 
 	install ${WORKDIR}/safemode-ps1.sh ${D}${sysconfdir}/profile.d/
+
+	install -m 0644 ${WORKDIR}/tmout.sh ${D}${sysconfdir}/profile.d/
 
 	install -d ${D}${sysconfdir}/default/volatiles/
 	# 10_var_vol_cache is only needed for post-8.5 safemodes to support
