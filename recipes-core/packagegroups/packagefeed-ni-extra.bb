@@ -3,47 +3,43 @@ LICENSE = "MIT"
 
 inherit packagegroup
 
-# These packages are only built for the nilrt-xfce fork of the older NILRT distro
-# as opposed to nilrt-nxg which always enables x11 support. Also only for x64
-# because NILRT ARM does not have a GUI.
-RDEPENDS:${PN}:append:x64 = "\
-	${@bb.utils.contains('DISTRO_FEATURES', 'x11', '\
-		packagegroup-self-hosted \
-		packagegroup-xfce-extended \
-		consolekit \
-		geany \
-		gimp \
-		gnuplot \
-		gnuradio \
-		gtk+3 \
-		iceauth \
-		fltk \
-		libvncserver \
-		libwmf \
-		lxdm \
-		mesa-demos \
-		modemmanager \
-		networkmanager \
-		numlockx \
-		openbox \
-		sessreg \
-		setxkbmap \
-		tk \
-		twm \
-		upower \
-		vte \
-		x11vnc \
-		xbitmaps \
-		xclock \
-		xcursorgen \
-		xdotool \
-		xfontsel \
-		xlsfonts \
-		xmag \
-		xrdb \
-		xterm \
-		xwd \
-	', '', d)} \
+# Graphical extra packages
+RDEPENDS:${PN}:append = "\
+	packagegroup-self-hosted \
+	packagegroup-xfce-extended \
+	consolekit \
+	fltk \
+	geany \
+	gimp \
+	gnuplot \
+	gnuradio \
+	gtk+3 \
+	iceauth \
+	libvncserver \
+	libwmf \
+	lxdm \
+	mesa-demos \
+	modemmanager \
+	networkmanager \
+	numlockx \
+	openbox \
+	sessreg \
+	setxkbmap \
+	tk \
+	twm \
+	upower \
+	vte \
+	x11vnc \
+	xbitmaps \
+	xclock \
+	xcursorgen \
+	xdotool \
+	xfontsel \
+	xlsfonts \
+	xmag \
+	xrdb \
+	xterm \
+	xwd \
 "
 
 RDEPENDS:${PN} = "\
