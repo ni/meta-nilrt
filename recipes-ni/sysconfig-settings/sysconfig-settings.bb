@@ -11,7 +11,6 @@ DEPENDS += "shadow-native pseudo-native niacctbase base-files-nilrt"
 
 # SOURCE VARIABLES #
 SRC_URI = "\
-	file://systemsettings/consoleout.ini \
 	file://systemsettings/fpga_target.ini \
 	file://systemsettings/rt_target.ini \
 	file://systemsettings/target_common.ini \
@@ -82,25 +81,17 @@ pkg_postinst_ontarget:${PN} () {
 	if ! [ "$TARGET_CLASS" = "cDAQ" -o "$TARGET_CLASS" = "CVS" ]; then
 		ln -sf ${settingsdatadir}/fpga_target.ini ${systemsettingsdir}/fpga_target.ini
 	fi
-
-	# add console out if we have a firmware variable for it (x86_64 targets only)
-	efiConsoleOutEnable=$(fw_printenv -n BootFirmwareConsoleOutEnable 2>/dev/null || true)
-	if ! [ -z "$efiConsoleOutEnable" ]; then
-		ln -sf ${settingsdatadir}/consoleout.ini ${systemsettingsdir}/consoleout.ini
-	fi
 }
 
 pkg_prerm_ontarget:${PN} () {
 	rm -f ${systemsettingsdir}/target_common.ini \
 		${systemsettingsdir}/rt_target.ini \
-		${systemsettingsdir}/fpga_target.ini \
-		${systemsettingsdir}/consoleout.ini
+		${systemsettingsdir}/fpga_target.ini
 }
 
 
 # PACKAGE VARAIBLES #
 FILES:${PN} = "\
-	${settingsdatadir}/consoleout.ini \
 	${settingsdatadir}/fpga_target.ini \
 	${settingsdatadir}/rt_target.ini \
 	${settingsdatadir}/target_common.ini \
@@ -115,6 +106,35 @@ RDEPENDS:${PN} += "niacctbase bash fw-printenv"
 
 # SUBPACKAGES #
 ###############
+
+# sysconfig-settings-console package
+PACKAGES += "${PN}-console"
+SUMMARY:${PN}-console = "System configuration files to control console output"
+DESCRIPTION:${PN}-console = "Configuration files that allow NI hardware configuration applications to control the consoleout firmware setting."
+
+SRC_URI:append = "\
+	file://systemsettings/consoleout.ini \
+"
+
+FILES:${PN}-console = "\
+	${settingsdatadir}/consoleout.ini \
+"
+
+RDEPENDS:${PN}-console += "sysconfig-settings fw-printenv"
+
+
+pkg_postinst_ontarget:${PN}-console () {
+	# add console out if we have a firmware variable for it (x86_64 targets only)
+	efiConsoleOutEnable=$(fw_printenv -n BootFirmwareConsoleOutEnable 2>/dev/null || true)
+	if ! [ -z "$efiConsoleOutEnable" ]; then
+		ln -sf ${settingsdatadir}/consoleout.ini ${systemsettingsdir}/consoleout.ini
+	fi
+}
+
+pkg_prerm_ontarget:${PN}-console () {
+	rm -f ${systemsettingsdir}/consoleout.ini
+}
+
 
 # sysconfig-settings-ssh package
 PACKAGES += "${PN}-ssh"
