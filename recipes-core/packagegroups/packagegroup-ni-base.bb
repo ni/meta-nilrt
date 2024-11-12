@@ -90,6 +90,7 @@ RDEPENDS:${PN} += "\
 	run-postinsts \
 	sudo \
 	sysconfig-settings \
+	sysconfig-settings-console \
 	syslog-ng \
 	sysvinit \
 	tar \
