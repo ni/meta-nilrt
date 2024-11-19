@@ -31,8 +31,6 @@ NI_PROPRIETARY_COMMON_PACKAGES = "\
         ni-wif-landingpage \
         ni-wifibledd \
         ni-wireless-ath6kl \
-        ni-wireless-cert-management-webservice \
-        ni-wireless-cert-storage \
         nicurl \
         nirtcfg \
         nirtmdnsd \
