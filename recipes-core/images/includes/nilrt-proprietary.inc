@@ -34,7 +34,6 @@ NI_PROPRIETARY_COMMON_PACKAGES = "\
         nicurl \
         nirtcfg \
         nirtmdnsd \
-        nissl \
 "
 
 NI_PROPRIETARY_RUNMODE_PACKAGES = "\
