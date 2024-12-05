@@ -25,6 +25,7 @@ RDEPENDS:${PN} = "\
 	packagegroup-ni-wifi \
 	dkms \
 	bolt \
+	onboard \
 "
 
 RDEPENDS:${PN}:append = "\
