@@ -8,6 +8,7 @@ inherit packagegroup
 RDEPENDS:${PN} = "\
 	cryptsetup \
 	firewalld \
+	ni-firewalld-servicedefs \
 	libpwquality \
 	nilrt-snac \
 	ntp \
