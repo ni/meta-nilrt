@@ -1,0 +1,27 @@
+From c58f7da958a65cfc7a38836ad0be72a6bdf62fd8 Mon Sep 17 00:00:00 2001
+From: pratheekshasn <pratheeksha.s.n@ni.com>
+Date: Tue, 10 Dec 2024 10:27:14 +0530
+Subject: [PATCH] parse user_defined_fields in control file
+
+Upstream-Status: Pending [This will get submitted to the ni/nilrt repo before upstreaming it.]
+
+Signed-off by: Pratheeksha S N <pratheeksha.s.n@ni.com>
+
+---
+ opkg.py | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/opkg.py b/opkg.py
+index e5a65dd..0e469e0 100644
+--- a/opkg.py
++++ b/opkg.py
+@@ -294,8 +294,7 @@ class Package(object):
+                 elif all_fields:
+                     self.user_defined_fields[name] = value
+                 else:
+-                    print("Lost field %s, %s" % (name,value))
+-                    pass
++                    self.user_defined_fields[name] = value
+ 
+                 if line and line[0] == '\n':
+                     return # consumes one blank line at end of package descriptoin
