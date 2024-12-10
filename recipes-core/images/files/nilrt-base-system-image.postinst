@@ -110,3 +110,7 @@ for pid in $(pidof gpg-agent); do
 		break
 	fi
 done
+
+# Upgrade opkg-keyrings so that users can get the latest signing keys
+opkg -o /mnt/userfs/ update
+opkg -o /mnt/userfs/ upgrade opkg-keyrings
