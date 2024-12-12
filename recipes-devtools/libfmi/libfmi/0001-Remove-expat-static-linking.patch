@@ -1,0 +1,139 @@
+From 6f8e979b422b9eb288e484305a537f552339c0dc Mon Sep 17 00:00:00 2001
+From: pratheekshasn <pratheeksha.s.n@ni.com>
+Date: Fri, 13 Dec 2024 09:44:53 +0530
+Subject: [PATCH] Remove expat static linking
+
+libfmi is currently statically linking to expat. This patch removes that dependency and links to expat dynamically,
+since historically this is what has been followed. The expat source code contained in the libfmi source is older,
+and does not have fixes for certain CVEs, and our CVE reporting was unable to detect these issues as the expat build
+was hidden in the libfmi build. This patch removes the expat build from libfmi and links to the system expat library.
+
+The upstream libfmi has been updated to dynamically link to expat, and this patch will be removed when the libfmi
+version is updated to the latest version.
+
+Upstream-Status: Inappropriate [Temporary patch which will go away when libfmi is updated to the latest version]
+
+Signed-off-by: pratheekshasn <pratheeksha.s.n@ni.com>
+---
+ CMakeLists.txt            |  2 +-
+ Config.cmake/fmixml.cmake | 87 +--------------------------------------
+ 2 files changed, 2 insertions(+), 87 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 93c8c21..dbaeb4c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -288,7 +288,7 @@ if(FMILIB_BUILD_TESTS)
+     )
+ endif()
+ 
+-set(FMILIB_SHARED_SUBLIBS fmixml fmizip fmicapi expat minizip zlib c99snprintf)
++set(FMILIB_SHARED_SUBLIBS fmixml fmizip fmicapi minizip zlib c99snprintf)
+ set(FMILIB_SUBLIBS fmiimport jmutils ${FMILIB_SHARED_SUBLIBS})
+ # XXX: Unclear why we create intermediate sublibs instead of just giving everything as source.
+ # Probably also wouldn't get problems with using PRIVATE/PUBLIC on linking sublibs on Windows.
+diff --git a/Config.cmake/fmixml.cmake b/Config.cmake/fmixml.cmake
+index 5cb743f..93e829e 100644
+--- a/Config.cmake/fmixml.cmake
++++ b/Config.cmake/fmixml.cmake
+@@ -101,7 +101,6 @@ endif()
+ 
+ # set(DOXYFILE_EXTRA_SOURCES "${DOXYFILE_EXTRA_SOURCES} \"${FMIXMLDIR}/include\"")
+ 
+-set(FMIXML_EXPAT_DIR "${FMILIB_THIRDPARTYLIBS}/Expat/expat-2.5.0")
+ 
+ set(FMIXMLHEADERS
+     include/FMI/fmi_xml_context.h
+@@ -179,91 +178,7 @@ set(FMIXMLSOURCE
+     src/FMI3/fmi3_xml_terminals_and_icons.c
+ )
+ 
+-include(ExternalProject)
+-
+-# The *_POSTFIX variables are set because it makes it easier to determine the name of
+-# the lib expat will produce at configure time. Note that Expat has some special handling
+-# for it for MSVC which this in effect negates. https://github.com/libexpat/libexpat/pull/316
+-set(EXPAT_SETTINGS
+-    -DEXPAT_BUILD_TOOLS:BOOLEAN=OFF
+-    -DEXPAT_BUILD_EXAMPLES:BOOLEAN=OFF
+-    -DEXPAT_BUILD_TESTS:BOOLEAN=OFF
+-    -DEXPAT_SHARED_LIBS:BOOLEAN=OFF
+-    -DEXPAT_DTD:BOOLEAN=OFF
+-    -DEXPAT_NS:BOOLEAN=OFF
+-    -DEXPAT_MSVC_STATIC_CRT:BOOLEAN=${FMILIB_BUILD_WITH_STATIC_RTLIB}
+-    -DEXPAT_DEBUG_POSTFIX:STRING=
+-    -DEXPAT_RELEASE_POSTFIX:STRING=
+-    -DEXPAT_MINSIZEREL_POSTFIX:STRING=
+-    -DEXPAT_RELWITHDEBINFO_POSTFIX:STRING=
+-    -DCMAKE_POSITION_INDEPENDENT_CODE:BOOLEAN=ON
+-    -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+-    -DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_EXE_LINKER_FLAGS}
+-    -DCMAKE_LINK_LIBRARY_FLAG:STRING=${CMAKE_LINK_LIBRARY_FLAG}
+-    -DCMAKE_MODULE_LINKER_FLAGS:STRING=${CMAKE_MODULE_LINKER_FLAGS}
+-    -DCMAKE_SHARED_LINKER_FLAGS:STRING=${CMAKE_SHARED_LINKER_FLAGS}
+-    -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}/ExpatEx/install
+-)
+-
+-ExternalProject_Add(
+-    expatex
+-    PREFIX "${FMIXML_EXPAT_DIR}"
+-    SOURCE_DIR "${FMIXML_EXPAT_DIR}"
+-    CMAKE_CACHE_ARGS ${EXPAT_SETTINGS}
+-    BINARY_DIR ${CMAKE_BINARY_DIR}/ExpatEx
+-    INSTALL_DIR ${CMAKE_BINARY_DIR}/ExpatEx/install
+-    TMP_DIR     ${CMAKE_BINARY_DIR}/ExpatEx/tmp
+-    STAMP_DIR   ${CMAKE_BINARY_DIR}/ExpatEx/stamp
+-)
+-
+-ExternalProject_Add_Step(
+-    expatex dependent_reconfigure
+-    DEPENDEES configure
+-    DEPENDERS build
+-    COMMAND ${CMAKE_COMMAND} -E echo "Running:  ${CMAKE_COMMAND} -G \"${CMAKE_GENERATOR}\"  ${EXPAT_SETTINGS} ${FMIXML_EXPAT_DIR}"
+-    COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" ${EXPAT_SETTINGS} "${FMIXML_EXPAT_DIR}"
+-    DEPENDS ${CMAKE_BINARY_DIR}/CMakeCache.txt
+-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/ExpatEx
+-)
+-
+-# XXX: Maybe we could use FetchContent to find targets of expat? Then we hopefully
+-# wouldn't need below workarounds for guessing expatlib's location and name.
+-# Requires CMake 3.16 though.
+-
+-if(MSVC)
+-    # Expat uses special naming with MSVC, which is mirrored here.
+-    set(EXPAT_LIB_PREFIX lib)
+-else()
+-    set(EXPAT_LIB_PREFIX ${CMAKE_STATIC_LIBRARY_PREFIX})
+-endif()
+-
+-if("${CMAKE_CFG_INTDIR}" STREQUAL ".")
+-    # Ninja complains about 'ExpatEx/./libexpat.a' otherwise. Probably because
+-    # generator expressions in mergestaticlibs give slighlty different paths.
+-    set(expatlib "${CMAKE_BINARY_DIR}/ExpatEx/${EXPAT_LIB_PREFIX}expat${CMAKE_STATIC_LIBRARY_SUFFIX}")
+-else()
+-    set(expatlib "${CMAKE_BINARY_DIR}/ExpatEx/${CMAKE_CFG_INTDIR}/${EXPAT_LIB_PREFIX}expat${CMAKE_STATIC_LIBRARY_SUFFIX}")
+-endif()
+-
+-# Workaround to make it explicit that target 'expatex' produces 'expatlib'. (Ninja complains otherwise.)
+-add_custom_command(
+-    OUTPUT "${expatlib}"
+-    DEPENDS expatex
+-)
+-add_custom_target(tmp_expatlib DEPENDS ${expatlib})
+-
+-add_library(expat STATIC IMPORTED)
+-set_target_properties(
+-    expat PROPERTIES
+-        IMPORTED_LOCATION "${expatlib}"
+-)
+-add_dependencies(expat tmp_expatlib)
+-
+-if(FMILIB_INSTALL_SUBLIBS)
+-    install(FILES "${expatlib}" DESTINATION lib)
+-endif()
+-
+-set(EXPAT_INCLUDE_DIRS ${CMAKE_BINARY_DIR}/ExpatEx/install/include)
++find_package(EXPAT REQUIRED)
+ 
+ PREFIXLIST(FMIXMLSOURCE  ${FMIXMLDIR}/)
+ PREFIXLIST(FMIXMLHEADERS ${FMIXMLDIR}/)
