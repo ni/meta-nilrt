@@ -3,4 +3,7 @@
   <short>NI MXS</short>
   <description>The NI Configuration Manager ("MXS") stores configuration information on behalf of components of the NI software platform.</description>
   <port protocol="tcp" port="51700"/>
+  <port protocol="tcp" port="57616"/>
+  <port protocol="tcp" port="61900"/>
+  <port protocol="tcp" port="62602"/>
 </service>
