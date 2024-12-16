@@ -19,9 +19,11 @@ SRC_URI = "\
 	file://services/ni-labview-realtime.xml \
 	file://services/ni-labview-viserver.xml \
 	file://services/ni-logos-xt.xml \
+	file://services/ni-mxs.xml \
 	file://services/ni-rfsa-classic-sfp.xml \
 	file://services/ni-rfsa-sfp.xml \
 	file://services/ni-rfsg-sfp.xml \
+	file://services/ni-rpc-server.xml \
 	file://services/ni-scope-sfp.xml \
 	file://services/ni-service-locator.xml \
 	file://services/ni-sync-remote.xml \
