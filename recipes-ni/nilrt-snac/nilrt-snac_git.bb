@@ -31,6 +31,9 @@ do_install_ptest() {
 	install -m 0755 ${WORKDIR}/run-ptest ${D}${PTEST_PATH}
 }
 
+FILES:${PN} += "\
+	${datadir}/* \
+"
 
 RDEPENDS:${PN} = "\
 	bash \
