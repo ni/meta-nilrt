@@ -9,11 +9,11 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=380df876633ca23587b9851600778cc0"
 
 
 SRC_URI = "\
-	git://github.com/ni/nilrt-snac;branch=master;protocol=https \
+	git://github.com/ni/nilrt-snac;branch=stable/v1.0;protocol=https \
 	file://run-ptest \
 "
 
-SRCREV = "${AUTOREV}"
+SRCREV = "ec655ebbfaa34d07a8773ff024342f1076e5136c"
 PV = "0.1.1+git${SRCPV}"
 
 S = "${WORKDIR}/git"
