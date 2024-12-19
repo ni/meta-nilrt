@@ -21,4 +21,4 @@ do_install:append() {
 	install -m 0444 ${WORKDIR}/nilrt-feed-2023.gpg ${D}${datadir}/opkg/keyrings/
 }
 
-PACKAGE_ADD_METADATA_IPK:opkg-keyrings = "DisplayName: Opkg-Keyrings\nUserVisible: yes\n"
+PACKAGE_ADD_METADATA_IPK:opkg-keyrings = "DisplayName: Opkg-Keyrings\nUserVisible: yes\nEssential: yes\n"
