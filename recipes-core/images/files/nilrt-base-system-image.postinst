@@ -112,5 +112,5 @@ for pid in $(pidof gpg-agent); do
 done
 
 # Upgrade opkg-keyrings so that users can get the latest signing keys
-opkg -o /mnt/userfs/ update
-opkg -o /mnt/userfs/ upgrade opkg-keyrings
+# OR the command with true since the postinst script shouldn't return an error if the opkg update + upgrade fails.
+opkg -o /mnt/userfs/ update && opkg -o /mnt/userfs/ upgrade opkg-keyrings || true
