@@ -113,4 +113,6 @@ done
 
 # Upgrade opkg-keyrings so that users can get the latest signing keys
 # OR the command with true since the postinst script shouldn't return an error if the opkg update + upgrade fails.
-opkg -o /mnt/userfs/ update && opkg -o /mnt/userfs/ upgrade opkg-keyrings || true
+# Upgrade the opkg-keyrings first to avoid the "unknown key" error when updating the package list. Since the
+# opkg-keyrings IPK is present in the dist feed, and signed with the previous key, the keyring upgrade will not fail.
+opkg -o /mnt/userfs/ upgrade opkg-keyrings && opkg -o /mnt/userfs/ update || true
