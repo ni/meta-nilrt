@@ -17,7 +17,6 @@ RDEPENDS:${PN} += "\
 	e2fsprogs-tune2fs \
 	efibootmgr \
 	efivar \
-	eudev \
 	findutils \
 	fw-printenv \
 	gawk \
@@ -33,7 +32,7 @@ RDEPENDS:${PN} += "\
 	parted \
 	procps \
 	sed \
-	sysvinit \
+	systemd \
 	tar \
 	util-linux \
 	util-linux-agetty \

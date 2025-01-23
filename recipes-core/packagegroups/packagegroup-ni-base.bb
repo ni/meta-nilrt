@@ -45,7 +45,6 @@ RDEPENDS:${PN} += "\
 	efibootmgr \
 	efivar \
 	ethtool \
-	eudev \
 	fw-printenv \
 	glibc-gconv-utf-16 \
 	gptfdisk \
@@ -92,7 +91,7 @@ RDEPENDS:${PN} += "\
 	sysconfig-settings \
 	sysconfig-settings-console \
 	syslog-ng \
-	sysvinit \
+	systemd \
 	tar \
 	udev-extraconf \
 	usbutils \

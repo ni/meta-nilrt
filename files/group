@@ -5,6 +5,11 @@ nogroup:x:65534:
 ni:x:500:
 openvpn:x:499:
 niwscerts:x:498:
+systemd-bus-proxy:x:497:
+systemd-network:x:496:
+systemd-resolve:x:495:
+render:x:494:
+sgx:x:493:
 # free space
 arpwatch:x:402:
 ptest:x:401:

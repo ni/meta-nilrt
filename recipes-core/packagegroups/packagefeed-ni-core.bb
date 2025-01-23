@@ -24,7 +24,6 @@ RDEPENDS:${PN} = "\
 	packagegroup-ni-tzdata \
 	packagegroup-ni-wifi \
 	dkms \
-	bolt \
 	onboard \
 "
 

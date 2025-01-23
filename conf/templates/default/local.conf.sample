@@ -197,5 +197,5 @@ BUILDNAME ?= "99.0.0d0"
 CONF_VERSION = "1"
 
 # Explicitly set system initialization method
-INIT_MANAGER = "sysvinit"
+INIT_MANAGER = "systemd"
 
