@@ -39,7 +39,6 @@ do_kernel_configme[depends] += "libgcc:do_populate_sysroot"
 
 SRC_URI = "\
 	${NILRT_GIT}/${GIT_KERNEL_REPO};protocol=https;branch=${KBRANCH} \
-	file://export-kernel-headers.sh \
 "
 # Generically use the *latest* rev from the kernel source branch, if none is
 # specified by a recipe.
@@ -78,20 +77,6 @@ DEPENDS:append:x64 = " elfutils-native"
 DEPENDS:append:armv7a = " dtc-native"
 
 RDEPENDS:kernel-dev += "bash binutils gcc gcc-symlinks"
-
-PACKAGES += "${PN}-module-versioning-headers"
-
-FILES:${PN}-module-versioning-headers = "/kernel"
-
-# Install headers and build objects for kernel versioning into
-do_install:append() {
-	export CROSS_COMPILE=${CROSS_COMPILE} ARCH=${ARCH} KBUILD_OUTPUT=${KBUILD_OUTPUT}
-
-	# for older NILRT install under /kernel for inclusion in squashfs for backwards
-	# compatibility with non-standard Linux installs (non-dkms). This should go away
-	# and older NILRT should be migrated to kernel-dev + dkms in the future.
-	${WORKDIR}/export-kernel-headers.sh ${S} ${D}/kernel
-}
 
 do_shared_workdir:append() {
 	cp -rf ./* ${STAGING_KERNEL_BUILDDIR}
