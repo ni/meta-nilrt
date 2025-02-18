@@ -1,7 +1,7 @@
 #!/bin/bash
 source "$(dirname "$0")"/common.cfg
 
-CPUS=`nproc --all`
+CPUS=`nproc`
 if [ $CPUS -lt 2 ]; then
 	echo "ERROR: the containerized hackbench test requires a system with at least 2 CPUs"
 	echo "SKIP: test_kernel_hackbench_containerized"

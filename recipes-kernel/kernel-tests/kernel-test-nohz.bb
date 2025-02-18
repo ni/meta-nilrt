@@ -36,7 +36,7 @@ do_install_ptest:append() {
 }
 
 pkg_postinst_ontarget:${PN}-ptest:append() {
-    CPUS=`nproc --all`
+    CPUS=`nproc`
     ISOLATED_CPU=$((CPUS - 1))
 
     if [ $ISOLATED_CPU -gt 0 ]; then
