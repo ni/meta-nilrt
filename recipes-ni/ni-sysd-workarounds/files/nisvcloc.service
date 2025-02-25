@@ -1,0 +1,14 @@
+[Unit]
+Description=NI Service Locator
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/bin
+ExecStart=/usr/bin/nisvcloc -D -n
+ExecStop=/usr/bin/nisvcloc
+Restart=always
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

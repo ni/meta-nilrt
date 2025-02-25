@@ -1,0 +1,13 @@
+[Unit]
+Description=systemWebServer
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/local/natinst/share/NIWebServer/
+ExecStart=/usr/local/natinst/share/NIWebServer/systemWebServer_service start
+ExecStop=/usr/local/natinst/share/NIWebServer/systemWebServer_service stop
+Restart=always
+User=webserv
+
+[Install]
+WantedBy=multi-user.target

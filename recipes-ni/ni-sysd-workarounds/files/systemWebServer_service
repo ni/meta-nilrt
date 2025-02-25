@@ -1,0 +1,46 @@
+#! /bin/sh
+#
+
+ulimit -s 256
+
+certInitPath=/usr/local/natinst/share/NIWebServer/certInit
+progname=systemWebServer
+progpath=/usr/local/natinst/share/NIWebServer/SystemWebServer
+arguments="-timeout 50 -child-timeout 20 -system"
+stopargs="-stop -system"
+
+# init.d script from National Instruments
+test -x "$progpath" || exit 0
+
+start(){
+	echo -n "Starting $progname: "
+	if ! $certInitPath; then
+		echo "Certificate initialization failed!"
+	fi
+	if [ ! -f /etc/natinst/safemode ]; then
+		$progpath $arguments
+	else
+		capsh --caps=cap_setpcap,cap_setuid,cap_setgid,cap_net_bind_service,cap_net_admin,cap_sys_time+ep --inh=cap_net_bind_service,cap_net_admin,cap_sys_time --keep=1 --addamb=cap_net_bind_service,cap_net_admin,cap_sys_time -- "$progpath $arguments"
+	fi
+    test $? -eq 1 || echo "done"
+}
+stop(){
+	echo -n "Stopping $progname: "
+	$progpath $stopargs
+	echo "done"
+}
+
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+  	stop
+	;;
+  *)
+	echo "Usage: $progname {start|stop}" >&2
+	exit 1
+	;;
+esac
+
+exit 0

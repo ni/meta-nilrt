@@ -1,0 +1,14 @@
+[Unit]
+Description=niminionagent
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/bin/
+ExecStart=/usr/bin/niminionagent
+ExecStop=/usr/bin/niminionagent
+Restart=always
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

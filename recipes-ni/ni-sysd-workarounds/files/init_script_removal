@@ -1,0 +1,79 @@
+#!/bin/sh
+set -e
+
+niauth () {
+	/sbin/update-rc.d -f niauth remove
+	rm -f /etc/init.d/niauth
+	rm -f /usr/local/natinst/etc/init.d/niauth
+	systemctl daemon-reload
+	systemctl enable niauth.service
+	systemctl start niauth.service
+}
+
+nirtmdnsd () {
+   /sbin/update-rc.d -f nirtmdnsd remove
+   rm -f /usr/local/natinst/etc/init.d/nirtmdnsd
+   rm -f /etc/init.d/nirtmdnsd
+   systemctl daemon-reload
+   systemctl enable nirtmdnsd.service
+   systemctl start nirtmdnsd.service
+}
+
+niminionagent () {
+   /sbin/update-rc.d -f niminionagent remove
+   rm -f /etc/init.d/niminionagent
+   systemctl daemon-reload
+   systemctl enable niminionagent.service
+   systemctl start niminionagent.service
+}
+
+nisvcloc () {
+   /sbin/update-rc.d -f nisvcloc remove
+   rm -f /etc/init.d/nisvcloc
+   systemctl daemon-reload
+   systemctl enable nisvcloc.service
+   systemctl start nisvcloc.service
+}
+
+systemWebServer () {
+   /sbin/update-rc.d -f systemWebServer remove
+   rm -f /usr/local/natinst/etc/init.d/systemWebServer
+   rm -f /etc/init.d/systemWebServer
+   systemctl daemon-reload
+   systemctl enable systemWebServer.service
+   systemctl start systemWebServer.service
+}
+
+nisysmgmtmdnspublisher () {
+   /sbin/update-rc.d -f nisysmgmtmdnspublisher remove
+   rm -f /etc/init.d/nisysmgmtmdnspublisher
+   systemctl daemon-reload
+   systemctl enable nisysmgmtmdnspublisher.service
+   systemctl start nisysmgmtmdnspublisher.service
+}
+
+case "$1" in
+   niauth)
+      niauth
+      ;;
+   nirtmdnsd)
+      nirtmdnsd
+      ;;
+   niminionagent)
+      niminionagent
+      ;;
+   nisvcloc)
+      nisvcloc
+      ;;
+   systemWebServer)
+      systemWebServer
+      ;;
+   nisysmgmtmdnspublisher)
+      nisysmgmtmdnspublisher
+      ;;
+   *)
+      echo "Usage: $0 {niauth|nirtmdnsd|niminionagent|nisvcloc|systemWebServer|nisymgmtmdnspublisher}" >&2
+      exit 1
+esac
+
+exit 0

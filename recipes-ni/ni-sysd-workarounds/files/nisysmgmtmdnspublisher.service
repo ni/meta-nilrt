@@ -1,0 +1,14 @@
+[Unit]
+Description=nisysmgmtmdnspublisher
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/bin/
+ExecStart=/usr/bin/ni_sysmgmt_mdns_publisher
+ExecStop=/usr/bin/ni_sysmgmt_mdns_publisher
+Restart=always
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,14 @@
+[Unit]
+Description=nirtmdnsd
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/local/natinst/bin/
+ExecStart=/usr/local/natinst/bin/nirtmdnsd
+ExecStop=/usr/local/natinst/bin/nirtmdnsd
+Restart=always
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
