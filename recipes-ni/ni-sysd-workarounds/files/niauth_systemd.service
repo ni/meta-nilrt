@@ -1,0 +1,18 @@
+[Unit]
+Description=NIAuth Database
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/local/natinst/share/NIAuth
+ExecStartPre=/usr/local/natinst/share/NIAuth/niauth_systemd pre_start
+ExecStart=/usr/local/natinst/share/NIAuth/niauth_daemon
+ExecStartPost=/usr/local/natinst/share/NIAuth/niauth_systemd post_start
+ExecStop=/usr/local/natinst/share/NIAuth/niauth_systemd stop
+ExecStop=/usr/local/natinst/share/NIAuth/niauth_daemon
+Restart=always
+User=root
+Group=root
+Environment=PATH=/sbin/:/bin:/usr/bin:/usr/local/bin:/usr/local/natinst/share/NIAuth
+
+[Install]
+WantedBy=default.target
