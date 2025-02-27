@@ -1,0 +1,64 @@
+#!/bin/sh
+set -e
+
+usrPath="/usr/local/natinst/share/NIAuth"
+varPath="/run/natinst/niauth"
+enableFilePath="$varPath/enable_nss_pam"
+dbPath="/etc/natinst/share/niauth"
+
+pre_start() {
+	# Create the database directory with the proper permissions. (If the
+	# directory already exists, retouch its permissions.)
+	if [ -d "$dbPath" ]; then
+		dir="$dbPath"
+	elif ! dir=`mktemp -d -p /etc/natinst/share`; then
+		echo "Couldn't create temporary directory for NIAuth"
+		exit 1
+	fi
+
+	if ! chown webserv:ni "$dir"; then
+		echo "Couldn't set NIAuth database directory owner"
+		exit 1
+	fi
+	if ! chmod 700 "$dir"; then
+		echo "Warning: Couldn't set NIAuth database directory permissions"
+	fi
+
+	# Atomically move the database directory into place if it was just created.
+	if [ ! -d "$dbPath" ]; then
+		if ! mv "$dir" "$dbPath"; then
+			echo "Couldn't create NIAuth database directory"
+			exit 1
+		fi
+	fi
+
+	mkdir -p "$varPath"
+}
+
+post_start () {
+	# Enable the NSS/PAM module.
+	echo "1" > "$enableFilePath"
+}
+
+stop() {
+	mkdir -p "$varPath"
+	echo "0" > "$enableFilePath"
+}
+
+case "$1" in
+	pre_start)
+		pre_start
+		;;
+	post_start)
+		post_start
+		;;
+	stop)
+		stop
+		;;
+	*)
+		echo "Usage: $0 {pre_start|post_start|stop}"
+		exit 1
+		;;
+esac
+
+exit 0
