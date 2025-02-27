@@ -5,6 +5,9 @@ nogroup:x:65534:
 ni:x:500:
 openvpn:x:499:
 niwscerts:x:498:
+systemd-network:x:497:
+systemd-resolve:x:496:
+render:x:495:
 # free space
 arpwatch:x:402:
 ptest:x:401:
