@@ -6,6 +6,8 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} += "\
+	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'systemd', 'sysvinit', d)} \
+	${@bb.utils.contains('INIT_MANAGER', 'sysvinit', 'eudev', '', d)} \
 	base-passwd \
 	bash \
 	bzip2 \
@@ -17,7 +19,6 @@ RDEPENDS:${PN} += "\
 	e2fsprogs-tune2fs \
 	efibootmgr \
 	efivar \
-	eudev \
 	findutils \
 	fw-printenv \
 	gawk \
@@ -33,7 +34,6 @@ RDEPENDS:${PN} += "\
 	parted \
 	procps \
 	sed \
-	sysvinit \
 	tar \
 	util-linux \
 	util-linux-agetty \

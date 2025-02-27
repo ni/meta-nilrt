@@ -15,7 +15,8 @@ DISTRO_FEATURES += "\
         xattr \
         zeroconf \
         pci \
-        sysvinit \
+        systemd \
+        usrmerge \
         pam \
         ptest \
         selinux \
@@ -74,7 +75,7 @@ VIRTUAL-RUNTIME_base-utils-hwclock = "util-linux-hwclock"
 
 VIRTUAL-RUNTIME_initscripts = "initscripts"
 
-VIRTUAL-RUNTIME_init_manager = "sysvinit"
+VIRTUAL-RUNTIME_init_manager = "systemd"
 
 # For qemu images
 VIRTUAL-RUNTIME_keymaps = ""
