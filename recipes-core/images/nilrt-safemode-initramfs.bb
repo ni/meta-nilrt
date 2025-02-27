@@ -34,6 +34,9 @@ BAD_RECOMMENDATIONS:append:pn-${PN} = " shared-mime-info *-lic util-linux-lastlo
 
 IMAGE_LINGUAS:remove = "ja-jp.windows-31j zh-cn.cp936"
 
+PACKAGE_WRITE_DEPS:append = " ${@bb.utils.contains('DISTRO_FEATURES','systemd','systemd-systemctl-native','',d)}"
+DEPENDS:append = " ${@bb.utils.contains('DISTRO_FEATURES','systemd','systemd-systemctl-native','',d)}"
+
 # Do not allow python to be installed into safemode ramdisk due to size
 PACKAGE_EXCLUDE += "python-core python3-core"
 
