@@ -22,6 +22,8 @@ IMAGE_INSTALL_NODEPS += "\
 
 # Ensure that rauc does not end up in this image.
 PACKAGE_EXCLUDE += "rauc rauc-mark-good"
+PACKAGE_WRITE_DEPS:append = " ${@bb.utils.contains('DISTRO_FEATURES','systemd','systemd-systemctl-native','',d)}"
+DEPENDS:append = " ${@bb.utils.contains('DISTRO_FEATURES','systemd','systemd-systemctl-native','',d)}"
 
 # on older NILRT distro flavors the kernel is installed in non-standard paths
 # for backward compatibility

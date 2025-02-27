@@ -24,6 +24,9 @@ IMAGE_INSTALL_NODEPS += "\
 
 BAD_RECOMMENDATIONS:append:pn-${PN} = " shared-mime-info"
 
+PACKAGE_WRITE_DEPS:append = " ${@bb.utils.contains('DISTRO_FEATURES','systemd','systemd-systemctl-native','',d)}"
+DEPENDS:append = " ${@bb.utils.contains('DISTRO_FEATURES','systemd','systemd-systemctl-native','',d)}"
+
 # Do not allow python to be installed into safemode ramdisk due to size
 PACKAGE_EXCLUDE += "python-core python3-core"
 
