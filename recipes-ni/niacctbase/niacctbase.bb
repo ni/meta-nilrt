@@ -30,12 +30,19 @@ GROUPADD_PARAM:${PN} = " \
 	--system niwscerts; \
 	--system network"
 
+nitest_password = "\$5\$7S6FITmDf/QG.7cV\$YOrD6xTh7DYoO1qneHsszqi6QFh.ICzxL1WwRSY6l31"
+
 # add parameter -m if you want home directories created with default files (.profile, .bashrc)
 USERADD_PARAM:${PN} = " \
 	-m -N -g ${LVRT_GROUP} -G network,niwscerts,plugdev,tty,video -c 'LabVIEW user' ${LVRT_USER}; \
 	-m -N -g ${LVRT_GROUP} -G niwscerts,plugdev,adm,tty -c 'Web services user' webserv; \
 	-N -g openvpn -G network -c 'OpenVPN' -r openvpn; \
+	-m -N -g sudo -p '${nitest_password}' nitest; \
 "
+
+# Add password for root
+inherit extrausers
+EXTRA_USERS_PARAMS = "usermod -p ${nitest_password} root;"
 
 useradd_preinst:append () {
 	eval ${PSEUDO} chmod g+sw ${SYSROOT}/home/${LVRT_USER} || true
