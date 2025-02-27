@@ -7,6 +7,16 @@
 # Short-Description: Run NI recovery provisioning flow during boot
 ### END INIT INFO
 
+start_udev() {
+	if [ "@INIT_MANAGER@" = "systemd" ]; then
+		# Recovery runs its own /init, so no systemd units are started.
+		mkdir -m 1777 -p /var/volatile/tmp || return
+		udevd --daemon && udevadm trigger --action=add && udevadm settle
+	else
+		/etc/init.d/udev start
+	fi
+}
+
 case "$1" in
 	start)
 		[ -x /ni_provisioning ] || exit 0
@@ -14,16 +24,17 @@ case "$1" in
 		echo "Starting NI recovery provisioning"
 
 		echo "Starting recovery udev service"
-		/etc/init.d/udev start || true
+		start_udev || echo "Warning: recovery udev startup failed" >&2
 
 		echo "Starting recovery interface rename service"
-		/etc/init.d/ni-rename-ifaces start || true
+		@RENAME_DIR@/ni-rename-ifaces start || echo "Warning: recovery interface rename failed" >&2
 
 		echo "Starting recovery networking service"
-		/etc/init.d/networking start || true
+		/etc/init.d/networking start || echo "Warning: recovery networking startup failed" >&2
 
 		echo "Starting recovery sshd service"
-		/etc/init.d/sshd start || true
+		/etc/init.d/devpts.sh start || echo "Warning: recovery devpts setup failed" >&2
+		@SSHD_START@ start || echo "Warning: recovery sshd startup failed" >&2
 
 		# Provisioning prompts must use the recovery console.
 		exec </dev/console >/dev/console 2>&1
