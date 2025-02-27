@@ -8,6 +8,7 @@ do_rootfs[depends] += "depmodwrapper-cross:do_populate_sysroot"
 
 # without package-management update-rc.d gets removed from image
 IMAGE_FEATURES += "package-management"
+PACKAGE_WRITE_DEPS:append = " ${@bb.utils.contains('DISTRO_FEATURES','systemd','systemd-sysctl-native','',d)}"
 
 IMAGE_INSTALL += "\
 	packagegroup-ni-base \
