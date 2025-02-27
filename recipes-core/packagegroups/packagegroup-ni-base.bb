@@ -24,6 +24,8 @@ RDEPENDS:${PN} += "\
 	${@bb.utils.contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
 	${@bb.utils.contains('MACHINE_FEATURES', 'acpi', 'busybox-acpid', '', d)} \
 	${@bb.utils.contains('MACHINE_FEATURES', 'keyboard', 'keymaps', '', d)} \
+	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'systemd', 'sysvinit', d)} \
+	${@bb.utils.contains('INIT_MANAGER', 'sysvinit', 'eudev', '', d)} \
 	avahi-daemon \
 	base-files \
 	base-files-nilrt \
@@ -39,7 +41,6 @@ RDEPENDS:${PN} += "\
 	daemonize \
 	dpkg-start-stop \
 	ethtool \
-	eudev \
 	fw-printenv \
 	glibc-gconv-utf-16 \
 	gptfdisk \
@@ -84,7 +85,6 @@ RDEPENDS:${PN} += "\
 	sysconfig-settings \
 	sysconfig-settings-console \
 	syslog-ng \
-	sysvinit \
 	tar \
 	udev-extraconf \
 	usbutils \
