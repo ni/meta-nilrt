@@ -285,25 +285,37 @@ def parse_args():
                              'database, so the --skip_upload flag is not needed. This flag is useful for debugging issues with this test.')
     parser.add_argument('--skip_upload', help='Skip upload of dmesg record to database. Useful when debugging.', action="store_true")
     parser.add_argument('--suppress_diff_output', help='Reduces test output noise by removing the dmesg log diff from the output. Useful when debugging.', action="store_true")
+    parser.add_argument('--basis_log_db_date', metavar="<date>",
+                        help='Use this flag to supply a date string that will be used to locate a dmesg log in the database. That log will be used as the basis dmseg log. '\
+                             'Should be of the format "2023-03-30 15:32:43.203476". Date strings for previous dmesg logs can be found in the output of previous runs of this '\
+                             'test or can be extracted from the Mongo database using a viewer tool like Compass. This flag is useful for resetting the comparison baseline for the test.')
     return parser.parse_args()
 
 logger = Logger()
 args = parse_args()
 db = DB(args.server, args.user, args.password)
 
+# Retrieve the current dmesg log
 if args.current_log_db_date:
     current_dmesg_record = get_dmesg_record_by_date(db, args.current_log_db_date, logger)
     assert current_dmesg_record, "Could not find matching current log record from database."
-    current_dmesg_log = strip_headers(current_dmesg_record['dmesg_log'])
 
-    previous_dmesg_record = get_previous_dmesg_record(db, KernelVersion(current_dmesg_record['kernel_version_full']), current_dmesg_record['os_version_major_minor'], current_dmesg_record['device_desc'], logger)
+    current_dmesg_log = strip_headers(current_dmesg_record['dmesg_log'])
+    kernel_version = KernelVersion(current_dmesg_record['kernel_version_full'])
+    os_version = current_dmesg_record['os_version_major_minor']
+    device_desc = current_dmesg_record['device_desc']
 else:
     current_dmesg_log = get_dmesg_log()
-
     kernel_version = KernelVersion()
     os_version = OsVersion()
     device_desc = get_device_desc()
-    previous_dmesg_record = get_previous_dmesg_record(db, kernel_version, os_version.major_minor, device_desc, logger)
+
+# Retrieve the previous dmesg log
+if args.basis_log_db_date:
+    previous_dmesg_record = get_dmesg_record_by_date(db, args.basis_log_db_date, logger)
+    assert previous_dmesg_record, "Could not find matching basis log record from database."
+else:
+    previous_dmesg_record = get_previous_dmesg_record(db, kernel_version, os_version, device_desc, logger)
 
 previous_dmesg_log = strip_headers(previous_dmesg_record['dmesg_log']) if previous_dmesg_record else ''
 
