@@ -315,7 +315,7 @@ if args.basis_log_db_date:
     previous_dmesg_record = get_dmesg_record_by_date(db, args.basis_log_db_date, logger)
     assert previous_dmesg_record, "Could not find matching basis log record from database."
 else:
-    previous_dmesg_record = get_previous_dmesg_record(db, kernel_version, os_version, device_desc, logger)
+    previous_dmesg_record = get_previous_dmesg_record(db, kernel_version, os_version.major_minor, device_desc, logger)
 
 previous_dmesg_log = strip_headers(previous_dmesg_record['dmesg_log']) if previous_dmesg_record else ''
 
