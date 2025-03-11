@@ -1,0 +1,12 @@
+[Unit]
+Description=Firewall Service
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/lib/systemd/scripts/firewall start
+ExecStop=/lib/systemd/scripts/firewall stop
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
