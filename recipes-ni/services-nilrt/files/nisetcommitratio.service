@@ -1,0 +1,11 @@
+[Unit]
+Description=Set overcommit ratio for National Instruments LabVIEW Real-Time
+DefaultDependencies=no
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/lib/systemd/scripts/nisetcommitratio start
+
+[Install]
+WantedBy=multi-user.target
