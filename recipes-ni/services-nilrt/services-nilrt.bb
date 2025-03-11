@@ -33,6 +33,8 @@ SRC_URI = "\
 	file://nipopulateconfigdir.service \
 	file://populateconfig.service \
 	file://populateconfig \
+	file://wirelesssetdomain.service \
+	file://wirelesssetdomain \
 "
 
 inherit systemd
@@ -53,6 +55,7 @@ SYSTEMD_SERVICE:${PN} = "\
 	nisetupkernelconfig.service \
 	nipopulateconfigdir.service \
 	populateconfig.service \
+	wirelesssetdomain.service \
 "
 
 S = "${WORKDIR}"
@@ -82,6 +85,8 @@ do_install () {
 	install -m 0644 ${WORKDIR}/nipopulateconfigdir.service ${D}${systemd_unitdir}/system
 	install -m 0644 ${WORKDIR}/populateconfig.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${WORKDIR}/populateconfig ${D}${libdir}/systemd/scripts
+	install -m 0644 ${WORKDIR}/wirelesssetdomain.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${WORKDIR}/wirelesssetdomain ${D}${libdir}/systemd/scripts
 
 	install -m 0644 ${WORKDIR}/firewall.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${WORKDIR}/firewall ${D}${libdir}/systemd/scripts
@@ -127,6 +132,8 @@ FILES:${PN} += " \
 	${systemd_unitdir}/system/nipopulateconfigdir.service \
 	${systemd_unitdir}/system/populateconfig.service \
 	${libdir}/systemd/scripts/populateconfig \
+	${systemd_unitdir}/system/wirelesssetdomain.service \
+	${libdir}/systemd/scripts/wirelesssetdomain \
 "
 
 RDEPENDS:${PN} += "\
