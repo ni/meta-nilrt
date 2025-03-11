@@ -28,6 +28,8 @@ SRC_URI = "\
 	file://nisetcommitratio \
 	file://nisetreboottype.service \
 	file://nisetreboottype \
+	file://nisetupkernelconfig.service \
+	file://nisetupkernelconfig \
 "
 
 inherit systemd
@@ -45,6 +47,7 @@ SYSTEMD_SERVICE:${PN} = "\
 	nidisablecstates.service \
 	nisetcommitratio.service \
 	nisetreboottype.service \
+	nisetupkernelconfig.service \
 "
 
 S = "${WORKDIR}"
@@ -69,6 +72,8 @@ do_install () {
 	install -m 0755 ${WORKDIR}/nisetcommitratio ${D}${libdir}/systemd/scripts
 	install -m 0644 ${WORKDIR}/nisetreboottype.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${WORKDIR}/nisetreboottype ${D}${libdir}/systemd/scripts
+	install -m 0644 ${WORKDIR}/nisetupkernelconfig.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${WORKDIR}/nisetupkernelconfig ${D}${libdir}/systemd/scripts
 
 	install -m 0644 ${WORKDIR}/firewall.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${WORKDIR}/firewall ${D}${libdir}/systemd/scripts
@@ -109,6 +114,8 @@ FILES:${PN} += " \
 	${libdir}/systemd/scripts/nisetcommitratio \
 	${systemd_unitdir}/system/nisetreboottype.service \
 	${libdir}/systemd/scripts/nisetreboottype \
+	${systemd_unitdir}/system/nisetupkernelconfig.service \
+	${libdir}/systemd/scripts/nisetupkernelconfig \
 "
 
 RDEPENDS:${PN} += "\
