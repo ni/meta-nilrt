@@ -19,6 +19,8 @@ SRC_URI = "\
 	file://lvrt-cgroup.sh \
 	file://mountconfig.service \
 	file://mountconfig \
+	file://nicheckbiosconfig.service \
+	file://nicheckbiosconfig \
 "
 
 SRC_URI:append:xilinx-zynq = " file://mountutils"
@@ -30,6 +32,7 @@ SYSTEMD_SERVICE:${PN} = "\
 	cleanvarcache.service \
 	firewall.service \
 	mountconfig.service \
+	nicheckbiosconfig.service \
 "
 
 S = "${UNPACKDIR}"
@@ -41,6 +44,8 @@ do_install () {
 	install -m 0644 ${S}/cleanvarcache.service ${D}${systemd_unitdir}/system
 	install -m 0644 ${S}/mountconfig.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${S}/mountconfig ${D}${libdir}/systemd/scripts
+	install -m 0644 ${S}/nicheckbiosconfig.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${S}/nicheckbiosconfig ${D}${libdir}/systemd/scripts
 
 	install -m 0644 ${S}/firewall.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${S}/firewall ${D}${libdir}/systemd/scripts
@@ -85,6 +90,8 @@ FILES:${PN} += " \
 	${systemd_unitdir}/system/mountconfig.service \
 	${libdir}/systemd/scripts/mountconfig \
 	${sysconfdir}/init.d/mountconfig \
+	${systemd_unitdir}/system/nicheckbiosconfig.service \
+	${libdir}/systemd/scripts/nicheckbiosconfig \
 "
 
 FILES:${PN}:append:xilinx-zynq = " ${sysconfdir}/init.d/mountutils"
