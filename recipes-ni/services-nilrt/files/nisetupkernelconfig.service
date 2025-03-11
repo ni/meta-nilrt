@@ -1,0 +1,11 @@
+[Unit]
+Description=Setup kernel configuration for National Instruments LabVIEW Real-Time
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/lib/systemd/scripts/nisetupkernelconfig
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
