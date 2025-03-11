@@ -9,18 +9,42 @@ DEPENDS += "shadow-native pseudo-native niacctbase"
 RDEPENDS:${PN} += "bash niacctbase"
 
 SRC_URI = " \
+	file://mountcompatibility.service \
+	file://mountcompatibility \
 "
 
 inherit features_check systemd
 SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 SYSTEMD_SERVICE:${PN} = " \
+	mountcompatibility.service \
 "
 
 FILES:${PN} += " \
+	${systemd_unitdir}/system/mountcompatibility.service \
+	${libdir}/systemd/scripts/mountcompatibility \
+	${sysconfdir}/init.d/mountcompatibility \
 "
 
 S = "${UNPACKDIR}"
+
+do_install () {
+	install -d ${D}${systemd_unitdir}/system
+	install -d ${D}${libdir}/systemd/scripts
+
+	install -m 0644 ${S}/mountcompatibility.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${S}/mountcompatibility ${D}${libdir}/systemd/scripts
+}
+
+# Restore direct-call entry points after systemd.bbclass removes init.d.
+do_install[postfuncs] += "install_compat_links"
+
+install_compat_links () {
+	install -d ${D}${sysconfdir}/init.d
+	for script in mountcompatibility; do
+		ln -rs ${D}${libdir}/systemd/scripts/$script ${D}${sysconfdir}/init.d/$script
+	done
+}
 
 REQUIRED_DISTRO_FEATURES = " systemd"
 
