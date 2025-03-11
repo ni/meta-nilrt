@@ -35,6 +35,8 @@ SRC_URI = "\
 	file://nisetupkernelconfig.service \
 	file://nisetupkernelconfig \
 	file://nipopulateconfigdir.service \
+	file://populateconfig.service \
+	file://populateconfig \
 "
 
 SRC_URI:append:xilinx-zynq = " file://mountutils"
@@ -56,6 +58,7 @@ SYSTEMD_SERVICE:${PN} = "\
 	nisetreboottype.service \
 	nisetupkernelconfig.service \
 	nipopulateconfigdir.service \
+	populateconfig.service \
 "
 
 S = "${UNPACKDIR}"
@@ -83,6 +86,8 @@ do_install () {
 	install -m 0644 ${S}/nisetupkernelconfig.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${S}/nisetupkernelconfig ${D}${libdir}/systemd/scripts
 	install -m 0644 ${S}/nipopulateconfigdir.service ${D}${systemd_unitdir}/system
+	install -m 0644 ${S}/populateconfig.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${S}/populateconfig ${D}${libdir}/systemd/scripts
 
 	install -m 0644 ${S}/firewall.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${S}/firewall ${D}${libdir}/systemd/scripts
@@ -109,7 +114,7 @@ do_install[postfuncs] += "install_compat_links ${MOUNTUTILS_INSTALL}"
 
 install_compat_links () {
 	install -d ${D}${sysconfdir}/init.d
-	for script in mountconfig; do
+	for script in mountconfig populateconfig; do
 		ln -rs ${D}${libdir}/systemd/scripts/$script ${D}${sysconfdir}/init.d/$script
 	done
 }
@@ -143,6 +148,9 @@ FILES:${PN} += " \
 	${systemd_unitdir}/system/nisetupkernelconfig.service \
 	${libdir}/systemd/scripts/nisetupkernelconfig \
 	${systemd_unitdir}/system/nipopulateconfigdir.service \
+	${systemd_unitdir}/system/populateconfig.service \
+	${libdir}/systemd/scripts/populateconfig \
+	${sysconfdir}/init.d/populateconfig \
 "
 
 FILES:${PN}:append:xilinx-zynq = " ${sysconfdir}/init.d/mountutils"
