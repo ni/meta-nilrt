@@ -24,6 +24,8 @@ SRC_URI = "\
 	file://nicreatecpusets.service \
 	file://nicreatecpusets \
 	file://nidisablecstates.service \
+	file://nisetcommitratio.service \
+	file://nisetcommitratio \
 "
 
 inherit systemd
@@ -39,6 +41,7 @@ SYSTEMD_SERVICE:${PN} = "\
 	nicreatecpuacctgroups.service \
 	nicreatecpusets.service \
 	nidisablecstates.service \
+	nisetcommitratio.service \
 "
 
 S = "${WORKDIR}"
@@ -59,6 +62,8 @@ do_install () {
 	install -m 0644 ${WORKDIR}/nicreatecpusets.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${WORKDIR}/nicreatecpusets ${D}${libdir}/systemd/scripts
 	install -m 0644 ${WORKDIR}/nidisablecstates.service ${D}${systemd_unitdir}/system
+	install -m 0644 ${WORKDIR}/nisetcommitratio.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${WORKDIR}/nisetcommitratio ${D}${libdir}/systemd/scripts
 
 	install -m 0644 ${WORKDIR}/firewall.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${WORKDIR}/firewall ${D}${libdir}/systemd/scripts
@@ -95,6 +100,8 @@ FILES:${PN} += " \
 	${systemd_unitdir}/system/nicreatecpusets.service \
 	${libdir}/systemd/scripts/nicreatecpusets \
 	${systemd_unitdir}/system/nidisablecstates.service \
+	${systemd_unitdir}/system/nisetcommitratio.service \
+	${libdir}/systemd/scripts/nisetcommitratio \
 "
 
 RDEPENDS:${PN} += "\
