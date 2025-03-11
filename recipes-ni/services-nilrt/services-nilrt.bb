@@ -19,6 +19,8 @@ SRC_URI = "\
 	file://nicheckbiosconfig \
 	file://nicleanefivars.service \
 	file://nicleanstalelinks.service \
+	file://nicreatecpuacctgroups.service \
+	file://nicreatecpuacctgroups \
 "
 
 inherit systemd
@@ -31,6 +33,7 @@ SYSTEMD_SERVICE:${PN} = "\
 	nicheckbiosconfig.service \
 	nicleanefivars.service \
 	nicleanstalelinks.service \
+	nicreatecpuacctgroups.service \
 "
 
 S = "${WORKDIR}"
@@ -46,6 +49,8 @@ do_install () {
 	install -m 0755 ${WORKDIR}/nicheckbiosconfig ${D}${libdir}/systemd/scripts
 	install -m 0644 ${WORKDIR}/nicleanefivars.service ${D}${systemd_unitdir}/system
 	install -m 0644 ${WORKDIR}/nicleanstalelinks.service ${D}${systemd_unitdir}/system
+	install -m 0644 ${WORKDIR}/nicreatecpuacctgroups.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${WORKDIR}/nicreatecpuacctgroups ${D}${libdir}/systemd/scripts
 
 	install -m 0644 ${WORKDIR}/firewall.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${WORKDIR}/firewall ${D}${libdir}/systemd/scripts
@@ -77,6 +82,8 @@ FILES:${PN} += " \
 	${libdir}/systemd/scripts/nicheckbiosconfig \
 	${systemd_unitdir}/system/nicleanefivars.service \
 	${systemd_unitdir}/system/nicleanstalelinks.service \
+	${systemd_unitdir}/system/nicreatecpuacctgroups.service \
+	${libdir}/systemd/scripts/nicreatecpuacctgroups \
 "
 
 RDEPENDS:${PN} += "\
