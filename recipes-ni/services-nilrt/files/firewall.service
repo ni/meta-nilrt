@@ -1,0 +1,16 @@
+[Unit]
+Description=Firewall Service
+Requires=mountconfig.service
+After=mountconfig.service
+Before=network-pre.target network.target
+AssertPathIsMountPoint=/etc/natinst/share
+
+[Service]
+Type=oneshot
+ExecStart=/lib/systemd/scripts/firewall start
+ExecStop=/lib/systemd/scripts/firewall stop
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+RequiredBy=network-pre.target
