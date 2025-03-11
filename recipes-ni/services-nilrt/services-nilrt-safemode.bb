@@ -15,6 +15,8 @@ SRC_URI = " \
 	file://mountuserfs \
 	file://nisafemodereason.service \
 	file://nisafemodereason \
+	file://niselectnetnaming.service \
+	file://niselectnetnaming \
 "
 
 inherit features_check systemd
@@ -24,6 +26,7 @@ SYSTEMD_SERVICE:${PN} = " \
 	mountcompatibility.service \
 	mountuserfs.service \
 	nisafemodereason.service \
+	niselectnetnaming.service \
 "
 
 FILES:${PN} += " \
@@ -35,6 +38,8 @@ FILES:${PN} += " \
 	${sysconfdir}/init.d/mountuserfs \
 	${systemd_unitdir}/system/nisafemodereason.service \
 	${libdir}/systemd/scripts/nisafemodereason \
+	${systemd_unitdir}/system/niselectnetnaming.service \
+	${libdir}/systemd/scripts/niselectnetnaming \
 "
 
 S = "${UNPACKDIR}"
@@ -49,6 +54,8 @@ do_install () {
 	install -m 0755 ${S}/mountuserfs ${D}${libdir}/systemd/scripts
 	install -m 0644 ${S}/nisafemodereason.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${S}/nisafemodereason ${D}${libdir}/systemd/scripts
+	install -m 0644 ${S}/niselectnetnaming.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${S}/niselectnetnaming ${D}${libdir}/systemd/scripts
 }
 
 # Restore direct-call entry points after systemd.bbclass removes init.d.
