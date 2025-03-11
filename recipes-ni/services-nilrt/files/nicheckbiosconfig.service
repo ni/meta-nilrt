@@ -1,0 +1,11 @@
+[Unit]
+Description=NI Checkout BIOS Config
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/lib/systemd/scripts/nicheckbiosconfig
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

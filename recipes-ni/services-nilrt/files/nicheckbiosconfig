@@ -1,0 +1,36 @@
+#!/bin/sh
+# Copyright (c) 2015 National Instruments.
+# All rights reserved.
+#
+# This script is designed to verify that the BIOS has correctly configured
+# the system hardware for deterministic performance by checking the
+# IsNILinuxRTBoot flag from the NIOSSharedData EFI variable.
+#
+# If the IsNILinuxRTBoot flag is not set, set it now and reboot to allow
+# the BIOS to configure the system.
+SCRIPTNAME="${0##*/}"
+REBOOT_ATTEMPT_FILE=/var/lib/nicheckbiosflag
+
+# If variable does not exist, we are not on NI hardware,
+# so do nothing to automatically configure the system.
+if RT_BIOS_CONFIG=$(/sbin/fw_printenv -n IsNILinuxRTBoot 2> /dev/null); then
+	if [ $RT_BIOS_CONFIG -eq 0 ]; then
+		# We are on NI hardware, but it is not configured.
+		if [ ! -e $REBOOT_ATTEMPT_FILE ]; then
+			fw_setenv IsNILinuxRTBoot 1
+			touch $REBOOT_ATTEMPT_FILE
+			logger -s -t $SCRIPTNAME "Rebooting system to finish configuring for maximum determinism."
+			sleep 5
+			reboot
+		else
+			# Give up; we can't set the variable
+			# Do not delete REBOOT_ATTEMPT_FILE, to
+			# avoid a double reboot on every boot.
+			logger -s -t $SCRIPTNAME "Warning, system cannot be configured for maximum determinism."
+		fi
+	else
+		# System was correctly configured; delete the
+		# file to allow a future configuration attempt.
+		rm -f $REBOOT_ATTEMPT_FILE
+	fi
+fi
