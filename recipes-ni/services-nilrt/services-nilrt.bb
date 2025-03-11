@@ -17,6 +17,7 @@ SRC_URI = "\
 	file://mountconfig \
 	file://nicheckbiosconfig.service \
 	file://nicheckbiosconfig \
+	file://nicleanefivars.service \
 "
 
 inherit systemd
@@ -27,6 +28,7 @@ SYSTEMD_SERVICE:${PN} = "\
 	firewall.service \
 	mountconfig.service \
 	nicheckbiosconfig.service \
+	nicleanefivars.service \
 "
 
 S = "${WORKDIR}"
@@ -40,6 +42,7 @@ do_install () {
 	install -m 0755 ${WORKDIR}/mountconfig ${D}${libdir}/systemd/scripts
 	install -m 0644 ${WORKDIR}/nicheckbiosconfig.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${WORKDIR}/nicheckbiosconfig ${D}${libdir}/systemd/scripts
+	install -m 0644 ${WORKDIR}/nicleanefivars.service ${D}${systemd_unitdir}/system
 
 	install -m 0644 ${WORKDIR}/firewall.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${WORKDIR}/firewall ${D}${libdir}/systemd/scripts
@@ -69,6 +72,7 @@ FILES:${PN} += " \
 	${libdir}/systemd/scripts/mountconfig \
 	${systemd_unitdir}/system/nicheckbiosconfig.service \
 	${libdir}/systemd/scripts/nicheckbiosconfig \
+	${systemd_unitdir}/system/nicleanefivars.service \
 "
 
 RDEPENDS:${PN} += "\
