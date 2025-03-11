@@ -31,6 +31,8 @@ SRC_URI = "\
 	file://nisetupkernelconfig.service \
 	file://nisetupkernelconfig \
 	file://nipopulateconfigdir.service \
+	file://populateconfig.service \
+	file://populateconfig \
 "
 
 inherit systemd
@@ -50,6 +52,7 @@ SYSTEMD_SERVICE:${PN} = "\
 	nisetreboottype.service \
 	nisetupkernelconfig.service \
 	nipopulateconfigdir.service \
+	populateconfig.service \
 "
 
 S = "${WORKDIR}"
@@ -77,6 +80,8 @@ do_install () {
 	install -m 0644 ${WORKDIR}/nisetupkernelconfig.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${WORKDIR}/nisetupkernelconfig ${D}${libdir}/systemd/scripts
 	install -m 0644 ${WORKDIR}/nipopulateconfigdir.service ${D}${systemd_unitdir}/system
+	install -m 0644 ${WORKDIR}/populateconfig.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${WORKDIR}/populateconfig ${D}${libdir}/systemd/scripts
 
 	install -m 0644 ${WORKDIR}/firewall.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${WORKDIR}/firewall ${D}${libdir}/systemd/scripts
@@ -120,6 +125,8 @@ FILES:${PN} += " \
 	${systemd_unitdir}/system/nisetupkernelconfig.service \
 	${libdir}/systemd/scripts/nisetupkernelconfig \
 	${systemd_unitdir}/system/nipopulateconfigdir.service \
+	${systemd_unitdir}/system/populateconfig.service \
+	${libdir}/systemd/scripts/populateconfig \
 "
 
 RDEPENDS:${PN} += "\
