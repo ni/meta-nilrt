@@ -15,6 +15,8 @@ SRC_URI = " \
 	file://mountuserfs \
 	file://nisafemodereason.service \
 	file://nisafemodereason \
+	file://niselectnetnaming.service \
+	file://niselectnetnaming \
 "
 
 inherit systemd
@@ -24,6 +26,7 @@ SYSTEMD_SERVICE:${PN} = " \
 	mountcompatibility.service \
 	mountuserfs.service \
 	nisafemodereason.service \
+	niselectnetnaming.service \
 "
 
 FILES:${PN} += " \
@@ -33,6 +36,8 @@ FILES:${PN} += " \
 	${libdir}/systemd/scripts/mountuserfs \
 	${systemd_unitdir}/system/nisafemodereason.service \
 	${libdir}/systemd/scripts/nisafemodereason \
+	${systemd_unitdir}/system/niselectnetnaming.service \
+	${libdir}/systemd/scripts/niselectnetnaming \
 "
 
 S = "${WORKDIR}"
@@ -47,6 +52,8 @@ do_install () {
 	install -m 0755 ${WORKDIR}/mountuserfs ${D}${libdir}/systemd/scripts
 	install -m 0644 ${WORKDIR}/nisafemodereason.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${WORKDIR}/nisafemodereason ${D}${libdir}/systemd/scripts
+	install -m 0644 ${WORKDIR}/niselectnetnaming.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${WORKDIR}/niselectnetnaming ${D}${libdir}/systemd/scripts
 }
 
 REQUIRED_DISTRO_FEATURES = " systemd"
