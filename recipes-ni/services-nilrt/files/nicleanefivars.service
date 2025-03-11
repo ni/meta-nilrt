@@ -1,0 +1,21 @@
+[Unit]
+Description=Clean old EFI-pstore information
+DefaultDependencies=no
+Before=sysinit.target
+ConditionPathExists=/sys/firmware/efi/efivars
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c '\
+  EFI_CRASH_CLEANUP=y; \
+  [ -r /etc/default/nicleanefivars ] && . /etc/default/nicleanefivars; \
+  case "$EFI_CRASH_CLEANUP" in \
+    [Nn]*) exit 0 ;; \
+  esac; \
+  LINUX_EFI_CRASH_GUID="cfc8fc79-be2e-4ddc-97f0-9f98bfe298a0"; \
+  find /sys/firmware/efi/efivars -name "*-${LINUX_EFI_CRASH_GUID}" -exec /bin/rm {} +; \
+'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=sysinit.target
