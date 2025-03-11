@@ -13,6 +13,8 @@ SRC_URI = " \
 	file://mountcompatibility \
 	file://mountuserfs.service \
 	file://mountuserfs \
+	file://nisafemodereason.service \
+	file://nisafemodereason \
 "
 
 inherit systemd
@@ -21,6 +23,7 @@ SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 SYSTEMD_SERVICE:${PN} = " \
 	mountcompatibility.service \
 	mountuserfs.service \
+	nisafemodereason.service \
 "
 
 FILES:${PN} += " \
@@ -28,6 +31,8 @@ FILES:${PN} += " \
 	${libdir}/systemd/scripts/mountcompatibility \
 	${systemd_unitdir}/system/mountuserfs.service \
 	${libdir}/systemd/scripts/mountuserfs \
+	${systemd_unitdir}/system/nisafemodereason.service \
+	${libdir}/systemd/scripts/nisafemodereason \
 "
 
 S = "${WORKDIR}"
@@ -40,6 +45,8 @@ do_install () {
 	install -m 0755 ${WORKDIR}/mountcompatibility ${D}${libdir}/systemd/scripts
 	install -m 0644 ${WORKDIR}/mountuserfs.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${WORKDIR}/mountuserfs ${D}${libdir}/systemd/scripts
+	install -m 0644 ${WORKDIR}/nisafemodereason.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${WORKDIR}/nisafemodereason ${D}${libdir}/systemd/scripts
 }
 
 REQUIRED_DISTRO_FEATURES = " systemd"
