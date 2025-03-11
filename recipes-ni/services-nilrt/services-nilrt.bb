@@ -15,6 +15,8 @@ SRC_URI = "\
 	file://lvrt-cgroup.sh \
 	file://mountconfig.service \
 	file://mountconfig \
+	file://nicheckbiosconfig.service \
+	file://nicheckbiosconfig \
 "
 
 inherit systemd
@@ -24,6 +26,7 @@ SYSTEMD_SERVICE:${PN} = "\
 	cleanvarcache.service \
 	firewall.service \
 	mountconfig.service \
+	nicheckbiosconfig.service \
 "
 
 S = "${WORKDIR}"
@@ -35,6 +38,8 @@ do_install () {
 	install -m 0644 ${WORKDIR}/cleanvarcache.service ${D}${systemd_unitdir}/system
 	install -m 0644 ${WORKDIR}/mountconfig.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${WORKDIR}/mountconfig ${D}${libdir}/systemd/scripts
+	install -m 0644 ${WORKDIR}/nicheckbiosconfig.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${WORKDIR}/nicheckbiosconfig ${D}${libdir}/systemd/scripts
 
 	install -m 0644 ${WORKDIR}/firewall.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${WORKDIR}/firewall ${D}${libdir}/systemd/scripts
@@ -62,6 +67,8 @@ FILES:${PN} += " \
 	${datadir}/${BPN}/lvrt-cgroup.sh \
 	${systemd_unitdir}/system/mountconfig.service \
 	${libdir}/systemd/scripts/mountconfig \
+	${systemd_unitdir}/system/nicheckbiosconfig.service \
+	${libdir}/systemd/scripts/nicheckbiosconfig \
 "
 
 RDEPENDS:${PN} += "\
