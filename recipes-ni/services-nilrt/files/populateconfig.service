@@ -1,0 +1,12 @@
+[Unit]
+Description=Populate configuration for National Instruments LabVIEW Real-Time
+DefaultDependencies=no
+Before=sysinit.target halt.target reboot.target
+
+[Service]
+Type=oneshot
+ExecStart=/lib/systemd/scripts/populateconfig start
+RemainAfterExit=yes
+
+[Install]
+WantedBy=sysinit.target halt.target reboot.target
