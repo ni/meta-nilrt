@@ -1,0 +1,16 @@
+[Unit]
+Description=Mount Config Partition
+DefaultDependencies=no
+# Let fstab mounts finish before attempting the platform-specific fallback.
+After=local-fs.target
+Before=sysinit.target umount.target
+Conflicts=umount.target
+
+[Service]
+Type=oneshot
+ExecStart=/lib/systemd/scripts/mountconfig start
+ExecStop=/lib/systemd/scripts/mountconfig stop
+RemainAfterExit=yes
+
+[Install]
+WantedBy=sysinit.target

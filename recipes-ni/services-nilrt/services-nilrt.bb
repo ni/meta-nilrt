@@ -6,6 +6,10 @@ SECTION = "base"
 
 DEPENDS += "shadow-native pseudo-native niacctbase"
 
+# Share the UBI mount helper with SysVinit; callers source it from /etc/init.d.
+FILESEXTRAPATHS:append:xilinx-zynq := ":${THISDIR}/../initscripts-nilrt/files"
+PACKAGE_ARCH:xilinx-zynq = "${MACHINE_ARCH}"
+
 SRC_URI = "\
 	file://cleanvarcache.service \
 	file://firewall.service \
@@ -13,7 +17,11 @@ SRC_URI = "\
 	file://iso3166-translation.txt \
 	file://lvrt-cgroup \
 	file://lvrt-cgroup.sh \
+	file://mountconfig.service \
+	file://mountconfig \
 "
+
+SRC_URI:append:xilinx-zynq = " file://mountutils"
 
 inherit systemd
 SYSTEMD_PACKAGES = "${PN}"
@@ -21,6 +29,7 @@ SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 SYSTEMD_SERVICE:${PN} = "\
 	cleanvarcache.service \
 	firewall.service \
+	mountconfig.service \
 "
 
 S = "${UNPACKDIR}"
@@ -30,6 +39,9 @@ do_install () {
 	install -d ${D}${libdir}/systemd/scripts
 
 	install -m 0644 ${S}/cleanvarcache.service ${D}${systemd_unitdir}/system
+	install -m 0644 ${S}/mountconfig.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${S}/mountconfig ${D}${libdir}/systemd/scripts
+
 	install -m 0644 ${S}/firewall.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${S}/firewall ${D}${libdir}/systemd/scripts
 	# Substitute configfs paths
@@ -48,13 +60,34 @@ do_install () {
 	install -m 0755 ${S}/lvrt-cgroup.sh ${D}${datadir}/${BPN}/lvrt-cgroup.sh
 }
 
+# Restore direct-call entry points after systemd.bbclass removes init.d.
+MOUNTUTILS_INSTALL = ""
+MOUNTUTILS_INSTALL:xilinx-zynq = "install_mountutils"
+do_install[postfuncs] += "install_compat_links ${MOUNTUTILS_INSTALL}"
+
+install_compat_links () {
+	install -d ${D}${sysconfdir}/init.d
+	for script in mountconfig; do
+		ln -rs ${D}${libdir}/systemd/scripts/$script ${D}${sysconfdir}/init.d/$script
+	done
+}
+
+install_mountutils () {
+	install -D -m 0755 ${S}/mountutils ${D}${sysconfdir}/init.d/mountutils
+}
+
 FILES:${PN} += " \
 	${systemd_unitdir}/system/cleanvarcache.service \
 	${systemd_unitdir}/system/firewall.service \
 	${libdir}/systemd/scripts/firewall \
 	${sysconfdir}/default/lvrt-cgroup \
 	${datadir}/${BPN}/lvrt-cgroup.sh \
+	${systemd_unitdir}/system/mountconfig.service \
+	${libdir}/systemd/scripts/mountconfig \
+	${sysconfdir}/init.d/mountconfig \
 "
+
+FILES:${PN}:append:xilinx-zynq = " ${sysconfdir}/init.d/mountutils"
 
 RDEPENDS:${PN} += "\
 	bash \
