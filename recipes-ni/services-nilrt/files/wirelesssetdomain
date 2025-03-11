@@ -1,0 +1,27 @@
+#!/bin/sh
+
+[ "${VERBOSE}" != "no" ] && echo "Creating default reg domain."
+WIRELESS_REGION_FACTORY=`fw_printenv -n wirelessRegionFactory 2> /dev/null` ||
+    WIRELESS_REGION_FACTORY=-1
+
+# If wirelessRegionUser isn't set, we should default to the factory region (if set)
+WIRELESS_REGION_USER=$(/usr/local/natinst/bin/nirtcfg --get section=SystemSettings,token=wirelessRegionUser,value=${WIRELESS_REGION_FACTORY})
+
+WIRELESS_REGION_USER_ALPHA2=$(awk -v region="${WIRELESS_REGION_USER}" \
+    'region ~ /^(-1|[0-9]+)$/ && $1 ~ /^-?[0-9]+$/ && $1 + 0 == region + 0 { print $2; exit }' \
+    /etc/natinst/iso3166-translation.txt) || exit 1
+if [ -z "${WIRELESS_REGION_USER_ALPHA2}" ]; then
+    echo "No regulatory domain mapping for wireless region '${WIRELESS_REGION_USER}'; leaving it unchanged." >&2
+    exit 0
+fi
+
+MODPROBE_CONF=/etc/modprobe.d/cfg80211.conf
+OPTIONS="options cfg80211 ieee80211_regdom=${WIRELESS_REGION_USER_ALPHA2}"
+if [ ! -f "$MODPROBE_CONF" ] || ! grep -Fxq "$OPTIONS" "$MODPROBE_CONF"; then
+    mkdir -p /etc/modprobe.d && printf '%s\n' "$OPTIONS" > "$MODPROBE_CONF" || exit 1
+fi
+
+# The file only affects future module loads, even if it already contains this region.
+if [ -d /sys/module/cfg80211 ]; then
+    iw reg set "${WIRELESS_REGION_USER_ALPHA2}" || exit 1
+fi

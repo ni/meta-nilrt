@@ -1,0 +1,12 @@
+[Unit]
+Description=Wireless Set Domain
+DefaultDependencies=no
+After=mountconfig.service
+Before=ni-modules-autoload.service sysinit.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/systemd/scripts/wirelesssetdomain
+
+[Install]
+WantedBy=sysinit.target

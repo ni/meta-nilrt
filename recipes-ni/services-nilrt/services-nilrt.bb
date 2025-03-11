@@ -37,6 +37,8 @@ SRC_URI = "\
 	file://nipopulateconfigdir.service \
 	file://populateconfig.service \
 	file://populateconfig \
+	file://wirelesssetdomain.service \
+	file://wirelesssetdomain \
 "
 
 SRC_URI:append:xilinx-zynq = " file://mountutils"
@@ -59,6 +61,7 @@ SYSTEMD_SERVICE:${PN} = "\
 	nisetupkernelconfig.service \
 	nipopulateconfigdir.service \
 	populateconfig.service \
+	wirelesssetdomain.service \
 "
 
 S = "${UNPACKDIR}"
@@ -88,6 +91,8 @@ do_install () {
 	install -m 0644 ${S}/nipopulateconfigdir.service ${D}${systemd_unitdir}/system
 	install -m 0644 ${S}/populateconfig.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${S}/populateconfig ${D}${libdir}/systemd/scripts
+	install -m 0644 ${S}/wirelesssetdomain.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${S}/wirelesssetdomain ${D}${libdir}/systemd/scripts
 
 	install -m 0644 ${S}/firewall.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${S}/firewall ${D}${libdir}/systemd/scripts
@@ -151,12 +156,15 @@ FILES:${PN} += " \
 	${systemd_unitdir}/system/populateconfig.service \
 	${libdir}/systemd/scripts/populateconfig \
 	${sysconfdir}/init.d/populateconfig \
+	${systemd_unitdir}/system/wirelesssetdomain.service \
+	${libdir}/systemd/scripts/wirelesssetdomain \
 "
 
 FILES:${PN}:append:xilinx-zynq = " ${sysconfdir}/init.d/mountutils"
 
 RDEPENDS:${PN} += "\
 	bash \
+	iw \
 	niacctbase \
 	ni-cgroups-selector \
 "
