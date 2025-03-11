@@ -13,6 +13,8 @@ SRC_URI = "\
 	file://iso3166-translation.txt \
 	file://lvrt-cgroup \
 	file://lvrt-cgroup.sh \
+	file://mountconfig.service \
+	file://mountconfig \
 "
 
 inherit systemd
@@ -21,6 +23,7 @@ SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 SYSTEMD_SERVICE:${PN} = "\
 	cleanvarcache.service \
 	firewall.service \
+	mountconfig.service \
 "
 
 S = "${WORKDIR}"
@@ -30,6 +33,9 @@ do_install () {
 	install -d ${D}${libdir}/systemd/scripts
 
 	install -m 0644 ${WORKDIR}/cleanvarcache.service ${D}${systemd_unitdir}/system
+	install -m 0644 ${WORKDIR}/mountconfig.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${WORKDIR}/mountconfig ${D}${libdir}/systemd/scripts
+
 	install -m 0644 ${WORKDIR}/firewall.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${WORKDIR}/firewall ${D}${libdir}/systemd/scripts
 	# Substitute configfs paths
@@ -54,6 +60,8 @@ FILES:${PN} += " \
 	${libdir}/systemd/scripts/firewall \
 	${sysconfdir}/default/lvrt-cgroup \
 	${datadir}/${BPN}/lvrt-cgroup.sh \
+	${systemd_unitdir}/system/mountconfig.service \
+	${libdir}/systemd/scripts/mountconfig \
 "
 
 RDEPENDS:${PN} += "\
