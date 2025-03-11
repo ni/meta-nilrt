@@ -7,14 +7,26 @@ SECTION = "base"
 DEPENDS += "shadow-native pseudo-native niacctbase"
 
 SRC_URI = "\
+	file://cleanvarcache.service \
 "
 
+inherit systemd
+SYSTEMD_PACKAGES = "${PN}"
+SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 SYSTEMD_SERVICE:${PN} = "\
+	cleanvarcache.service \
 "
 
 S = "${WORKDIR}"
 
+do_install () {
+	install -d ${D}${systemd_unitdir}/system
+
+	install -m 0644 ${WORKDIR}/cleanvarcache.service ${D}${systemd_unitdir}/system
+}
+
 FILES:${PN} += " \
+	${systemd_unitdir}/system/cleanvarcache.service \
 "
 
 RDEPENDS:${PN} += "\
