@@ -23,6 +23,7 @@ SRC_URI = "\
 	file://nicreatecpuacctgroups \
 	file://nicreatecpusets.service \
 	file://nicreatecpusets \
+	file://nidisablecstates.service \
 "
 
 inherit systemd
@@ -37,6 +38,7 @@ SYSTEMD_SERVICE:${PN} = "\
 	nicleanstalelinks.service \
 	nicreatecpuacctgroups.service \
 	nicreatecpusets.service \
+	nidisablecstates.service \
 "
 
 S = "${WORKDIR}"
@@ -56,6 +58,7 @@ do_install () {
 	install -m 0755 ${WORKDIR}/nicreatecpuacctgroups ${D}${libdir}/systemd/scripts
 	install -m 0644 ${WORKDIR}/nicreatecpusets.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${WORKDIR}/nicreatecpusets ${D}${libdir}/systemd/scripts
+	install -m 0644 ${WORKDIR}/nidisablecstates.service ${D}${systemd_unitdir}/system
 
 	install -m 0644 ${WORKDIR}/firewall.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${WORKDIR}/firewall ${D}${libdir}/systemd/scripts
@@ -91,6 +94,7 @@ FILES:${PN} += " \
 	${libdir}/systemd/scripts/nicreatecpuacctgroups \
 	${systemd_unitdir}/system/nicreatecpusets.service \
 	${libdir}/systemd/scripts/nicreatecpusets \
+	${systemd_unitdir}/system/nidisablecstates.service \
 "
 
 RDEPENDS:${PN} += "\
