@@ -11,6 +11,8 @@ RDEPENDS:${PN} += "bash niacctbase"
 SRC_URI = " \
 	file://mountcompatibility.service \
 	file://mountcompatibility \
+	file://mountuserfs.service \
+	file://mountuserfs \
 "
 
 inherit systemd
@@ -18,11 +20,14 @@ SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 SYSTEMD_SERVICE:${PN} = " \
 	mountcompatibility.service \
+	mountuserfs.service \
 "
 
 FILES:${PN} += " \
 	${systemd_unitdir}/system/mountcompatibility.service \
 	${libdir}/systemd/scripts/mountcompatibility \
+	${systemd_unitdir}/system/mountuserfs.service \
+	${libdir}/systemd/scripts/mountuserfs \
 "
 
 S = "${WORKDIR}"
@@ -33,6 +38,8 @@ do_install () {
 
 	install -m 0644 ${WORKDIR}/mountcompatibility.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${WORKDIR}/mountcompatibility ${D}${libdir}/systemd/scripts
+	install -m 0644 ${WORKDIR}/mountuserfs.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${WORKDIR}/mountuserfs ${D}${libdir}/systemd/scripts
 }
 
 REQUIRED_DISTRO_FEATURES = " systemd"
