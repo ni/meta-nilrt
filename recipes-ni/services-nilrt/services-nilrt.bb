@@ -25,6 +25,8 @@ SRC_URI = "\
 	file://nicleanstalelinks.service \
 	file://nicreatecpuacctgroups.service \
 	file://nicreatecpuacctgroups \
+	file://nicreatecpusets.service \
+	file://nicreatecpusets \
 "
 
 SRC_URI:append:xilinx-zynq = " file://mountutils"
@@ -40,6 +42,7 @@ SYSTEMD_SERVICE:${PN} = "\
 	nicleanefivars.service \
 	nicleanstalelinks.service \
 	nicreatecpuacctgroups.service \
+	nicreatecpusets.service \
 "
 
 S = "${UNPACKDIR}"
@@ -57,6 +60,8 @@ do_install () {
 	install -m 0644 ${S}/nicleanstalelinks.service ${D}${systemd_unitdir}/system
 	install -m 0644 ${S}/nicreatecpuacctgroups.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${S}/nicreatecpuacctgroups ${D}${libdir}/systemd/scripts
+	install -m 0644 ${S}/nicreatecpusets.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${S}/nicreatecpusets ${D}${libdir}/systemd/scripts
 
 	install -m 0644 ${S}/firewall.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${S}/firewall ${D}${libdir}/systemd/scripts
@@ -107,6 +112,8 @@ FILES:${PN} += " \
 	${systemd_unitdir}/system/nicleanstalelinks.service \
 	${systemd_unitdir}/system/nicreatecpuacctgroups.service \
 	${libdir}/systemd/scripts/nicreatecpuacctgroups \
+	${systemd_unitdir}/system/nicreatecpusets.service \
+	${libdir}/systemd/scripts/nicreatecpusets \
 "
 
 FILES:${PN}:append:xilinx-zynq = " ${sysconfdir}/init.d/mountutils"
