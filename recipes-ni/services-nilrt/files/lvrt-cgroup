@@ -1,0 +1,5 @@
+# This variable can be used to explicitly set the cgroup version used by LabVIEW
+# Real-Time cgroup related init scripts. A value of '0' leaves cgroups under OS
+# control.
+#
+# LVRT_CGROUP_VERSION=0

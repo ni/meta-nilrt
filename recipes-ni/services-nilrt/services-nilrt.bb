@@ -11,6 +11,8 @@ SRC_URI = "\
 	file://firewall.service \
 	file://firewall \
 	file://iso3166-translation.txt \
+	file://lvrt-cgroup \
+	file://lvrt-cgroup.sh \
 "
 
 inherit systemd
@@ -38,12 +40,20 @@ do_install () {
 
 	install -d ${D}${sysconfdir}/natinst
 	install -m 0644 ${WORKDIR}/iso3166-translation.txt ${D}${sysconfdir}/natinst
+
+	install -d ${D}${sysconfdir}/default
+	install -m 0644 lvrt-cgroup ${D}${sysconfdir}/default/lvrt-cgroup
+
+	install -d ${D}${datadir}/${BPN}
+	install -m 0755 lvrt-cgroup.sh ${D}${datadir}/${BPN}/lvrt-cgroup.sh
 }
 
 FILES:${PN} += " \
 	${systemd_unitdir}/system/cleanvarcache.service \
 	${systemd_unitdir}/system/firewall.service \
 	${libdir}/systemd/scripts/firewall \
+	${sysconfdir}/default/lvrt-cgroup \
+	${datadir}/${BPN}/lvrt-cgroup.sh \
 "
 
 RDEPENDS:${PN} += "\
