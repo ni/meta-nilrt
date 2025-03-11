@@ -1,0 +1,17 @@
+[Unit]
+Description=For x86_64 architectures, disable all c_states except for C0 (state0) in all CPU cores
+DefaultDependencies=no
+Before=multi-user.target sysinit.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c '\
+  shopt -s nullglob; \
+  for CSTATE_DISABLE in /sys/devices/system/cpu/cpu*/cpuidle/state[^0]/disable; do \
+    echo 1 > $CSTATE_DISABLE; \
+  done; \
+'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target sysinit.target
