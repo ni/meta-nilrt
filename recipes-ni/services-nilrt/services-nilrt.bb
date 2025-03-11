@@ -22,6 +22,7 @@ SRC_URI = "\
 	file://nicheckbiosconfig.service \
 	file://nicheckbiosconfig \
 	file://nicleanefivars.service \
+	file://nicleanstalelinks.service \
 "
 
 SRC_URI:append:xilinx-zynq = " file://mountutils"
@@ -35,6 +36,7 @@ SYSTEMD_SERVICE:${PN} = "\
 	mountconfig.service \
 	nicheckbiosconfig.service \
 	nicleanefivars.service \
+	nicleanstalelinks.service \
 "
 
 S = "${UNPACKDIR}"
@@ -49,6 +51,7 @@ do_install () {
 	install -m 0644 ${S}/nicheckbiosconfig.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${S}/nicheckbiosconfig ${D}${libdir}/systemd/scripts
 	install -m 0644 ${S}/nicleanefivars.service ${D}${systemd_unitdir}/system
+	install -m 0644 ${S}/nicleanstalelinks.service ${D}${systemd_unitdir}/system
 
 	install -m 0644 ${S}/firewall.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${S}/firewall ${D}${libdir}/systemd/scripts
@@ -96,6 +99,7 @@ FILES:${PN} += " \
 	${systemd_unitdir}/system/nicheckbiosconfig.service \
 	${libdir}/systemd/scripts/nicheckbiosconfig \
 	${systemd_unitdir}/system/nicleanefivars.service \
+	${systemd_unitdir}/system/nicleanstalelinks.service \
 "
 
 FILES:${PN}:append:xilinx-zynq = " ${sysconfdir}/init.d/mountutils"
