@@ -1,7 +1,8 @@
 [Unit]
 Description=Create cgroups for CPU accounting for National Instruments LabVIEW Real-Time
 DefaultDependencies=no
-After=multi-user.target
+Requires=nicreatecpusets.service
+After=nicreatecpusets.service
 
 [Service]
 Type=oneshot
