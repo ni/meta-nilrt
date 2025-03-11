@@ -1,0 +1,263 @@
+# This is a lookup table to convert between ISO 3166-1 codes for the user
+# setting of the device country code, and ISO 3166-1 alpha2 codes for the
+# purpose of setting the region for cfg80211. The format of this file is:
+#
+# <ISO3166-1numeric> <wireless-regdb alpha2> <actual alpha2> <comment>
+#
+# There are a number of countries that don't have info in wireless-regdb;
+# for those we always map to '00'. Not all of these are settable from the
+# UI, but we try to support as many as possible in case the UI adds stuff
+# in the future and the user downgrades their firmware. The 'comment' and
+# 'actual alpha2' fields are present for developer aid, in order to check
+# that this table is correct.
+
+-01 00 00 World
+004 00 AF Afganistan
+008 AL AL Albania
+010 00 AQ Antarctica
+012 DZ DZ Algeria
+016 00 AS American Samoa
+020 00 AD Andorra
+024 00 AO Angola
+028 00 AG Antigua and Barbuda
+031 AZ AZ Azerbaijan
+032 AR AR Argentina
+036 AU AU Australia
+040 AT AT Austria
+044 00 BS Bahamas
+048 BH BH Bahrain
+050 BD BD Bangladesh
+051 AM AM Armenia
+052 BB BB Barbados
+056 BE BE Belgium
+060 00 BM Bermuda
+064 00 BT Bhutan
+068 BO BO Bolivia
+070 BA BA Bosnia and Herzegovina
+072 00 BW Botswana
+074 00 BV Bouvet Island
+076 BR BR Brazil
+084 BZ BZ Belize
+086 00 IO British Indian Ocean Territory
+090 00 SB Solomon Islands
+092 00 VG Virgin Islands (British)
+096 BN BN Brunei Darussalam
+100 BG BG Bulgaria
+104 00 MM Myanmar
+108 00 BI Burundi
+112 BY BY Belarus
+116 KH KH Cambodia
+120 00 CM Cameroon
+124 CA CA Canada
+132 00 CV Cape Verde
+136 00 KY Cayman Islands
+140 00 CF Central African Republic
+144 LK LK Sri Lanka
+148 00 TD Chad
+152 CL CL Chile
+156 CN CN China
+158 TW TW Taiwan
+162 00 CX Christmas Island
+166 00 CC Cocos (Keeling) Islands
+170 CO CO Colombia
+174 00 KM Comoros
+175 00 YT Mayotte
+178 00 CG Congo
+180 00 CD Congo, the Democratic Republic of
+184 00 CK Cook Islands
+188 CR CR Costa Rica
+191 HR HR Croatia
+192 00 CU Cuba
+196 CY CY Cyprus
+203 CZ CZ Czech Republic
+204 00 BJ Benin
+208 DK DK Denmark
+212 00 DM Dominica
+214 DO DO Dominican Republic
+218 EC EC Ecuador
+222 SV SV El Salvador
+226 00 GQ Equatorial Guinea
+231 00 ET Ethiopia
+232 00 ER Eritrea
+233 EE EE Estonia
+234 00 FO Faroe Islands
+238 00 FK Falkland Islands
+239 00 GS South Georgia and the South Sandwich Islands
+242 00 FJ Fiji
+246 FI FI Finland
+248 00 AX Aaland Islands
+250 FR FR France
+254 00 GF French Guiana
+258 00 PF French Polynesia
+260 00 TF French Southern Territories
+262 00 DJ Djibouti
+266 00 GA Gabon
+268 GE GE Georgia
+270 00 GM Gambia
+275 00 PS Palestinian Territory, Occupied
+276 DE DE Germany
+288 00 GH Ghana
+292 00 GI Gibraltar
+296 00 KI Kiribati
+300 GR GR Greece
+304 GL GL Greenland
+308 GD GD Grenada
+312 00 GP Guadeloupe
+316 GU GU Guam
+320 GT GT Guatemala
+324 00 GN Guinea
+328 00 GY Guyana
+332 HT HT Haiti
+334 00 HM Heard Island and McDonald Islands
+336 00 VA Holy See (Vatican City State)
+340 HN HN Honduras
+344 HK HK Hong Kong
+348 HU HU Hungary
+352 IS IS Iceland
+356 IN IN India
+360 ID ID Indonesia
+364 IR IR Iran
+368 00 IQ Iraq
+372 IE IE Ireland
+376 IL IL Israel
+380 IT IT Italy
+384 00 CI Cote d'Ivoire
+388 JM JM Jamaica
+392 JP JP Japan
+398 KZ KZ Kazakhstan
+400 JO JO Jordan
+404 KE KE Kenya
+408 KP KP Korea, Democratic People's Republic of
+410 KR KR Korea, Republic of
+414 KW KW Kuwait
+417 00 KG Kyrgyzstan
+418 00 LA Lao People's Democratic Republic
+422 LB LB Lebanon
+426 00 LS Lesotho
+428 LV LV Latvia
+430 00 LR Liberia
+434 00 LY Libyan Arab Jamahiriya
+438 LI LI Liechtenstein
+440 LT LT Lithuania
+442 LU LU Luxembourg
+446 MO MO Macao
+450 00 MG Madagascar
+454 00 MW Malawi
+458 MY MY Malaysia
+462 00 MV Maldives
+466 00 ML Mali
+470 MT MT Malta
+474 00 MQ Martinique
+478 00 MR Mauritania
+480 00 MU Mauritius
+484 MX MX Mexico
+492 MC MC Monaco
+496 00 MN Mongolia
+498 00 MD Moldova, Republic of
+499 CS ME Montenegro
+500 00 MS Montserrat
+504 MA MA Morocco
+508 00 MZ Mozambique
+512 OM OM Oman
+516 00 NA Namibia
+520 00 NR Nauru
+524 NP NP Nepal
+528 NL NL Netherlands
+530 AN AN Netherlands Antilles
+531 00 CW Curacao
+533 AW AW Aruba
+534 00 SX Sint Maarten (Dutch)
+535 00 BQ Bonaire, Saint Eustatus and Saba
+540 00 NC New Caledonia
+548 00 VU Vanuatu
+554 NZ NZ New Zealand
+558 00 NI Nicaragua
+562 00 NE Niger
+566 00 NG Nigeria
+570 00 NU Niue
+574 00 NF Norfolk Island
+578 NO NO Norway
+580 00 MP Northern Mariana Islands
+581 00 UM United States Minor Outlying Islands
+583 00 FM Micronesia
+584 00 MH Marshall Islands
+585 00 PW Palau
+586 PK PK Pakistan
+591 PA PA Panama
+598 PG PG Papua New Guinea
+600 00 PY Paraguay
+604 PE PE Peru
+608 PH PH Philippines
+612 00 PN Pitcairn
+616 PL PL Poland
+620 PT PT Portugal
+624 00 GW Guinea-Bissau
+626 00 TL Timor-Leste
+630 PR PR Puerto Rico
+634 QA QA Quatar
+638 00 RE Reunion
+642 RO RO Romania
+643 RU RU Russian Federation
+646 00 RW Rwanda
+652 BL BL Saint Barthelemy
+654 00 SH Saint Helena, Ascension and Tristan da Cunha
+659 00 KN Saint Kitts and Nevis
+660 00 AI Anguilla
+662 00 LC Saint Lucia
+663 00 MF Saint Martin (French)
+666 00 PM Saint Pierre and Miquelon
+670 00 VC Saint Vincent and the Grenadines
+674 00 SM San Marino
+678 00 ST Sao Tome and Principe
+682 SA SA Saudi Arabia
+686 00 SN Senegal
+688 CS RS Serbia, Republic of
+690 00 SC Seychelles
+694 00 SL Sierra Leone
+702 SG SG Singapore
+703 SK SK Slovakia
+704 VN VN Viet Nam
+705 SI SI Slovenia
+706 00 SO Somalia
+710 ZA ZA South Africa
+716 ZW ZW Zimbabwe
+724 ES ES Spain
+732 00 EH Western Sahara
+736 00 SD Sudan
+740 00 SR Suriname
+744 00 SJ Svalbard and Jan Mayen
+748 00 SZ Swaziland
+752 SE SE Sweden
+756 CH CH Switzerland
+760 SY SY Syrian Arab Republic
+762 00 TJ Tajikistan
+764 TH TH Thailand
+768 00 TG Togo
+772 00 TK Tokelau
+776 00 TO Tonga
+780 TT TT Trinidad and Tobago
+784 AE AE Uinted Arab Emirates
+788 TN TN Tunisia
+792 TR TR Turkey
+795 00 TM Turkmenistan
+796 00 TC Turks and Caicos Islands
+798 00 TV Tuvalu
+800 00 UG Uganda
+804 UA UA Ukraine
+807 MK MK Macedonia
+818 EG EG Egype
+826 GB GB United Kingdom
+831 00 GG Guernsey
+832 00 JE Jersey
+833 00 IM Isle of Man
+834 00 TZ Tanzania
+840 US US United States
+850 00 VI Virgin Islands (US)
+854 00 BF Burkina Faso
+858 UY UY Uruguay
+860 UZ UZ Uzbekistan
+862 VE VE Venezuela
+876 00 WF Wallis and Futuna
+882 00 WS Samoa
+887 YE YE Yemen
+894 00 ZM Zambia
