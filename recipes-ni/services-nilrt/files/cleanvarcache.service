@@ -1,0 +1,17 @@
+[Unit]
+Description=Clean /var/cache Directory
+DefaultDependencies=no
+ConditionPathIsDirectory=/var/cache
+After=local-fs.target populateconfig.service
+Before=sysinit.target shutdown.target
+Conflicts=shutdown.target
+
+[Service]
+Type=oneshot
+ExecStartPre=/bin/echo Cleaning up the /var/cache directory
+ExecStart=/bin/rm -rf /var/cache
+ExecStop=/bin/sh -c 'if [ -d /var/cache ]; then echo Cleaning up the /var/cache directory; rm -rf /var/cache; fi'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=sysinit.target
