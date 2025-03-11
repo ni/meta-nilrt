@@ -1,0 +1,15 @@
+[Unit]
+Description=Mount User Filesystem Service
+DefaultDependencies=no
+Requires=mountconfig.service
+After=local-fs.target mountconfig.service
+ConditionPathExists=/etc/natinst/safemode
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/lib/systemd/scripts/mountuserfs start
+ExecStop=/lib/systemd/scripts/mountuserfs stop
+
+[Install]
+WantedBy=multi-user.target

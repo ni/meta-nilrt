@@ -11,6 +11,8 @@ RDEPENDS:${PN} += "bash niacctbase"
 SRC_URI = " \
 	file://mountcompatibility.service \
 	file://mountcompatibility \
+	file://mountuserfs.service \
+	file://mountuserfs \
 "
 
 inherit features_check systemd
@@ -18,12 +20,16 @@ SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 SYSTEMD_SERVICE:${PN} = " \
 	mountcompatibility.service \
+	mountuserfs.service \
 "
 
 FILES:${PN} += " \
 	${systemd_unitdir}/system/mountcompatibility.service \
 	${libdir}/systemd/scripts/mountcompatibility \
 	${sysconfdir}/init.d/mountcompatibility \
+	${systemd_unitdir}/system/mountuserfs.service \
+	${libdir}/systemd/scripts/mountuserfs \
+	${sysconfdir}/init.d/mountuserfs \
 "
 
 S = "${UNPACKDIR}"
@@ -34,6 +40,8 @@ do_install () {
 
 	install -m 0644 ${S}/mountcompatibility.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${S}/mountcompatibility ${D}${libdir}/systemd/scripts
+	install -m 0644 ${S}/mountuserfs.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${S}/mountuserfs ${D}${libdir}/systemd/scripts
 }
 
 # Restore direct-call entry points after systemd.bbclass removes init.d.
@@ -41,7 +49,7 @@ do_install[postfuncs] += "install_compat_links"
 
 install_compat_links () {
 	install -d ${D}${sysconfdir}/init.d
-	for script in mountcompatibility; do
+	for script in mountcompatibility mountuserfs; do
 		ln -rs ${D}${libdir}/systemd/scripts/$script ${D}${sysconfdir}/init.d/$script
 	done
 }
