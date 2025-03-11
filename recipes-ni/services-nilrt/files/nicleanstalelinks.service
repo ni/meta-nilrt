@@ -1,0 +1,23 @@
+[Unit]
+Description=Clean up stale compatibility symlinks for hot-plugged mass storage devices
+DefaultDependencies=no
+Before=sysinit.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c '\
+  for symlink in u v w x y z U V W X Y Z; do \
+    if [ -h "/$symlink" ]; then \
+      symlink_target=$(readlink /$symlink); \
+      if [ ! -e "$symlink_target" ]; then \
+        rm "/$symlink"; \
+      else \
+        grep -q -F "$symlink_target" /proc/mounts || rm "/$symlink"; \
+      fi; \
+    fi; \
+  done; \
+'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=sysinit.target
