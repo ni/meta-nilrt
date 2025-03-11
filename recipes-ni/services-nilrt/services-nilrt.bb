@@ -32,6 +32,8 @@ SRC_URI = "\
 	file://nisetcommitratio \
 	file://nisetreboottype.service \
 	file://nisetreboottype \
+	file://nisetupkernelconfig.service \
+	file://nisetupkernelconfig \
 "
 
 SRC_URI:append:xilinx-zynq = " file://mountutils"
@@ -51,6 +53,7 @@ SYSTEMD_SERVICE:${PN} = "\
 	nidisablecstates.service \
 	nisetcommitratio.service \
 	nisetreboottype.service \
+	nisetupkernelconfig.service \
 "
 
 S = "${UNPACKDIR}"
@@ -75,6 +78,8 @@ do_install () {
 	install -m 0755 ${S}/nisetcommitratio ${D}${libdir}/systemd/scripts
 	install -m 0644 ${S}/nisetreboottype.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${S}/nisetreboottype ${D}${libdir}/systemd/scripts
+	install -m 0644 ${S}/nisetupkernelconfig.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${S}/nisetupkernelconfig ${D}${libdir}/systemd/scripts
 
 	install -m 0644 ${S}/firewall.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${S}/firewall ${D}${libdir}/systemd/scripts
@@ -132,6 +137,8 @@ FILES:${PN} += " \
 	${libdir}/systemd/scripts/nisetcommitratio \
 	${systemd_unitdir}/system/nisetreboottype.service \
 	${libdir}/systemd/scripts/nisetreboottype \
+	${systemd_unitdir}/system/nisetupkernelconfig.service \
+	${libdir}/systemd/scripts/nisetupkernelconfig \
 "
 
 FILES:${PN}:append:xilinx-zynq = " ${sysconfdir}/init.d/mountutils"
