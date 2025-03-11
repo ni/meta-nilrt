@@ -1,0 +1,12 @@
+[Unit]
+Description=Create cgroups for CPU accounting for National Instruments LabVIEW Real-Time
+DefaultDependencies=no
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/lib/systemd/scripts/nicreatecpuacctgroups
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
