@@ -1,0 +1,13 @@
+[Unit]
+Description=Compute the reason for being in safe mode
+DefaultDependencies=no
+Requires=populateconfig.service
+After=local-fs.target populateconfig.service
+ConditionPathExists=/etc/natinst/safemode
+
+[Service]
+Type=oneshot
+ExecStart=/lib/systemd/scripts/nisafemodereason
+
+[Install]
+WantedBy=multi-user.target

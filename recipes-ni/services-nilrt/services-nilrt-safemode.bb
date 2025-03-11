@@ -13,6 +13,8 @@ SRC_URI = " \
 	file://mountcompatibility \
 	file://mountuserfs.service \
 	file://mountuserfs \
+	file://nisafemodereason.service \
+	file://nisafemodereason \
 "
 
 inherit features_check systemd
@@ -21,6 +23,7 @@ SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 SYSTEMD_SERVICE:${PN} = " \
 	mountcompatibility.service \
 	mountuserfs.service \
+	nisafemodereason.service \
 "
 
 FILES:${PN} += " \
@@ -30,6 +33,8 @@ FILES:${PN} += " \
 	${systemd_unitdir}/system/mountuserfs.service \
 	${libdir}/systemd/scripts/mountuserfs \
 	${sysconfdir}/init.d/mountuserfs \
+	${systemd_unitdir}/system/nisafemodereason.service \
+	${libdir}/systemd/scripts/nisafemodereason \
 "
 
 S = "${UNPACKDIR}"
@@ -42,6 +47,8 @@ do_install () {
 	install -m 0755 ${S}/mountcompatibility ${D}${libdir}/systemd/scripts
 	install -m 0644 ${S}/mountuserfs.service ${D}${systemd_unitdir}/system
 	install -m 0755 ${S}/mountuserfs ${D}${libdir}/systemd/scripts
+	install -m 0644 ${S}/nisafemodereason.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${S}/nisafemodereason ${D}${libdir}/systemd/scripts
 }
 
 # Restore direct-call entry points after systemd.bbclass removes init.d.
