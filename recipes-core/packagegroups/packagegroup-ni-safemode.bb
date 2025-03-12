@@ -10,7 +10,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} = " \
-	initscripts-nilrt-safemode \
+	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'services-nilrt-safemode', 'initscripts-nilrt-safemode', d)} \
 	e2fsprogs \
 	e2fsprogs-e2fsck \
 	e2fsprogs-mke2fs \
