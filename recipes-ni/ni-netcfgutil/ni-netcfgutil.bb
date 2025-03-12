@@ -42,8 +42,8 @@ FILES:${PN} += "\
 
 RDEPENDS:${PN} += "\
 	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'systemd-nilrt', '', d)} \
+	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'services-nilrt', 'initscripts-nilrt', d)} \
 	bash \
 	initscripts \
-	initscripts-nilrt \
 	ni-utils \
 "
