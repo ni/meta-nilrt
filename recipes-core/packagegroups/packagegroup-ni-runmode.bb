@@ -115,6 +115,7 @@ RDEPENDS:${PN} = "\
 	salt-minion \
 	sysconfig-settings \
 	systemimageupdateinfo \
+	trace-cmd \
 	util-linux-sfdisk \
 	vlan \
 	zip \
