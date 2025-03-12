@@ -46,7 +46,6 @@ RDEPENDS:${PN} += "\
 	rsync \
 	sshpass \
 	strace \
-	trace-cmd \
 	valgrind \
 	vim \
 "
