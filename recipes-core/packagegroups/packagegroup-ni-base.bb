@@ -27,6 +27,7 @@ RDEPENDS:${PN} += "\
 	${@bb.utils.contains('MACHINE_FEATURES', 'keyboard', 'keymaps', '', d)} \
 	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'systemd', 'sysvinit', d)} \
 	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'systemd-nilrt', '', d)} \
+	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'services-nilrt', 'initscripts-nilrt', d)} \
 	${@bb.utils.contains('INIT_MANAGER', 'sysvinit', 'eudev', '', d)} \
 	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'niauth-workaround', '', d)} \
 	avahi-daemon \
@@ -54,7 +55,6 @@ RDEPENDS:${PN} += "\
 	gptfdisk \
 	init-ifupdown \
 	initscripts \
-	initscripts-nilrt \
 	iproute2 \
 	iptables \
 	kernel-modules \
