@@ -515,7 +515,11 @@ impl_pulldefault_kitchensink () {
 	run_cmd $NIRTCFG -s section=SYSTEMSETTINGS,token=host_name,value=
 
 	# hostname.sh is responsible for populating the default hostname
-	/etc/init.d/hostname.sh start
+	if [[ -f /etc/init.d/hostname.sh ]]; then
+		/etc/init.d/hostname.sh start
+	elif [[ -f /usr/lib/systemd/scripts/hostname.sh ]]; then
+		/usr/lib/systemd/scripts/hostname.sh start
+	fi
 
 	# populateconfig creates /etc/natinst/share/{ssh,certstore} if they don't
 	# exist
