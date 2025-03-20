@@ -1,0 +1,11 @@
+[Unit]
+Description=Set hostname based on ni-rt.ini and nirtcfg configurations
+Before=systemd-hostnamed.service
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/systemd/scripts/hostname.sh start
+
+[Install]
+WantedBy=multi-user.target
