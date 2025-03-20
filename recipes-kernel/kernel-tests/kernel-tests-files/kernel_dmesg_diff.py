@@ -302,12 +302,13 @@ if args.current_log_db_date:
 
     current_dmesg_log = strip_headers(current_dmesg_record['dmesg_log'])
     kernel_version = KernelVersion(current_dmesg_record['kernel_version_full'])
-    os_version = current_dmesg_record['os_version_major_minor']
+    os_version_major_minor = current_dmesg_record['os_version_major_minor']
     device_desc = current_dmesg_record['device_desc']
 else:
     current_dmesg_log = get_dmesg_log()
     kernel_version = KernelVersion()
     os_version = OsVersion()
+    os_version_major_minor = os_version.major_minor
     device_desc = get_device_desc()
 
 # Retrieve the previous dmesg log
@@ -315,7 +316,7 @@ if args.basis_log_db_date:
     previous_dmesg_record = get_dmesg_record_by_date(db, args.basis_log_db_date, logger)
     assert previous_dmesg_record, "Could not find matching basis log record from database."
 else:
-    previous_dmesg_record = get_previous_dmesg_record(db, kernel_version, os_version.major_minor, device_desc, logger)
+    previous_dmesg_record = get_previous_dmesg_record(db, kernel_version, os_version_major_minor, device_desc, logger)
 
 previous_dmesg_log = strip_headers(previous_dmesg_record['dmesg_log']) if previous_dmesg_record else ''
 
