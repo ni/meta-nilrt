@@ -9,6 +9,7 @@ IMAGE_INSTALL = "\
 	packagegroup-ni-wifi \
 	dkms \
 	nilrt-grub-runmode \
+	niauth-workaround \
 	"
 
 require includes/nilrt-image-base.inc

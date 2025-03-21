@@ -11,17 +11,18 @@ SRC_URI = " \
 
 DEPENDS += " \
 	update-rc.d-native \
+	shadow-native \
+	pseudo-native \
 "
 
-inherit allarch
-
-PACKAGES = "${PN}"
-
+inherit systemd
+SYSTEMD_PACKAGES = "${PN}"
 SYSTEMD_SERVICE:${PN} = "niauth_systemd.service"
+SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
-# Create niauth.service and install to /etc/systemd/system
+# Create niauth.service and install to //usr/lib/systemd/system
 FILES:${PN} += " \
-	${sysconfdir}/systemd/system/niauth_systemd.service \
+	${systemd_unitdir}system/niauth_systemd.service \
 	/usr/local/natinst/share/NIAuth/niauth_systemd \
 "
 
@@ -29,17 +30,18 @@ S = "${WORKDIR}"
 
 # Create folder /etc/natinst/share/niauth
 do_install () {
-	install -d ${D}${sysconfdir}/systemd/system/
-	install -m 0755 ${S}/niauth_systemd.service ${D}${sysconfdir}/systemd/system/
+	install -d ${D}${systemd_unitdir}/system
+	install -m 0755 ${S}/niauth_systemd.service ${D}${systemd_unitdir}/system
 
 	install -d ${D}/usr/local/natinst/share/NIAuth/
 	install -m 0755 ${S}/niauth_systemd ${D}/usr/local/natinst/share/NIAuth/
 }
 
-pkg_postinst_ontarget:${PN} () {
+pkg_preinst_on_target:${PN} () {
 	/etc/init.d/niauth stop
 	/sbin/update-rc.d -f niauth remove
-	/bin/systemctl daemon-reload
-	/bin/systemctl enable niauth_systemd.service
-	/bin/systemctl start niauth_systemd.service
 }
+
+RDEPENDS:${PN} += " \
+	bash \
+"
