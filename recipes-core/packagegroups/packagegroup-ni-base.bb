@@ -27,6 +27,7 @@ RDEPENDS:${PN} += "\
 	${@bb.utils.contains('MACHINE_FEATURES', 'keyboard', 'keymaps', '', d)} \
 	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'systemd', 'sysvinit', d)} \
 	${@bb.utils.contains('INIT_MANAGER', 'sysvinit', 'eudev', '', d)} \
+	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'niauth-workaround', '', d)} \
 	avahi-daemon \
 	base-files \
 	base-files-nilrt \
