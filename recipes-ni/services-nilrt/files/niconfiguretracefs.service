@@ -1,0 +1,11 @@
+[Unit]
+Description=Configure Tracefs
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/lib/systemd/scripts/niconfiguretracefs
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

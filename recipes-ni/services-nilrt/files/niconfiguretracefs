@@ -1,0 +1,10 @@
+#!/bin/sh
+# Copyright (c) 2012-2025 National Instruments.
+# All rights reserved.
+
+debugfs_path="/sys/kernel/debug"
+tracefs_path="/sys/kernel/debug/tracing"
+
+# Change the permissions so lvrt user can control ftrace
+chmod a+rx $debugfs_path
+chown -R lvuser $tracefs_path
