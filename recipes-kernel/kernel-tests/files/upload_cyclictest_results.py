@@ -146,7 +146,7 @@ def get_distro_info():
         return ('unknown', 'unknown')
     pairs = dict(map(lambda e: e.split('='), os_release_stmts))
     version = pairs.get('VERSION_ID', 'unknown').strip()
-    name = pairs.get('DISTRO_CODENAME', 'unknown').strip()[1:-1]
+    name = pairs.get('VERSION_CODENAME', 'unknown').strip().strip('"')
     return (version, name)
 
 def read_data(path):

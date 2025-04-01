@@ -13,11 +13,6 @@ KBUILD_FRAGMENTS_LOCATION ?= "nilrt"
 
 LINUX_VERSION_EXTENSION = "$([ "${LINUX_KERNEL_TYPE}" != "standard" ] && echo '-${LINUX_KERNEL_TYPE}')"
 
-# Setting EXTRA_OEMAKE to include CFLAGS settings is required as
-# the Kbuild system will clobber CC (which is used by OE for setting
-# the compiler and flags to the compiler/linker/etc.)
-EXTRA_OEMAKE += 'CFLAGS="${TOOLCHAIN_OPTIONS}"'
-
 # Kbuild intenionally clobbers CFLAGS/LDFLAGS for some binaries we ship in nilrt,
 # particularly in the tools/ dir (fixdep, genksyms etc), and OE has this insanity check
 # to see if binaries were built using the OE-supplied *FLAGS, so skip this sanity check to
@@ -39,7 +34,6 @@ do_kernel_configme[depends] += "libgcc:do_populate_sysroot"
 
 SRC_URI = "\
 	${NILRT_GIT}/${GIT_KERNEL_REPO};protocol=https;branch=${KBRANCH} \
-	file://export-kernel-headers.sh \
 "
 # Generically use the *latest* rev from the kernel source branch, if none is
 # specified by a recipe.
@@ -78,20 +72,6 @@ DEPENDS:append:x64 = " elfutils-native"
 DEPENDS:append:armv7a = " dtc-native"
 
 RDEPENDS:kernel-dev += "bash binutils gcc gcc-symlinks"
-
-PACKAGES += "${PN}-module-versioning-headers"
-
-FILES:${PN}-module-versioning-headers = "/kernel"
-
-# Install headers and build objects for kernel versioning into
-do_install:append() {
-	export CROSS_COMPILE=${CROSS_COMPILE} ARCH=${ARCH} KBUILD_OUTPUT=${KBUILD_OUTPUT}
-
-	# for older NILRT install under /kernel for inclusion in squashfs for backwards
-	# compatibility with non-standard Linux installs (non-dkms). This should go away
-	# and older NILRT should be migrated to kernel-dev + dkms in the future.
-	${WORKDIR}/export-kernel-headers.sh ${S} ${D}/kernel
-}
 
 do_shared_workdir:append() {
 	cp -rf ./* ${STAGING_KERNEL_BUILDDIR}

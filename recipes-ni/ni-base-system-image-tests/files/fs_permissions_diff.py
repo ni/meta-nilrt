@@ -207,7 +207,7 @@ def strip_versions_from_path(path):
     stripped_path = re.sub(r"salt-\d+\.\d+_\d+_g[0-9a-f]+", "salt-SALTVERSION", path)
     stripped_path = re.sub(r"salt-\d+\.\d+\+\d+\.g[0-9a-f]+", "salt-SALTVERSION", stripped_path)
     # Strip everything that looks like an RT kernel version (so module and kernel version changes are ignored)
-    stripped_path = re.sub(r"\d+\.\d+\.\d+-rt\d+", "VERSION.VERSION.VERSION-rtVERSION", stripped_path)
+    stripped_path = re.sub(r"\d+\.\d+\.\d+-rt\d+(-next)?(-g[a-f0-9]+)?", "VERSION.VERSION.VERSION-rtVERSION", stripped_path)
     # Strip everything that looks like 1.2.3
     stripped_path = re.sub(r"\d+\.\d+\.\d+", "VERSION.VERSION.VERSION", stripped_path)
     # Strip everything that looks like 1.2

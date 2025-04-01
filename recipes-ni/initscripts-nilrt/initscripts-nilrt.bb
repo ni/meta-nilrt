@@ -15,7 +15,7 @@ SRC_URI = "\
 	file://lvrt-cgroup \
 	file://lvrt-cgroup.sh \
 	file://mountconfig \
-	file://mountdebugfs \
+	file://niconfiguretracefs \
 	file://nicheckbiosconfig \
 	file://nicleanefivars \
 	file://nicleanstalelinks \
@@ -41,7 +41,7 @@ do_install () {
 	install -d ${D}${sysconfdir}/init.d/
 	install -m 0755 ${WORKDIR}/cleanvarcache         ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/mountconfig           ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/mountdebugfs          ${D}${sysconfdir}/init.d
+	install -m 0755 ${WORKDIR}/niconfiguretracefs    ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nicheckbiosconfig     ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nicleanefivars        ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nicleanstalelinks     ${D}${sysconfdir}/init.d
@@ -65,7 +65,7 @@ do_install () {
 	update-rc.d -r ${D} cleanvarcache         start 38 0 6 S .
 	update-rc.d -r ${D} firewall              start 39 S .
 	update-rc.d -r ${D} mountconfig           start 35 S .
-	update-rc.d -r ${D} mountdebugfs          start 82 S .
+	update-rc.d -r ${D} niconfiguretracefs    start 82 S .
 	update-rc.d -r ${D} nicheckbiosconfig     start 99 4 5 .
 	update-rc.d -r ${D} nicleanefivars        start 10 S .
 	update-rc.d -r ${D} nicleanstalelinks     start 5  S .
