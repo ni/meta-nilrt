@@ -1,0 +1,12 @@
+[Unit]
+Description=NI Set LED Service
+DefaultDependencies=no
+Before=basic.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/nisetled
+RemainAfterExit=yes
+
+[Install]
+WantedBy=basic.target
