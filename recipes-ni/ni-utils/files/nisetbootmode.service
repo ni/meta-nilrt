@@ -1,0 +1,15 @@
+[Unit]
+Description=NI Set Boot Mode Service
+DefaultDependencies=no
+Before=basic.target
+Conflicts=shutdown.target reboot.target
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/nisetbootmode start
+ExecStop=/usr/sbin/nisetbootmode stop
+RemainAfterExit=yes
+
+[Install]
+WantedBy=basic.target
