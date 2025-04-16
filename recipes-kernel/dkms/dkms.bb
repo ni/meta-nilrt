@@ -11,7 +11,7 @@ PV = "3.0.13"
 
 
 SRC_URI = "\
-	git://github.com/dell/dkms.git;protocol=https;branch=master \
+	git://github.com/dell/dkms.git;protocol=https;branch=main \
 	file://0001-autoinstall-all-kernels.patch \
 "
 
