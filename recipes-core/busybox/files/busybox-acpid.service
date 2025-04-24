@@ -1,0 +1,17 @@
+[Unit]
+Description=Busybox Advanced Configuration and Power Interface Event Daemon
+SourcePath=/usr/sbin/busybox-acpid
+
+[Service]
+Type=forking
+Restart=no
+TimeoutSec=5min
+IgnoreSIGPIPE=no
+KillMode=process
+GuessMainPID=no
+RemainAfterExit=yes
+ExecStart=/usr/sbin/busybox-acpid start
+ExecStop=/usr/sbin/busybox-acpid stop
+
+[Install]
+WantedBy=multi-user.target
