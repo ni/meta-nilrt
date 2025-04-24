@@ -1,0 +1,20 @@
+[Unit]
+Description=Busybox ifplugd daemon
+SourcePath=/usr/sbin/busybox-ifplugd
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=forking
+Restart=no
+TimeoutSec=5min
+IgnoreSIGPIPE=no
+KillMode=process
+GuessMainPID=no
+RemainAfterExit=yes
+SuccessExitStatus=5 6
+ExecStart=/usr/sbin/busybox-ifplugd start
+ExecStop=/usr/sbin/busybox-ifplugd stop
+
+[Install]
+WantedBy=multi-user.target

@@ -77,6 +77,10 @@ VIRTUAL-RUNTIME_initscripts = "initscripts"
 
 VIRTUAL-RUNTIME_init_manager = "systemd"
 
+# Continue to use ifplugd networking on systemd in order to maintain
+# current NI configurations, scripts, etc...
+PACKAGECONFIG:remove = "networkd"
+
 # For qemu images
 VIRTUAL-RUNTIME_keymaps = ""
 
