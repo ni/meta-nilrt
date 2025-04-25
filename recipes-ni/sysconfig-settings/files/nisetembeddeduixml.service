@@ -1,0 +1,11 @@
+[Unit]
+Description=NI Embedded UI XML Service
+After=ni-modules-autoload.service
+Before=graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/systemd/scripts/nisetembeddeduixml start
+
+[Install]
+WantedBy=graphical.target
