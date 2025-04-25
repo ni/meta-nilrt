@@ -7,22 +7,27 @@ S = "${UNPACKDIR}"
 
 SRC_URI = "\
 	file://holdoff-shutdown \
+	file://holdoff-shutdown.service \
 	file://nilrt-safemode \
 	file://rguard \
 "
+SRC_URI += "${@bb.utils.contains('INIT_MANAGER', 'systemd', 'file://inhibit-shutdown.sh', '', d)}"
 
+script_location = "${@bb.utils.contains('INIT_MANAGER','sysvinit','${sysconfdir}/init.d','${systemd_unitdir}/scripts',d)}"
 # ni-shutdown-guard package settings
 FILES:${PN} = "\
-	${sysconfdir}/init.d/holdoff-shutdown \
+	${script_location}/holdoff-shutdown \
 	${sbindir}/rguard \
+	${datadir}/ni-shutdown-guard/inhibit-shutdown.sh \
 "
 
-RDEPENDS:${PN} += "bash"
+RDEPENDS:${PN} += "bash ${@bb.utils.contains('INIT_MANAGER', 'systemd', 'systemd-extra-utils', '', d)}"
 
+inherit update-rc.d systemd
 INITSCRIPT_NAME = "holdoff-shutdown"
 INITSCRIPT_PARAMS = "stop 00 0 6 ."
-
-inherit update-rc.d
+SYSTEMD_SERVICE:${PN} = "holdoff-shutdown.service"
+SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
 # ni-shutdown-guard-safemode package settings
 PACKAGES += "${PN}-safemode"
@@ -38,10 +43,17 @@ RDEPENDS:${PN}-safemode += "${PN}"
 
 do_install () {
 	install -d ${D}${sbindir}
-	install -d ${D}${sysconfdir}/init.d
+	install -d ${D}${script_location}
 	install -d ${D}${sysconfdir}/holdoff-shutdown.d
 
 	install -m 0755   ${UNPACKDIR}/rguard              ${D}${sbindir}
-	install -m 0755   ${UNPACKDIR}/holdoff-shutdown    ${D}${sysconfdir}/init.d
+	install -m 0755   ${UNPACKDIR}/holdoff-shutdown    ${D}${script_location}
 	install -m 0644   ${UNPACKDIR}/nilrt-safemode      ${D}${sysconfdir}/holdoff-shutdown.d
+
+	if ${@bb.utils.contains('INIT_MANAGER','systemd','true','false',d)}; then
+		install -D -m 0644 ${UNPACKDIR}/inhibit-shutdown.sh ${D}${datadir}/ni-shutdown-guard/inhibit-shutdown.sh
+		install -d ${D}${systemd_system_unitdir}
+		install -m 0644 ${UNPACKDIR}/holdoff-shutdown.service ${D}${systemd_system_unitdir}/
+	fi
+
 }
