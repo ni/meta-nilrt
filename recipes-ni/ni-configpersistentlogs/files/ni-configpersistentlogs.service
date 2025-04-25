@@ -1,0 +1,9 @@
+[Unit]
+Description=NI Persistent Logs Configuration Utility
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/systemd/scripts/ni-configpersistentlogs
+
+[Install]
+WantedBy=multi-user.target rescue.target
