@@ -1,0 +1,12 @@
+[Unit]
+Description=NI Set Console Output
+DefaultDependencies=no
+Before=multi-user.target halt.target reboot.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/systemd/scripts/nisetconsoleout start
+ExecStop=/usr/lib/systemd/scripts/nisetconsoleout stop
+
+[Install]
+WantedBy=multi-user.target rescue.target halt.target reboot.target
