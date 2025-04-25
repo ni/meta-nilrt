@@ -1,0 +1,11 @@
+[Unit]
+Description=Holdoff Shutdown/Reboot Guard
+DefaultDependencies=no
+Before=halt.target reboot.target shutdown.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/systemd/scripts/holdoff-shutdown stop
+
+[Install]
+WantedBy=halt.target reboot.target shutdown.target
