@@ -14,8 +14,6 @@ DISTRO_FEATURES += "\
         xattr \
         zeroconf \
         pci \
-        systemd \
-        usrmerge \
         pam \
         ptest \
         selinux \
@@ -80,6 +78,11 @@ VIRTUAL-RUNTIME_base-utils-hwclock = "util-linux-hwclock"
 VIRTUAL-RUNTIME_initscripts = "initscripts"
 
 VIRTUAL-RUNTIME_init_manager = "systemd"
+
+DISTRO_FEATURES += " \
+	${@bb.utils.contains('VIRTUAL-RUNTIME_init_manager','systemd','systemd','sysvinit',d)} \
+	${@bb.utils.contains('VIRTUAL-RUNTIME_init_manager','systemd','usrmerge','',d)} \
+"
 
 # Continue to use ifplugd networking on systemd in order to maintain
 # current NI configurations, scripts, etc...
