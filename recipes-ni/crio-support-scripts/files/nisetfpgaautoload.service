@@ -1,0 +1,12 @@
+[Unit]
+Description=NI Set FPGA Autoload
+DefaultDependencies=no
+Before=multi-user.target halt.target reboot.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/systemd/scripts/nisetfpgaautoload start
+ExecStop=/usr/lib/systemd/scripts/nisetfpgaautoload stop
+
+[Install]
+WantedBy=multi-user.target rescue.target halt.target reboot.target
