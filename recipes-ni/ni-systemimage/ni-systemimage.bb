@@ -33,6 +33,7 @@ RDEPENDS:${PN} += "\
 	gzip \
 	ni-netcfgutil \
 	niacctbase \
+	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'ni-shutdown-guard', '', d)} \
 	pv \
 	tar \
 	xz \

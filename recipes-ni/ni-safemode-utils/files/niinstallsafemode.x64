@@ -27,6 +27,11 @@ bootimage_data="bootimage.ini"
 # Bail out on first error
 set -o errexit
 
+if [ -d /run/systemd/system ]; then
+	source /usr/share/ni-shutdown-guard/inhibit-shutdown.sh
+	inhibit_shutdown "$@"
+fi
+
 cleanup()
 {
 	rm -rf $tmp_dir
