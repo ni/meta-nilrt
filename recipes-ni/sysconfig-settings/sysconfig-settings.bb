@@ -66,8 +66,12 @@ do_install () {
 	# Create shared systemsettingsdir with appropriate permissions and ownership
 	install -d -m 0775 -o ${LVRT_USER} -g ${LVRT_GROUP} ${D}${systemsettingsdir}
 
-	install -d ${D}${sysconfdir}/init.d/
-	install -m 0755 ${WORKDIR}/nisetembeddeduixml ${D}${sysconfdir}/init.d
+	install -d ${D}${script_location}
+	install -m 0755 ${WORKDIR}/nisetembeddeduixml ${D}${script_location}
+	if ${@bb.utils.contains('INIT_MANAGER','systemd','true','false',d)}; then
+		install -d ${D}${systemd_system_unitdir}
+		install -m 0644 ${WORKDIR}/nisetembeddeduixml.service ${D}${systemd_system_unitdir}/
+	fi
 }
 
 pkg_postinst_ontarget:${PN} () {
@@ -162,6 +166,7 @@ DESCRIPTION:${PN}-ui = "Configuration files to enable UI for the National Instru
 
 SRC_URI:append = "\
 	file://nisetembeddeduixml \
+	file://nisetembeddeduixml.service \
 	file://systemsettings/ui_enable.ini \
 	file://uixml/nilinuxrt.System.binding.xml \
 	file://uixml/nilinuxrt.System.const.de.xml \
@@ -181,18 +186,24 @@ SRC_URI:append = "\
 	file://uixml/nilinuxrt.ui_enable.def.xml \
 "
 
+script_location = "${@bb.utils.contains('INIT_MANAGER','sysvinit','${sysconfdir}/init.d','${systemd_unitdir}/scripts',d)}"
 FILES:${PN}-ui = "\
-	${sysconfdir}/init.d/nisetembeddeduixml \
+	${script_location}/nisetembeddeduixml \
 	${settingsdatadir}/ui_enable.ini \
 	${uixmldir}/nilinuxrt.System.* \
 	${uixmldir}/nilinuxrt.ui_enable.* \
+	${@bb.utils.contains('INIT_MANAGER','systemd','${systemd_system_unitdir}/nisetembeddeduixml.service','',d)} \
 "
 
 RDEPENDS:${PN}-ui += "sysconfig-settings niacctbase"
 
-INITSCRIPT_PACKAGES += "${PN}-ui"
+INITSCRIPT_PACKAGES += "${@bb.utils.contains('INIT_MANAGER','sysvinit','${PN}-ui','',d)}"
 INITSCRIPT_NAME:${PN}-ui = "nisetembeddeduixml"
 INITSCRIPT_PARAMS:${PN}-ui = "start 20 5 ."
+
+inherit systemd
+SYSTEMD_SERVICE:${PN}-ui = "nisetembeddeduixml.service"
+SYSTEMD_AUTO_ENABLE:${PN}-ui = "enable"
 
 pkg_prerm_ontarget:${PN}-ui () {
 	nirtcfg --set "section=systemsettings,token=ui.enabled,value=False"
