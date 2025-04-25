@@ -1,0 +1,11 @@
+[Unit]
+Description=NI Set Serial Number
+DefaultDependencies=no
+Before=basic.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/systemd/scripts/nisetserialnumber start
+
+[Install]
+WantedBy=basic.target
