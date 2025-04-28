@@ -30,22 +30,31 @@ S = "${UNPACKDIR}"
 # BBCLASSES
 # ==============================================================================
 
-inherit update-rc.d
+inherit update-rc.d systemd
 
 INITSCRIPT_NAME = "nitargetinfo"
 INITSCRIPT_PARAMS = "start 20 S ."
-
+SYSTEMD_SERVICE:${PN} = "nitargetinfo.service"
+SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
 # ==============================================================================
 # TASKS
 # ==============================================================================
 
+script_location = "${@bb.utils.contains('INIT_MANAGER','sysvinit','${sysconfdir}/init.d','${systemd_unitdir}/scripts',d)}"
+FILES:${PN} += "\
+	${bindir}/nisystemformat \
+	${script_location}/nitargetinfo \
+	/usr/local/natinst/bin/nisystemformat \
+	${@bb.utils.contains('INIT_MANAGER','systemd','${systemd_system_unitdir}/nitargetinfo.service','',d)} \
+"
+
 do_install () {
 	oe_runmake install DESTDIR=${D}
 
 	# Install project initscripts
-	install -d ${D}${sysconfdir}/init.d
-	install -m 0544 ${S}/init/nitargetinfo ${D}${sysconfdir}/init.d/nitargetinfo
+	install -d ${D}${script_location}
+	install -m 0755 ${S}/init/nitargetinfo ${D}${script_location}/nitargetinfo
 
 	# The nisystemformat binary can be executed by anyone in the 'ni' group.
 	chown 0:${LVRT_GROUP} ${D}${bindir}/nisystemformat
@@ -53,8 +62,12 @@ do_install () {
 	# legacy symlink location
 	install -d ${D}/usr/local/natinst/bin
 	ln -sf ${bindir}/nisystemformat ${D}/usr/local/natinst/bin/nisystemformat
-}
 
+	if ${@bb.utils.contains('INIT_MANAGER','systemd','true','false',d)}; then
+		install -d ${D}${systemd_system_unitdir}
+		install -m 0644 ${S}/init/nitargetinfo.service ${D}${systemd_system_unitdir}/
+	fi
+}
 
 # ==============================================================================
 # PACKAGING
@@ -63,12 +76,14 @@ do_install () {
 FILES:${PN} += "\
 	/usr/local/natinst/bin/nisystemformat \
 "
+
 RDEPENDS:${PN} += "\
 	bash \
 	coreutils \
 	e2fsprogs-mke2fs \
 	ni-netcfgutil \
 	niacctbase \
+	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'ni-shutdown-guard', '', d)} \
 	shadow \
 	util-linux-blkid \
 	util-linux-lsblk \
