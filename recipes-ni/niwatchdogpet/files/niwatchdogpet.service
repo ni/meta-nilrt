@@ -1,0 +1,11 @@
+[Unit]
+Description=NI Target Info Service
+DefaultDependencies=no
+Before=basic.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/systemd/scripts/nitargetinfo
+
+[Install]
+WantedBy=basic.target
