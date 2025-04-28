@@ -1,0 +1,14 @@
+[Unit]
+Description=Handle CPLD IP Reset
+Requires=ni-modules-autoload.service systemd-udev-trigger.service mountconfig.service
+After=ni-modules-autoload.service systemd-udev-trigger.service mountconfig.service
+Before=multi-user.target
+
+[Service]
+Type=oneshot
+# Drain device events queued by module loading before checking /dev/nirtfeatures.
+ExecStartPre=/bin/udevadm settle
+ExecStart=/usr/lib/systemd/scripts/handle_cpld_ip_reset start
+
+[Install]
+WantedBy=multi-user.target
