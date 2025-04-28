@@ -1,0 +1,11 @@
+[Unit]
+Description=NI Modules Autoload Service
+DefaultDependencies=no
+Before=basic.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/systemd/scripts/ni-modules-autoload start
+
+[Install]
+WantedBy=basic.target
