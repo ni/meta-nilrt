@@ -8,19 +8,21 @@ cd /etc/modules.autoload.d
 
 case "$1" in
     start)
-	for mod in *; do
-	    modprobe -q "$mod"
-	done
-	#autodetection of hardware
-	find /sys/devices -name modalias |
-	    while read -r m; do
-		read -r alias < "$m"
-		modprobe -q "$alias"
-	    done
-	;;
+    for mod in *; do
+        modprobe -q "$mod"
+    done
+    #autodetection of hardware
+    find /sys/devices -name modalias |
+        while read -r m; do
+            read -r alias < "$m"
+            modprobe -q "$alias"
+        done
+    ;;
     stop)
-	for mod in *; do
-	    modprobe -q -r "$mod"
-	done
-	;;
+    for mod in *; do
+        modprobe -q -r "$mod"
+    done
+    ;;
 esac
+
+exit 0
