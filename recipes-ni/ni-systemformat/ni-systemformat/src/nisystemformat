@@ -71,6 +71,10 @@ parse_args "${@}"
 
 case "$MODE" in
 	format)
+		if [ "$OSMODE" != restore ] && [ -d /run/systemd/system ]; then
+			source /usr/share/ni-shutdown-guard/inhibit-shutdown.sh || exit "${EXITCODES[IMPORT_ERROR]}"
+			inhibit_shutdown "$@"
+		fi
 		format_rootfs_or_userfs
 	;;
 	status)
