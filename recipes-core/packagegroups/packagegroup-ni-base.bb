@@ -95,6 +95,7 @@ RDEPENDS:${PN} += "\
 	sysconfig-settings \
 	sysconfig-settings-console \
 	syslog-ng \
+	syswebserv-workaround \
 	tar \
 	udev-extraconf \
 	usbutils \
