@@ -1,0 +1,28 @@
+[Unit]
+SourcePath=/etc/init.d/systemWebServer
+Before=multi-user.target
+Before=graphical.target
+Before=niminionagent.service
+Before=nirtmdnsd.service
+Before=niwifibledd.service
+Before=nisysmgmtmdnspublisher.service
+After=ni-rtfeatures.service
+After=nisvcloc.service
+After=niauth.service
+After=handle_cpld_ip_reset.service
+After=nisdmond.service
+
+[Service]
+Type=forking
+Restart=no
+TimeoutSec=5min
+IgnoreSIGPIPE=no
+KillMode=process
+GuessMainPID=no
+RemainAfterExit=yes
+ExecStart=/etc/init.d/systemWebServer start
+ExecStop=/etc/init.d/systemWebServer stop
+ExecReload=/etc/init.d/systemWebServer reload
+
+[Install]
+WantedBy=default.target
