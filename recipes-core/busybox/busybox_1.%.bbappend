@@ -86,7 +86,7 @@ do_install:append () {
 		install -d ${D}${script_location}
 		install -m 0755 ${UNPACKDIR}/busybox-acpid ${D}${script_location}
 
-		install -m 0755 ${UNPACKDIR}/acpid.conf ${D}${sysconfdir}/admin
+		install -m 0755 ${UNPACKDIR}/acpid.conf ${D}${sysconfdir}/
 		install -d ${D}${sysconfdir}/acpi
 		install -m 0755 ${UNPACKDIR}/acpid_poweroff.sh ${D}${sysconfdir}/acpi/poweroff.sh
 		install -d ${D}${sysconfdir}/logrotate.d
