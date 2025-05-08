@@ -41,6 +41,7 @@ SRCREV ?= "${AUTOREV}"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 CVE_VERSION = "${KERNEL_VERSION}+git${SRCPV}"
 
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=6bc538ed5bd9a7fc9398086aedcd7e46"
 LIC_FILES_CHKSUM:xilinx-zynq = "file://COPYING;md5=d7810fab7487fb0aad327b76f1be7cd7"
 
