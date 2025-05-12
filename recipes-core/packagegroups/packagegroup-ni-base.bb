@@ -26,7 +26,7 @@ RDEPENDS:${PN} += "\
 	${@bb.utils.contains('MACHINE_FEATURES', 'acpi', 'busybox-acpid', '', d)} \
 	${@bb.utils.contains('MACHINE_FEATURES', 'keyboard', 'keymaps', '', d)} \
 	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'systemd', 'sysvinit', d)} \
-	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'systemd-nilrt', '', d)} \
+	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'systemd-nilrt', 'initscripts', d)} \
 	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'services-nilrt', 'initscripts-nilrt', d)} \
 	${@bb.utils.contains('INIT_MANAGER', 'sysvinit', 'eudev', '', d)} \
 	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'niauth-workaround', '', d)} \
@@ -54,7 +54,6 @@ RDEPENDS:${PN} += "\
 	glibc-gconv-utf-16 \
 	gptfdisk \
 	init-ifupdown \
-	initscripts \
 	iproute2 \
 	iptables \
 	kernel-modules \
