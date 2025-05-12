@@ -71,7 +71,7 @@ VIRTUAL-RUNTIME_graphical_init_manager = "xserver-xfce-init"
 
 VIRTUAL-RUNTIME_base-utils-hwclock = "util-linux-hwclock"
 
-VIRTUAL-RUNTIME_initscripts = "initscripts"
+VIRTUAL-RUNTIME_initscripts = "systemd-compat-units"
 
 VIRTUAL-RUNTIME_init_manager = "systemd"
 
