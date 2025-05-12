@@ -12,6 +12,9 @@ export INTERFACE=$1
 
 case "$2" in
    up)
+      if [ -x "/etc/network/if-pre-up.d/wpa-supplicant" ]; then
+         MODE=start IFACE=$INTERFACE IF_WPA_DRIVER=wired IF_WPA_CONF=/etc/natinst/share/wpa_supplicant.wired.$INTERFACE.conf /etc/network/if-pre-up.d/wpa-supplicant
+      fi
       # On link-up, we're not guaranteed to be on the same network as
       # we were before, so we should reprobe for an address if it's
       # automatically configured.
@@ -37,6 +40,9 @@ case "$2" in
       stop_dhcp_server $INTERFACE;
       stop_dhcp_client $INTERFACE;
       stop_linklocal_client $INTERFACE;
+      if [ -x "/etc/network/if-post-down.d/wpa-supplicant" ]; then
+         MODE=stop IFACE=$INTERFACE IF_WPA_DRIVER=wired IF_WPA_CONF=/etc/natinst/share/wpa_supplicant.wired.$INTERFACE.conf /etc/network/if-post-down.d/wpa-supplicant
+      fi
 
       # We clearly aren't going to be able to do DNS on this interface anymore.
       rm -f /etc/resolv.conf.$INTERFACE
