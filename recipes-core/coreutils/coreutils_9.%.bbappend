@@ -19,7 +19,7 @@ RDEPENDS:coreutils:class-target += "\
 	${PN}-timeout \
 "
 
-PRIORITY = "120"
+COREUTILS_PRIORITY = "120"
 
 pkg_postinst:${PN}-hostname () {
 	chmod 4550 $D${base_bindir}/hostname.${BPN}
@@ -33,7 +33,7 @@ pkg_prerm:${PN}-hostname () {
 }
 
 pkg_postinst:${PN}-ls () {
-	update-alternatives --install ${base_bindir}/ls ls ls.${BPN} ${PRIORITY}
+	update-alternatives --install ${base_bindir}/ls ls ls.${BPN} ${COREUTILS_PRIORITY}
 }
 
 pkg_prerm:${PN}-ls () {
@@ -41,7 +41,7 @@ pkg_prerm:${PN}-ls () {
 }
 
 pkg_postinst:${PN}-chcon () {
-	update-alternatives --install ${bindir}/chcon chcon chcon.${BPN} ${PRIORITY}
+	update-alternatives --install ${bindir}/chcon chcon chcon.${BPN} ${COREUTILS_PRIORITY}
 }
 
 pkg_prerm:${PN}-chcon () {
@@ -49,7 +49,7 @@ pkg_prerm:${PN}-chcon () {
 }
 
 pkg_postinst:${PN}-shred () {
-	update-alternatives --install ${bindir}/shred shred shred.${BPN} ${PRIORITY}
+	update-alternatives --install ${bindir}/shred shred shred.${BPN} ${COREUTILS_PRIORITY}
 }
 
 pkg_prerm:${PN}-shred () {
@@ -57,7 +57,7 @@ pkg_prerm:${PN}-shred () {
 }
 
 pkg_postinst:${PN}-timeout () {
-	update-alternatives --install ${bindir}/timeout timeout timeout.${BPN} ${PRIORITY}
+	update-alternatives --install ${bindir}/timeout timeout timeout.${BPN} ${COREUTILS_PRIORITY}
 }
 
 pkg_prerm:${PN}-timeout () {
