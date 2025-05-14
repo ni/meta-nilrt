@@ -73,6 +73,10 @@ DEPENDS:append:armv7a = " dtc-native"
 
 RDEPENDS:kernel-dev += "bash binutils gcc gcc-symlinks"
 
+kernel_do_install:append() {
+	rm ${D}/${KERNEL_IMAGEDEST}/System.map-${KERNEL_VERSION}
+}
+
 do_shared_workdir:append() {
 	cp -rf ./* ${STAGING_KERNEL_BUILDDIR}
 }
