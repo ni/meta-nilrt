@@ -28,6 +28,7 @@ RDEPENDS:${PN} += "\
 	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'systemd-nilrt', 'initscripts', d)} \
 	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'services-nilrt', 'initscripts-nilrt', d)} \
 	${@bb.utils.contains('INIT_MANAGER', 'sysvinit', 'eudev', '', d)} \
+	${@bb.utils.contains('INIT_MANAGER', 'sysvinit', 'modutils-initscripts', '', d)} \
 	avahi-daemon \
 	base-files \
 	base-files-nilrt \
@@ -59,7 +60,6 @@ RDEPENDS:${PN} += "\
 	libstdc++ \
 	logrotate \
 	lsbinitscripts \
-	modutils-initscripts \
 	netbase \
 	ni-acctsync \
 	ni-hw-scripts \
