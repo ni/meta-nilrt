@@ -30,6 +30,7 @@ RDEPENDS:${PN} += "\
 	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'systemd-nilrt', 'initscripts', d)} \
 	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'services-nilrt', 'initscripts-nilrt', d)} \
 	${@bb.utils.contains('INIT_MANAGER', 'sysvinit', 'eudev', '', d)} \
+	${@bb.utils.contains('INIT_MANAGER', 'sysvinit', 'modutils-initscripts', '', d)} \
 	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'niauth-workaround', '', d)} \
 	avahi-daemon \
 	base-files \
@@ -69,7 +70,6 @@ RDEPENDS:${PN} += "\
 	linux-firmware-i915 \
 	logrotate \
 	lsbinitscripts \
-	modutils-initscripts \
 	netbase \
 	ni-hw-scripts \
 	ni-rtfeatures \
