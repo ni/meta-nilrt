@@ -18,6 +18,10 @@ grub-editenv /boot/grub/grubenv unset enable_initramfs
 # Enable ssh by default when installing SystemLink.
 /usr/local/natinst/bin/nirtcfg -s section=systemsettings,token=sshd.enabled,value=True
 
+# Enable PersistentLogs by default so that technical reports can be generated via
+# Hardware Config Utility.
+/usr/local/natinst/bin/nirtcfg -s section=systemsettings,token=PersistentLogs.enabled,value=True
+
 # Add the memory reservation for Base. We assert that if the section exists,
 # it's already been added.
 if ! grep -q 'RtLinuxMemReserve' /mnt/userfs/etc/natinst/share/ni-rt.ini; then
