@@ -48,6 +48,9 @@ function _commasep { local IFS=","; echo "$*"; }
 
 function _is_isa_bridge () {
 	DEVPATH=$1
+	if [ ! -f "${DEVPATH}/class" ]; then
+		DEVPATH="$(realpath "${DEVPATH}/../..")"
+	fi
 	PCI_CLASS=$(cat ${DEVPATH}/class)
 	# device subclass 06:01 == ISA bridge
 	if [ $(( $PCI_CLASS & 0xFFFF00 )) -eq $(( 0x060100 )) ]; then
