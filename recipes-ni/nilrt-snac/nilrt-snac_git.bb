@@ -1,6 +1,7 @@
 SUMMARY = "NILRT SNAC Configuration Tool"
 DESCRIPTION = "\
-A utility for admins to put a NILRT system into the SNAC configuration.\
+A utility that helps system administrators place their NI LinuxRT (NILRT) \
+devices into a Secured, Network-Attached Configuration (SNAC).\
 "
 HOMEPAGE = "https://github.com/ni/nilrt-snac"
 SECTION = "base"
@@ -13,8 +14,8 @@ SRC_URI = "\
 	file://run-ptest \
 "
 
-SRCREV = "${AUTOREV}"
-PV = "2.0.0+git${SRCPV}"
+SRCREV = "fba68a59f219b6d3a0b78bb2deb779ac2db41db4"
+PV = "2.1.0"
 
 S = "${WORKDIR}/git"
 
