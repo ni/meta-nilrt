@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+
+echo 0 > /sys/kernel/debug/tracing/tracing_on
+# Write to trace file in order to clear the trace buffer
+echo > /sys/kernel/debug/tracing/trace
+echo 1 > /sys/kernel/debug/tracing/events/enable
+echo "$1" > /sys/kernel/debug/tracing/buffer_size_kb
