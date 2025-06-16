@@ -1,0 +1,3 @@
+# Allow lvuser to have controlled access to kernel tracing mechanism via scripts
+lvuser ALL=(ALL:ALL) NOPASSWD: /sbin/traceextract
+lvuser ALL=(ALL:ALL) NOPASSWD: /sbin/traceconfig
