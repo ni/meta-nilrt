@@ -50,6 +50,10 @@ RDEPENDS:${PN} += "\
 	vim \
 "
 
+# Perfetto tracing tool requested by Veristand for debugging use-cases
+RDEPENDS:${PN} += "\
+	perfetto \
+"
 # Testing packages
 RDEPENDS:${PN} += "\
 	kernel-performance-tests \
