@@ -14,7 +14,7 @@ KBUILD_FRAGMENTS_LOCATION ?= "nilrt"
 LINUX_VERSION_EXTENSION = "$([ "${LINUX_KERNEL_TYPE}" != "standard" ] && echo '-${LINUX_KERNEL_TYPE}')"
 
 # Only required for 4.14 kernels
-EXTRA_OEMAKE:append:xilinx-zynq = ' CFLAGS="${TOOLCHAIN_OPTIONS}" '
+EXTRA_OEMAKE:append:xilinx-zynq = ' CFLAGS="${TOOLCHAIN_OPTIONS} -Wno-array-bounds" '
 
 # Kbuild intenionally clobbers CFLAGS/LDFLAGS for some binaries we ship in nilrt,
 # particularly in the tools/ dir (fixdep, genksyms etc), and OE has this insanity check
