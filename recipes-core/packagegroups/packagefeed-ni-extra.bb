@@ -328,7 +328,6 @@ RDEPENDS:${PN} += "\
 	can-utils \
 	tcsh \
 	tipcutils \
-	tmux \
 	zram \
 "
 
