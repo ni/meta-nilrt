@@ -409,7 +409,7 @@ sanity_check()
 	print_info "Sanity check TARGET_DISK=$TARGET_DISK..."
 
 	# correct partition table type
-	parted -s --list "$TARGET_DISK" | grep -q "^Partition Table: $PART_STYLE" || die "Wrong partition style reported"
+	parted "$TARGET_DISK" print | grep -q "^Partition Table: $PART_STYLE" || die "Wrong partition style reported"
 
 	attrib_list="NAME KNAME PARTUUID UUID LABEL"
 	if [[ "$PART_STYLE" == "gpt" ]]; then

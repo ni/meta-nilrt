@@ -1,0 +1,16 @@
+#!/bin/bash
+# This is a custom init file for the NILRT container, that does some fixups and
+# then executes the container's CMD..
+
+setcap CAP_SYS_TIME+ep /sbin/hwclock.util-linux
+
+/etc/init.d/populateconfig start
+
+if [ -f /etc/init.d/niauth ]; then
+    /etc/init.d/niauth start
+fi
+
+/etc/init.d/run-postinsts start
+
+# Execute the CMD passed to the container'
+$@

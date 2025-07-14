@@ -48,6 +48,9 @@ function _commasep { local IFS=","; echo "$*"; }
 
 function _is_isa_bridge () {
 	DEVPATH=$1
+	if [ ! -f "${DEVPATH}/class" ]; then
+		DEVPATH="$(realpath "${DEVPATH}/../..")"
+	fi
 	PCI_CLASS=$(cat ${DEVPATH}/class)
 	# device subclass 06:01 == ISA bridge
 	if [ $(( $PCI_CLASS & 0xFFFF00 )) -eq $(( 0x060100 )) ]; then
@@ -142,6 +145,11 @@ function test_serial_devices () {
 		# platform buses (e.g., built into the controller)
 		if _is_onboard_serial $TTY; then
 			PORT=$(cat /sys/class/tty/$TTY/port)
+			if [ "${PORT}" == "0x0" ]; then
+				# If the port is 0x0, it means the device node exists,
+				# but the serial port is not configured, so skip it.
+				continue
+			fi
 			ACTUAL+=("$TTY:$PORT")
 		fi
 	done

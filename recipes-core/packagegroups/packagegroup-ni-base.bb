@@ -22,6 +22,7 @@ RDEPENDS:${PN} = "\
 "
 
 RDEPENDS:${PN} += "\
+	packagegroup-kernel-modules-essential \
 	${@bb.utils.contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
 	${@bb.utils.contains('MACHINE_FEATURES', 'acpi', 'busybox-acpid', '', d)} \
 	${@bb.utils.contains('MACHINE_FEATURES', 'keyboard', 'keymaps', '', d)} \
@@ -57,7 +58,6 @@ RDEPENDS:${PN} += "\
 	init-ifupdown \
 	iproute2 \
 	iptables \
-	kernel-modules \
 	kmod \
 	libavahi-client \
 	libavahi-common \
