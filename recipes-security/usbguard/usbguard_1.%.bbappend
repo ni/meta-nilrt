@@ -6,7 +6,7 @@ SRC_URI += "file://usbguard.init \
 inherit update-rc.d
 
 INITSCRIPT_NAME = "usbguard"
-INITSCRIPT_PARAMS = "start 20 2 3 4 5 . stop 80 0 1 6 ."
+INITSCRIPT_PARAMS = "stop 80 0 1 6 ."
 
 # Runtime dependencies for proper operation
 RDEPENDS:${PN} += "bash"
