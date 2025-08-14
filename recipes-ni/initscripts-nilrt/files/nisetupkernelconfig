@@ -21,6 +21,17 @@ echo 1 > /proc/sys/fs/suid_dumpable
 #This disables RT scheduler's CPU throttling for National Instruments LabVIEW Real-Time
 echo -1 > /proc/sys/kernel/sched_rt_runtime_us
 
+#Set the runtime for the fair server (in nanoseconds, 0: disabled)
+FAIR_RUNTIME=0
+for cpu_dir in /sys/kernel/debug/sched/fair_server/cpu*; do
+    runtime_file="$cpu_dir/runtime"
+    if [ -w "$runtime_file" ]; then
+        echo "$FAIR_RUNTIME" > "$runtime_file"
+    else
+        echo "error: cannot write to $runtime_file (permission denied or file does not exist)"
+    fi
+done
+
 #This forces CPU affinity of IRQs to Core-0. Some reserved IRQs and specific IRQs
 #such as timer-watch-dog (twd) are per core and their affinity cannot be changed
 #and thus we ignore the errors on those by redirecting error to /dev/null.
