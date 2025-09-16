@@ -1,3 +1,3 @@
 do_install:append() {
-	sed -i 's/^# \(%sudo	ALL=(ALL:ALL) ALL\)$/\1/' ${D}${sysconfdir}/sudoers
+	sed -i 's/^#\s\(%sudo\sALL=(ALL:ALL)\sALL\)$/\1/' ${D}${sysconfdir}/sudoers
 }
