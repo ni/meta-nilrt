@@ -39,6 +39,7 @@
 
 # Default policy
 
+watchdogd:f:29:*:\[watchdogd\]$
 card-crtc:f:27:*:\[card[0-9]+-crtc[0-9]+\]$
 kthreadd:f:25:*:\[kthreadd\]$
 irqthread:f:15:*:\[irq\/.+\]$
