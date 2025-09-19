@@ -14,8 +14,8 @@ SRC_URI = "\
 	file://run-ptest \
 "
 
-SRCREV = "${AUTOREV}"
-PV = "2.1.0+git${SRCPV}"
+SRCREV = "4f33d3bb23fbca711a6c9a4f9b4f4a073faaffb8"
+PV = "3.0.0"
 
 S = "${WORKDIR}/git"
 
