@@ -117,4 +117,4 @@ done
 
 # Upgrade opkg-keyrings so that users can get the latest signing keys
 # OR the command with true since the postinst script shouldn't return an error if the opkg update + upgrade fails.
-opkg -o /mnt/userfs/ update && opkg -o /mnt/userfs/ upgrade opkg-keyrings || true
+umask 022 && opkg -o /mnt/userfs/ update && opkg -o /mnt/userfs/ upgrade opkg-keyrings || true
