@@ -26,12 +26,17 @@ inherit ptest
 do_install() {
 	oe_runmake install \
 		DESTDIR=${D}
+	
+	install -d ${D}${sysconfdir}/snac
+	
+	install -m 644 ${D}/${docdir}/${PN}/snac.conf.example ${D}${sysconfdir}/snac/snac.conf
 }
 
 do_install_ptest() {
 	install -m 0755 ${WORKDIR}/run-ptest ${D}${PTEST_PATH}
 }
 
+CONFFILES:${PN} = "${sysconfdir}/snac/snac.conf"
 FILES:${PN} += "\
 	${datadir}/* \
 "
