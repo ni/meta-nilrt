@@ -14,9 +14,12 @@ SRC_URI += "\
 	file://${BPN}.preinst \
 "
 
-IMAGE_INSTALL += "\
-	kernel-image-bzimage \
+IMAGE_INSTALL = "\
 	fw-printenv \
+"
+
+IMAGE_INSTALL:append:x64 = "\
+	kernel-image-bzimage \
 	nilrt-grub-safemode \
 "
 
