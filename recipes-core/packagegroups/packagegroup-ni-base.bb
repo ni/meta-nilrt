@@ -104,3 +104,9 @@ RDEPENDS:${PN}:append:x64 = "\
 	linux-firmware-i915 \
 	pstore-save \
 "
+
+RDEPENDS:${PN}:append:xilinx-zynq = "\
+	mtd-utils \
+	mtd-utils-ubifs \
+	jitterentropy-rngd \
+"
