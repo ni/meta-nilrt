@@ -8,6 +8,9 @@ IMAGE_INSTALL = "\
 	packagegroup-ni-runmode \
 	packagegroup-ni-wifi \
 	dkms \
+"
+
+IMAGE_INSTALL:append:x64 = "\
 	nilrt-grub-runmode \
 	"
 
