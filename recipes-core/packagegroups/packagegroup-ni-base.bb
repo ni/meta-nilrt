@@ -21,7 +21,6 @@ RDEPENDS:${PN} = "\
 "
 
 RDEPENDS:${PN} += "\
-	packagegroup-kernel-modules-essential \
 	${@bb.utils.contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
 	${@bb.utils.contains('MACHINE_FEATURES', 'acpi', 'busybox-acpid', '', d)} \
 	${@bb.utils.contains('MACHINE_FEATURES', 'keyboard', 'keymaps', '', d)} \
@@ -96,6 +95,7 @@ RDEPENDS:${PN} += "\
 "
 
 RDEPENDS:${PN}:append:x64 = "\
+	packagegroup-kernel-modules-essential \
 	dmidecode \
 	e2fsprogs \
 	e2fsprogs-mke2fs \
@@ -106,6 +106,7 @@ RDEPENDS:${PN}:append:x64 = "\
 "
 
 RDEPENDS:${PN}:append:xilinx-zynq = "\
+	kernel-modules \
 	mtd-utils \
 	mtd-utils-ubifs \
 	jitterentropy-rngd \
