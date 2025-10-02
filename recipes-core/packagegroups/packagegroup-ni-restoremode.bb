@@ -43,6 +43,11 @@ RDEPENDS:${PN}:append:x64 = "\
 	ni-smbios-helper    \
 	"
 
+RDEPENDS:${PN}:append:xilinx-zynq = "\
+	mtd-utils           \
+	mtd-utils-ubifs     \
+	"
+
 RRECOMMENDS:${PN}:x64 = "\
 	kernel-module-tpm-tis \
 	kernel-module-atkbd \
