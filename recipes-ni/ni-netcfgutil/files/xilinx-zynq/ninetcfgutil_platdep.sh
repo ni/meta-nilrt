@@ -1,4 +1,4 @@
-# Copyright (c) 2013 National Instruments Corporation. All rights reserved.
+# Copyright (c) 2025 Emerson Electric Co. All rights reserved.
 
 impl_pulldefault_primary () {
 	# For ipresetcmd: Just fw_setenv every variable, then nirtcfg --migrate.
