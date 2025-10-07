@@ -3,40 +3,59 @@
 # All rights reserved.
 
 # Exit early if LabVIEW RT does not use cgroup-v1
+
+# Source cgroup version detection
 . /usr/share/initscripts-nilrt/lvrt-cgroup.sh
 identify_lvrt_cgroup_version || exit 0
-[ "$LVRT_CGROUP_VERSION" -eq 1 ] || exit 0
 
-#echo -n "Creating cgroups for CPU accounting for National Instruments LabVIEW Real-Time:"
-[ "${VERBOSE}" != "no" ] && echo -n "Starting nicreatecpuacctgroups:"
-mkdir -p /dev/cgroup/cpuacct
-mount -t cgroup -ocpuacct none /dev/cgroup/cpuacct
-cd /dev/cgroup/cpuacct
-mkdir LabVIEW_Timed-Structures_group
-mkdir LabVIEW_Time-Critical_group
-mkdir ISR_group
-mkdir other_group
+if [ "$LVRT_CGROUP_VERSION" -eq 1 ]; then
+	# cgroup v1 logic
+	[ "${VERBOSE}" != "no" ] && echo -n "Starting nicreatecpuacctgroups (cgroup v1):"
+	mkdir -p /dev/cgroup/cpuacct
+	mount -t cgroup -ocpuacct none /dev/cgroup/cpuacct
+	cd /dev/cgroup/cpuacct
+	mkdir LabVIEW_Timed-Structures_group
+	mkdir LabVIEW_Time-Critical_group
+	mkdir ISR_group
+	mkdir other_group
 
-# fast_task_writes was added to 3.2 for performance reasons, but does not exist and is not
-# necessary in the 3.10 kernel. 
-[ -e ./other_group/cgroup.fast_task_writes ] && echo 1 > ./other_group/cgroup.fast_task_writes
-while read TASK
-do
-	echo $TASK > "./other_group/tasks" 2> /dev/null 
-	# cgroup behavior as of 3.10 kernel has been altered 
-	# such that certain tasks cannot be assigned to any cgroup.
-	# Because of this change an error for trying to assign those
-	# tasks can be ignored in this loop and the following loop. 
-done < "tasks"
-[ -e ./other_group/cgroup.fast_task_writes ] && echo 0 > ./other_group/cgroup.fast_task_writes
+	while read TASK; do
+		echo $TASK > "./other_group/tasks" 2> /dev/null
+	done < "tasks"
 
-#If we cannot move a task from the root cpuset, that task is softirq
-# or realted to system timer task
-[ -e ./ISR_group/cgroup.fast_task_writes ] && echo 1 > ./ISR_group/cgroup.fast_task_writes
-while read TASK
-do
-	echo $TASK > "./ISR_group/tasks" 2> /dev/null
-done < "/dev/cgroup/cpuset/tasks"
-[ -e ./ISR_group/cgroup.fast_task_writes ] && echo 0 > ./ISR_group/cgroup.fast_task_writes
-chown -R lvuser:ni /dev/cgroup/cpuacct
-[ "${VERBOSE}" != "no" ] && echo "done"
+	while read TASK; do
+		echo $TASK > "./ISR_group/tasks" 2> /dev/null
+	done < "/dev/cgroup/cpuset/tasks"
+	chown -R lvuser:ni /dev/cgroup/cpuacct
+	[ "${VERBOSE}" != "no" ] && echo "done"
+
+elif [ "$LVRT_CGROUP_VERSION" -eq 2 ]; then
+	# cgroup v2 logic: create /sys/fs/cgroup/ni and subgroups
+	[ "${VERBOSE}" != "no" ] && echo -n "Starting nicreatecpuacctgroups (cgroup v2):"
+	CGROUP2_ROOT="/sys/fs/cgroup"
+	mount -t cgroup2 none "$CGROUP2_ROOT"
+	cd "$CGROUP2_ROOT"
+	# Enable cpuset controller in root
+	echo "+cpuset" > cgroup.subtree_control
+	# Create ni domain
+	mkdir -p ni
+	chown lvuser:ni ni
+	cd ni
+	# Enable cpuset controller in ni
+	echo "+cpuset" > cgroup.subtree_control
+	# Create subgroups
+	for group in irq scanengine system time-critical timed-structures; do
+		mkdir -p "$group"
+		chown lvuser:ni "$group"
+	done
+	# Example: assign tasks to system (if needed)
+	if [ -f "../tasks" ]; then
+		while read TASK; do
+			echo $TASK > system/cgroup.procs 2> /dev/null
+		done < "../tasks"
+	fi
+	[ "${VERBOSE}" != "no" ] && echo "done"
+else
+	[ "${VERBOSE}" != "no" ] && echo "Unknown cgroup version: $LVRT_CGROUP_VERSION. Exiting."
+	exit 0
+fi
