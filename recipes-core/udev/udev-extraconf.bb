@@ -13,6 +13,8 @@ SRC_URI = " \
 	file://scripts \
 "
 
+SRC_URI:append:xilinx-zynq = "file://fpga.rules"
+
 S = "${WORKDIR}"
 
 
@@ -35,6 +37,9 @@ do_install() {
 	install -m 0755 ${S}/scripts/* ${D}${sysconfdir}/udev/scripts
 }
 
+do_install:append:xilinx-zynq() {
+	install -m 0644 ${WORKDIR}/fpga.rules          ${D}${sysconfdir}/udev/rules.d/fpga.rules
+}
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 

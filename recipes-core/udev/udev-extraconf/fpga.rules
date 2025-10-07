@@ -1,0 +1,2 @@
+# /dev/fpgaperipheral should be read/write to ni (0660 permissions are default)
+KERNEL=="fpgaperipheral", GROUP="ni"
