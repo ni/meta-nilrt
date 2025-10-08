@@ -8,11 +8,11 @@ inherit packagegroup
 RDEPENDS:${PN} += "\
 	packagegroup-core-buildessential \
 	packagegroup-core-tools-debug \
-	packagegroup-ni-debug-kernel \
 	packagegroup-ni-selinux \
 "
 
 RDEPENDS:${PN}:append:x64 = "\
+	packagegroup-ni-debug-kernel \
 	packagegroup-ni-next-kernel \
 "
 

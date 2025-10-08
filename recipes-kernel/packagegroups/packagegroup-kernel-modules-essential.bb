@@ -325,7 +325,6 @@ RDEPENDS:${PN} = "\
 	kernel-module-nic7018-wdt \
 	kernel-module-nlmon \
 	kernel-module-nls-ucs2-utils \
-	kernel-module-ntfs \
 	kernel-module-ntfs3 \
 	kernel-module-nvme-fabrics \
 	kernel-module-nvme-rdma \
@@ -531,7 +530,6 @@ RDEPENDS:${PN} = "\
 	kernel-module-xt-time \
 	kernel-module-xt-u32 \
 	kernel-module-zaurus \
-	kernel-module-zd1201 \
 	kernel-module-zd1211rw \
 	kernel-module-zstd \
 	kernel-module-zstd-compress \

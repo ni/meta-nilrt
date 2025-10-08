@@ -24,14 +24,13 @@ RDEPENDS:${PN} += "\
 "
 
 # ni-sync
-RDEPENDS:${PN} += "\
+RDEPENDS:${PN}:append:x64 = "\
 	ni-grpc-device \
 "
 
 # Required components for Veristand/aim-arinc-429.
 # Engineering contact:
 RDEPENDS:${PN} += "\
-	libfmi \
 	coreutils \
 	g++ \
 	g++-symlinks \
@@ -40,6 +39,9 @@ RDEPENDS:${PN} += "\
 	libnl \
 	make \
 	pkgconfig \
+"
+RDEPENDS:${PN}:append:x64 = "\
+	libfmi \
 "
 
 # Required for VCOM Toolkit
@@ -100,7 +102,7 @@ RDEPENDS:${PN} += "\
 # Required by LabVIEW Real-Time
 # Team: LabVIEW Real-Time
 # Contact: sharpk
-RDEPENDS:${PN} += "\
+RDEPENDS:${PN}:append:x64 = "\
 	libglu \
 "
 # Required by PAtools Runtimesystem

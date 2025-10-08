@@ -22,7 +22,6 @@ RDEPENDS:${PN} = "\
 	libpython3 \
 	librtpi \
 	libyaml \
-	linux-firmware-radeon \
 	lldpd \
 	mpfr \
 	nftables \
@@ -123,8 +122,12 @@ RDEPENDS:${PN} = "\
 	zip \
 "
 
+RDEPENDS:${PN}:append:x64 = "\
+	linux-firmware-radeon \
+"
+
 # Required components for Veristand.
 # Engineering contact: Marcelo Izaguirre
-RDEPENDS:${PN}:append = "\
+RDEPENDS:${PN}:append:x64 = "\
 	libfmi-dev \
 "

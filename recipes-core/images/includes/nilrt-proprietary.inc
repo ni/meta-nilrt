@@ -11,7 +11,6 @@ NI_PROPRIETARY_COMMON_PACKAGES = "\
         ni-avahi-client \
         ni-ca-certs \
         ni-rt-exec-webservice \
-        ni-sdmon \
         ni-service-locator \
         ni-software-action-services \
         ni-software-installation-websvc \
@@ -26,11 +25,18 @@ NI_PROPRIETARY_COMMON_PACKAGES = "\
         ni-webserver-libs \
         ni-webservices-webserver-support \
         ni-wif-landingpage \
-        ni-wifibledd \
-        ni-wireless-ath6kl \
         nicurl \
         nirtcfg \
         nirtmdnsd \
+"
+
+# TODO: ni-wifibledd and ni-wireless-ath6kl are required for ARM but there are
+# no ARM builds for them. Add them back to NI_PROPRIETARY_COMMON_PACKAGES when
+# there are.
+NI_PROPRIETARY_COMMON_PACKAGES:append:x64 = "\
+        ni-sdmon \
+        ni-wifibledd \
+        ni-wireless-ath6kl \
 "
 
 NI_PROPRIETARY_RUNMODE_PACKAGES = "\
