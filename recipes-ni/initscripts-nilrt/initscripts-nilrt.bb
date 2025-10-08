@@ -35,6 +35,10 @@ SRC_URI = "\
 	file://wirelesssetdomain \
 "
 
+SRC_URI:append:xilinx-zynq = "\
+	file://mountutils \
+"
+
 S = "${WORKDIR}"
 
 do_install () {
@@ -87,6 +91,10 @@ do_install () {
 
 	install -d ${D}${datadir}/${BPN}
 	install -m 0755 lvrt-cgroup.sh ${D}${datadir}/${BPN}/lvrt-cgroup.sh
+}
+
+do_install:append:xilinx-zynq () {
+	install -m 0755 ${WORKDIR}/mountutils            ${D}${sysconfdir}/init.d
 }
 
 pkg_postinst_ontarget:${PN} () {
