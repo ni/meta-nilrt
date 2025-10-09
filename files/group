@@ -71,3 +71,4 @@ mosquitto:x:340:
 radiusd:x:301:
 postgres:x:28:
 mail:x:8:
+audio:x:29:
