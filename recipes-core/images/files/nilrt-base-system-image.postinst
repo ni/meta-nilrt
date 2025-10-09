@@ -63,28 +63,22 @@ if [ "$arch" = "x86_64" ]; then
     echo LABEL=niconfig         /etc/natinst/share   ext4       sync           0  0 >> /mnt/userfs/etc/fstab
 fi
 
-if [ "$arch" = "armv7l" ]; then
-	kernel="/mnt/userfs/boot/tmp/linux_runmode.itb"
-elif [ "$arch" = "x86_64" ]; then
-	kernel="/mnt/userfs/boot/tmp/runmode"
-else
-	echo >&2 "ERROR: Unsupported platform"
-	exit 1
-fi
-
 # in normal operation, /boot better exist
 awk '{print $2;}' < /proc/mounts | grep -q /boot || exit 1
 
 # Give hwclock CAP_SYS_TIME capabilties
 /usr/sbin/setcap CAP_SYS_TIME+ep /mnt/userfs/sbin/hwclock.util-linux
 
-# install the kernel
-[ "$arch" = "x86_64" ] && rm -rf /boot/runmode
-if mv "$kernel" "$mount_point"; then
-	# Remove the tmp path from the rootfs
-	rmdir "`dirname "$kernel"`"
-else
-	exit 1
+if [ "$arch" = "x86_64" ]; then
+	kernel="/mnt/userfs/boot/tmp/runmode"
+	# install the kernel
+	rm -rf /boot/runmode
+	if mv "$kernel" "$mount_point"; then
+		# Remove the tmp path from the rootfs
+		rmdir "`dirname "$kernel"`"
+	else
+		exit 1
+	fi
 fi
 
 # Use persistent names on PXI, not on any other targets
