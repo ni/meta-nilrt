@@ -69,6 +69,6 @@ tracing:x:341:
 mosquitto:x:340:
 # free space
 radiusd:x:301:
+audio:x:29:
 postgres:x:28:
 mail:x:8:
-audio:x:29:
