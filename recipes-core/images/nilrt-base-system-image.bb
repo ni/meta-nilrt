@@ -12,7 +12,12 @@ SRC_URI += " \
 
 PV = "${DISTRO_VERSION}"
 
-CDFGUID = "4C0005F7-54D1-492B-A7E7-C1E58BD9B972"
+CDFGUID:x64 = "4C0005F7-54D1-492B-A7E7-C1E58BD9B972"
+# TODO: Update GUID to E40D0BD6-F888-4BDB-AFB9-EF97A34107B3 when ARM scarthgap is ready to ship
+CDFGUID:xilinx-zynq = "8E3EACD0-B36E-462B-A500-88AE644AB3B0"
+
+OSVALUE:x64 = "NI-Linux x64"
+OSVALUE:xilinx-zynq = "Linux-ARMv7-A"
 
 ROOTFS_IMAGE = "nilrt-runmode-rootfs"
 do_rootfs[depends] += "${ROOTFS_IMAGE}:do_image_complete"
@@ -40,7 +45,7 @@ create_cdf() {
 	SHORTVER=$(echo ${BUILDNAME} | sed 's/^\([0-9.]*\).*/\1/;')
 	TARFILE="${IMAGE_BASENAME}-${MACHINE}${IMAGE_NAME_SUFFIX}.tar"
 
-	sed -i "s/%guid%/$GUID/g; s/%version%/$SHORTVER/g; s/%filename%/$TARFILE/g;" $CDFOUT
+	sed -i "s/%guid%/$GUID/g; s/%version%/$SHORTVER/g; s/%osvalue%/${OSVALUE}/g; s/%filename%/$TARFILE/g;" $CDFOUT
 }
 
 IMAGE_PREPROCESS_COMMAND += "bootimg_fixup;"
