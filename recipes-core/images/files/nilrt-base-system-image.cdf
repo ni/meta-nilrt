@@ -4,7 +4,7 @@
   <SOFTPKG NAME="%guid%" VERSION="%version%" OLDESTCOMPATIBLEVERSION="%version%" PROVIDESOS="YES" TYPE="HIDDEN">
     <TITLE>SystemLink Base Image</TITLE>
     <IMPLEMENTATION>
-      <OS VALUE="NI-Linux x64"><OSVERSION VALUE="7.0"/></OS>
+      <OS VALUE="%osvalue%"><OSVERSION VALUE="7.0"/></OS>
       <CODEBASE FILENAME="%filename%" TYPE="TAR" />
     </IMPLEMENTATION>
   </SOFTPKG>
