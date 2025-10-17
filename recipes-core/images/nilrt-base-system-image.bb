@@ -33,10 +33,6 @@ bootimg_fixup() {
 		-delete
 }
 
-# TODO: We're doing CDF generation here. The CDF encodes the filename of the
-#       .tar. However, we're not generating it with the same name that we
-#       used to ("systemlink-linux-x64-dkms.tar"); is having these artifacts
-#       with a new name fine?
 create_cdf() {
 	CDFOUT="${DEPLOY_DIR_IMAGE}/${IMAGE_BASENAME}-${MACHINE}${IMAGE_NAME_SUFFIX}.cdf"
 	install -m 0644 "${THISDIR}/files/${BPN}.cdf" $CDFOUT
