@@ -240,6 +240,7 @@ RDEPENDS:${PN} += "\
 	rfkill \
 	samba \
 	ser2net \
+	ti-wifi-utils \
 	tiptop \
 	usbmuxd \
 	zeromq \
