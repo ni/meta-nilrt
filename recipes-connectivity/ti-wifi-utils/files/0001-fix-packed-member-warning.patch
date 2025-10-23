@@ -1,0 +1,282 @@
+From 868075373104c403bc96f061c3117d762a8dae69 Mon Sep 17 00:00:00 2001
+From: Can Wong <can.wong@emerson.com>
+Date: Wed, 22 Oct 2025 14:48:10 -0500
+Subject: [PATCH] fix packed member warning
+
+---
+ ini.c | 112 +++++++++++++++++++++++++++++++++++++++++-----------------
+ nvs.c |  16 +++++++--
+ 2 files changed, 93 insertions(+), 35 deletions(-)
+
+diff --git a/ini.c b/ini.c
+index 46cd8c7..e53b395 100644
+--- a/ini.c
++++ b/ini.c
+@@ -391,8 +391,11 @@ static int parse_fem0_band2_prms(char *l, struct wl12xx_ini *p)
+ 	if (split_line(l, &name, &val))
+ 		return 1;
+ 
+-	COMPARE_N_ADD2("FEM0_TXBiPReferencePDvoltage_2_4G", l, val,
+-		&gp->tx_bip_ref_pd_voltage);
++	{
++		__le16 aligned_val;
++		memcpy(&aligned_val, &gp->tx_bip_ref_pd_voltage, sizeof(aligned_val));
++		COMPARE_N_ADD2("FEM0_TXBiPReferencePDvoltage_2_4G", l, val, &aligned_val);
++	}
+ 
+ 	COMPARE_N_ADD("FEM0_TxBiPReferencePower_2_4G", l, val,
+ 		&gp->tx_bip_ref_power);
+@@ -444,8 +447,11 @@ static int parse_fem0_band2_prms_128x(char *l, struct wl12xx_ini *p)
+ 	if (split_line(l, &name, &val))
+ 		return 1;
+ 
+-	COMPARE_N_ADD2("FEM0_TxBiPReferencePDvoltage_2_4G", l, val,
+-		&gp->tx_bip_ref_pd_voltage);
++	{
++		__le16 aligned_val;
++		memcpy(&aligned_val, &gp->tx_bip_ref_pd_voltage, sizeof(aligned_val));
++		COMPARE_N_ADD2("FEM0_TXBiPReferencePDvoltage_2_4G", l, val, &aligned_val);
++	}
+ 
+ 	COMPARE_N_ADD("FEM0_TxBiPReferencePower_2_4G", l, val,
+ 		&gp->tx_bip_ref_power);
+@@ -503,8 +509,11 @@ static int parse_fem1_band2_prms(char *l, struct wl12xx_ini *p)
+ 	if (split_line(l, &name, &val))
+ 		return 1;
+ 
+-	COMPARE_N_ADD2("FEM1_TXBiPReferencePDvoltage_2_4G", l, val,
+-		&gp->tx_bip_ref_pd_voltage);
++	{
++		__le16 aligned_val;
++		memcpy(&aligned_val, &gp->tx_bip_ref_pd_voltage, sizeof(aligned_val));
++		COMPARE_N_ADD2("FEM1_TXBiPReferencePDvoltage_2_4G", l, val, &aligned_val);
++	}
+ 
+ 	COMPARE_N_ADD("FEM1_TxBiPReferencePower_2_4G", l, val,
+ 		&gp->tx_bip_ref_power);
+@@ -556,8 +565,11 @@ static int parse_fem1_band2_prms_128x(char *l, struct wl12xx_ini *p)
+ 	if (split_line(l, &name, &val))
+ 		return 1;
+ 
+-	COMPARE_N_ADD2("FEM1_TxBiPReferencePDvoltage_2_4G", l, val,
+-		&gp->tx_bip_ref_pd_voltage);
++	{
++		__le16 aligned_val;
++		memcpy(&aligned_val, &gp->tx_bip_ref_pd_voltage, sizeof(aligned_val));
++		COMPARE_N_ADD2("FEM1_TXBiPReferencePDvoltage_2_4G", l, val, &aligned_val);
++	}
+ 
+ 	COMPARE_N_ADD("FEM1_TxBiPReferencePower_2_4G", l, val,
+ 		&gp->tx_bip_ref_power);
+@@ -615,8 +627,11 @@ static int parse_fem2_band2_prms(char *l, struct wl12xx_ini *p)
+ 	if (split_line(l, &name, &val))
+ 		return 1;
+ 
+-	COMPARE_N_ADD2("FEM2_TXBiPReferencePDvoltage_2_4G", l, val,
+-		&gp->tx_bip_ref_pd_voltage);
++	{
++		__le16 aligned_val;
++		memcpy(&aligned_val, &gp->tx_bip_ref_pd_voltage, sizeof(aligned_val));
++		COMPARE_N_ADD2("FEM2_TXBiPReferencePDvoltage_2_4G", l, val, &aligned_val);
++	}
+ 
+ 	COMPARE_N_ADD("FEM2_TxBiPReferencePower_2_4G", l, val,
+ 		&gp->tx_bip_ref_power);
+@@ -668,8 +683,11 @@ static int parse_fem2_band2_prms_128x(char *l, struct wl12xx_ini *p)
+ 	if (split_line(l, &name, &val))
+ 		return 1;
+ 
+-	COMPARE_N_ADD2("FEM2_TxBiPReferencePDvoltage_2_4G", l, val,
+-		&gp->tx_bip_ref_pd_voltage);
++	{
++		__le16 aligned_val;
++		memcpy(&aligned_val, &gp->tx_bip_ref_pd_voltage, sizeof(aligned_val));
++		COMPARE_N_ADD2("FEM2_TxBiPReferencePDvoltage_2_4G", l, val, &aligned_val);
++	}
+ 
+ 	COMPARE_N_ADD("FEM2_TxBiPReferencePower_2_4G", l, val,
+ 		&gp->tx_bip_ref_power);
+@@ -727,8 +745,11 @@ static int parse_fem3_band2_prms(char *l, struct wl12xx_ini *p)
+ 	if (split_line(l, &name, &val))
+ 		return 1;
+ 
+-	COMPARE_N_ADD2("FEM3_TXBiPReferencePDvoltage_2_4G", l, val,
+-		&gp->tx_bip_ref_pd_voltage);
++	{
++		__le16 aligned_val;
++		memcpy(&aligned_val, &gp->tx_bip_ref_pd_voltage, sizeof(aligned_val));
++		COMPARE_N_ADD2("FEM3_TXBiPReferencePDvoltage_2_4G", l, val, &aligned_val);
++	}
+ 
+ 	COMPARE_N_ADD("FEM3_TxBiPReferencePower_2_4G", l, val,
+ 		&gp->tx_bip_ref_power);
+@@ -780,8 +801,11 @@ static int parse_fem3_band2_prms_128x(char *l, struct wl12xx_ini *p)
+ 	if (split_line(l, &name, &val))
+ 		return 1;
+ 
+-	COMPARE_N_ADD2("FEM3_TxBiPReferencePDvoltage_2_4G", l, val,
+-		&gp->tx_bip_ref_pd_voltage);
++	{
++		__le16 aligned_val;
++		memcpy(&aligned_val, &gp->tx_bip_ref_pd_voltage, sizeof(aligned_val));
++		COMPARE_N_ADD2("FEM3_TxBiPReferencePDvoltage_2_4G", l, val, &aligned_val);
++	}
+ 
+ 	COMPARE_N_ADD("FEM3_TxBiPReferencePower_2_4G", l, val,
+ 		&gp->tx_bip_ref_power);
+@@ -839,8 +863,11 @@ static int parse_fem0_band5_prms(char *l, struct wl12xx_ini *p)
+ 	if (split_line(l, &name, &val))
+ 		return 1;
+ 
+-	COMPARE_N_ADD2("FEM0_TXBiPReferencePDvoltage_5G", l, val,
+-		&gp->tx_bip_ref_pd_voltage);
++	{
++		__le16 aligned_val;
++		memcpy(&aligned_val, &gp->tx_bip_ref_pd_voltage, sizeof(aligned_val));
++		COMPARE_N_ADD2("FEM0_TXBiPReferencePDvoltage_5G", l, val, &aligned_val);
++	}
+ 
+ 	COMPARE_N_ADD("FEM0_TxBiPReferencePower_5G", l, val,
+ 		&gp->tx_bip_ref_power);
+@@ -889,8 +916,11 @@ static int parse_fem0_band5_prms_128x(char *l, struct wl12xx_ini *p)
+ 	if (split_line(l, &name, &val))
+ 		return 1;
+ 
+-	COMPARE_N_ADD2("FEM0_TxBiPReferencePDvoltage_5G", l, val,
+-		&gp->tx_bip_ref_pd_voltage);
++	{
++		__le16 aligned_val;
++		memcpy(&aligned_val, &gp->tx_bip_ref_pd_voltage, sizeof(aligned_val));
++		COMPARE_N_ADD2("FEM0_TXBiPReferencePDvoltage_5G", l, val, &aligned_val);
++	}
+ 
+ 	COMPARE_N_ADD("FEM0_TxBiPReferencePower_5G", l, val,
+ 		&gp->tx_bip_ref_power);
+@@ -945,8 +975,11 @@ static int parse_fem1_band5_prms(char *l, struct wl12xx_ini *p)
+ 	if (split_line(l, &name, &val))
+ 		return 1;
+ 
+-	COMPARE_N_ADD2("FEM1_TXBiPReferencePDvoltage_5G", l, val,
+-		&gp->tx_bip_ref_pd_voltage);
++	{
++		__le16 aligned_val;
++		memcpy(&aligned_val, &gp->tx_bip_ref_pd_voltage, sizeof(aligned_val));
++		COMPARE_N_ADD2("FEM1_TXBiPReferencePDvoltage_5G", l, val, &aligned_val);
++	}
+ 
+ 	COMPARE_N_ADD("FEM1_TxBiPReferencePower_5G", l, val,
+ 		&gp->tx_bip_ref_power);
+@@ -995,8 +1028,11 @@ static int parse_fem1_band5_prms_128x(char *l, struct wl12xx_ini *p)
+ 	if (split_line(l, &name, &val))
+ 		return 1;
+ 
+-	COMPARE_N_ADD2("FEM1_TxBiPReferencePDvoltage_5G", l, val,
+-		&gp->tx_bip_ref_pd_voltage);
++	{
++		__le16 aligned_val;
++		memcpy(&aligned_val, &gp->tx_bip_ref_pd_voltage, sizeof(aligned_val));
++		COMPARE_N_ADD2("FEM1_TXBiPReferencePDvoltage_5G", l, val, &aligned_val);
++	}
+ 
+ 	COMPARE_N_ADD("FEM1_TxBiPReferencePower_5G", l, val,
+ 		&gp->tx_bip_ref_power);
+@@ -1051,8 +1087,11 @@ static int parse_fem2_band5_prms(char *l, struct wl12xx_ini *p)
+ 	if (split_line(l, &name, &val))
+ 		return 1;
+ 
+-	COMPARE_N_ADD2("FEM2_TXBiPReferencePDvoltage_5G", l, val,
+-		&gp->tx_bip_ref_pd_voltage);
++	{
++		__le16 aligned_val;
++		memcpy(&aligned_val, &gp->tx_bip_ref_pd_voltage, sizeof(aligned_val));
++		COMPARE_N_ADD2("FEM2_TXBiPReferencePDvoltage_5G", l, val, &aligned_val);
++	}
+ 
+ 	COMPARE_N_ADD("FEM2_TxBiPReferencePower_5G", l, val,
+ 		&gp->tx_bip_ref_power);
+@@ -1101,8 +1140,11 @@ static int parse_fem2_band5_prms_128x(char *l, struct wl12xx_ini *p)
+ 	if (split_line(l, &name, &val))
+ 		return 1;
+ 
+-	COMPARE_N_ADD2("FEM2_TxBiPReferencePDvoltage_5G", l, val,
+-		&gp->tx_bip_ref_pd_voltage);
++	{
++		__le16 aligned_val;
++		memcpy(&aligned_val, &gp->tx_bip_ref_pd_voltage, sizeof(aligned_val));
++		COMPARE_N_ADD2("FEM2_TXBiPReferencePDvoltage_5G", l, val, &aligned_val);
++	}
+ 
+ 	COMPARE_N_ADD("FEM2_TxBiPReferencePower_5G", l, val,
+ 		&gp->tx_bip_ref_power);
+@@ -1157,8 +1199,11 @@ static int parse_fem3_band5_prms(char *l, struct wl12xx_ini *p)
+ 	if (split_line(l, &name, &val))
+ 		return 1;
+ 
+-	COMPARE_N_ADD2("FEM3_TXBiPReferencePDvoltage_5G", l, val,
+-		&gp->tx_bip_ref_pd_voltage);
++	{
++		__le16 aligned_val;
++		memcpy(&aligned_val, &gp->tx_bip_ref_pd_voltage, sizeof(aligned_val));
++		COMPARE_N_ADD2("FEM3_TXBiPReferencePDvoltage_5G", l, val, &aligned_val);
++	}
+ 
+ 	COMPARE_N_ADD("FEM3_TxBiPReferencePower_5G", l, val,
+ 		&gp->tx_bip_ref_power);
+@@ -1207,8 +1252,11 @@ static int parse_fem3_band5_prms_128x(char *l, struct wl12xx_ini *p)
+ 	if (split_line(l, &name, &val))
+ 		return 1;
+ 
+-	COMPARE_N_ADD2("FEM3_TxBiPReferencePDvoltage_5G", l, val,
+-		&gp->tx_bip_ref_pd_voltage);
++	{
++		__le16 aligned_val;
++		memcpy(&aligned_val, &gp->tx_bip_ref_pd_voltage, sizeof(aligned_val));
++		COMPARE_N_ADD2("FEM3_TXBiPReferencePDvoltage_5G", l, val, &aligned_val);
++	}
+ 
+ 	COMPARE_N_ADD("FEM3_TxBiPReferencePower_5G", l, val,
+ 		&gp->tx_bip_ref_power);
+diff --git a/nvs.c b/nvs.c
+index 2e9e146..52cd148 100644
+--- a/nvs.c
++++ b/nvs.c
+@@ -741,7 +741,9 @@ int prepare_nvs_file(void *arg, char *file_name)
+ 	}
+ 
+ 	/* fill NVS version */
+-	if (nvs_fill_version(new_nvs, &pdata->ver))
++	unsigned int aligned_ver;
++	memcpy(&aligned_ver, &pdata->ver, sizeof(aligned_ver));
++	if (nvs_fill_version(new_nvs, &aligned_ver))
+ 		fprintf(stderr, "Fail to fill version\n");
+ 
+ 	/* fill end of NVS */
+@@ -1123,7 +1125,11 @@ static void print_127x_fem_param5(int femnr, struct wl1271_ini_fem_params_5 *p)
+ 
+ 	printf("# SECTION 2.1.2: 5G parameters\n");
+ 
+-	print_femle16a(fem, "TxBiPReferencePDvoltage_5G", p->tx_bip_ref_pd_voltage);
++	{
++		__le16 aligned_pd_voltage[sizeof(p->tx_bip_ref_pd_voltage)/sizeof(__le16)];
++		memcpy(aligned_pd_voltage, p->tx_bip_ref_pd_voltage, sizeof(aligned_pd_voltage));
++		print_femle16a(fem, "TxBiPReferencePDvoltage_5G", aligned_pd_voltage);
++	}
+ 
+ 	print_femhexa(fem, "TxBiPReferencePower_5G", p->tx_bip_ref_power);
+ 	print_femhexa(fem, "TxBiPOffsetdB_5G", p->tx_bip_ref_offset);
+@@ -1148,7 +1154,11 @@ static void print_128x_fem_param5(int femnr, struct wl128x_ini_fem_params_5 *p)
+ 
+ 	printf("# SECTION 2.1.2: 5G parameters\n");
+ 
+-	print_femle16a(fem, "TxBiPReferencePDvoltage_5G", p->tx_bip_ref_pd_voltage);
++{
++    __le16 aligned_pd_voltage[sizeof(p->tx_bip_ref_pd_voltage)/sizeof(__le16)];
++    memcpy(aligned_pd_voltage, p->tx_bip_ref_pd_voltage, sizeof(aligned_pd_voltage));
++    print_femle16a(fem, "TxBiPReferencePDvoltage_5G", aligned_pd_voltage);
++}
+ 
+ 	print_femhexa(fem, "TxBiPReferencePower_5G", p->tx_bip_ref_power);
+ 	print_femhexa(fem, "TxBiPOffsetdB_5G", p->tx_bip_ref_offset);
+-- 
+2.43.0
+

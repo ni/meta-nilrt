@@ -1,0 +1,25 @@
+From c4d382a73a1c96c4c1568d4b33363d3ce91c42ba Mon Sep 17 00:00:00 2001
+From: Can Wong <can.wong@emerson.com>
+Date: Wed, 22 Oct 2025 14:55:52 -0500
+Subject: [PATCH] fix efuse_param_type_enm
+
+---
+ plt.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/plt.h b/plt.h
+index 8b534a9..43d5dbc 100644
+--- a/plt.h
++++ b/plt.h
+@@ -399,7 +399,7 @@ enum EFUSE_PARAMETER_TYPE_ENMT {
+ 	TX_BIP_PD_BUFFER_VBIAS_ERROR_E,
+ 	EFUSE_NUMBER_OF_PARAMETERS_E,
+ 	EFUSE_LAST_PARAMETER_E = (EFUSE_NUMBER_OF_PARAMETERS_E - 1)
+-} EFUSE_PARAMETER_TYPE_ENM;
++};
+ 
+ int get_mac_addr(int ifc_num, unsigned char *mac_addr);
+ 
+-- 
+2.43.0
+

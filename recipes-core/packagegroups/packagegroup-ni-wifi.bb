@@ -15,6 +15,9 @@ RDEPENDS:${PN} = "\
 	libnl \
 	openssl \
 	rfkill \
-	ti-wifi-utils \
 	wpa-supplicant \
 	wireless-regdb"
+
+RDEPENDS:${PN}:append:xilinx-zynq = " \
+	ti-wifi-utils \
+"

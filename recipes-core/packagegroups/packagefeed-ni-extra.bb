@@ -240,10 +240,13 @@ RDEPENDS:${PN} += "\
 	rfkill \
 	samba \
 	ser2net \
-	ti-wifi-utils \
 	tiptop \
 	usbmuxd \
 	zeromq \
+"
+
+RDEPENDS:${PN}:append:xilinx-zynq = " \
+	ti-wifi-utils \
 "
 
 # meta-openembedded/meta-oe/recipes-core
