@@ -245,10 +245,6 @@ RDEPENDS:${PN} += "\
 	zeromq \
 "
 
-RDEPENDS:${PN}:append:xilinx-zynq = " \
-	ti-wifi-utils \
-"
-
 # meta-openembedded/meta-oe/recipes-core
 RDEPENDS:${PN} += "\
 	usleep \
