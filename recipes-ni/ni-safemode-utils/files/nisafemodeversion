@@ -28,6 +28,20 @@ cleanup()
 
 unknown_ver_string=unknown
 
+get_version_itb()
+{
+	if [ -x /sbin/fdtview ]; then
+		version_string=`/sbin/fdtview -l / version $1 | awk -F = '{print $2}'`
+		if [ $? -ne 0 ]; then
+			version_string=""
+		fi
+	fi
+	if [ -z "$version_string" ]; then
+		version_string=$unknown_ver_string
+	fi
+	echo ${version_string//\"/}
+}
+
 get_version_grub()
 {
 	version_string=`grep ^component_version= $1`
@@ -39,9 +53,13 @@ get_version_grub()
 }
 
 mount_point="/boot"
-
-bootimage_data="bootimage.ini"
-get_version=get_version_grub
+if [ -f $mount_point/.safe/linux_safemode.itb ]; then
+	bootimage_data="linux_safemode.itb"
+	get_version=get_version_itb
+else
+	bootimage_data="bootimage.ini"
+	get_version=get_version_grub
+fi
 
 current_version_source=$mount_point/.safe/$bootimage_data
 version_source=$current_version_source
