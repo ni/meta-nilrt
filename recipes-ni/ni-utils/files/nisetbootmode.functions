@@ -3,22 +3,22 @@ arch=`uname -m`
 BOOT_CONFIG_LOCATION="/boot/bootmode"
 
 write_config() {
-   echo "set BOOT_MODE=$1" > $BOOT_CONFIG_LOCATION
+	echo "set BOOT_MODE=$1" > $BOOT_CONFIG_LOCATION
 }
 
 read_config() {
-   read tmp_cfg < $BOOT_CONFIG_LOCATION
-   echo $tmp_cfg | awk -F '=' '{print $2}';
+	read tmp_cfg < $BOOT_CONFIG_LOCATION
+	echo $tmp_cfg | awk -F '=' '{print $2}';
 }
 
 # if the bootmode file doesn't exist, this is the first run of this
 # script for this boot, so set it to the current mode
 if [ ! -f "$BOOT_CONFIG_LOCATION" ]; then
-   if [ -f "/etc/natinst/safemode" ]; then
-      write_config safemode
-   else
-      write_config runtime
-   fi
+	if [ -f "/etc/natinst/safemode" ]; then
+		write_config safemode
+	else
+		write_config runtime
+	fi
 fi
 
 BOOT_MODE_INPUT=/tmp/ni_boot_mode_input
