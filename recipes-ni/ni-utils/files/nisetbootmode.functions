@@ -1,23 +1,34 @@
 arch=`uname -m`
 
-BOOT_CONFIG_LOCATION="/boot/bootmode"
+if [ "$arch" = "armv7l" ]; then
+	BOOT_CONFIG_LOCATION=/sys/bus/i2c/devices/0-0040/bootmode
+	write_config() {
+		echo -n $1 > $BOOT_CONFIG_LOCATION
+	}
+	read_config() {
+		read tmp_cfg < $BOOT_CONFIG_LOCATION
+		echo $tmp_cfg
+	}
+elif [ "$arch" = "x86_64" ]; then
+	BOOT_CONFIG_LOCATION="/boot/bootmode"
 
-write_config() {
-	echo "set BOOT_MODE=$1" > $BOOT_CONFIG_LOCATION
-}
+	write_config() {
+		echo "set BOOT_MODE=$1" > $BOOT_CONFIG_LOCATION
+	}
 
-read_config() {
-	read tmp_cfg < $BOOT_CONFIG_LOCATION
-	echo $tmp_cfg | awk -F '=' '{print $2}';
-}
+	read_config() {
+		read tmp_cfg < $BOOT_CONFIG_LOCATION
+		echo $tmp_cfg | awk -F '=' '{print $2}';
+	}
 
-# if the bootmode file doesn't exist, this is the first run of this
-# script for this boot, so set it to the current mode
-if [ ! -f "$BOOT_CONFIG_LOCATION" ]; then
-	if [ -f "/etc/natinst/safemode" ]; then
-		write_config safemode
-	else
-		write_config runtime
+	# if the bootmode file doesn't exist, this is the first run of this
+	# script for this boot, so set it to the current mode
+	if [ ! -f "$BOOT_CONFIG_LOCATION" ]; then
+		if [ -f "/etc/natinst/safemode" ]; then
+			write_config safemode
+		else
+			write_config runtime
+		fi
 	fi
 fi
 
