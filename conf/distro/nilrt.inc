@@ -125,6 +125,8 @@ NILRT_GIT ?= "git://github.com/ni"
 # Creates ``*-lic`` subpackages for all OE recipes if enabled
 LICENSE_CREATE_PACKAGE ?= "1"
 
+# Use 32-bit time on ARM32 to keep compatibility with pre-compiled binaries
+GLIBC_64BIT_TIME_FLAGS:xilinx-zynq = ""
 
 ## OPKG SOURCE FEEDS ##
 
