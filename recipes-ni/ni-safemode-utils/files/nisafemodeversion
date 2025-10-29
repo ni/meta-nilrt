@@ -3,7 +3,7 @@
 # Copyright (c) 2013 National Instruments
 #
 # Script used to get the current version of safemode on the system, the version of safemode
-# for the specified cfg file, or the comparision of the safemode version on the system with
+# for the specified cfg file, or the comparison of the safemode version on the system with
 # the version of the safemode on the cfg file.
 #
 # returns:
@@ -12,7 +12,7 @@
 #    2 if the version for comparison is older
 #    3 if the version for comparison is the same
 #    4 if the version for comparison is newer
-#    5 if the comparison is invalid due to an unkown version for either the current or given safemode
+#    5 if the comparison is invalid due to an unknown version for either the current or given safemode
 
 usage()
 {
