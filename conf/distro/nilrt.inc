@@ -127,6 +127,8 @@ LICENSE_CREATE_PACKAGE ?= "1"
 
 # Use 32-bit time on ARM32 to keep compatibility with pre-compiled binaries
 GLIBC_64BIT_TIME_FLAGS:xilinx-zynq = ""
+# Skip the 32bit-time QA check to avoid build time warnings. We know we're using 32-bit time.
+INSANE_SKIP:append:xilinx-zynq = "32bit-time"
 
 ## OPKG SOURCE FEEDS ##
 
