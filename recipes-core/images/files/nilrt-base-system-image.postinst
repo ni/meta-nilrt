@@ -69,7 +69,13 @@ awk '{print $2;}' < /proc/mounts | grep -q /boot || exit 1
 # Give hwclock CAP_SYS_TIME capabilties
 /usr/sbin/setcap CAP_SYS_TIME+ep /mnt/userfs/sbin/hwclock.util-linux
 
-if [ "$arch" = "x86_64" ]; then
+if [ "$arch" = "armv7l" ]; then
+   # safemodes older than 8.0 don't bind mount bootfs to /mnt/userfs/bootfs.
+   # So files that get extracted into /mnt/userfs/boot have to be moved into /boot.
+	if [ ! -f "$mount_point/linux_runmode.itb" ]; then
+		mv /mnt/userfs/boot/* "$mount_point"
+	fi
+elif [ "$arch" = "x86_64" ]; then
 	kernel="/mnt/userfs/boot/tmp/runmode"
 	# install the kernel
 	rm -rf /boot/runmode
