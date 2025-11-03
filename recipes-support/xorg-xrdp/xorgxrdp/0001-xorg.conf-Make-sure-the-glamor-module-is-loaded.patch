@@ -1,0 +1,25 @@
+From b8f1e5ca910b06202a046e676c44293e08eaeb1a Mon Sep 17 00:00:00 2001
+From: Joe Hershberger <joe.hershberger@ni.com>
+Date: Fri, 31 Oct 2025 18:37:17 +0000
+Subject: [PATCH] xorg.conf: Make sure the glamor module is loaded
+
+Signed-off-by: Joe Hershberger <joe.hershberger@ni.com>
+---
+ xrdpdev/xorg.conf | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/xrdpdev/xorg.conf b/xrdpdev/xorg.conf
+index 2ca8bd5..838698a 100644
+--- a/xrdpdev/xorg.conf
++++ b/xrdpdev/xorg.conf
+@@ -23,6 +23,7 @@ Section "Module"
+     Load "int10"
+     Load "record"
+     Load "vbe"
++    Load "glamoregl"
+     Load "xorgxrdp"
+     Load "fb"
+ EndSection
+-- 
+2.44.1
+

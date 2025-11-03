@@ -1,0 +1,53 @@
+From 75ebbb07e8d6bb75a0293e9f1bb0eb164750e1e7 Mon Sep 17 00:00:00 2001
+From: Joe Hershberger <joe.hershberger@ni.com>
+Date: Fri, 31 Oct 2025 18:09:41 +0000
+Subject: [PATCH 2/2] sesman: Add xfce4 and custom window manager support
+
+Signed-off-by: Joe Hershberger <joe.hershberger@ni.com>
+---
+ sesman/sesman.ini    |  1 +
+ sesman/startwm.sh    | 16 ++++++++++++++++
+ 2 files changed, 17 insertions(+)
+
+diff --git a/sesman/sesman.ini b/sesman/sesman.ini
+index 8c5f173f..e7f9acce 100644
+--- a/sesman/sesman.ini
++++ b/sesman/sesman.ini
+@@ -117,6 +117,7 @@ param=xrdp/xorg.conf
+ param=-noreset
+ param=-nolisten
+ param=tcp
++param=-keeptty
+ param=-logfile
+ param=.xorgxrdp.%s.log
+ 
+diff --git a/sesman/startwm.sh b/sesman/startwm.sh
+index b3befe88..bc8afe96 100755
+--- a/sesman/startwm.sh
++++ b/sesman/startwm.sh
+@@ -63,6 +63,22 @@ wm_start()
+     export LANG LANGUAGE
+   fi
+ 
++  # custom session
++  if [ -x "$HOME/.xsession" ]; then
++    pre_start
++    exec "$HOME/.xsession"
++    post_start
++    exit 0
++  fi
++
++  # xfce4
++  if [ -x "/usr/bin/startxfce4" ]; then
++    pre_start
++    exec startxfce4
++    post_start
++    exit 0
++  fi
++
+   # debian
+   if [ -r /etc/X11/Xsession ]; then
+     pre_start
+-- 
+2.44.1
+
