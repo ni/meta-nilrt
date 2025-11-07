@@ -1,0 +1,1 @@
+CVE_PRODUCT ?= "lz4_project:lz4"
