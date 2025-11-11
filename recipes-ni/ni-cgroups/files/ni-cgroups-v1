@@ -1,0 +1,83 @@
+#!/bin/sh
+# Copyright (c) 2012-2025 National Instruments.
+# All rights reserved.
+
+CPUSET_DIR="/dev/cgroup/cpuset"
+CPUACCT_DIR="/dev/cgroup/cpuacct"
+
+setup_cpuset()
+{
+	mkdir -p "$CPUSET_DIR"
+	mount -t cpuset none "$CPUSET_DIR"
+	cd "$CPUSET_DIR" || exit 1
+
+	SUBGROUPS="LabVIEW_ScanEngine_set LabVIEW_tl_set system_set"
+	for group in $SUBGROUPS; do
+		mkdir -p "$group"
+		cp cpus "$group/"
+		cp mems "$group/"
+	done
+
+	# Assign tasks to the system set by default
+	while read TASK; do
+		echo "$TASK" > "./system_set/tasks" 2>/dev/null || true
+	done < tasks
+
+	chown -R lvuser:ni "$CPUSET_DIR"
+}
+
+cleanup_cpuset()
+{
+	if mountpoint -q "$CPUSET_DIR"; then
+		umount "$CPUSET_DIR"
+	fi
+}
+
+setup_cpuacct()
+{
+	mkdir -p "$CPUACCT_DIR"
+	mount -t cgroup -ocpuacct none "$CPUACCT_DIR"
+	cd "$CPUACCT_DIR" || exit 1
+
+	SUBGROUPS="LabVIEW_Timed-Structures_group LabVIEW_Time-Critical_group ISR_group other_group"
+	for group in $SUBGROUPS; do
+		mkdir -p "$group"
+	done
+
+	# Tasks (which can be moved) start by default in the "other" group
+	while read TASK; do
+		echo "$TASK" > "./other_group/tasks" 2>/dev/null || true
+	done < tasks
+
+	chown -R lvuser:ni "$CPUACCT_DIR"
+}
+
+cleanup_cpuacct()
+{
+	if mountpoint -q "$CPUACCT_DIR"; then
+		umount "$CPUACCT_DIR"
+	fi
+}
+
+case "$1" in
+	start)
+		setup_cpuset
+		setup_cpuacct
+		;;
+	stop)
+		cleanup_cpuset
+		cleanup_cpuacct
+		;;
+	restart)
+		cleanup_cpuset
+		cleanup_cpuacct
+		setup_cpuset
+		setup_cpuacct
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart}"
+		exit 1
+		;;
+esac
+
+exit 0

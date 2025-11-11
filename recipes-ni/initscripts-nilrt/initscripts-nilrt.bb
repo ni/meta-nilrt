@@ -12,15 +12,11 @@ SRC_URI = "\
 	file://cleanvarcache \
 	file://firewall \
 	file://iso3166-translation.txt \
-	file://lvrt-cgroup \
-	file://lvrt-cgroup.sh \
 	file://mountconfig \
 	file://niconfiguretracefs \
 	file://nicheckbiosconfig \
 	file://nicleanefivars \
 	file://nicleanstalelinks \
-	file://nicreatecpuacctgroups \
-	file://nicreatecpusets \
 	file://nidisablecstates \
 	file://nipopulateconfigdir \
 	file://nisetcommitratio \
@@ -49,8 +45,6 @@ do_install () {
 	install -m 0755 ${WORKDIR}/nicheckbiosconfig     ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nicleanefivars        ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nicleanstalelinks     ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nicreatecpuacctgroups ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nicreatecpusets       ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nidisablecstates      ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nipopulateconfigdir   ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/nisetcommitratio      ${D}${sysconfdir}/init.d
@@ -73,8 +67,6 @@ do_install () {
 	update-rc.d -r ${D} nicheckbiosconfig     start 99 4 5 .
 	update-rc.d -r ${D} nicleanefivars        start 10 S .
 	update-rc.d -r ${D} nicleanstalelinks     start 5  S .
-	update-rc.d -r ${D} nicreatecpuacctgroups start 2  4 5 .
-	update-rc.d -r ${D} nicreatecpusets       start 1  4 5 .
 	update-rc.d -r ${D} nidisablecstates      start 2 3 4 5 S .
 	update-rc.d -r ${D} nipopulateconfigdir   start 35 S .
 	update-rc.d -r ${D} nisetcommitratio      start 99 S .
@@ -85,12 +77,6 @@ do_install () {
 
 	install -d ${D}${sysconfdir}/natinst
 	install -m 0644 ${WORKDIR}/iso3166-translation.txt ${D}${sysconfdir}/natinst
-
-	install -d ${D}${sysconfdir}/default
-	install -m 0644 lvrt-cgroup ${D}${sysconfdir}/default/lvrt-cgroup
-
-	install -d ${D}${datadir}/${BPN}
-	install -m 0755 lvrt-cgroup.sh ${D}${datadir}/${BPN}/lvrt-cgroup.sh
 }
 
 do_install:append:xilinx-zynq () {

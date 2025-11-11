@@ -1,0 +1,61 @@
+#!/bin/sh
+# Copyright (c) 2025 National Instruments.
+# All rights reserved.
+
+CGROUP_DIR="/sys/fs/cgroup"
+
+setup_cpuset()
+{
+	if ! mountpoint -q "$CGROUP_DIR"; then
+		mount -t cgroup2 none "$CGROUP_DIR"
+	fi
+	cd "$CGROUP_DIR" || exit 1
+
+	echo "+cpuset" > cgroup.subtree_control
+
+	mkdir -p "$CGROUP_DIR/ni"
+	cd "$CGROUP_DIR/ni" || exit 1
+
+	echo "+cpuset" > cgroup.subtree_control
+
+	SUBGROUPS="irq scanengine system time-critical timed-structures"
+	for group in $SUBGROUPS; do
+		mkdir -p "$group"
+		echo "threaded" > "$group/cgroup.type"
+		cp cpuset.cpus "$group/"
+		cp cpuset.mems "$group/"
+	done
+
+	# Assign tasks to the "ni/system" set by default
+	while read TASK; do
+		echo "$TASK" > "$CGROUP_DIR/ni/system/cgroup.procs" 2>/dev/null || true
+	done < "$CGROUP_DIR/cgroup.procs"
+
+	chown -R lvuser:ni "$CGROUP_DIR/ni"
+}
+
+cleanup_cpuset()
+{
+	if mountpoint -q "$CGROUP_DIR"; then
+		umount "$CGROUP_DIR"
+	fi
+}
+
+case "$1" in
+	start)
+		setup_cpuset
+		;;
+	stop)
+		cleanup_cpuset
+		;;
+	restart)
+		cleanup_cpuset
+		setup_cpuset
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart}"
+		exit 1
+		;;
+esac
+
+exit 0
