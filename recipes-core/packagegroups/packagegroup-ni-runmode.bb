@@ -25,6 +25,7 @@ RDEPENDS:${PN} = "\
 	lldpd \
 	mpfr \
 	nftables \
+	ni-cgroups \
 	ni-configpersistentlogs \
 	ni-locale-alias \
 	ni-modules-autoload \
