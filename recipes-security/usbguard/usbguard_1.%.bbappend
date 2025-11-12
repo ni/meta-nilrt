@@ -14,7 +14,7 @@ RDEPENDS:${PN} += "bash"
 do_install:append() {
     if ${@bb.utils.contains('DISTRO_FEATURES', 'sysvinit', 'true', 'false', d)}; then
         install -d ${D}${sysconfdir}/init.d
-        install -m 0755 ${WORKDIR}/usbguard.init ${D}${sysconfdir}/init.d/usbguard
+        install -m 0755 ${UNPACKDIR}/usbguard.init ${D}${sysconfdir}/init.d/usbguard
         
         # Remove /etc/volatile.cache if it exists in the target image
         rm -f ${D}${sysconfdir}/volatile.cache

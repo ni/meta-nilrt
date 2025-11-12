@@ -39,27 +39,25 @@ SRC_URI:append:xilinx-zynq = "\
 	file://mountutils \
 "
 
-S = "${WORKDIR}"
-
 do_install () {
 	install -d ${D}${sysconfdir}/init.d/
-	install -m 0755 ${WORKDIR}/cleanvarcache         ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/mountconfig           ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/niconfiguretracefs    ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nicheckbiosconfig     ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nicleanefivars        ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nicleanstalelinks     ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nicreatecpuacctgroups ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nicreatecpusets       ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nidisablecstates      ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nipopulateconfigdir   ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nisetcommitratio      ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nisetreboottype       ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nisetupkernelconfig   ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/populateconfig        ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/wirelesssetdomain     ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/cleanvarcache         ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/mountconfig           ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/niconfiguretracefs    ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/nicheckbiosconfig     ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/nicleanefivars        ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/nicleanstalelinks     ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/nicreatecpuacctgroups ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/nicreatecpusets       ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/nidisablecstates      ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/nipopulateconfigdir   ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/nisetcommitratio      ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/nisetreboottype       ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/nisetupkernelconfig   ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/populateconfig        ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/wirelesssetdomain     ${D}${sysconfdir}/init.d
 
-	install -m 0755 ${WORKDIR}/firewall              ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/firewall              ${D}${sysconfdir}/init.d
 	# Substitute configfs paths
 	sed -i 's|^IPTABLES_CONF=.*$|IPTABLES_CONF=/etc/natinst/share/iptables.conf|g' ${D}${sysconfdir}/init.d/firewall
 	sed -i 's|^IP6TABLES_CONF=.*$|IP6TABLES_CONF=/etc/natinst/share/ip6tables.conf|g' ${D}${sysconfdir}/init.d/firewall
@@ -84,17 +82,17 @@ do_install () {
 	update-rc.d -r ${D} wirelesssetdomain     start 36 S .
 
 	install -d ${D}${sysconfdir}/natinst
-	install -m 0644 ${WORKDIR}/iso3166-translation.txt ${D}${sysconfdir}/natinst
+	install -m 0644 ${UNPACKDIR}/iso3166-translation.txt ${D}${sysconfdir}/natinst
 
 	install -d ${D}${sysconfdir}/default
-	install -m 0644 lvrt-cgroup ${D}${sysconfdir}/default/lvrt-cgroup
+	install -m 0644  ${UNPACKDIR}/lvrt-cgroup ${D}${sysconfdir}/default/lvrt-cgroup
 
 	install -d ${D}${datadir}/${BPN}
-	install -m 0755 lvrt-cgroup.sh ${D}${datadir}/${BPN}/lvrt-cgroup.sh
+	install -m 0755  ${UNPACKDIR}/lvrt-cgroup.sh ${D}${datadir}/${BPN}/lvrt-cgroup.sh
 }
 
 do_install:append:xilinx-zynq () {
-	install -m 0755 ${WORKDIR}/mountutils            ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/mountutils            ${D}${sysconfdir}/init.d
 }
 
 pkg_postinst_ontarget:${PN} () {
@@ -122,8 +120,8 @@ pkg_postinst_ontarget:${PN} () {
 }
 
 do_install_ptest () {
-	cp ${WORKDIR}/test-nisetcommitratio-* ${D}${PTEST_PATH}/
-	cp ${WORKDIR}/test-safemode-runlevel-init ${D}${PTEST_PATH}/
+	cp ${UNPACKDIR}/test-nisetcommitratio-* ${D}${PTEST_PATH}/
+	cp ${UNPACKDIR}/test-safemode-runlevel-init ${D}${PTEST_PATH}/
 }
 
 # /etc/init.d/populateconfig invokes wpa-supplicant.ipk scripts.

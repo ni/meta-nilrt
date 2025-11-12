@@ -1,0 +1,50 @@
+From c09f450ba3cfd61c1230154193fc86fe670d96a3 Mon Sep 17 00:00:00 2001
+From: Shubhanshu Mani Tripathi <shubhanshu.mani.tripathi@emerson.com>
+Date: Tue, 11 Nov 2025 11:43:41 +0530
+Subject: [PATCH] Rename shutdown variable to shutdown_server to avoid conflict
+ with system header
+
+The keyword `shutdown` was colliding with the `shutdown()` function defined in
+<sys/socket.h>, resulting in a compile-time error due to symbol redefinition in
+core_server.cpp. To resolve this issue, the static variable `shutdown` has been
+renamed to `shutdown_server`.
+
+This change aligns with the fix already present in the upstream repository,
+but since the project has not yet been updated to the latest upstream revision,
+this patch temporarily introduces the same change locally to unblock the build.
+
+Upstream-Status: Inappropriate [Temporary patch which will be removed once ni-grpc-device is updated to latest upstream]
+
+Signed-off-by: Shubhanshu Mani Tripathi <shubhanshu.mani.tripathi@emerson.com>
+---
+ source/server/core_server.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/source/server/core_server.cpp b/source/server/core_server.cpp
+index 3c97a145..fbce0d6b 100644
+--- a/source/server/core_server.cpp
++++ b/source/server/core_server.cpp
+@@ -58,12 +58,12 @@ static ServerConfiguration GetConfiguration(const std::string& config_file_path)
+ 
+ static std::mutex server_mutex;
+ static std::unique_ptr<grpc::Server> server;
+-static bool shutdown = false;
++static bool shutdown_server = false;
+ 
+ static void StopServer()
+ {
+   std::lock_guard<std::mutex> guard(server_mutex);
+-  shutdown = true;
++  shutdown_server = true;
+   if (server) {
+     server->Shutdown();
+   }
+@@ -94,7 +94,7 @@ static void RunServer(const ServerConfiguration& config)
+   // Assemble the server.
+   {
+     std::lock_guard<std::mutex> guard(server_mutex);
+-    if (shutdown) {
++    if (shutdown_server) {
+       nidevice_grpc::logging::log(
+           nidevice_grpc::logging::Level_Info,
+           "Asked to shutdown before creating the server");

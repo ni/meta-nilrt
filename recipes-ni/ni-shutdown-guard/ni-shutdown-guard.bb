@@ -40,7 +40,7 @@ do_install () {
 	install -d ${D}${sysconfdir}/init.d
 	install -d ${D}${sysconfdir}/holdoff-shutdown.d
 
-	install -m 0755   ${WORKDIR}/rguard              ${D}${sbindir}
-	install -m 0755   ${WORKDIR}/holdoff-shutdown    ${D}${sysconfdir}/init.d
-	install -m 0644   ${WORKDIR}/nilrt-safemode      ${D}${sysconfdir}/holdoff-shutdown.d
+	install -m 0755   ${UNPACKDIR}/rguard              ${D}${sbindir}
+	install -m 0755   ${UNPACKDIR}/holdoff-shutdown    ${D}${sysconfdir}/init.d
+	install -m 0644   ${UNPACKDIR}/nilrt-safemode      ${D}${sysconfdir}/holdoff-shutdown.d
 }

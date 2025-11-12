@@ -7,5 +7,5 @@ FILES:${PN} += "${datadir}/ni-resetniconfig"
 
 do_install() {
     install -d ${D}${datadir}/ni-resetniconfig
-    install -m 0644 ${WORKDIR}/logging_paths.ini ${D}${datadir}/ni-resetniconfig/logging_paths.ini
+    install -m 0644 ${UNPACKDIR}/logging_paths.ini ${D}${datadir}/ni-resetniconfig/logging_paths.ini
 }

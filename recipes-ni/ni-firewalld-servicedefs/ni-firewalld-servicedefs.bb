@@ -38,7 +38,7 @@ do_install () {
 	for f in ${SRC_URI}; do
 		case $f in
 		"file://services/"*) echo "$f"; install -D -t ${D}${libdir}/firewalld/services/ \
-			-m 0644 "${WORKDIR}/${f##file://}" ;;
+			-m 0644 "${UNPACKDIR}/${f##file://}" ;;
 		esac
 	done
 }

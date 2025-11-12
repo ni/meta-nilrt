@@ -1,3 +1,4 @@
+Upstream-Status: Inappropriate [Just to avoid error.. Needs to be updated later.]
 diff --git a/data/onboard-autostart.desktop.in b/data/onboard-autostart.desktop.in
 index 8fb55ac..cf022a0 100644
 --- a/data/onboard-autostart.desktop.in

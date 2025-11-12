@@ -17,8 +17,7 @@ SRC_URI += "\
 	file://rtfeatures.rules \
 "
 
-S = "${WORKDIR}"
-
+S = "${UNPACKDIR}"
 
 inherit allarch
 PACKAGE_ARCH = "all"

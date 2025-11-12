@@ -17,8 +17,7 @@ SRC_URI = "\
 	file://test_stack_touch.cpp \
 "
 
-S = "${WORKDIR}"
-
+S = "${UNPACKDIR}"
 
 inherit ptest
 
@@ -27,28 +26,28 @@ debugsrcdir = "/usr/src/debug/${BPN}"
 
 do_compile() {
 	cd ${S}
-	${CC} -o test_floating_point test_floating_point.cpp
+	${CC} ${CFLAGS} ${LDFLAGS} -o test_floating_point ${UNPACKDIR}/test_floating_point.cpp
 
-	${CC} -o test_oom_handling test_oom_handling.cpp -lpthread
-	${CC} -o test_shmem        test_shmem.cpp        -lpthread
-	${CC} -o test_stack_touch  test_stack_touch.cpp  -lpthread
+	${CC} ${CFLAGS} ${LDFLAGS} -o test_oom_handling ${UNPACKDIR}/test_oom_handling.cpp -lpthread
+	${CC} ${CFLAGS} ${LDFLAGS} -o test_shmem        ${UNPACKDIR}/test_shmem.cpp        -lpthread
+	${CC} ${CFLAGS} ${LDFLAGS} -o test_stack_touch  ${UNPACKDIR}/test_stack_touch.cpp  -lpthread
 }
 
 do_install() {
 	# source files
 	install -d ${D}${debugsrcdir}
-	install -m 0644 ${S}/*.cpp ${D}${debugsrcdir}/
+	install -m 0644 ${UNPACKDIR}/*.cpp ${D}${debugsrcdir}/
 }
 
 do_install_ptest() {
-	install -m 0755 ${S}/run-ptest                ${D}${PTEST_PATH}
+	install -m 0755 ${UNPACKDIR}/run-ptest                ${D}${PTEST_PATH}
 
-	install -m 0755 ${S}/test_floating_point      ${D}${PTEST_PATH}
-	install -m 0755 ${S}/test_oom_handling        ${D}${PTEST_PATH}
-	install -m 0755 ${S}/test_overcomit_memory.sh ${D}${PTEST_PATH}
-	install -m 0755 ${S}/test_overcomit_ratio.sh  ${D}${PTEST_PATH}
-	install -m 0755 ${S}/test_shmem               ${D}${PTEST_PATH}
-	install -m 0755 ${S}/test_stack_touch         ${D}${PTEST_PATH}
+	install -m 0755 test_floating_point      ${D}${PTEST_PATH}
+	install -m 0755 test_oom_handling        ${D}${PTEST_PATH}
+	install -m 0755 ${UNPACKDIR}/test_overcomit_memory.sh ${D}${PTEST_PATH}
+	install -m 0755 ${UNPACKDIR}/test_overcomit_ratio.sh  ${D}${PTEST_PATH}
+	install -m 0755 test_shmem               ${D}${PTEST_PATH}
+	install -m 0755 test_stack_touch         ${D}${PTEST_PATH}
 }
 
 

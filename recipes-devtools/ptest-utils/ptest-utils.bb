@@ -12,8 +12,7 @@ SRC_URI = "\
 	file://ptest-format.sh \
 "
 
-S = "${WORKDIR}"
-
+S = "${UNPACKDIR}"
 
 do_install () {
 	install -d ${D}${libdir}/${PN}/bash

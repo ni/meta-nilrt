@@ -1,7 +1,7 @@
 DESCRIPTION = "Central Regulatory Domain Agent"
 SECTION = "base"
 LICENSE = "ISC"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=07c4f6dea3845b02a18dc00c8c87699c"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=ef8b69b43141352d821fd66b64ff0ee7"
 
 
 DEPENDS = "libnl"
@@ -10,10 +10,8 @@ RDEPENDS:${PN} = "\
 	       udev \
 "
 
-S = "${WORKDIR}/git"
-
 SRC_URI = "git://github.com/mcgrof/crda.git;protocol=https;branch=master"
-SRCREV = "47b1aaa36e770be587c33f0f5345fe8df550aabc"
+SRCREV = "9856751feaf7b102547cea678a5da6c94252d83d"
 
 CFLAGS:append =" -DCONFIG_LIBNL32 -I${STAGING_INCDIR}/libnl3"
 LDFLAGS:append =" -lnl-3 -lnl-genl-3 -lm"

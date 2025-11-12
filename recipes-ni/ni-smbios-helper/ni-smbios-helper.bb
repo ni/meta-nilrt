@@ -10,12 +10,12 @@ SRC_URI = "file://smbios_helper \
 
 RDEPENDS:${PN} = "bash"
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 do_install () {
      install -d ${D}${datadir}/nisysinfo
-     install -m 0755    ${WORKDIR}/smbios_helper    ${D}${datadir}/nisysinfo/
-     install -m 0755    ${WORKDIR}/efi_helper    ${D}${datadir}/nisysinfo/
+     install -m 0755    ${S}/smbios_helper    ${D}${datadir}/nisysinfo/
+     install -m 0755    ${S}/efi_helper    ${D}${datadir}/nisysinfo/
 }
 
 FILES:${PN} += "\

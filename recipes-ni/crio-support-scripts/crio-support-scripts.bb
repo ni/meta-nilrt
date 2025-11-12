@@ -10,7 +10,7 @@ SRC_URI:append:x64 = "file://nisetfpgaautoload \
                       file://nisetconsoleout \
 "
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 do_install () {
      install -d ${D}${sysconfdir}/init.d/

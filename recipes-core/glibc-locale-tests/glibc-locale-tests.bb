@@ -17,8 +17,7 @@ SRC_URI = "\
 	file://L1.txt \
 "
 
-S = "${WORKDIR}"
-
+S = "${UNPACKDIR}"
 
 inherit ptest
 
@@ -27,23 +26,23 @@ debugsrcdir = "/usr/src/debug/${BPN}"
 
 do_compile() {
 	cd ${S}
-	${CC} -o test_locale_aliases test_locale_aliases.c
+	${CC} ${CFLAGS} ${LDFLAGS} -o test_locale_aliases test_locale_aliases.c
 }
 
 do_install() {
 	# source files
 	install -d ${D}${debugsrcdir}
-	install -m 0644 ${S}/*.c ${D}${debugsrcdir}/
+	install -m 0644 ${UNPACKDIR}/*.c ${D}${debugsrcdir}/
 }
 
 do_install_ptest() {
-	install -m 0755 ${S}/run-ptest                ${D}${PTEST_PATH}
+	install -m 0755 ${UNPACKDIR}/run-ptest                ${D}${PTEST_PATH}
 
-	install -m 0755 ${S}/test_locale_aliases.sh   ${D}${PTEST_PATH}
-	install -m 0755 ${S}/test_locale_aliases      ${D}${PTEST_PATH}
-	install -m 0644 ${S}/CP932.txt                ${D}${PTEST_PATH}
-	install -m 0644 ${S}/CP936.txt                ${D}${PTEST_PATH}
-	install -m 0644 ${S}/L1.txt                   ${D}${PTEST_PATH}
+	install -m 0755 ${UNPACKDIR}/test_locale_aliases.sh   ${D}${PTEST_PATH}
+	install -m 0755 test_locale_aliases      ${D}${PTEST_PATH}
+	install -m 0644 ${UNPACKDIR}/CP932.txt                ${D}${PTEST_PATH}
+	install -m 0644 ${UNPACKDIR}/CP936.txt                ${D}${PTEST_PATH}
+	install -m 0644 ${UNPACKDIR}/L1.txt                   ${D}${PTEST_PATH}
 }
 
 

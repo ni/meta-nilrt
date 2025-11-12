@@ -22,7 +22,7 @@ RDEPENDS:${PN} += " \
 "
 
 do_install() {
-	install -m 0755 ${WORKDIR}/init-nilrt-ramfs.sh ${D}/init
+	install -m 0755 ${UNPACKDIR}/init-nilrt-ramfs.sh ${D}/init
 }
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"

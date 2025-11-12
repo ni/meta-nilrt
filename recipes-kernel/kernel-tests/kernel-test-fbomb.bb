@@ -2,12 +2,12 @@ SUMMARY = "Linux kernel futex test"
 HOMEPAGE = "https://kernel.org"
 SECTION = "tests"
 LICENSE = "GPL-2.0-only"
-LIC_FILES_CHKSUM = "file://fbomb.c;md5=5087cbd611aca643601e03428b6ef30d"
+LIC_FILES_CHKSUM = "file://${S}/fbomb.c;md5=5087cbd611aca643601e03428b6ef30d"
 inherit ptest
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}-files:"
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 DEPENDS = "virtual/kernel"
 RDEPENDS:${PN}-ptest += "bash kmod"
@@ -22,7 +22,7 @@ SRC_URI += "\
 LDFLAGS += "-lpthread"
 
 do_compile_ptest:append() {
-    cd ${WORKDIR}
+    cd ${S}
     ${CC} ${CFLAGS} -o fbomb fbomb.c ${LDFLAGS}
 }
 

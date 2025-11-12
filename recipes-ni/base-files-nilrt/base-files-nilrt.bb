@@ -29,8 +29,6 @@ FILES:${PN} += "README_File_Paths.txt \
 		${sysconfdir}/natinst/share \
 "
 
-S = "${WORKDIR}"
-
 RDEPENDS:${PN} += "procps"
 DEPENDS += "niacctbase"
 
@@ -42,8 +40,8 @@ do_install () {
 	install -d -m 0755 ${D}${sysconfdir}/niboot/
 
 	# README's
-	install -m 0644 ${WORKDIR}/README_File_Paths.txt ${D}
-	install -m 0644 ${WORKDIR}/README_File_Transfer.txt ${D}
+	install -m 0644 ${UNPACKDIR}/README_File_Paths.txt ${D}
+	install -m 0644 ${UNPACKDIR}/README_File_Transfer.txt ${D}
 
 	# /usr/natinst/local directories
 	install -d -m 0755 ${D}/usr/local/natinst
@@ -56,7 +54,7 @@ do_install () {
 
 	# license information
 	install -d ${D}/usr/share/doc/
-	install -m 0644 ${WORKDIR}/LICENSES ${D}/usr/share/doc/
+	install -m 0644 ${UNPACKDIR}/LICENSES ${D}/usr/share/doc/
 
 	# Create multiarch installation directory and write proper path to
 	# multiarch.conf
@@ -65,18 +63,18 @@ do_install () {
 	# ld.so.conf includes the directory /etc/ld.so.conf.d, a standard
 	# practice in linux distros, adding extra files to map our directories
 	install -d ${D}${sysconfdir}/ld.so.conf.d/
-	install -m 0644 ${WORKDIR}/natinst_libs.conf ${D}${sysconfdir}/ld.so.conf.d/
-	install -m 0644 ${WORKDIR}/local_libs.conf ${D}${sysconfdir}/ld.so.conf.d/
+	install -m 0644 ${UNPACKDIR}/natinst_libs.conf ${D}${sysconfdir}/ld.so.conf.d/
+	install -m 0644 ${UNPACKDIR}/local_libs.conf ${D}${sysconfdir}/ld.so.conf.d/
 	echo /usr/lib/${TARGET_ARCH}-linux-gnu${ABIEXTENSION} > ${D}${sysconfdir}/ld.so.conf.d/multiarch_libs.conf
 
 	install -d ${D}${sysconfdir}/profile.d/
 
 	# script for limiting stack sizes when a user logs in
-	install -m 0644 ${WORKDIR}/ulimit.sh ${D}${sysconfdir}/profile.d/
+	install -m 0644 ${UNPACKDIR}/ulimit.sh ${D}${sysconfdir}/profile.d/
 
 	# script for setting locale when a user logs in
-	install -m 0644 ${WORKDIR}/nisetlocale.sh ${D}${sysconfdir}/profile.d/
+	install -m 0644 ${UNPACKDIR}/nisetlocale.sh ${D}${sysconfdir}/profile.d/
 
 	# add machine-info and allow System Web Server to modify it
-	install -m 0664 -g ${LVRT_GROUP} ${WORKDIR}/machine-info ${D}${sysconfdir}/
+	install -m 0664 -g ${LVRT_GROUP} ${UNPACKDIR}/machine-info ${D}${sysconfdir}/
 }

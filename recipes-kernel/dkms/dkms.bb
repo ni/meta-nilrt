@@ -4,7 +4,7 @@ HOMEPAGE = "https://github.com/dell/dkms/"
 BUGTRACKER = "https://github.com/dell/dkms/issues"
 SECTION = "kernel"
 LICENSE = "GPL-2.0-only"
-LIC_FILES_CHKSUM = "file://COPYING;md5=b234ee4d69f5fce4486a80fdaf4a4263"
+LIC_FILES_CHKSUM = "file://COPYING;md5=570a9b3749dd0463a1778803b12a6dce"
 
 
 PV = "3.0.13"
@@ -15,20 +15,25 @@ SRC_URI = "\
 	file://0001-autoinstall-all-kernels.patch \
 "
 
-SRCREV = "4d466bf727347408307aa28ab4f090488360b592"
+SRCREV = "6e32f352f3d8c7ccbc6fecb05b1517248a2f3934"
 
-S = "${WORKDIR}/git"
+do_configure[noexec] = "1"
+do_compile[noexec] = "1"
 
-
-inherit autotools-brokensep
+do_install() {
+	oe_runmake install DESTDIR=${D} LIBDIR=${libdir} 
+}
 
 # We don't need the dist/ tarball.
 EXTRA_OEMAKE += " -o tarball"
 
 INSANE_SKIP:${PN} += "dev-deps"
 
-
-FILES:${PN} += " ${datadir}/bash-completion/* ${datadir}/zsh/*"
+FILES:${PN} += "${libdir}/dkms_autoinstaller \
+				${libdir}/common.postinst \ 
+				${datadir}/bash-completion/* \
+				${datadir}/zsh/* \
+"
 
 RDEPENDS:${PN} += " \
 	bash \

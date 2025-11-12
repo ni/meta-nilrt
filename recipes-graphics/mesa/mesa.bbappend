@@ -1,4 +1,3 @@
 # PXIe-88XX series hardware requires the r600_dri driver for hardware rendering
-PACKAGECONFIG:append = "\
-	r600 \
-"
+GALLIUMDRIVERS:append:class-target = ",r600"
+

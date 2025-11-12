@@ -17,14 +17,14 @@ do_install:append() {
 	install -d ${D}${sysconfdir}/
 	install -d ${D}${sysconfdir}/default/
 
-	install -m 0755 ${WORKDIR}/postinst.default.sh ${D}${sysconfdir}/default/postinst
+	install -m 0755 ${S}/postinst.default.sh ${D}${sysconfdir}/default/postinst
 }
 
 do_install_ptest:append() {
 
 	# Install test cases
-	install -m 0755 ${WORKDIR}/test-opkg-status.sh ${D}${PTEST_PATH}/
-	install -m 0755 ${WORKDIR}/test-run-postinsts-log.sh ${D}${PTEST_PATH}/
+	install -m 0755 ${S}/test-opkg-status.sh ${D}${PTEST_PATH}/
+	install -m 0755 ${S}/test-run-postinsts-log.sh ${D}${PTEST_PATH}/
 }
 
 

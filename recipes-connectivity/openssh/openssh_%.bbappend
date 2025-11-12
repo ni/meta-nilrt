@@ -11,7 +11,7 @@ do_patch_oe_source () {
 	# The typical do_patch logic will not work for this file since the do_patch logic is designed to
 	# patch the source code for openssh, and the file being patched is part of the recipe that builds
 	# the openssh IPK.
-	patch -u ${WORKDIR}/init -i ${WORKDIR}/close-all-ssh-connections-patch
+	patch -u ${UNPACKDIR}/init -i ${UNPACKDIR}/close-all-ssh-connections-patch
 }
 addtask patch_oe_source after do_patch before do_configure
 

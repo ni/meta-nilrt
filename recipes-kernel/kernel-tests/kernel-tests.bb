@@ -8,7 +8,7 @@ inherit ptest
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}-files:"
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 DEPENDS = "virtual/kernel libcap"
 RDEPENDS:${PN}-ptest += "bash libcap kmod dmidecode python3-pymongo os-release"
@@ -44,7 +44,7 @@ SRC_URI += "\
 LDFLAGS += "-lcap -lpthread"
 
 do_compile_ptest:append() {
-    cd ${WORKDIR}
+    cd ${S}
     ${CC} ${CFLAGS} -o test_kernel_mcopy_functionality test_kernel_mcopy_functionality.c ${LDFLAGS}
     ${CC} ${CFLAGS} -o test_kernel_mcopy_freed_memory test_kernel_mcopy_freed_memory.c ${LDFLAGS}
     ${CC} ${CFLAGS} -o test_exe_cap_support test_exe_cap_support.c ${LDFLAGS}
@@ -54,35 +54,35 @@ do_compile_ptest:append() {
 }
 
 do_install_ptest:append() {
-    cp ${WORKDIR}/run-ptest ${D}${PTEST_PATH}
-    cp ${WORKDIR}/ptest-format.sh ${D}${PTEST_PATH}
-    cp ${WORKDIR}/test_kernel_mcopy.sh ${D}${PTEST_PATH}
-    cp ${WORKDIR}/test_kernel_mcopy_functionality ${D}${PTEST_PATH}
-    cp ${WORKDIR}/test_kernel_mcopy_freed_memory ${D}${PTEST_PATH}
-    cp ${WORKDIR}/test_kernel_cache_info.sh ${D}${PTEST_PATH}
-    cp ${WORKDIR}/test_kernel_cap_support.sh ${D}${PTEST_PATH}
-    cp ${WORKDIR}/test_kernel_modules.sh ${D}${PTEST_PATH}
-    cp ${WORKDIR}/test_kernel_security.sh ${D}${PTEST_PATH}
-    cp ${WORKDIR}/test_kernel_serial_devices.sh ${D}${PTEST_PATH}
-    cp ${WORKDIR}/test_exe_cap_support ${D}${PTEST_PATH}
-    cp ${WORKDIR}/cap_support_exe_to_test ${D}${PTEST_PATH}
-    cp ${WORKDIR}/test_proc_cap_support ${D}${PTEST_PATH}
-    cp ${WORKDIR}/test_kernel_ll_route.sh ${D}${PTEST_PATH}
-    cp ${WORKDIR}/test_kernel_hrtimers.sh ${D}${PTEST_PATH}
-    cp ${WORKDIR}/test_user_stack_size.sh ${D}${PTEST_PATH}
-    cp ${WORKDIR}/test_pthread_stack_size ${D}${PTEST_PATH}
-    cp ${WORKDIR}/test_kernel_swap_disabled.sh ${D}${PTEST_PATH}
-    cp ${WORKDIR}/test_i915_firmware.sh ${D}${PTEST_PATH}
-    cp ${WORKDIR}/kernel_dmesg_diff.py ${D}${PTEST_PATH}
-    cp ${WORKDIR}/test_kernel_dmesg_diff.sh ${D}${PTEST_PATH}
+    cp ${S}/run-ptest ${D}${PTEST_PATH}
+    cp ${S}/ptest-format.sh ${D}${PTEST_PATH}
+    cp ${S}/test_kernel_mcopy.sh ${D}${PTEST_PATH}
+    cp ${S}/test_kernel_mcopy_functionality ${D}${PTEST_PATH}
+    cp ${S}/test_kernel_mcopy_freed_memory ${D}${PTEST_PATH}
+    cp ${S}/test_kernel_cache_info.sh ${D}${PTEST_PATH}
+    cp ${S}/test_kernel_cap_support.sh ${D}${PTEST_PATH}
+    cp ${S}/test_kernel_modules.sh ${D}${PTEST_PATH}
+    cp ${S}/test_kernel_security.sh ${D}${PTEST_PATH}
+    cp ${S}/test_kernel_serial_devices.sh ${D}${PTEST_PATH}
+    cp ${S}/test_exe_cap_support ${D}${PTEST_PATH}
+    cp ${S}/cap_support_exe_to_test ${D}${PTEST_PATH}
+    cp ${S}/test_proc_cap_support ${D}${PTEST_PATH}
+    cp ${S}/test_kernel_ll_route.sh ${D}${PTEST_PATH}
+    cp ${S}/test_kernel_hrtimers.sh ${D}${PTEST_PATH}
+    cp ${S}/test_user_stack_size.sh ${D}${PTEST_PATH}
+    cp test_pthread_stack_size ${D}${PTEST_PATH}
+    cp ${S}/test_kernel_swap_disabled.sh ${D}${PTEST_PATH}
+    cp ${S}/test_i915_firmware.sh ${D}${PTEST_PATH}
+    cp ${S}/kernel_dmesg_diff.py ${D}${PTEST_PATH}
+    cp ${S}/test_kernel_dmesg_diff.sh ${D}${PTEST_PATH}
 }
 
 do_install_ptest:append:x64() {
-    cp ${WORKDIR}/required_kernel_modules.x64 ${D}${PTEST_PATH}/required_kernel_modules
+    cp ${S}/required_kernel_modules.x64 ${D}${PTEST_PATH}/required_kernel_modules
 }
 
 do_install_ptest:append:xilinx-zynqhf() {
-    cp ${WORKDIR}/required_kernel_modules.arm ${D}${PTEST_PATH}/required_kernel_modules
+    cp ${S}/required_kernel_modules.arm ${D}${PTEST_PATH}/required_kernel_modules
 }
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"

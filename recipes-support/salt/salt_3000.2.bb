@@ -34,8 +34,6 @@ SRC_URI = "\
 
 SRCREV = "${AUTOREV}"
 
-S = "${WORKDIR}/git"
-
 inherit setuptools3_legacy update-rc.d ptest
 
 # Avoid a QA Warning triggered by the test package including a file
@@ -60,19 +58,19 @@ INITSCRIPT_PARAMS:${PN}-minion = "defaults 93 7"
 
 do_install:append() {
     install -d ${D}${sysconfdir}/bash_completion.d/
-    install -m 0644 ${WORKDIR}/salt-common.bash_completion ${D}${sysconfdir}/bash_completion.d/${PN}-common
+    install -m 0644 ${UNPACKDIR}/salt-common.bash_completion ${D}${sysconfdir}/bash_completion.d/${PN}-common
     install -d ${D}${sysconfdir}/logrotate.d/
-    install -m 0644 ${WORKDIR}/salt-common.logrotate ${D}${sysconfdir}/logrotate.d/${PN}-common
+    install -m 0644 ${UNPACKDIR}/salt-common.logrotate ${D}${sysconfdir}/logrotate.d/${PN}-common
     install -d ${D}${sysconfdir}/init.d/
-    install -m 0755 ${WORKDIR}/salt-minion ${D}${sysconfdir}/init.d/${PN}-minion
-    install -m 0755 ${WORKDIR}/salt-api ${D}${sysconfdir}/init.d/${PN}-api
-    install -m 0755 ${WORKDIR}/salt-master ${D}${sysconfdir}/init.d/${PN}-master
-    install -m 0755 ${WORKDIR}/salt-syndic ${D}${sysconfdir}/init.d/${PN}-syndic
+    install -m 0755 ${UNPACKDIR}/salt-minion ${D}${sysconfdir}/init.d/${PN}-minion
+    install -m 0755 ${UNPACKDIR}/salt-api ${D}${sysconfdir}/init.d/${PN}-api
+    install -m 0755 ${UNPACKDIR}/salt-master ${D}${sysconfdir}/init.d/${PN}-master
+    install -m 0755 ${UNPACKDIR}/salt-syndic ${D}${sysconfdir}/init.d/${PN}-syndic
     install -d ${D}${sysconfdir}/${PN}/
-    install -m 0644 ${WORKDIR}/minion ${D}${sysconfdir}/${PN}/minion
-    install -m 0644 ${WORKDIR}/master ${D}${sysconfdir}/${PN}/master
-    install -m 0644 ${WORKDIR}/cloud ${D}${sysconfdir}/${PN}/cloud
-    install -m 0644 ${WORKDIR}/roster ${D}${sysconfdir}/${PN}/roster
+    install -m 0644 ${UNPACKDIR}/minion ${D}${sysconfdir}/${PN}/minion
+    install -m 0644 ${UNPACKDIR}/master ${D}${sysconfdir}/${PN}/master
+    install -m 0644 ${UNPACKDIR}/cloud ${D}${sysconfdir}/${PN}/cloud
+    install -m 0644 ${UNPACKDIR}/roster ${D}${sysconfdir}/${PN}/roster
     install -d ${D}${sysconfdir}/${PN}/cloud.conf.d ${D}${sysconfdir}/${PN}/cloud.profiles.d ${D}${sysconfdir}/${PN}/cloud.providers.d
 
     install -d ${D}${PYTHON_SITEPACKAGES_DIR}/${PN}-tests/

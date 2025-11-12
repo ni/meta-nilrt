@@ -30,14 +30,14 @@ do_install:append () {
 	fi
 
 	install -d ${D}${sysconfdir}/profile.d/
-	install -m 0644 ${WORKDIR}/natinst-path.sh ${D}${sysconfdir}/profile.d/
+	install -m 0644 ${S}/natinst-path.sh ${D}${sysconfdir}/profile.d/
 
-	install -m 644 ${WORKDIR}/issue ${D}${sysconfdir}
-	install -m 644 ${WORKDIR}/issue.net  ${D}${sysconfdir}
+	install -m 644 ${S}/issue ${D}${sysconfdir}
+	install -m 644 ${S}/issue.net  ${D}${sysconfdir}
 
-	install ${WORKDIR}/safemode-ps1.sh ${D}${sysconfdir}/profile.d/
+	install ${S}/safemode-ps1.sh ${D}${sysconfdir}/profile.d/
 
-	install -m 0644 ${WORKDIR}/tmout.sh ${D}${sysconfdir}/profile.d/
+	install -m 0644 ${S}/tmout.sh ${D}${sysconfdir}/profile.d/
 
 	install -d ${D}${sysconfdir}/default/volatiles/
 	# 10_var_vol_cache is only needed for post-8.5 safemodes to support
@@ -47,7 +47,7 @@ do_install:append () {
 	echo "d ${LVRT_USER} ${LVRT_GROUP} 0775 /run/natinst none" \
 		>> ${D}${sysconfdir}/default/volatiles/20_run_natinst
 
-	install -m 0644 ${WORKDIR}/nsswitch.conf ${D}${sysconfdir}/nsswitch.conf
+	install -m 0644 ${S}/nsswitch.conf ${D}${sysconfdir}/nsswitch.conf
 }
 
 pkg_postinst_ontarget:${PN} () {

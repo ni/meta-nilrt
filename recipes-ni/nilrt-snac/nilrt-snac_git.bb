@@ -17,9 +17,6 @@ SRC_URI = "\
 SRCREV = "${AUTOREV}"
 PV = "2.1.0+git${SRCPV}"
 
-S = "${WORKDIR}/git"
-
-
 inherit ptest
 
 
@@ -33,7 +30,7 @@ do_install() {
 }
 
 do_install_ptest() {
-	install -m 0755 ${WORKDIR}/run-ptest ${D}${PTEST_PATH}
+	install -m 0755 ${UNPACKDIR}/run-ptest ${D}${PTEST_PATH}
 }
 
 CONFFILES:${PN} = "${sysconfdir}/snac/snac.conf"

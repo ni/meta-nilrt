@@ -24,5 +24,5 @@ do_install () {
 	install -d ${D}${sysconfdir}/modules.autoload.d
 
 	install -d ${D}${sysconfdir}/init.d/
-	install -m 0755 ${WORKDIR}/ni-modules-autoload ${D}${sysconfdir}/init.d/
+	install -m 0755 ${UNPACKDIR}/ni-modules-autoload ${D}${sysconfdir}/init.d/
 }

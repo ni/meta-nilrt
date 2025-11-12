@@ -26,9 +26,9 @@ RDEPENDS:${PN}:append:xilinx-zynq = " u-boot-tools-mkimage "
 do_install () {
 	install -d ${D}${natinstbin}
 
-	install -m 0755   ${WORKDIR}/nicompareversion            ${D}${natinstbin}
-	install -m 0550   ${WORKDIR}/niinstallsafemode           ${D}${natinstbin}
-	install -m 0755   ${WORKDIR}/nisafemodeversion           ${D}${natinstbin}
+	install -m 0755   ${UNPACKDIR}/nicompareversion            ${D}${natinstbin}
+	install -m 0550   ${UNPACKDIR}/niinstallsafemode           ${D}${natinstbin}
+	install -m 0755   ${UNPACKDIR}/nisafemodeversion           ${D}${natinstbin}
 
 	chown 0:${LVRT_GROUP} ${D}${natinstbin}/niinstallsafemode
 }

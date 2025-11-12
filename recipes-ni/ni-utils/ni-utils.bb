@@ -29,7 +29,7 @@ RDEPENDS:${PN} += "niacctbase bash"
 
 RDEPENDS:${PN}:append:x64 = " fw-printenv"
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 do_install () {
 	install -d ${D}${bindir}
@@ -37,12 +37,12 @@ do_install () {
 	install -d ${D}${libdir}
 	install -d ${D}${sysconfdir}/natinst/networking
 
-	install -m 0755   ${WORKDIR}/status_led                  ${D}${bindir}
-	install -m 0440   ${WORKDIR}/nisetbootmode.functions     ${D}${libdir}
-	install -m 0550   ${WORKDIR}/nisetbootmode               ${D}${sysconfdir}/init.d
-	install -m 0755   ${WORKDIR}/nisetled                    ${D}${sysconfdir}/init.d
-	install -m 0755   ${WORKDIR}/nisetprimarymac             ${D}${sysconfdir}/init.d
-	install -m 0755   ${WORKDIR}/functions.common            ${D}${sysconfdir}/natinst/networking
+	install -m 0755   ${S}/status_led                  ${D}${bindir}
+	install -m 0440   ${S}/nisetbootmode.functions     ${D}${libdir}
+	install -m 0550   ${S}/nisetbootmode               ${D}${sysconfdir}/init.d
+	install -m 0755   ${S}/nisetled                    ${D}${sysconfdir}/init.d
+	install -m 0755   ${S}/nisetprimarymac             ${D}${sysconfdir}/init.d
+	install -m 0755   ${S}/functions.common            ${D}${sysconfdir}/natinst/networking
 
 	update-rc.d -r ${D} nisetled              start 40 S .
 	update-rc.d -r ${D} nisetbootmode         start 80 S . stop 0 0 6 .

@@ -2,13 +2,13 @@ SUMMARY = "Linux kernel NO_HZ_FULL polling test"
 HOMEPAGE = "https://kernel.org"
 SECTION = "tests"
 LICENSE = "GPL-2.0-only"
-LIC_FILES_CHKSUM = "file://nohz_test.c;beginline=1;endline=2;md5=9e3e9401383732750e93a18064dc9493"
+LIC_FILES_CHKSUM = "file://${S}/nohz_test.c;beginline=1;endline=2;md5=9e3e9401383732750e93a18064dc9493"
 
 inherit ptest
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}-files:"
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 RDEPENDS:${PN}-ptest += "bash coreutils procps rt-tests"
 RDEPENDS:${PN}-ptest:append:x64 = " packagegroup-ni-nohz-kernel"
@@ -24,7 +24,7 @@ SRC_URI += "\
 LDFLAGS += "-lpthread"
 
 do_compile_ptest:append() {
-    cd ${WORKDIR}
+    cd ${S}
     ${CC} ${CFLAGS} -o nohz_test nohz_test.c ${LDFLAGS}
 }
 

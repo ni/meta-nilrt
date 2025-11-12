@@ -26,16 +26,14 @@ DEPENDS += "\
 PV = "2.6.0"
 
 
-SRC_URI = "\
-	git://github.com/ni/grpc-device.git;name=grpc-device;branch=main;protocol=https \
-	file://ptest \
-	file://0001-CMakeLists-Make-grpc-device-buildable-on-NILRT-11-10.patch \
-"
+SRC_URI = "git://github.com/ni/grpc-device.git;name=grpc-device;branch=main;protocol=https \
+           file://ptest \
+           file://0001-CMakeLists-Make-grpc-device-buildable-on-NILRT-11-10.patch \
+           file://0001-Rename-shutdown-variable-to-shutdown_server-to-avoid.patch \
+           "
 
 SRCREV_grpc-device = "609fdf8c7ec99597373cf35f2b9608422b1955c9"
 SRCREV_FORMAT = "grpc-device"
-
-S = "${WORKDIR}/git"
 
 inherit cmake python3native
 

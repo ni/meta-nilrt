@@ -1,4 +1,4 @@
-From 86d2596b8da2bef9dd33579b104916aaafbff3ab Mon Sep 17 00:00:00 2001
+From 53d70eee300552ceaa6ab3942c717f9c79b48bad Mon Sep 17 00:00:00 2001
 From: Christian Kellner <christian@kellner.me>
 Date: Mon, 28 Sep 2020 19:56:16 +0200
 Subject: [PATCH] daemon: support running without PolicyKit
@@ -17,7 +17,6 @@ Upstream-Status: Inappropriate [Upstream won't support no polkit]
 - This patch is commit 86d2596b of upstream that upstream kept in a
   separate branch "no_polkit" specifically because they didn't want to
   support bolt without polkit.
-
 ---
  boltd/bolt-bouncer.c | 27 ++++++++++++++++++++++++++-
  config.h.in          |  1 +
@@ -129,10 +128,10 @@ index 1a65c46..e3218de 100644
 +#endif
  }
 diff --git a/config.h.in b/config.h.in
-index eba23a3..0b94246 100644
+index e8f467a..d125baf 100644
 --- a/config.h.in
 +++ b/config.h.in
-@@ -38,6 +38,7 @@
+@@ -34,6 +34,7 @@
  #mesondefine HAVE_FN_EXPLICIT_BZERO
  #mesondefine HAVE_FN_GETRANDOM
  #mesondefine HAVE_FN_COPY_FILE_RANGE
@@ -141,7 +140,7 @@ index eba23a3..0b94246 100644
  
  /* constants */
 diff --git a/meson.build b/meson.build
-index 32e48d2..2073079 100644
+index 1afcbc9..723c07a 100644
 --- a/meson.build
 +++ b/meson.build
 @@ -66,6 +66,7 @@ endforeach
@@ -161,7 +160,7 @@ index 32e48d2..2073079 100644
  mockdev = dependency('umockdev-1.0', required: false)
  
  git     = find_program('git', required: false)
-@@ -152,6 +153,7 @@ foreach fn : [
+@@ -148,6 +149,7 @@ foreach fn : [
    conf.set10('HAVE_FN_' + fn[0].to_upper(), have)
  endforeach
  
@@ -170,17 +169,14 @@ index 32e48d2..2073079 100644
    conf.set('HAVE_POLKIT_AUTOPTR', '1')
  endif
 diff --git a/meson_options.txt b/meson_options.txt
-index 467f73e..880ca3e 100644
+index b65da30..2b65d26 100644
 --- a/meson_options.txt
 +++ b/meson_options.txt
 @@ -3,6 +3,7 @@ option('db-path', type: 'string', description: 'DEPRECATED')
  option('db-name', type: 'string', value: 'boltd', description: 'Name for the device database')
- option('install-tests', type: 'boolean', value: 'false', description: 'Install the tests')
+ option('install-tests', type: 'boolean', value: false, description: 'Install the tests')
  option('man', type: 'combo', choices: ['auto', 'true', 'false'], value: 'auto', description: 'Build man pages')
 +option('polkit-required', type: 'boolean', value: 'true', description: 'Require PolicyKit integration')
  option('privileged-group', type: 'string', value: 'wheel', description: 'Name of privileged group')
- option('profiling', type: 'boolean', value: 'false', description: 'Build with profiling support')
- option('systemd', type: 'boolean', value: 'true', description: 'DEPRECATED')
--- 
-2.34.1
-
+ option('profiling', type: 'boolean', value: false, description: 'Build with profiling support')
+ option('systemd', type: 'boolean', value: true, description: 'DEPRECATED')

@@ -40,8 +40,6 @@ SRC_URI = "\
 	file://uixml/nilinuxrt.rtprotocol_enable.def.xml \
 "
 
-S = "${WORKDIR}"
-
 uixmldir = "${datadir}/nisysapi/uixml"
 settingsdatadir = "${datadir}/${BPN}/systemsettings"
 systemsettingsdir = "${localstatedir}/local/natinst/systemsettings"
@@ -57,17 +55,17 @@ do_install[depends] += "niacctbase:do_populate_sysroot"
 do_install () {
 	# UIXML config (soft dip switches, etc.)
 	install -d -m 0755 ${D}${uixmldir}/
-	install -m 0644 ${S}/uixml/* ${D}${uixmldir}/
+	install -m 0644 ${UNPACKDIR}/uixml/* ${D}${uixmldir}/
 
 	# Common interface for system settings (soft dip switches, etc.)
 	install -d -m 0775 ${D}${settingsdatadir}/
-	install -m 0644 ${S}/systemsettings/* ${D}${settingsdatadir}/
+	install -m 0644 ${UNPACKDIR}/systemsettings/* ${D}${settingsdatadir}/
 
 	# Create shared systemsettingsdir with appropriate permissions and ownership
 	install -d -m 0775 -o ${LVRT_USER} -g ${LVRT_GROUP} ${D}${systemsettingsdir}
 
 	install -d ${D}${sysconfdir}/init.d/
-	install -m 0755 ${WORKDIR}/nisetembeddeduixml ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/nisetembeddeduixml ${D}${sysconfdir}/init.d
 }
 
 pkg_postinst_ontarget:${PN} () {

@@ -12,17 +12,14 @@ SRC_URI = "\
 	file://zz-ni-record-boot-time \
 "
 
-S = "${WORKDIR}"
-
-
 inherit ptest
 
 do_install_ptest() {
-	install -m 0755 ${S}/run-ptest ${D}${PTEST_PATH}
-	install -m 0755 ${S}/upload_results.py ${D}${PTEST_PATH}
+	install -m 0755 ${UNPACKDIR}/run-ptest ${D}${PTEST_PATH}
+	install -m 0755 ${UNPACKDIR}/upload_results.py ${D}${PTEST_PATH}
 
 	install -d ${D}${sysconfdir}/init.d
-	install -m 0755 ${S}/zz-ni-record-boot-time ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/zz-ni-record-boot-time ${D}${sysconfdir}/init.d
 	update-rc.d -r ${D} zz-ni-record-boot-time start 99 4 5 .
 }
 

@@ -6,8 +6,6 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 inherit update-rc.d
 
-S = "${WORKDIR}"
-
 SRC_URI = "\
     file://pstore-save \
     file://initscript \
@@ -23,9 +21,9 @@ RDEPENDS:${PN} += "bash"
 
 do_install () {
     install -d ${D}${sbindir} ${D}${sysconfdir}/init.d
-    install -m 0755 ${S}/pstore-save ${D}${sbindir}/
+    install -m 0755 ${UNPACKDIR}/pstore-save ${D}${sbindir}/
 
-    install -m 0755 ${S}/initscript ${D}${sysconfdir}/init.d/pstore-save
+    install -m 0755 ${UNPACKDIR}/initscript ${D}${sysconfdir}/init.d/pstore-save
 }
 
 inherit ptest
@@ -34,8 +32,8 @@ RDEPENDS:${PN}-ptest += "${PN} bash"
 
 do_install_ptest:append () {
     install -d ${D}${PTEST_PATH}/src
-    install -m 0444 ${S}/testdata/src/* ${D}${PTEST_PATH}/src
+    install -m 0444 ${UNPACKDIR}/testdata/src/* ${D}${PTEST_PATH}/src
 
     install -d ${D}${PTEST_PATH}/expected
-    install -m 0444 ${S}/testdata/expected/* ${D}${PTEST_PATH}/expected
+    install -m 0444 ${UNPACKDIR}/testdata/expected/* ${D}${PTEST_PATH}/expected
 }

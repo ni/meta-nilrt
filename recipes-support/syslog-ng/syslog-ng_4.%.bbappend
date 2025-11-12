@@ -20,14 +20,14 @@ do_install:append (){
    install -d ${D}${sysconfdir}/syslog-ng.d
    install -d ${D}${sysconfdir}/logrotate.d
 
-   install -m 644 ${WORKDIR}/nikern.conf ${D}${sysconfdir}/logrotate.d/
+   install -m 644 ${UNPACKDIR}/nikern.conf ${D}${sysconfdir}/logrotate.d/
 
    install -d -m 0755 ${D}${localstatedir}/local/natinst/log/
    chown ${LVRT_USER}:${LVRT_GROUP} ${D}${localstatedir}/local/natinst/log/
 
-   install -m 0644 ${WORKDIR}/logrotate.d-auth.conf ${D}${sysconfdir}/logrotate.d/auth.conf
-   install -m 0644 ${WORKDIR}/logrotate.d-cron.conf ${D}${sysconfdir}/logrotate.d/cron.conf
-   install -m 0644 ${WORKDIR}/logrotate.d-messages.conf ${D}${sysconfdir}/logrotate.d/messages.conf
+   install -m 0644 ${UNPACKDIR}/logrotate.d-auth.conf ${D}${sysconfdir}/logrotate.d/auth.conf
+   install -m 0644 ${UNPACKDIR}/logrotate.d-cron.conf ${D}${sysconfdir}/logrotate.d/cron.conf
+   install -m 0644 ${UNPACKDIR}/logrotate.d-messages.conf ${D}${sysconfdir}/logrotate.d/messages.conf
 
    # NILRT has a custom conf file for sysvinit systems.
    # If using sysvinit, update the conf file with the current version.

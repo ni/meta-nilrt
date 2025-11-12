@@ -12,7 +12,8 @@ SRC_URI = "\
 	file://udev.rules \
 "
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
+UNPACKDIR = "${WORKDIR}/sources"
 
 ALLOW_EMPTY:${PN} = "1"
 
