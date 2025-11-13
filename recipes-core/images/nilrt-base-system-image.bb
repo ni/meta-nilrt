@@ -19,6 +19,11 @@ CDFGUID:xilinx-zynq = "8E3EACD0-B36E-462B-A500-88AE644AB3B0"
 OSVALUE:x64 = "NI-Linux x64"
 OSVALUE:xilinx-zynq = "Linux-ARMv7-A"
 
+OSVERSION:x64 = "7.0"
+# For BSI to fit on smaller ARM targets, safemode needs zlib compression and other space saving measures.
+# So set minimum compatible safemode version to 26.0 which has them.
+OSVERSION:xilinx-zynq = "26.0"
+
 ROOTFS_IMAGE = "nilrt-runmode-rootfs"
 do_rootfs[depends] += "${ROOTFS_IMAGE}:do_image_complete"
 
@@ -41,7 +46,7 @@ create_cdf() {
 	SHORTVER=$(echo ${BUILDNAME} | sed 's/^\([0-9.]*\).*/\1/;')
 	TARFILE="${IMAGE_BASENAME}-${MACHINE}${IMAGE_NAME_SUFFIX}.tar"
 
-	sed -i "s/%guid%/$GUID/g; s/%version%/$SHORTVER/g; s/%osvalue%/${OSVALUE}/g; s/%filename%/$TARFILE/g;" $CDFOUT
+	sed -i "s/%guid%/$GUID/g; s/%version%/$SHORTVER/g; s/%osvalue%/${OSVALUE}/g; s/%osversion%/${OSVERSION}/g; s/%filename%/$TARFILE/g;" $CDFOUT
 }
 
 IMAGE_PREPROCESS_COMMAND += "bootimg_fixup;"
