@@ -1,0 +1,109 @@
+#!/bin/sh
+#
+# ClamAV scan wrapper
+# Automatically manages swap memory for systems with limited RAM
+#
+
+# Check for root privileges
+if [ "$(id -u)" -ne 0 ]; then
+  echo "Error: This script must be run as root." >&2
+  exit 1
+fi
+
+# Configuration
+MIN_MEMORY_MB=3072
+SWAP_SIZE_MB=1024
+# Use /var/cache which should be on root filesystem
+# Avoid /tmp and /var/volatile which are tmpfs (RAM-based)
+TEMP_SWAP="/var/cache/clamav_swap"
+
+# Parse wrapper-specific options
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --swap-size)
+      SWAP_SIZE_MB="$2"
+      shift 2
+      ;;
+    -h|--help)
+      echo "ClamAV Scan Wrapper"
+      echo ""
+      echo "Usage: clamav-scan [--swap-size MB] [clamscan options...]"
+      echo ""
+      echo "Wrapper Options:"
+      echo "  --swap-size MB    Set swap file size in MB (default: 1024)"
+      echo "  -h, --help        Show this help"
+      echo ""
+      echo "All other options are passed to clamscan."
+      exit 0
+      ;;
+    *)
+      # Not a wrapper option, pass to clamscan
+      break
+      ;;
+  esac
+done
+
+# Memory and swap management
+check_and_create_swap() {
+  # Check total memory in KB and convert to MB
+  total_mem_kb=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+  total_mem_mb=$((total_mem_kb / 1024))
+  
+  # Check if any swap is currently active
+  swap_active=$(swapon --show 2>/dev/null | wc -l)
+  
+  # Create and enable swap file only if memory < threshold and no swap is active
+  if [ "$total_mem_mb" -lt "$MIN_MEMORY_MB" ] && [ "$swap_active" -eq 0 ]; then
+    
+    # Clean up any existing swap file
+    if [ -f "$TEMP_SWAP" ]; then
+      swapoff "$TEMP_SWAP" 2>/dev/null || true
+      rm -f "$TEMP_SWAP"
+    fi
+    
+    # Create swap file using dd (works on all filesystems and architectures)
+    if ! dd if=/dev/zero of="$TEMP_SWAP" bs=1M count=$SWAP_SIZE_MB 2>&1; then
+      echo "Warning: Failed to create ${SWAP_SIZE_MB}MB swap file. Continuing without swap." >&2
+      echo "         ClamAV may fail or produce errors due to insufficient memory." >&2
+      rm -f "$TEMP_SWAP" 
+      return 0
+    fi
+    
+    chmod 600 "$TEMP_SWAP"
+    if ! mkswap "$TEMP_SWAP" >/dev/null 2>&1; then
+      echo "Warning: Failed to format swap file. Continuing without swap." >&2
+      rm -f "$TEMP_SWAP"
+      return 0
+    fi
+    
+    if ! swapon "$TEMP_SWAP" 2>/dev/null; then
+      echo "Warning: Failed to enable swap. Continuing without swap." >&2
+      rm -f "$TEMP_SWAP"
+      return 0
+    fi
+    
+    return 0
+  fi
+  
+  return 0
+}
+
+cleanup_swap() {
+  if [ -f "$TEMP_SWAP" ]; then
+    swapoff "$TEMP_SWAP" 2>/dev/null || true
+    rm -f "$TEMP_SWAP"
+  fi
+}
+
+# Trap to ensure cleanup on exit
+trap cleanup_swap EXIT INT TERM
+
+# Create swap if needed
+check_and_create_swap
+
+# Run ClamAV scan - pass all arguments directly to clamscan
+clamscan "$@"
+scan_result=$?
+
+# Cleanup is handled by trap
+exit $scan_result
