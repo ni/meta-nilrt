@@ -30,6 +30,11 @@ pkg_postinst:${PN}-freshclam:append() {
         return 0
     fi
     
+    # Create volatile directories using populate-volatile.sh
+    if [ -e ${sysconfdir}/init.d/populate-volatile.sh ]; then
+        ${sysconfdir}/init.d/populate-volatile.sh update
+    fi
+    
     # Add clamav user to adm group if not already a member
     if ! groups ${CLAMAV_USER} | grep -q adm; then
         usermod -a -G adm ${CLAMAV_USER}
