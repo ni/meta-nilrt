@@ -22,18 +22,18 @@ SRC_URI = "\
     file://test_disk_size.sh \
 "
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 inherit ptest
 
 do_install_ptest() {
-    install -m 0644 ${WORKDIR}/ptest-format.sh          ${D}${PTEST_PATH}
-    install -m 0644 ${WORKDIR}/fs_permissions_shared.py ${D}${PTEST_PATH}
-    install -m 0644 ${WORKDIR}/fs_permissions_diff.py   ${D}${PTEST_PATH}
-    install -m 0644 ${WORKDIR}/fs_permissions_known.py  ${D}${PTEST_PATH}
-    install -m 0644 ${WORKDIR}/disk_size.py             ${D}${PTEST_PATH}
-    install -m 0755 ${WORKDIR}/test_*.sh                ${D}${PTEST_PATH}
-    install -m 0755 ${WORKDIR}/run-ptest                ${D}${PTEST_PATH}
+    install -m 0644 ${S}/ptest-format.sh          ${D}${PTEST_PATH}
+    install -m 0644 ${S}/fs_permissions_shared.py ${D}${PTEST_PATH}
+    install -m 0644 ${S}/fs_permissions_diff.py   ${D}${PTEST_PATH}
+    install -m 0644 ${S}/fs_permissions_known.py  ${D}${PTEST_PATH}
+    install -m 0644 ${S}/disk_size.py             ${D}${PTEST_PATH}
+    install -m 0755 ${S}/test_*.sh                ${D}${PTEST_PATH}
+    install -m 0755 ${S}/run-ptest                ${D}${PTEST_PATH}
 }
 
 # We only want to build the -ptest package

@@ -14,7 +14,7 @@ localdir = "${homedir}/.local"
 do_install:append () {
 	install -d ${D}${localdir}/share/applications
 
-	install -m 0644 ${WORKDIR}/mimeapps.list ${D}${localdir}/share/applications/
+	install -m 0644 ${UNPACKDIR}/mimeapps.list ${D}${localdir}/share/applications/
 
 	chown -R ${LVRT_USER}:${LVRT_GROUP} ${D}${homedir}
 }

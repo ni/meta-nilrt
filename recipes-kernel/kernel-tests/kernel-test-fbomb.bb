@@ -7,7 +7,7 @@ inherit ptest
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}-files:"
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 DEPENDS = "virtual/kernel"
 RDEPENDS:${PN}-ptest += "bash kmod"
@@ -22,7 +22,7 @@ SRC_URI += "\
 LDFLAGS += "-lpthread"
 
 do_compile_ptest:append() {
-    cd ${WORKDIR}
+    cd ${S}
     ${CC} ${CFLAGS} -o fbomb fbomb.c ${LDFLAGS}
 }
 

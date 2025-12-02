@@ -31,7 +31,7 @@ do_install() {
 }
 
 do_install_ptest() {
-	install -m 0755 ${WORKDIR}/run-ptest ${D}${PTEST_PATH}
+	install -m 0755 ${UNPACKDIR}/run-ptest ${D}${PTEST_PATH}
 }
 
 CONFFILES:${PN} = "${sysconfdir}/snac/snac.conf"

@@ -26,7 +26,7 @@ CONFFILES:${PN} += " \
 
 do_install () {
 	install -d ${D}/boot
-	install -m 0644 ${WORKDIR}/grub-safemode-bootimage.cfg ${D}/boot/bootimage.cfg
-	install -m 0644 ${WORKDIR}/grub-safemode.cfg ${D}/boot/grub.cfg
-	install -m 0644 ${WORKDIR}/grubenv ${D}/boot/grubenv
+	install -m 0644 ${UNPACKDIR}/grub-safemode-bootimage.cfg ${D}/boot/bootimage.cfg
+	install -m 0644 ${UNPACKDIR}/grub-safemode.cfg ${D}/boot/grub.cfg
+	install -m 0644 ${UNPACKDIR}/grubenv ${D}/boot/grubenv
 }

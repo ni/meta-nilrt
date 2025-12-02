@@ -174,7 +174,7 @@ SRC_URI = "\
 	file://foo.initd \
 "
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 
 inherit update-rc.d

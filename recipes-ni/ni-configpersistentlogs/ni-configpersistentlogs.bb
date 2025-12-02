@@ -10,7 +10,7 @@ SRC_URI = "\
 	file://ni-configpersistentlogs \
 "
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 INITSCRIPT_NAME = "ni-configpersistentlogs"
 INITSCRIPT_PARAMS = "start 2 S ."

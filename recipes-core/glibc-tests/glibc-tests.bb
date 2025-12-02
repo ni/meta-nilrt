@@ -17,7 +17,7 @@ SRC_URI = "\
 	file://test_stack_touch.cpp \
 "
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 
 inherit ptest

@@ -16,6 +16,6 @@ CONFFILES:${PN} += "/boot/runmode/bootimage.cfg /boot/runmode/bootimage.cfg.d/*.
 
 do_install () {
 	install -d ${D}/boot/runmode
-	install -m 0644 ${WORKDIR}/grub-runmode-bootimage.cfg ${D}/boot/runmode/bootimage.cfg
-	install -m 0644 ${WORKDIR}/grub.d/cpu-mitigations.cfg ${D}/boot/runmode
+	install -m 0644 ${UNPACKDIR}/grub-runmode-bootimage.cfg ${D}/boot/runmode/bootimage.cfg
+	install -m 0644 ${UNPACKDIR}/grub.d/cpu-mitigations.cfg ${D}/boot/runmode
 }

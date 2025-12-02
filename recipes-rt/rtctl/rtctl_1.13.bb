@@ -19,7 +19,7 @@ SRC_URI = " \
 SRC_URI[sha256sum] = "33706ea797f99054049c20d709ca0e5c8ae5daccf347b80e8ac2884266439101"
 SRC_URI[md5sum] = "a530ceb797193c54b0d57a05b1e82d24"
 
-S = "${WORKDIR}/rtctl-${PV}"
+S = "${UNPACKDIR}/rtctl-${PV}"
 
 RDEPENDS:${PN} += "bash"
 
@@ -30,7 +30,7 @@ INITSCRIPT_PARAMS = "start 99 S . stop 00 0 . stop 00 6 ."
 
 do_compile() {
     ${CC} -Os ${CFLAGS} rtctld.c -o rtctld ${LDFLAGS}
-    cp "${WORKDIR}/rtgroups" "${S}/rtgroups"
+    cp "${UNPACKDIR}/rtgroups" "${S}/rtgroups"
 }
 
 do_install() {

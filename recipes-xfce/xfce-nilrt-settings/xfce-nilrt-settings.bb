@@ -39,7 +39,7 @@ SRC_URI =  " \
 	file://xfce4/xfconf/xfce-perchannel-xml/xsettings.xml \
 "
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 
 

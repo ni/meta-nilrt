@@ -9,7 +9,7 @@ SRC_URI += " \
 
 do_install:append() {
 	install -d ${D}${sysconfdir}/default
-	install -m 0644 ${WORKDIR}/urandom.default ${D}${sysconfdir}/default/urandom
+	install -m 0644 ${UNPACKDIR}/urandom.default ${D}${sysconfdir}/default/urandom
 
 	# re-assign urandom runlevel links
 	update-rc.d -r ${D} -f urandom remove

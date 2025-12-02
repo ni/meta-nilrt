@@ -12,9 +12,9 @@ SRC_URI:append = "\
 inherit ptest
 
 do_install_ptest() {
-    install -m 0644 ${WORKDIR}/ptest-format.sh ${D}${PTEST_PATH}
-    install -m 0755 ${WORKDIR}/run-ptest       ${D}${PTEST_PATH}
-    install -m 0755 ${WORKDIR}/test_hwclock.sh ${D}${PTEST_PATH}
+    install -m 0644 ${UNPACKDIR}/ptest-format.sh ${D}${PTEST_PATH}
+    install -m 0755 ${UNPACKDIR}/run-ptest       ${D}${PTEST_PATH}
+    install -m 0755 ${UNPACKDIR}/test_hwclock.sh ${D}${PTEST_PATH}
 }
 
 RDEPENDS:${PN}-ptest += " bash "

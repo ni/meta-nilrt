@@ -30,26 +30,26 @@ RDEPENDS:${PN} += "bash"
 
 do_install() {
 	install -d ${D}${sysconfdir}/ni-provisioning
-	install -m 0644 ${WORKDIR}/mmc_storage_device_codes.allow ${D}${sysconfdir}/ni-provisioning/
+	install -m 0644 ${UNPACKDIR}/mmc_storage_device_codes.allow ${D}${sysconfdir}/ni-provisioning/
 
-	install -m 0755 ${WORKDIR}/init-restore-mode.sh ${D}/init
-	install -m 0755 ${WORKDIR}/ni_provisioning ${D}/
-	install -m 0644 ${WORKDIR}/ni_provisioning.common ${D}/
-	install -m 0644 ${WORKDIR}/ni_provisioning.answers.default ${D}/
+	install -m 0755 ${UNPACKDIR}/init-restore-mode.sh ${D}/init
+	install -m 0755 ${UNPACKDIR}/ni_provisioning ${D}/
+	install -m 0644 ${UNPACKDIR}/ni_provisioning.common ${D}/
+	install -m 0644 ${UNPACKDIR}/ni_provisioning.answers.default ${D}/
 
 	install -d ${D}/${sysconfdir}/profile.d
-	install -m 0644 ${WORKDIR}/00-init-restore-mode.sh ${D}/${sysconfdir}/profile.d/
+	install -m 0644 ${UNPACKDIR}/00-init-restore-mode.sh ${D}/${sysconfdir}/profile.d/
 }
 
 do_install:append:x64() {
-	install -m 0644 ${WORKDIR}/ni_provisioning.safemode.common ${D}/
-	install -m 0644 ${WORKDIR}/ni_provisioning.safemode ${D}/
-	install -m 0755 ${WORKDIR}/disk_config_x64 ${D}/disk_config
-	install -m 0644 ${WORKDIR}/grub.cfg ${D}/
+	install -m 0644 ${UNPACKDIR}/ni_provisioning.safemode.common ${D}/
+	install -m 0644 ${UNPACKDIR}/ni_provisioning.safemode ${D}/
+	install -m 0755 ${UNPACKDIR}/disk_config_x64 ${D}/disk_config
+	install -m 0644 ${UNPACKDIR}/grub.cfg ${D}/
 }
 
 do_install:append:xilinx-zynqhf() {
-	install -m 0755 ${WORKDIR}/disk_config_xilinx-zynqhf ${D}/disk_config
+	install -m 0755 ${UNPACKDIR}/disk_config_xilinx-zynqhf ${D}/disk_config
 }
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"

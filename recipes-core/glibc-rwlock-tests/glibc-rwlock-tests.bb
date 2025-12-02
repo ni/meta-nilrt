@@ -13,7 +13,7 @@ SRC_URI = "\
 	file://test_rwlockbomb.sh \
 "
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 
 inherit ptest

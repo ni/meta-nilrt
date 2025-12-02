@@ -40,11 +40,11 @@ RDEPENDS:${PN} += " \
 do_install:append() {
 	install -Dm 0644 ${D}${PYTHON_SITEPACKAGES_DIR}${sysconfdir}/xdg/autostart/onboard-autostart.desktop ${D}${sysconfdir}/xdg/autostart/onboard-autostart.desktop
 
-	install -Dm 0644 ${WORKDIR}/01-gnome-accessibility ${D}${sysconfdir}/dconf/db/local.d/01-gnome-accessibility
-	install -Dm 0644 ${WORKDIR}/onboard-defaults.conf ${D}${sysconfdir}/onboard/onboard-defaults.conf
+	install -Dm 0644 ${UNPACKDIR}/01-gnome-accessibility ${D}${sysconfdir}/dconf/db/local.d/01-gnome-accessibility
+	install -Dm 0644 ${UNPACKDIR}/onboard-defaults.conf ${D}${sysconfdir}/onboard/onboard-defaults.conf
 
-	install -Dm 0644 ${WORKDIR}/NI.colors ${D}${datadir}/onboard/themes/NI.colors
-	install -Dm 0644 ${WORKDIR}/NI.theme ${D}${datadir}/onboard/themes/NI.theme
+	install -Dm 0644 ${UNPACKDIR}/NI.colors ${D}${datadir}/onboard/themes/NI.colors
+	install -Dm 0644 ${UNPACKDIR}/NI.theme ${D}${datadir}/onboard/themes/NI.theme
 }
 
 pkg_postinst:${PN} () {

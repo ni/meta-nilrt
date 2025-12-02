@@ -13,7 +13,7 @@ SRC_URI += "\
 	file://init.d/nisetserialnumber \
 "
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 
 inherit allarch

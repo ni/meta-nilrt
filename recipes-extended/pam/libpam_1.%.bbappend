@@ -5,7 +5,7 @@ SRC_URI += "\
 "
 
 do_install:append() {
-	install -m 644 ${WORKDIR}/security/faillock.conf ${D}${sysconfdir}/security/faillock.conf
+	install -m 644 ${UNPACKDIR}/security/faillock.conf ${D}${sysconfdir}/security/faillock.conf
 }
 
 pkg_postinst:pam-plugin-faillock:append() {

@@ -8,7 +8,7 @@ SRC_URI = "file://systemimageupdateinfo"
 
 RDEPENDS:${PN} += "bash"
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 do_install () {
 	install -d ${D}${bindir}

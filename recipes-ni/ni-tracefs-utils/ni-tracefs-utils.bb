@@ -20,13 +20,13 @@ CONFFILES:${PN} = "${sysconfdir}/sudoers.d/*"
 
 RDEPENDS:${PN} += "niacctbase bash sudo-lib"
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 do_install () {
 	install -d ${D}${base_sbindir}
 
-	install -m 0550   ${WORKDIR}/traceconfig         ${D}${base_sbindir}
-	install -m 0550   ${WORKDIR}/traceextract         ${D}${base_sbindir}
+	install -m 0550   ${S}/traceconfig         ${D}${base_sbindir}
+	install -m 0550   ${S}/traceextract         ${D}${base_sbindir}
 
         install -d ${D}${sysconfdir}/sudoers.d/
         install --mode=0660 ${S}/sudoers ${D}${sysconfdir}/sudoers.d/${PN}

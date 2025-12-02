@@ -24,20 +24,20 @@ SRC_URI = "\
     file://test_set.sh \
 "
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 inherit ptest
 
 do_install_ptest() {
     install -m 0755 -d ${D}${PTEST_PATH}/configs
-    install -m 0755 ${WORKDIR}/configs/*           ${D}${PTEST_PATH}/configs
-    install -m 0644 ${WORKDIR}/ptest-format.sh     ${D}${PTEST_PATH}
-    install -m 0755 ${WORKDIR}/run-ptest           ${D}${PTEST_PATH}
-    install -m 0755 ${WORKDIR}/section_chars       ${D}${PTEST_PATH}
-    install -m 0755 ${WORKDIR}/setup.sh            ${D}${PTEST_PATH}
-    install -m 0755 ${WORKDIR}/shared-functions.sh ${D}${PTEST_PATH}
-    install -m 0755 ${WORKDIR}/teardown.sh         ${D}${PTEST_PATH}
-    install -m 0755 ${WORKDIR}/test_*.sh           ${D}${PTEST_PATH}
+    install -m 0755 ${S}/configs/*           ${D}${PTEST_PATH}/configs
+    install -m 0644 ${S}/ptest-format.sh     ${D}${PTEST_PATH}
+    install -m 0755 ${S}/run-ptest           ${D}${PTEST_PATH}
+    install -m 0755 ${S}/section_chars       ${D}${PTEST_PATH}
+    install -m 0755 ${S}/setup.sh            ${D}${PTEST_PATH}
+    install -m 0755 ${S}/shared-functions.sh ${D}${PTEST_PATH}
+    install -m 0755 ${S}/teardown.sh         ${D}${PTEST_PATH}
+    install -m 0755 ${S}/test_*.sh           ${D}${PTEST_PATH}
 }
 
 # We only want to build the -ptest package

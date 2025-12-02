@@ -17,7 +17,7 @@ SRC_URI = "\
 	file://L1.txt \
 "
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 
 inherit ptest

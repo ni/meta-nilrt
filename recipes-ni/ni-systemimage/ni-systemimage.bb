@@ -10,7 +10,7 @@ SRC_URI = "\
 	file://nisystemimage \
 "
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 do_install () {
 	install -d ${D}${bindir}

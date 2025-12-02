@@ -22,7 +22,7 @@ SRC_URI += "\
 SRC_URI[md5sum] = "eb1b02e98c7d360749b9076196db3f0f"
 SRC_URI[sha256sum] = "1e5be93e518372acf1d92d2f567d01a46fdb0b730487e544e6fb896c59cac77f"
 
-S = "${WORKDIR}/${PN}-${PV}"
+S = "${UNPACKDIR}/${PN}-${PV}"
 
 
 inherit autotools pkgconfig useradd update-rc.d systemd
@@ -43,11 +43,11 @@ SYSTEMD_AUTO_ENABLE = "disable"
 
 do_install:append() {
 	install -d ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/trousers.init.sh ${D}${sysconfdir}/init.d/trousers
+	install -m 0755 ${UNPACKDIR}/trousers.init.sh ${D}${sysconfdir}/init.d/trousers
 	install -d ${D}${sysconfdir}/udev/rules.d
-	install -m 0644 ${WORKDIR}/trousers-udev.rules ${D}${sysconfdir}/udev/rules.d/45-trousers.rules
+	install -m 0644 ${UNPACKDIR}/trousers-udev.rules ${D}${sysconfdir}/udev/rules.d/45-trousers.rules
 	install -d ${D}${systemd_unitdir}/system
-	install -m 0644 ${WORKDIR}/tcsd.service ${D}${systemd_unitdir}/system/
+	install -m 0644 ${UNPACKDIR}/tcsd.service ${D}${systemd_unitdir}/system/
 	sed -i -e 's#@SBINDIR@#${sbindir}#g' ${D}${systemd_unitdir}/system/tcsd.service
 }
 
