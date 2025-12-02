@@ -17,8 +17,6 @@ SRC_URI = "\
 
 SRCREV = "4d466bf727347408307aa28ab4f090488360b592"
 
-S = "${WORKDIR}/git"
-
 
 inherit autotools-brokensep
 

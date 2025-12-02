@@ -10,8 +10,6 @@ SRC_URI = "git://github.com/modelon-community/fmi-library;protocol=https;branch=
 
 SRCREV = "29523c20aec17277fc517900e3506d17d3f64642"
 
-S = "${WORKDIR}/git"
-
 DEPENDS = "expat"
 
 inherit cmake pkgconfig

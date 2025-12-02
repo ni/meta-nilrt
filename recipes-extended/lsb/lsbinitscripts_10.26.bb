@@ -12,8 +12,6 @@ SRCREV = "79ec53026623b76d890b6dcdebf30d0c52d11a8b"
 UPSTREAM_CHECK_GITTAGREGEX = "^(?P<pver>\d+(\.\d+)+)"
 
 
-S = "${WORKDIR}/git"
-
 # Since we are only taking the functions file directly, no need to
 # configure or compile anything so do not execute these
 do_configure[noexec] = "1"

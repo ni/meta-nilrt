@@ -17,8 +17,6 @@ SRC_URI = "\
 SRCREV = "${AUTOREV}"
 PV = "2.1.0+git${SRCPV}"
 
-S = "${WORKDIR}/git"
-
 
 inherit ptest
 

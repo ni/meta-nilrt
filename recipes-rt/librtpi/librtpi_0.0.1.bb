@@ -14,8 +14,6 @@ SRC_URI = "\
 PV = "0.0.1+git${SRCPV}"
 SRCREV="558653f9fd48ec755d8feca7bce3cd7824018d9b"
 
-S = "${WORKDIR}/git"
-
 inherit autotools ptest
 
 FILES:${PN}-dev += "${libdir}/*.so ${includedir}/*.h"
