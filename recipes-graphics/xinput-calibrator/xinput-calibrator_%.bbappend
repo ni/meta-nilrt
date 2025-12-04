@@ -5,5 +5,5 @@ SRC_URI += "file://xinput_calibrator_wrapper \
 
 do_install:append() {
     install -d ${D}${bindir}
-    install -m 0755 ${WORKDIR}/xinput_calibrator_wrapper ${D}${bindir}/xinput_calibrator_wrapper
+    install -m 0755 ${UNPACKDIR}/xinput_calibrator_wrapper ${D}${bindir}/xinput_calibrator_wrapper
 }
