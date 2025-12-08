@@ -5,10 +5,9 @@ LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE.md;md5=feb42903281464837bc0c9a861b1e7a1"
 
 SRC_URI = "git://github.com/modelon-community/fmi-library;protocol=https;branch=master \
-           file://0001-Remove-expat-static-linking.patch \
            "
 
-SRCREV = "29523c20aec17277fc517900e3506d17d3f64642"
+SRCREV = "b711f5df98c8e341693679a6a08a891419a696d7"
 
 DEPENDS = "expat"
 
