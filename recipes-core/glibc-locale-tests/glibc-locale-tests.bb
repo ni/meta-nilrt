@@ -22,12 +22,11 @@ S = "${UNPACKDIR}"
 
 inherit ptest
 
-CC += " ${LDFLAGS}"
 debugsrcdir = "/usr/src/debug/${BPN}"
 
 do_compile() {
 	cd ${S}
-	${CC} -o test_locale_aliases test_locale_aliases.c
+	${CC} -o test_locale_aliases test_locale_aliases.c ${LDFLAGS}
 }
 
 do_install() {

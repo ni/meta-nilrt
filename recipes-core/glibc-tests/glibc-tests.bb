@@ -22,16 +22,15 @@ S = "${UNPACKDIR}"
 
 inherit ptest
 
-CC += " ${LDFLAGS}"
 debugsrcdir = "/usr/src/debug/${BPN}"
 
 do_compile() {
 	cd ${S}
-	${CC} -o test_floating_point test_floating_point.cpp
+	${CC} -o test_floating_point test_floating_point.cpp ${LDFLAGS}
 
-	${CC} -o test_oom_handling test_oom_handling.cpp -lpthread
-	${CC} -o test_shmem        test_shmem.cpp        -lpthread
-	${CC} -o test_stack_touch  test_stack_touch.cpp  -lpthread
+	${CC} -o test_oom_handling test_oom_handling.cpp ${LDFLAGS} -lpthread
+	${CC} -o test_shmem        test_shmem.cpp        ${LDFLAGS} -lpthread
+	${CC} -o test_stack_touch  test_stack_touch.cpp  ${LDFLAGS} -lpthread
 }
 
 do_install() {
