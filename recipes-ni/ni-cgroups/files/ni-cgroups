@@ -10,6 +10,16 @@
 
 identify_lvrt_cgroup_version()
 {
+	# We only support cgroups v1 on ARM for now
+	local cpu_arch
+	cpu_arch="$(uname -m)"
+	case "$cpu_arch" in
+		arm*|aarch64)
+			echo 1
+			return
+			;;
+	esac
+
 	local lvrt_installed
 	lvrt_installed=$(opkg list-installed ni-labview-realtime 2>/dev/null)
 
