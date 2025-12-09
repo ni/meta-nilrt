@@ -113,8 +113,6 @@ RDEPENDS:${PN} = "\
 	python3-xmlrpc \
 	python3-yarl \
 	rtctl \
-	salt-common \
-	salt-minion \
 	sysconfig-settings \
 	systemimageupdateinfo \
 	trace-cmd \
@@ -125,6 +123,8 @@ RDEPENDS:${PN} = "\
 
 RDEPENDS:${PN}:append:x64 = "\
 	linux-firmware-radeon \
+	salt-common \
+	salt-minion \
 "
 
 # Required components for Veristand.
