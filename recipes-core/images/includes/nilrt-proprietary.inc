@@ -41,8 +41,12 @@ NI_PROPRIETARY_COMMON_PACKAGES:append:x64 = "\
 
 NI_PROPRIETARY_RUNMODE_PACKAGES = "\
         ni-arch-gen \
+        python3-ni-asset-discovery \
+"
+
+# SystemLink dependencies
+NI_PROPRIETARY_RUNMODE_PACKAGES:append = "\
         ni-sysmgmt-salt-minion-support \
         ni-sysmgmt-sysapi-expert \
-        python3-ni-asset-discovery \
         python3-ni-systemlink-sdk \
 "
