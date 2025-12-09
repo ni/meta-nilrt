@@ -14,8 +14,8 @@ DEPENDS += "\
 "
 
 PACKAGECONFIG = "tcp zeromq"
-PACKAGECONFIG[tcp] = ",,python3-pycryptodomex"
-PACKAGECONFIG[zeromq] = ",,python3-pycryptodomex python3-pyzmq"
+PACKAGECONFIG[tcp] = ",,python3-pycryptodome"
+PACKAGECONFIG[zeromq] = ",,python3-pycryptodome python3-pyzmq"
 
 SRC_URI = "\
     git://github.com/ni/salt.git;protocol=https;branch=ni/master/3006.13 \
@@ -105,8 +105,8 @@ Between the remote execution system, and state management Salt addresses the bac
 SUMMARY:${PN}-minion = "client package for salt, the distributed remote execution system"
 DESCRIPTION:${PN}-minion = "${DESCRIPTION_COMMON} This particular package provides the worker agent for salt."
 RDEPENDS:${PN}-minion = "${PN}-common (= ${EXTENDPKGV}) python3-core python3-msgpack python3-distro"
-RDEPENDS:${PN}-minion += "${@bb.utils.contains('PACKAGECONFIG', 'zeromq', 'python3-pycryptodomex python3-pyzmq (>= 13.1.0)', '',d)}"
-RDEPENDS:${PN}-minion += "${@bb.utils.contains('PACKAGECONFIG', 'tcp', 'python3-pycryptodomex', '',d)}"
+RDEPENDS:${PN}-minion += "${@bb.utils.contains('PACKAGECONFIG', 'zeromq', 'python3-pycryptodome python3-pyzmq (>= 20.0.0)', '',d)}"
+RDEPENDS:${PN}-minion += "${@bb.utils.contains('PACKAGECONFIG', 'tcp', 'python3-pycryptodome', '',d)}"
 RRECOMMENDS:${PN}-minion:append:x64 = "dmidecode"
 RSUGGESTS:${PN}-minion = "python3-augeas"
 CONFFILES:${PN}-minion = "${sysconfdir}/${PN}/minion ${sysconfdir}/init.d/${PN}-minion"
@@ -121,20 +121,19 @@ RDEPENDS:${PN}-common = "\
     python3-backports-ssl-match-hostname \
     python3-charset-normalizer \
     python3-core \
-    python3-croniter (>= 0.3.23) \
+    python3-certifi (>= 2024.2.2) \
+    python3-cryptography (>= 42.0.0) \
     python3-dateutil \
     python3-fcntl \
-    python3-jinja2 \
+    python3-jinja2 (>= 3.1.5) \
     python3-looseversion \
     python3-markupsafe \
-    python3-packaging \
+    python3-packaging (>= 21.3) \
     python3-psutil (>= 5.0.0) \
     python3-pyyaml \
-    python3-pyopenssl (>= 24.0.0) \
     python3-requests (>= 2.32.3) \
     python3-singledispatch (>= 3.4.0.3) \
-    python3-tornado (>= 4.2.1) \
-    python3-urllib3 \
+    python3-urllib3 (>= 1.26.20) \
 "
 RRECOMMENDS:${PN}-common = "lsb-release"
 RSUGGESTS:${PN}-common = "python3-mako python3-git"
@@ -166,8 +165,8 @@ INITSCRIPT_PARAMS:${PN}-api = "defaults"
 SUMMARY:${PN}-master = "remote manager to administer servers via salt"
 DESCRIPTION:${PN}-master ="${DESCRIPTION_COMMON} This particular package provides the salt controller."
 RDEPENDS:${PN}-master = "${PN}-common (= ${EXTENDPKGV}) python3-core python3-msgpack"
-RDEPENDS:${PN}-master += "${@bb.utils.contains('PACKAGECONFIG', 'zeromq', 'python3-pycryptodomex python3-pyzmq (>= 13.1.0)', '',d)}"
-RDEPENDS:${PN}-master += "${@bb.utils.contains('PACKAGECONFIG', 'tcp', 'python3-pycryptodomex', '',d)}"
+RDEPENDS:${PN}-master += "${@bb.utils.contains('PACKAGECONFIG', 'zeromq', 'python3-pycryptodome python3-pyzmq (>= 20.0.0)', '',d)}"
+RDEPENDS:${PN}-master += "${@bb.utils.contains('PACKAGECONFIG', 'tcp', 'python3-pycryptodome', '',d)}"
 CONFFILES:${PN}-master="${sysconfdir}/init.d/${PN}-master  ${sysconfdir}/${PN}/master"
 RSUGGESTS:${PN}-master = "python3-git"
 FILES:${PN}-master = "${bindir}/${PN} ${bindir}/${PN}-cp ${bindir}/${PN}-key ${bindir}/${PN}-master ${bindir}/${PN}-run ${bindir}/${PN}-unity ${bindir}/spm ${CONFFILES:${PN}-master}"
