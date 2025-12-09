@@ -74,7 +74,6 @@ RDEPENDS:${PN} = "\
 	python3-msgpack \
 	python3-multidict \
 	python3-multiprocessing \
-	python3-ndg-httpsclient \
 	python3-netclient \
 	python3-netserver \
 	python3-numbers \
