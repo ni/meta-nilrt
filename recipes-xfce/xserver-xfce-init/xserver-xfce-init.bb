@@ -44,5 +44,5 @@ do_install() {
 
 FILES_${PN} += "${sysconfdir}/default/xserver-xfce"
 # Get util-linux for su
-RDEPENDS:${PN} = "xserver-common (>= 1.30) xinit xfce4-session util-linux"
+RDEPENDS:${PN} = "${VIRTUAL-RUNTIME_xserver_common} xinit xfce4-session util-linux"
 RCONFLICTS:${PN} = "xserver-nodm-init"
