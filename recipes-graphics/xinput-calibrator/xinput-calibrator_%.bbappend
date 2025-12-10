@@ -1,7 +1,7 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRC_URI += "file://xinput_calibrator_wrapper \
-            file://add-xfce-settings-and-wrapper-to-desktop-file.patch"
+            file://0001-add-xfce-settings-and-wrapper-to-desktop-file.patch"
 
 do_install:append() {
     install -d ${D}${bindir}
