@@ -6,3 +6,8 @@
 PACKAGECONFIG:append = "\
    amd \
 "
+
+# mesa-native only inherits global DISTRO_FEATURES. Upstream Mesa now
+# applies ANY_OF_DISTRO_FEATURES globally, so mesa-native is skipped
+# unless opengl/opencl/vulkan is enabled globally.
+DISTRO_FEATURES:append = " opengl"
