@@ -20,3 +20,7 @@ RDEPENDS:${PN} = " \
 	ni-systemimage \
 	sysconfig-settings-ssh \
 "
+
+RDEPENDS:${PN}:append:xilinx-zynq = " \
+	xz \
+"
