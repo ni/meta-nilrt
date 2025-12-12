@@ -44,7 +44,7 @@ NI_PROPRIETARY_RUNMODE_PACKAGES = "\
 "
 
 # SystemLink dependencies
-NI_PROPRIETARY_RUNMODE_PACKAGES:append:x64 = "\
+NI_PROPRIETARY_RUNMODE_PACKAGES:append = "\
         ni-sysmgmt-salt-minion-support \
         ni-sysmgmt-sysapi-expert \
         python3-ni-systemlink-sdk \
