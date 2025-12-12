@@ -46,4 +46,4 @@ bootimg_fixup_arm() {
 IMAGE_PREPROCESS_COMMAND:append:x64 = " bootimg_fixup_x64; "
 IMAGE_PREPROCESS_COMMAND:append:xilinx-zynq = " bootimg_fixup_arm; "
 
-IMAGE_FSTYPES += "squashfs tar.gz"
+IMAGE_FSTYPES += "squashfs ${NILRT_BSI_FSTYPE}"
