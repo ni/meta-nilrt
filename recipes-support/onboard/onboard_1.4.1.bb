@@ -9,7 +9,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 SRC_URI = "https://launchpad.net/onboard/1.4/${PV}/+download/${BPN}-${PV}.tar.gz \
            file://0001-pypredict-lm-Define-error-API-if-platform-does-not-h.patch \
            file://0002-onboard-onhover-seg-fault-fix.patch \
-           file://0001-add-xfce-to-autostart-onlyshowin.patch \
+           file://0001-add-xfce-to-onboard-autostart-onlyshowin.patch \
            file://01-gnome-accessibility \
            file://NI.colors \
            file://NI.theme \

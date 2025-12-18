@@ -1,0 +1,30 @@
+From 4e8fee05338eafd897146be5d4b3bb544306ec07 Mon Sep 17 00:00:00 2001
+From: Shubhanshu Mani Tripathi <shubhanshu.mani.tripathi@emerson.com>
+Date: Fri, 5 Dec 2025 13:37:20 +0530
+Subject: [PATCH] add xfce to onboard autostart onlyshowin
+
+The onboard autostart desktop entry previously restricted visibility
+to GNOME, Unity and MATE sessions. Due to the absence of XFCE in the
+OnlyShowIn field, the Onboard on-screen keyboard would not 
+automatically start under XFCE environments.
+
+This patch adds "XFCE;" to the OnlyShowIn list to ensure consistent
+autostart behaviour across XFCE sessions as well.
+
+Upstream-Status: Inactive-Upstream [lastcommit: 2017-10-09]
+
+Signed-off-by: Shubhanshu Mani Tripathi <shubhanshu.mani.tripathi@emerson.com>
+---
+ data/onboard-autostart.desktop.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/data/onboard-autostart.desktop.in b/data/onboard-autostart.desktop.in
+index 8fb55ac..cf022a0 100644
+--- a/data/onboard-autostart.desktop.in
++++ b/data/onboard-autostart.desktop.in
+@@ -9,4 +9,4 @@ NoDisplay=true
+ X-Ubuntu-Gettext-Domain=onboard
+ AutostartCondition=GSettings org.gnome.desktop.a11y.applications screen-keyboard-enabled
+ X-GNOME-AutoRestart=true
+-OnlyShowIn=GNOME;Unity;MATE;
++OnlyShowIn=GNOME;Unity;MATE;XFCE;
