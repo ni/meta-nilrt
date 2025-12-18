@@ -1,0 +1,84 @@
+From 4c79956ee7779df91be5629d196efc14a0e8ae2e Mon Sep 17 00:00:00 2001
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Date: Mon, 21 Jan 2013 12:24:03 -0800
+Subject: [PATCH] crda: fix compile warning on pcc for reglib for string.h
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This fixes these compile warnings:
+
+make -j5 -l4 UDEV_RULE_DIR=/lib/udev/rules.d
+REG_BIN=/usr/lib64/crda/regulatory.bin USE_OPENSSL=1
+CC=x86_64-pc-linux-gnu-gcc all_noverify V=1
+x86_64-pc-linux-gnu-gcc -c  -Os -pipe -march=native
+-frecord-gcc-switches -ggdb -Wall -g -DUSE_OPENSSL
+-DPUBKEY_DIR=\"/etc/wireless-regdb/pubkeys\" `pkg-config --cflags
+openssl` -DCONFIG_LIBNL30 `pkg-config --cflags libnl-3.0` -o crda.o crda.c
+x86_64-pc-linux-gnu-gcc -c  -Os -pipe -march=native
+-frecord-gcc-switches -ggdb -Wall -g -DUSE_OPENSSL
+-DPUBKEY_DIR=\"/etc/wireless-regdb/pubkeys\" `pkg-config --cflags
+openssl` -DCONFIG_LIBNL30 `pkg-config --cflags libnl-3.0` -o intersect.o
+intersect.c
+./utils/key2pub.py --ssl pubkeys/linville.key.pub.pem keys-ssl.c
+x86_64-pc-linux-gnu-gcc -c  -Os -pipe -march=native
+-frecord-gcc-switches -ggdb -Wall -g -DUSE_OPENSSL
+-DPUBKEY_DIR=\"/etc/wireless-regdb/pubkeys\" `pkg-config --cflags
+openssl` -DCONFIG_LIBNL30 `pkg-config --cflags libnl-3.0` -o
+print-regdom.o print-regdom.c
+x86_64-pc-linux-gnu-gcc -c  -Os -pipe -march=native
+-frecord-gcc-switches -ggdb -Wall -g -DUSE_OPENSSL
+-DPUBKEY_DIR=\"/etc/wireless-regdb/pubkeys\" `pkg-config --cflags
+openssl` -DCONFIG_LIBNL30 `pkg-config --cflags libnl-3.0` -o regdbdump.o
+regdbdump.c
+x86_64-pc-linux-gnu-gcc -c  -Os -pipe -march=native
+-frecord-gcc-switches -ggdb -Wall -g -DUSE_OPENSSL
+-DPUBKEY_DIR=\"/etc/wireless-regdb/pubkeys\" `pkg-config --cflags
+openssl` -DCONFIG_LIBNL30 `pkg-config --cflags libnl-3.0` -o reglib.o
+reglib.c
+reglib.c: In function ‘country2rd’:
+reglib.c:213:2: warning: implicit declaration of function ‘memset’
+[-Wimplicit-function-declaration]
+reglib.c:213:2: warning: incompatible implicit declaration of built-in
+function ‘memset’ [enabled by default]
+reglib.c: In function ‘reglib_get_rd_alpha2’:
+reglib.c:344:3: warning: implicit declaration of function ‘memcmp’
+[-Wimplicit-function-declaration]
+x86_64-pc-linux-gnu-gcc -Os -pipe -march=native -frecord-gcc-switches
+-ggdb -Wall -g -DUSE_OPENSSL
+-DPUBKEY_DIR=\"/etc/wireless-regdb/pubkeys\" `pkg-config --cflags
+openssl` -DCONFIG_LIBNL30 `pkg-config --cflags libnl-3.0` -Wl,-O1
+-Wl,--as-needed -Wl,--hash-style=gnu -o crda reglib.o crda.o `pkg-config
+--libs openssl` -lnl-genl-3 -lnl-3   `pkg-config --libs libnl-3.0`
+x86_64-pc-linux-gnu-gcc -Os -pipe -march=native -frecord-gcc-switches
+-ggdb -Wall -g -DUSE_OPENSSL
+-DPUBKEY_DIR=\"/etc/wireless-regdb/pubkeys\" `pkg-config --cflags
+openssl` -DCONFIG_LIBNL30 `pkg-config --cflags libnl-3.0` -Wl,-O1
+-Wl,--as-needed -Wl,--hash-style=gnu -o intersect reglib.o intersect.o
+print-regdom.o `pkg-config --libs openssl`
+x86_64-pc-linux-gnu-gcc -Os -pipe -march=native -frecord-gcc-switches
+-ggdb -Wall -g -DUSE_OPENSSL
+-DPUBKEY_DIR=\"/etc/wireless-regdb/pubkeys\" `pkg-config --cflags
+openssl` -DCONFIG_LIBNL30 `pkg-config --cflags libnl-3.0` -Wl,-O1
+-Wl,--as-needed -Wl,--hash-style=gnu -o regdbdump reglib.o regdbdump.o
+print-regdom.o `pkg-config --libs openssl`
+
+Upstream-Status: Backport
+Reported-by: Richard Farina <sidhayn@gmail.com>
+Signed-off-by: Luis R. Rodriguez <mcgrof@do-not-panic.com>
+---
+ reglib.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/reglib.c b/reglib.c
+index bc81974..1fafd37 100644
+--- a/reglib.c
++++ b/reglib.c
+@@ -9,6 +9,7 @@
+ #include <fcntl.h>
+ #include <stdbool.h>
+ #include <unistd.h>
++#include <string.h>
+ 
+ #include <arpa/inet.h> /* ntohl */
+ 

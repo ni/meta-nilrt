@@ -10,7 +10,9 @@ RDEPENDS:${PN} = "\
 	       udev \
 "
 
-SRC_URI = "git://github.com/mcgrof/crda.git;protocol=https;branch=master"
+SRC_URI = "git://github.com/mcgrof/crda.git;protocol=https;branch=master \
+           file://0001-crda-fix-compile-warning-on-pcc-for-reglib-for-strin.patch \
+           "
 SRCREV = "47b1aaa36e770be587c33f0f5345fe8df550aabc"
 
 CFLAGS:append =" -DCONFIG_LIBNL32 -I${STAGING_INCDIR}/libnl3"
