@@ -14,6 +14,7 @@ SRC_URI = "https://launchpad.net/onboard/1.4/${PV}/+download/${BPN}-${PV}.tar.gz
            file://NI.colors \
            file://NI.theme \
            file://onboard-defaults.conf \
+           file://0001-fix-compiler-compatibilities-issue.patch \
            "
 SRC_URI[sha256sum] = "01cae1ac5b1ef1ab985bd2d2d79ded6fc99ee04b1535cc1bb191e43a231a3865"
 
