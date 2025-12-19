@@ -22,6 +22,11 @@ DISTRO_FEATURES += "\
         virtualization \
 "
 
+# Enable TPM
+DISTRO_FEATURES:append = "\
+    tpm2 \
+"
+
 # Because NIRLT uses opkg so intimately, assert that the rootfs should always
 # be made of IPKs.
 PACKAGE_CLASSES =+ "package_ipk"

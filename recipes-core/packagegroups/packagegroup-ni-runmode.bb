@@ -121,6 +121,11 @@ RDEPENDS:${PN} = "\
 	zip \
 "
 
+RDEPENDS:${PN}:append = "\
+	packagegroup-security-tpm2 \
+	libtss2-tcti-device \
+"
+
 RDEPENDS:${PN}:append:x64 = "\
 	linux-firmware-radeon \
 	salt-common \
