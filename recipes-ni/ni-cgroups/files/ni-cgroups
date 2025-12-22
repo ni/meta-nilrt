@@ -30,8 +30,8 @@ identify_lvrt_cgroup_version()
 	lvrt_version=$(awk '{print $3}' <<<"$lvrt_installed")
 	major_version=${lvrt_version%%.*}
 
-	# LabVIEW RT 2025 and prior versions only support cgroups v1
-	[ -n "$major_version" ] && [ "$major_version" -le 25 ] && echo 1 || echo 2
+	# LabVIEW RT 2026 and prior versions only support cgroups v1
+	[ -n "$major_version" ] && [ "$major_version" -le 26 ] && echo 1 || echo 2
 }
 
 LVRT_CGROUP_VERSION=$(identify_lvrt_cgroup_version)
