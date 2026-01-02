@@ -3,7 +3,7 @@
 # Provides:          ni-cgroups
 # Required-Start:    $local_fs
 # Required-Stop:
-# Default-Start:     4 5
+# Default-Start:     S
 # Default-Stop:      0 6
 # Short-Description: Setup cgroups LabVIEW RT & assign tasks
 ### END INIT INFO
