@@ -12,7 +12,7 @@ SRC_URI = "file://ni-cgroups \
     "
 
 INITSCRIPT_NAME = "ni-cgroups"
-INITSCRIPT_PARAMS = "start 01 4 5 . stop 04 0 6 ."
+INITSCRIPT_PARAMS = "start 04 S . stop 04 0 6 ."
 
 S = "${WORKDIR}"
 
