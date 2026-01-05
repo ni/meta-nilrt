@@ -22,8 +22,6 @@ setup_cpuset()
 	for group in $SUBGROUPS; do
 		mkdir -p "$group"
 		echo "threaded" > "$group/cgroup.type"
-		cp cpuset.cpus "$group/"
-		cp cpuset.mems "$group/"
 	done
 
 	# Assign tasks to the "ni/system" set by default
