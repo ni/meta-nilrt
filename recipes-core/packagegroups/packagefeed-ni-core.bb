@@ -34,6 +34,7 @@ RDEPENDS:${PN}:append:x64 = "\
 	packagegroup-ni-graphical \
 	packagegroup-ni-nohz-kernel \
 	packagegroup-ni-snac \
+	packagegroup-ni-tpm \
 	bolt \
 	onboard \
 "
