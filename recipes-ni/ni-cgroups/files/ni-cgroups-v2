@@ -25,9 +25,12 @@ setup_cpuset()
 	done
 
 	# Assign tasks to the "ni/system" set by default
-	while read TASK; do
-		echo "$TASK" > "$CGROUP_DIR/ni/system/cgroup.procs" 2>/dev/null || true
-	done < "$CGROUP_DIR/cgroup.procs"
+	for pid in /proc/[0-9]*; do
+		pidnum=${pid##*/}
+		if [[ -d "/proc/$pidnum" ]]; then
+			echo "$pidnum" > "$CGROUP_DIR/ni/system/cgroup.procs" 2>/dev/null || true
+		fi
+	done
 
 	chown -R lvuser:ni "$CGROUP_DIR/ni"
 }
