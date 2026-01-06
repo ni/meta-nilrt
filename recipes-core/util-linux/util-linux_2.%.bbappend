@@ -2,7 +2,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 DEPENDS:append:class-target = " shadow-native pseudo-native busybox"
 
-RDEPENDS:${PN}-hwclock:append = " niacctbase busybox-hwclock"
+RDEPENDS:${PN}-hwclock:append:class-target = " niacctbase busybox-hwclock"
 RDEPENDS:${PN}-ptest += "${PN}-nilrt-ptest"
 
 pkg_postinst:${PN}-hwclock () {
