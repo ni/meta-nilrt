@@ -33,9 +33,6 @@ GRUB_BUILDIN:append = " \
     xfs \
 "
 
-# Downstream NI-branch code quality is not yet ready to build with -Werror
-CFLAGS:append = " -Wno-error"
-
 PACKAGES:prepend = "${PN}-nilrt "
 
 do_install:append:class-target() {
