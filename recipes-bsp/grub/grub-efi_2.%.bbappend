@@ -28,6 +28,7 @@ GRUB_BUILDIN:append = " \
     tar \
     terminal \
     terminfo \
+    tpm \
     udf \
     xfs \
 "
