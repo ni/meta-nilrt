@@ -1,9 +1,36 @@
 require grub-nilrt.inc
 
-GRUB_BUILDIN += "smbios chain multiboot efi_uga font gfxterm gfxmenu terminal \
-                minicmd iorw echo reboot terminfo loopback memdisk tar help serial \
-                ls search_fs_uuid udf btrfs ntfs reiserfs xfs lvm ata \
-                regexp probe"
+GRUB_BUILDIN:append = " \
+    ata \
+    btrfs \
+    chain \
+    echo \
+    efi_uga \
+    font \
+    gfxmenu \
+    gfxterm \
+    help \
+    iorw \
+    loopback \
+    ls \
+    lvm \
+    memdisk \
+    minicmd \
+    multiboot \
+    ntfs \
+    probe \
+    reboot \
+    regexp \
+    reiserfs \
+    search_fs_uuid \
+    serial \
+    smbios \
+    tar \
+    terminal \
+    terminfo \
+    udf \
+    xfs \
+"
 
 # Downstream NI-branch code quality is not yet ready to build with -Werror
 CFLAGS:append = " -Wno-error"
@@ -17,10 +44,13 @@ do_install:append:class-target() {
     # unchanged so that we may use it with USB provisioning tool
     # and other removable storage.
     (
-    cd "${B}"
-    grub-mkimage -p /efi/nilrt -d ./grub-core/ \
-                 -O ${GRUB_TARGET}-efi -o ./${GRUB_IMAGE_PREFIX}nilrt-${GRUB_IMAGE} \
-                 ${GRUB_BUILDIN}
+        cd "${B}"
+        grub-mkimage \
+            --prefix=/efi/nilrt \
+            --directory=./grub-core/ \
+            --format=${GRUB_TARGET}-efi \
+            --output=./${GRUB_IMAGE_PREFIX}nilrt-${GRUB_IMAGE} \
+            ${GRUB_BUILDIN}
     )
 
     # Install NILRT grub image
