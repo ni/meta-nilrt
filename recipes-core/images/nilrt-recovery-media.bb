@@ -18,7 +18,7 @@ VIRTUAL-RUNTIME_mountpoint = "util-linux-mountpoint"
 PREFERRED_PROVIDER_getopt = "util-linux-getopt"
 VIRTUAL-RUNTIME_getopt = "util-linux-getopt"
 VIRTUAL-RUNTIME_base-utils = "util-linux"
-PREFERRED_PROVIDER_virtual/base-utils="util-linux"
+PREFERRED_PROVIDER_virtual/base-utils = "util-linux"
 
 SRC_URI += "\
 	file://grubenv_non_ni_target \

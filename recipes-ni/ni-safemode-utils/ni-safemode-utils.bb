@@ -10,7 +10,7 @@ SRC_URI = "\
 	file://nisafemodeversion \
 "
 
-natinstbin="/usr/local/natinst/bin"
+natinstbin = "/usr/local/natinst/bin"
 
 FILES:${PN} += "\
 	${natinstbin}/nicompareversion   \

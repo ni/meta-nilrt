@@ -4,7 +4,7 @@ require recipes-kernel/linux/linux-yocto.inc
 KBRANCH = "nilrt/${NI_RELEASE_VERSION}/${LINUX_VERSION}"
 GIT_KERNEL_REPO = "linux.git"
 
-machine_srcrev="${SRCREV}"
+machine_srcrev = "${SRCREV}"
 
 # Subfolder of the same name will be added to FILESEXTRAPATHS and also
 # used for nilrt-specific config fragment manipulation during build.
@@ -29,7 +29,7 @@ TOOLCHAIN_OPTIONS:append = " ${@bb.utils.contains('TUNE_FEATURES','callconventio
 
 # No need to do debug symbol handling for kernel builds; also the default behavior
 # incorrectly splits out some 'kernel-dev' files under /lib/modules/<ver>/build
-INHIBIT_PACKAGE_DEBUG_SPLIT="1"
+INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 
 # The NI kernel build includes on-target versioning tools that
 # link against the gcc provided runtime
@@ -48,12 +48,12 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=6bc538ed5bd9a7fc9398086aedcd7e46"
 LIC_FILES_CHKSUM:xilinx-zynq = "file://COPYING;md5=d7810fab7487fb0aad327b76f1be7cd7"
 
 # This checks ${PV} == version from kernel sources which our PV/AUTOREV breaks, so skip it.
-KERNEL_VERSION_SANITY_SKIP="1"
+KERNEL_VERSION_SANITY_SKIP = "1"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/${KBUILD_FRAGMENTS_LOCATION}:"
 KBUILD_DEFCONFIG:x64 = "nati_x86_64_defconfig"
 KBUILD_DEFCONFIG:armv7a = "nati_zynq_defconfig"
-KCONFIG_MODE="--alldefconfig"
+KCONFIG_MODE = "--alldefconfig"
 
 # autoload if installed
 KERNEL_MODULE_AUTOLOAD += "ehci-hcd g_ether xilinx-xadcps"
