@@ -20,8 +20,8 @@ OSVALUE:xilinx-zynq = "Linux-ARMv7-A"
 
 OSVERSION:x64 = "7.0"
 # For BSI to fit on smaller ARM targets, safemode needs zlib compression and other space saving measures.
-# So set minimum compatible safemode version to 26.0 which has them.
-OSVERSION:xilinx-zynq = "26.0"
+# So set minimum compatible safemode version to 26.3 which has them.
+OSVERSION:xilinx-zynq = "26.3"
 
 ROOTFS_IMAGE = "nilrt-runmode-rootfs"
 do_rootfs[depends] += "${ROOTFS_IMAGE}:do_image_complete"
