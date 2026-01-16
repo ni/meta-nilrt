@@ -408,9 +408,6 @@ RDEPENDS:${PN} = "\
 	kernel-module-thunderbolt \
 	kernel-module-tls \
 	kernel-module-tmp421 \
-	kernel-module-tpm \
-	kernel-module-tpm-tis \
-	kernel-module-tpm-tis-core \
 	kernel-module-ts-bm \
 	kernel-module-ts-fsm \
 	kernel-module-ts-kmp \
