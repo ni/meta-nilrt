@@ -1,4 +1,5 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
+S = "${UNPACKDIR}"
 
 python () {
     buildname = d.getVar('BUILDNAME')
