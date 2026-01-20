@@ -97,6 +97,7 @@ RDEPENDS:${PN} += "\
 
 RDEPENDS:${PN}:append:x64 = "\
 	packagegroup-kernel-modules-essential \
+	packagegroup-ni-tpm \
 	dmidecode \
 	e2fsprogs \
 	e2fsprogs-mke2fs \
