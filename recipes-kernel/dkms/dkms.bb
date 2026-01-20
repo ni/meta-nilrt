@@ -27,7 +27,7 @@ do_compile[noexec] = "1"
 
 
 do_install() {
-	oe_runmake install DESTDIR=${D} LIBDIR=${libdir} 
+	oe_runmake install DESTDIR=${D} LIBDIR=${libdir}/dkms
 }
 
 
@@ -37,7 +37,12 @@ EXTRA_OEMAKE += " -o tarball"
 INSANE_SKIP:${PN} += "dev-deps"
 
 
-FILES:${PN} += " ${datadir}/bash-completion/* ${datadir}/zsh/* ${libdir}/dkms_autoinstaller ${libdir}/common.postinst"
+FILES:${PN} += " \
+	${datadir}/bash-completion/* \
+	${datadir}/zsh/* \
+	${libdir}/dkms/common.postinst \
+	${libdir}/dkms/dkms_autoinstaller \
+"
 
 RDEPENDS:${PN} += " \
 	bash \
