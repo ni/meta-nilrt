@@ -22,7 +22,7 @@ set -E -o errexit
 # CONSTANTS
 # ==============================================================================
 
-arch=$(uname -m)
+ARCH=$(uname -m)
 
 declare -r BASENAME=${0##*/}
 
@@ -32,7 +32,7 @@ COMMAND_RETRY_SLEEP=1
 ACCTINFO_TMP=/tmp/acctinfo
 
 # Device partition discovery
-if [ "$arch" = "x86_64" ]; then
+if [ "$ARCH" = "x86_64" ]; then
 	LABEL_TYPE=$(lsblk -lno PARTLABEL | grep -q nirootfs && echo PARTLABEL || echo LABEL)
 	CONFIGFS_DEV=/dev/$(lsblk -l -n -o $LABEL_TYPE,NAME | grep '^niconfig '| tr -s ' ' | cut -d' ' -f2)
 	ROOTFS_DEV=/dev/$(lsblk -l -n -o $LABEL_TYPE,NAME | grep '^nirootfs '| tr -s ' ' | cut -d' ' -f2)
@@ -134,8 +134,8 @@ set_mode()
 
 supported_fstypes()
 {
-	hash /usr/sbin/ubiformat 2>/dev/null && [ "$arch" = "armv7l" ] && echo -n "ubifs," || true
-	hash /sbin/mkfs.ext4 2>/dev/null && [ "$arch" = "x86_64" ] && echo -n "ext4," || true
+	hash /usr/sbin/ubiformat 2>/dev/null && [ "$ARCH" = "armv7l" ] && echo -n "ubifs," || true
+	hash /sbin/mkfs.ext4 2>/dev/null && [ "$ARCH" = "x86_64" ] && echo -n "ext4," || true
 }
 
 # Find the filesystem type of the root partition (or volume)
