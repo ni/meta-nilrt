@@ -8,6 +8,7 @@
 # For RAUC targets, write init-action.cfg to format or boot into safemode on
 # the next boot.
 
+
 # include common utilities
 if [ -e /etc/init.d/mountutils ]; then
 	source /etc/init.d/mountutils
@@ -16,31 +17,36 @@ fi
 # Bail out on first error
 set -E -o errexit
 
+
+# ==============================================================================
+# CONSTANTS
+# ==============================================================================
+
+arch=$(uname -m)
+
+declare -r BASENAME=${0##*/}
+
 COMMAND_RETRY_COUNT=30
 COMMAND_RETRY_SLEEP=1
 
-arch=`uname -m`
-
-NETCFG_MODE=bypass
-RESET_OVERLAY=no
-
-NETCFG_TMP=/tmp/netconfig.$$
-declare -r BASENAME=${0##*/}
-
 ACCTINFO_TMP=/tmp/acctinfo
 
-NINETCFGUTIL=/usr/local/natinst/bin/ninetcfgutil
-
+# Device partition discovery
 if [ "$arch" = "x86_64" ]; then
 	LABEL_TYPE=$(lsblk -lno PARTLABEL | grep -q nirootfs && echo PARTLABEL || echo LABEL)
 	CONFIGFS_DEV=/dev/$(lsblk -l -n -o $LABEL_TYPE,NAME | grep '^niconfig '| tr -s ' ' | cut -d' ' -f2)
 	ROOTFS_DEV=/dev/$(lsblk -l -n -o $LABEL_TYPE,NAME | grep '^nirootfs '| tr -s ' ' | cut -d' ' -f2)
 fi
-
 CONFIG_MOUNT_POINT="/etc/natinst/share"
 ROOTFS_MOUNT_POINT="/mnt/userfs"
-
 TARGETINFO_PATH="$CONFIG_MOUNT_POINT/targetinfo.ini"
+
+RESET_OVERLAY=no
+
+# Network config
+NETCFG_MODE=bypass
+NETCFG_TMP=/tmp/netconfig.$$
+NINETCFGUTIL=/usr/local/natinst/bin/ninetcfgutil
 
 NIBOOT_DIR=/etc/niboot
 INIT_ACTION_CFG_FILE=$NIBOOT_DIR/init-action.cfg
@@ -56,6 +62,11 @@ declare -Ar EXITCODES=(
 	[INVALID_ARCH]=6            # Running an unsupported processor architecture
 	[NO_KEY_BACKUP_DEVICE]=7    # Partition to store backup key could not be found; perhaps it's mislabeled or not plugged in
 )
+
+
+# ==============================================================================
+# FUNCTIONS
+# ==============================================================================
 
 # $1: exit code (key from EXITCODES)
 # ${@:2}: text
@@ -474,6 +485,11 @@ enqueue_rauc_format()
 		reboot
 	fi
 }
+
+
+# ==============================================================================
+# MAIN
+# ==============================================================================
 
 install_default_err_handler
 
