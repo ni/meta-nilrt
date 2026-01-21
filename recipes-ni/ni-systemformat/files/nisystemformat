@@ -33,9 +33,8 @@ ACCTINFO_TMP=/tmp/acctinfo
 
 # Device partition discovery
 if [ "$ARCH" = "x86_64" ]; then
-	LABEL_TYPE=$(lsblk -lno PARTLABEL | grep -q nirootfs && echo PARTLABEL || echo LABEL)
-	CONFIGFS_DEV=/dev/$(lsblk -l -n -o $LABEL_TYPE,NAME | grep '^niconfig '| tr -s ' ' | cut -d' ' -f2)
-	ROOTFS_DEV=/dev/$(lsblk -l -n -o $LABEL_TYPE,NAME | grep '^nirootfs '| tr -s ' ' | cut -d' ' -f2)
+	CONFIGFS_DEV=/dev/disk/by-label/niconfig
+	ROOTFS_DEV=/dev/disk/by-label/nirootfs
 fi
 CONFIG_MOUNT_POINT="/etc/natinst/share"
 ROOTFS_MOUNT_POINT="/mnt/userfs"
