@@ -1,8 +1,12 @@
 #!/bin/bash
 #
-# Copyright (c) 2013-2021 National Instruments
-# For grub and u-boot targets, format rootfs and the config volumes and delete the runmode kernel
-# For RAUC targets, write init-action.cfg to format or boot into safemode on next boot.
+# Copyright (C) 2013-2023 National Instruments
+# Copyright (C) 2023-2026 Emerson
+#
+# For grub and u-boot targets, format the rootfs and the config volumes and
+# delete the runmode kernel.
+# For RAUC targets, write init-action.cfg to format or boot into safemode on
+# the next boot.
 
 # include common utilities
 if [ -e /etc/init.d/mountutils ]; then
