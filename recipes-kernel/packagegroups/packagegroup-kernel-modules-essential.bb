@@ -345,7 +345,6 @@ RDEPENDS:${PN} = "\
 	kernel-module-qcserial \
 	kernel-module-r8152 \
 	kernel-module-r8153-ecm \
-	kernel-module-radeon \
 	kernel-module-raid0 \
 	kernel-module-raid1 \
 	kernel-module-raid10 \

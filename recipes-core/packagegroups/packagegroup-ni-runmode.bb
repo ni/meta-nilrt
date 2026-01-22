@@ -123,6 +123,7 @@ RDEPENDS:${PN} = "\
 "
 
 RDEPENDS:${PN}:append:x64 = "\
+	kernel-module-radeon \
 	linux-firmware-radeon \
 "
 
