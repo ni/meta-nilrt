@@ -51,7 +51,7 @@ do_install:append () {
 }
 
 pkg_postinst_ontarget:${PN} () {
-	if `grep -q "BOOT_IMAGE=/runmode/bzImage" /proc/cmdline`; then
+	if [ ! -e /etc/natinst/safemode ] && [ ! -e /ni_provisioning ]; then
 		sed -i "s/safe mode/run mode/g" /etc/issue
 		sed -i "s/safe mode/run mode/g" /etc/issue.net
 	fi
