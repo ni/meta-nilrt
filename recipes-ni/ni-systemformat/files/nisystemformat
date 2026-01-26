@@ -23,6 +23,8 @@ RESET_OVERLAY=no
 NETCFG_TMP=/tmp/netconfig.$$
 declare -r BASENAME=${0##*/}
 
+ACCTINFO_TMP=/tmp/acctinfo
+
 NINETCFGUTIL=/usr/local/natinst/bin/ninetcfgutil
 
 if [ "$arch" = "x86_64" ]; then
@@ -345,6 +347,14 @@ format_rootfs_or_userfs_nosvc()
 {
 	netconfig_pre || return $?
 
+	# Backup the shared .shadow file to the tmp dir.
+	if [ -f "$CONFIG_MOUNT_POINT/.shadow" ]; then
+		trap 'rm -f "$ACCTINFO_TMP/.shadow"' EXIT HUP INT TERM
+		mkdir -p "$ACCTINFO_TMP" &&
+			cp "$CONFIG_MOUNT_POINT/.shadow" "$ACCTINFO_TMP" ||
+			return $?
+	fi
+
 	# Backup the restore files to the tmp dir. Do this even if we're only
 	# reformatting the configfs, because under some configurations,
 	# reformatting the configfs may also trigger reformatting the userfs.
@@ -372,6 +382,14 @@ format_rootfs_or_userfs_nosvc()
 		mkdir -p "$ROOTFS_MOUNT_POINT/.restore" &&
 			mv /tmp/restore/* "$ROOTFS_MOUNT_POINT/.restore" &&
 			rmdir /tmp/restore || (( ret )) || ret=$?
+	fi
+
+	# Move the .shadow file back to the configfs.
+	if [ -f "$ACCTINFO_TMP/.shadow" -a ! -f "$CONFIG_MOUNT_POINT/.shadow" ] &&
+		   mountpoint -q "$CONFIG_MOUNT_POINT"
+	then
+		mv -f "$ACCTINFO_TMP/.shadow" $CONFIG_MOUNT_POINT &&
+			rmdir $ACCTINFO_TMP	|| (( ret )) || ret=$?
 	fi
 
 	netconfig_post || (( ret )) || ret=$?

@@ -136,7 +136,7 @@ elif [ "$ARCH" = "x86_64" ]; then
 
 	show_help()
 	{
-		>&3 echo -e "\nUsage: $0 [-hav] [-t DEVICE] [-c y|n] [-b SECONDS] [-F RESTART_OPTION]\n"
+		>&3 echo -e "\nUsage: $0 [-hav] [-t DEVICE] [-c y|n] [-b SECONDS] [-p PASSWORD] [-F RESTART_OPTION]\n"
 		>&3 echo -e "Options\n"
 		>&3 echo "   -h : Show help."
 		>&3 echo "   -a : Ask at every error if continue. Default is N, so at the first error abort."
@@ -146,6 +146,7 @@ elif [ "$ARCH" = "x86_64" ]; then
 		>&3 echo "               that is not the recovery tool is used."
 		>&3 echo "   -c y|n : Initial value of the console out enable flag."
 		>&3 echo "   -b SECONDS : Initial value of bootdelay -- how long (seconds) to show boot menu."
+		>&3 echo "   -p ROOT_PASSWORD : Set the value of the root password."
 		>&3 echo "   -F RESTART_OPTION : Force provisioning (surpress the promts). RESTART_OPTION specifies"
 		>&3 echo "                       what should be done after a succesful provisioning and can have the"
 		>&3 echo "                       following values: reboot, poweroff or shell."
@@ -488,7 +489,7 @@ early_setup()
 
 	OPTIND=1
 
-	while getopts "havt:c:b:F:" opt; do
+	while getopts "havt:c:b:p:F:" opt; do
 		case "$opt" in
 			h)  show_help
 				exit 1
@@ -509,6 +510,8 @@ early_setup()
 				fi
 				;;
 			b)  grubenv_bootdelay="$OPTARG"
+				;;
+			p)  ROOT_PASSWORD="$OPTARG"
 				;;
 			F)  FORCE_PROVISIONING=1
 				if [ $OPTARG == "reboot" -o  "$OPTARG" == "poweroff" -o "$OPTARG" == "shell" ]; then

@@ -404,6 +404,29 @@ fixup_configfs()
 	umount $CONFIG_MOUNTPOINT
 }
 
+set_root_password()
+{
+	# Set the restore mode password
+	if [[ -n $ROOT_PASSWORD ]]; then
+		echo "root:$ROOT_PASSWORD" | chpasswd
+	else
+		passwd
+	fi
+
+	# Get the root password hash
+	ROOT_ENTRY=$(grep "^root:" /etc/shadow)
+	ROOT_HASH=$(echo "$ROOT_ENTRY" | cut -d':' -f2)
+
+	# Create the shared shadow file and add root entry
+	CONFIG_MOUNTPOINT=/var/volatile/configfs
+	mkdir -p $CONFIG_MOUNTPOINT
+	mount -L $PART3_LABEL $CONFIG_MOUNTPOINT
+	touch "$CONFIG_MOUNTPOINT/.shadow"
+	chmod 400 "$CONFIG_MOUNTPOINT/.shadow"
+	echo "$ROOT_HASH" > "$CONFIG_MOUNTPOINT/.shadow"
+	umount $CONFIG_MOUNTPOINT
+}
+
 sanity_check()
 {
 	print_info "Sanity check TARGET_DISK=$TARGET_DISK..."

@@ -1,0 +1,143 @@
+#! /bin/sh
+#
+
+SYS_SHADOW="/etc/shadow"
+
+if [ -z "$2" ]; then
+    SHARED_SHADOW="/etc/natinst/share/.shadow"
+else
+    SHARED_SHADOW="$2/.shadow"
+fi
+
+log() {
+    logger -p auth.info "[acct-sync] $1"
+}
+
+get_root_line() {
+    grep "^root:" "$1"
+}
+
+check_hash_equality()
+{
+    SHARED_HASH_PATH="$1"
+    LOCAL_HASH_PATH="$2"
+    LOCAL_ROOT=$(get_root_line "$LOCAL_HASH_PATH")
+
+    LOCAL_HASH=$(echo "$LOCAL_ROOT" | cut -d':' -f2)
+    read -r SHARED_HASH < "$SHARED_HASH_PATH"
+
+    if [ "$LOCAL_HASH" = "$SHARED_HASH" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+hash_sanity_check()
+{
+    SHADOW_HASH="$1"
+    
+    if [ -z "$SHADOW_HASH" ] || [ "$SHADOW_HASH" = "*" ] || [ "$SHADOW_HASH" = "!" ]; then
+        return 0
+    fi
+    
+    if [ -f "/etc/login.defs" ]; then
+        ENCRYPT_METHOD=$(awk '$1=="ENCRYPT_METHOD" { print $2; exit }' /etc/login.defs)
+        if [ -z "$ENCRYPT_METHOD" ]; then
+            log "ENCRYPT_METHOD not defined, defaulting to SHA512."
+            ENCRYPT_METHOD="SHA512"
+        fi
+    else
+        log "login.defs file not found. Assuming encryption method is SHA512."
+        ENCRYPT_METHOD="SHA512"
+    fi
+    
+    case "$ENCRYPT_METHOD" in
+        SHA512)
+            log "Checking sanity of SHA512 hash..."
+            if [[ "$SHADOW_HASH" =~ ^\$6\$[A-Za-z0-9./]{1,16}\$[A-Za-z0-9./]{86}$ ]]; then
+                log "Sanity check passed. Continue to sync."
+                return 0
+            else
+                log "Sanity check failed. Stopping sync."
+                return 1
+            fi
+            ;;
+        *)
+            log "Unexpected encrypt method. Stopping sync."
+            return 1
+            ;;
+    esac
+}
+
+insert_root_hash()
+{
+    SRC="$1"
+    DEST="$2"
+
+    if ! check_hash_equality "$SRC" "$DEST"; then
+        TMP_SHADOW="$(mktemp /tmp/shadow.XXXXXX)"
+        trap 'rm -f "$TMP_SHADOW"' EXIT HUP INT TERM
+        read -r SHADOW_HASH < "$SRC"
+
+        if hash_sanity_check "$SHADOW_HASH"; then
+            chmod --reference="$DEST" "$TMP_SHADOW"
+            chown --reference="$DEST" "$TMP_SHADOW"
+            awk -F: -v OFS=":" -v shadow_hash="$SHADOW_HASH" '$1 == "root" { $2 = shadow_hash } { print }' "$DEST" > "$TMP_SHADOW"
+            mv "$TMP_SHADOW" "$DEST"
+        fi
+    fi
+}
+
+extract_root_hash()
+{
+    SRC="$1"
+    DEST="$2"
+    SRC_ROOT=$(get_root_line "$SRC")
+
+    if ! check_hash_equality "$DEST" "$SRC"; then
+        TMP_HASH="$(mktemp /tmp/root_hash.XXXXXX)"
+        trap 'rm -f "$TMP_HASH"' EXIT HUP INT TERM
+        chmod --reference="$DEST" "$TMP_HASH"
+        chown --reference="$DEST" "$TMP_HASH"
+        echo "$SRC_ROOT" | cut -d':' -f2 > "$TMP_HASH"
+        mv "$TMP_HASH" "$DEST"
+    fi
+}
+
+case "$1" in
+    start)
+        log "Syncing root info from shared shadow file..."
+
+        if [ -f "$SHARED_SHADOW" ]; then
+            log "Found shared shadow file."
+            insert_root_hash "$SHARED_SHADOW" "$SYS_SHADOW"
+            log "Sync complete."
+        else
+            log "Shared shadow file not found. Stopping sync."
+        fi
+        ;;
+
+    stop)
+        log "Syncing root info to shared shadow file..."
+
+        if [ ! -f "$SHARED_SHADOW" ]; then
+            log "Creating shared shadow file..."
+            touch "$SHARED_SHADOW"
+            chmod 400 "$SHARED_SHADOW"
+        fi
+        extract_root_hash "$SYS_SHADOW" "$SHARED_SHADOW"
+        ;;
+
+    restart|force-reload)
+        $0 stop
+        $0 start
+        ;;
+
+    *)
+        echo "Usage: $0 {start|stop|restart|force-reload}"
+        exit 1
+        ;;
+esac
+
+exit 0
