@@ -1,0 +1,105 @@
+#! /bin/sh
+#
+
+SYS_PASSWD="/etc/passwd"
+SYS_SHADOW="/etc/shadow"
+
+if [ -z "$2" ]; then
+    SHARED_PASSWD="/boot/.passwd"
+    SHARED_SHADOW="/boot/.shadow"
+else
+    SHARED_PASSWD="$2/.passwd"
+    SHARED_SHADOW="$2/.shadow"
+fi
+
+log() {
+    echo "[acct-sync] $1"
+}
+
+get_root_line() {
+    grep "^root:" "$1"
+}
+
+
+replace_root_line() {
+    SRC="$1"
+    DEST="$2"
+
+    SRC_ROOT=$(get_root_line "$SRC")
+    DEST_ROOT=$(get_root_line "$DEST")
+
+    if [ -z "$SRC_ROOT" ]; then
+        log "No entry for root found in $SRC. Nothing to sync."
+        return 1
+    fi
+
+    # Escape slashes for sed
+    ESCAPED_SRC_ROOT=$(printf '%s\n' "$SRC_ROOT" | sed 's/[\/&]/\\&/g')
+    ESCAPED_DEST_ROOT=$(printf '%s\n' "$DEST_ROOT" | sed 's/[\/&]/\\&/g')
+
+    if [ "$ESCAPED_SRC_ROOT" != "$ESCAPED_DEST_ROOT" ]; then
+        log "Syncing root info from $SRC to $DEST"
+        if grep -q "^root:" "$DEST"; then
+            sed -i "s/^root:.*/$ESCAPED_SRC_ROOT/" "$DEST"
+        else
+            sed -i "1i $ESCAPED_SRC_ROOT" "$DEST"
+            sed -i "/^[[:space:]]*$/d" "$DEST"
+        fi
+    else
+        log "Root entry in $SRC matches the one in $DEST, nothing to sync."
+    fi
+}
+
+log "Shared passwd path: $SHARED_PASSWD"
+log "Shared shadow path: $SHARED_SHADOW"
+
+case "$1" in
+    start)
+        log "Syncing root info from boot partition..."
+
+        if [ -f "$SHARED_PASSWD" ] && [ -f "$SHARED_SHADOW" ]; then
+            log "Found shared passwd and shadow files. Checking integrity with pwck..."
+
+            pwck -r "$SHARED_PASSWD" "$SHARED_SHADOW" >/dev/null 2>&1
+            STATUS=$?
+
+            if [ $STATUS -eq 0 ]; then
+                log "Integrity OK. Syncing..."
+                
+                replace_root_line "$SHARED_PASSWD" "$SYS_PASSWD"
+                replace_root_line "$SHARED_SHADOW" "$SYS_SHADOW"
+                log "Sync complete."
+            else
+                log "pwck returned $STATUS. Stopping sync."
+            fi
+        else
+            log "Shared passwd or shadow files not found. Stopping sync."
+        fi
+        ;;
+
+    stop)
+        log "Syncing root info to boot partition..."
+
+        if [ -f "$SHARED_PASSWD" ] && [ -f "$SHARED_SHADOW" ]; then
+            log "Found shared passwd and shadow files. Syncing..."
+
+            replace_root_line "$SYS_PASSWD" "$SHARED_PASSWD"
+            replace_root_line "$SYS_SHADOW" "$SHARED_SHADOW"
+            log "Sync complete."
+        else
+            log "Shared passwd or shadow files not found. Stopping sync."
+        fi
+        ;;
+
+    restart|force-reload)
+        $0 stop
+        $0 start
+        ;;
+
+    *)
+        echo "Usage: $0 {start|stop|restart|force-reload}"
+        exit 1
+        ;;
+esac
+
+exit 0

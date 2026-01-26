@@ -404,6 +404,43 @@ fixup_configfs()
 	umount $CONFIG_MOUNTPOINT
 }
 
+store_default_password()
+{
+	if [[ $ARCH == "x86_64" ]]; then
+		VAR_NAME="DefaultPassword-7c8c526b-2c07-4189-9495-b331d3b8d2cc"
+		VAR_PATH="/sys/firmware/efi/efivars/$VAR_NAME"
+		printf "\x07\x00\x00\x00%s" "$1" > "$VAR_PATH"
+	elif [[ $ARCH == "armv7l" ]]; then
+		fw_setenv default_password "$1"
+	fi
+}
+
+set_root_password()
+{
+	# Set the restore mode password
+	if [[ -n $ROOT_PASSWORD ]]; then
+		echo "root:$ROOT_PASSWORD" | chpasswd
+	else
+		passwd
+	fi
+
+	# Store the new root password hash
+	ROOT_ENTRY=$(grep "^root:" /etc/shadow)
+	ROOT_HASH=$(echo "$ROOT_ENTRY" | cut -d':' -f2)
+	store_default_password $ROOT_HASH
+
+	# Create the shared passwd and shadow files and add root entry
+	mount_bootfs_partition
+	echo > $BOOTFS_MOUNTPOINT/.passwd "root:x:0:0:root:/home/admin:/bin/sh"
+	echo > $BOOTFS_MOUNTPOINT/.shadow "root:*::0:99999:7:::"
+
+	chmod 600 $BOOTFS_MOUNTPOINT/.passwd
+	chmod 600 $BOOTFS_MOUNTPOINT/.shadow
+
+	# Manually call the acctsync script
+	service ni-acctsync stop $BOOTFS_MOUNTPOINT
+}
+
 sanity_check()
 {
 	print_info "Sanity check TARGET_DISK=$TARGET_DISK..."

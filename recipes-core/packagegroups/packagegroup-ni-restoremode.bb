@@ -21,6 +21,7 @@ RDEPENDS:${PN} += "\
 	grep \
 	init-restore-mode \
 	kmod \
+	ni-acctsync \
 	ni-systemreplication \
 	parted \
 	procps \
