@@ -61,7 +61,7 @@ KERNEL_MODULE_AUTOLOAD += "ehci-hcd g_ether xilinx-xadcps"
 # i915 video driver module options to disable render and display power saving
 # disabling them improves real-time determinism
 KERNEL_MODULE_PROBECONF += "i915"
-module_conf_i915 = "options i915 enable_rc6=0 enable_dc=0"
+module_conf_i915 = "options i915 enable_dc=0"
 
 # radeon video driver module options to disable (broken) dynamic power management
 KERNEL_MODULE_PROBECONF += "radeon"
