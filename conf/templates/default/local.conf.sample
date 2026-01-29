@@ -199,3 +199,41 @@ CONF_VERSION = "1"
 # Explicitly set system initialization method
 INIT_MANAGER = "sysvinit"
 
+# ============================================================================
+# Secure Boot Configuration (Optional)
+# ============================================================================
+# To enable secure boot, uncomment and configure the settings below:
+#
+# 1. Generate keys using: scripts/generate-secureboot-keys.sh /path/to/keys
+# 2. Uncomment the configuration below
+# 3. Update SECUREBOOT_KEYS_DIR to match your key location
+# 4. Build your image
+#
+# See docs/SECUREBOOT.md for detailed instructions
+
+# Enable secure boot features
+require conf/distro/secureboot.inc
+
+# Set the directory containing your secure boot keys
+# Can be overridden via SECUREBOOT_KEYS_DIR environment variable
+# or by setting it in local.conf before this line
+SECUREBOOT_KEYS_DIR ?= "${HOME}/git/nilrt/nilrt-secureboot-keys"
+IMA_EVM_KEY_DIR = "${SECUREBOOT_KEYS_DIR}"
+MODULE_SIG_KEY_DIR = "${SECUREBOOT_KEYS_DIR}"
+UEFI_SB_KEYS_DIR = "${SECUREBOOT_KEYS_DIR}"
+
+# Override to use PKCS#1 format keys (required by kernel sign-file tool)
+# The generate-secureboot-keys.sh script creates both PKCS#8 and PKCS#1 versions
+MODSIGN_PRIVKEY = "${MODULE_SIG_KEY_DIR}/privkey_modsign_pkcs1.pem"
+IMA_EVM_PRIVKEY = "${IMA_EVM_KEY_DIR}/privkey_ima_pkcs1.pem"
+
+# Optional: Override specific key paths if needed
+MODSIGN_X509 = "${MODULE_SIG_KEY_DIR}/x509_modsign.crt"
+IMA_EVM_X509 = "${IMA_EVM_KEY_DIR}/x509_ima.der"
+IMA_EVM_ROOT_CA = "${IMA_EVM_KEY_DIR}/ima-local-ca.pem"
+
+# For production use with meta-integrity layer:
+# 1. Add meta-security/meta-integrity to your bblayers.conf
+# 2. Generate production keys (NOT debug keys)
+# 3. Keep private keys secure and never commit to version control
+

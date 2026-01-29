@@ -25,6 +25,7 @@ BBLAYERS ?= " \
 	${GIT_REPODIR}/meta-rauc \
 	${GIT_REPODIR}/meta-sdr \
 	${GIT_REPODIR}/meta-security \
+	${GIT_REPODIR}/meta-security/meta-integrity \
 	${GIT_REPODIR}/meta-security/meta-tpm \
 	${GIT_REPODIR}/meta-selinux \
 	${GIT_REPODIR}/meta-virtualization \

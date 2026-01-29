@@ -88,3 +88,6 @@ ensure_expected_files() {
 IMAGE_PREPROCESS_COMMAND += " bootimg_fixup; ensure_expected_files; "
 
 inherit image
+
+# Disable IMA/EVM signing for safemode/initramfs images (minimal rootfs without libc)
+IMAGE_CLASSES:remove = "ima-evm-rootfs"
