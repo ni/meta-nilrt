@@ -123,10 +123,18 @@ FILES:${PN}-console = "\
 RDEPENDS:${PN}-console += "sysconfig-settings fw-printenv"
 
 
-pkg_postinst_ontarget:${PN}-console () {
-	# add console out if we have a firmware variable for it (x86_64 targets only)
+pkg_postinst_ontarget:${PN}-console:x64 () {
+	# Add console out if we have a firmware variable for it
 	efiConsoleOutEnable=$(fw_printenv -n BootFirmwareConsoleOutEnable 2>/dev/null || true)
 	if ! [ -z "$efiConsoleOutEnable" ]; then
+		ln -sf ${settingsdatadir}/consoleout.ini ${systemsettingsdir}/consoleout.ini
+	fi
+}
+
+pkg_postinst_ontarget:${PN}-console:armv7a () {
+	# Add console out if it's not an Ethernet RIO target
+	TARGET_CLASS=$(fw_printenv -n TargetClass 2>&1)
+	if ! [ "$TARGET_CLASS" = "Ethernet RIO" ]; then
 		ln -sf ${settingsdatadir}/consoleout.ini ${systemsettingsdir}/consoleout.ini
 	fi
 }
