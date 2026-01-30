@@ -74,7 +74,10 @@ pkg_postinst_ontarget:${PN} () {
 	TARGET_CLASS=$(fw_printenv -n TargetClass 2>&1)
 
 	ln -sf ${settingsdatadir}/target_common.ini ${systemsettingsdir}/target_common.ini
-	ln -sf ${settingsdatadir}/rt_target.ini ${systemsettingsdir}/rt_target.ini
+	# Ethernet RIO targets should not have RT startup settings
+	if ! [ "$TARGET_CLASS" = "Ethernet RIO" ]; then
+		ln -sf ${settingsdatadir}/rt_target.ini ${systemsettingsdir}/rt_target.ini
+	fi
 
 	# cDAQ targets should not have FPGA startup settings, and CVS
 	# targets do not support FPGA autoload.
