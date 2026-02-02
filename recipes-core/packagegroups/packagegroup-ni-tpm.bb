@@ -11,5 +11,7 @@ inherit packagegroup
 
 RDEPENDS:${PN} = "\
 	packagegroup-security-tpm2 \
+	clevis \
+	cryptsetup \
 	libtss2-tcti-device \
 "
