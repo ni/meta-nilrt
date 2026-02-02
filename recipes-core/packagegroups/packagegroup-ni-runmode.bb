@@ -124,6 +124,7 @@ RDEPENDS:${PN} = "\
 "
 
 RDEPENDS:${PN}:append:x64 = "\
+	linux-firmware-i915 \
 	kernel-module-radeon \
 	linux-firmware-radeon \
 "
