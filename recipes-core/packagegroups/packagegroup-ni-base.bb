@@ -101,7 +101,6 @@ RDEPENDS:${PN}:append:x64 = "\
 	e2fsprogs-mke2fs \
 	efibootmgr \
 	efivar \
-	linux-firmware-i915 \
 	pstore-save \
 "
 
