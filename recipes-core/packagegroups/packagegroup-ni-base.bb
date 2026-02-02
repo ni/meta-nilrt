@@ -97,14 +97,17 @@ RDEPENDS:${PN} += "\
 
 RDEPENDS:${PN}:append:x64 = "\
 	packagegroup-kernel-modules-essential \
-	packagegroup-ni-tpm \
+	clevis \
+	cryptsetup \
 	dmidecode \
 	e2fsprogs \
 	e2fsprogs-mke2fs \
 	efibootmgr \
 	efivar \
+	libtss2-tcti-device \
 	ni-device-encryption \
 	pstore-save \
+	tpm2-tools \
 "
 
 RDEPENDS:${PN}:append:xilinx-zynq = "\
