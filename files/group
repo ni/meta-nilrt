@@ -6,6 +6,7 @@ ni:x:500:
 openvpn:x:499:
 niwscerts:x:498:
 # free space
+clevis:x:405:
 krill:x:404:
 xrdp:x:403:
 arpwatch:x:402:
