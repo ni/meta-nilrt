@@ -365,7 +365,7 @@ cleanup_netcfg () {
 ## Get Image
 ##
 
-image_get_tgz () {
+image_get_common () {
 	echo_verbose 2 "starting"
 	local -a CMDLINE=(tar c "${BASE_TAR_OPTS[@]}" -I "$COMPRESS")
 	(( $VERBOSE >= 2 )) && CMDLINE+=(-v)
@@ -375,6 +375,16 @@ image_get_tgz () {
 	CMDLINE+=(*)
 	run_cmd "${CMDLINE[@]}" | pv $DISPLAY_PROGRESS_ARG 1>&"$FD_IMAGE"
 	echo_verbose 2 "finished"
+}
+
+image_get_tgz () {
+	image_get_common
+}
+
+image_get_txz () {
+	# Change the global default compression utility.
+	COMPRESS=xz
+	image_get_common
 }
 
 init_fs_get () {
@@ -546,7 +556,7 @@ wipe_fs () {
 	echo_verbose 2 "finished"
 }
 
-image_set_tgz () {
+image_set_common () {
 	echo_verbose 2 "starting"
 	local -a CMDLINE=(tar x "${BASE_TAR_OPTS[@]}" -C "$WORKING_USERFS" -I "$COMPRESS")
 	(( $VERBOSE >= 2 )) && CMDLINE+=(-v)
@@ -564,6 +574,16 @@ image_set_tgz () {
 		fi
 	fi
 	echo_verbose 2 "finish"
+}
+
+image_set_tgz () {
+	image_set_common
+}
+
+image_set_txz () {
+	# Change the global default compression utility.
+	COMPRESS=xz
+	image_set_common
 }
 
 image_set () {
@@ -804,6 +824,7 @@ check_settings () {
 
 	case "$IMAGE_TYPE" in
 		tgz) ;;
+		txz) ;;
 		"") die_with_help "Format setting (-x) is required" ;;
 		*) die_with_help "Unknown format setting '$IMAGE_TYPE'" ;;
 	esac
