@@ -13,9 +13,8 @@ DEPENDS += "\
     python3-distro-native \
 "
 
-PACKAGECONFIG = "tcp zeromq"
+PACKAGECONFIG = "tcp"
 PACKAGECONFIG[tcp] = ",,python3-pycryptodome"
-PACKAGECONFIG[zeromq] = ",,python3-pycryptodome python3-pyzmq"
 
 SRC_URI = "\
     git://github.com/ni/salt.git;protocol=https;branch=ni/master/3006.13 \
@@ -85,6 +84,9 @@ do_install:append() {
     # processes that are generically named python. Changed shebang so
     # that process names will be identifiable by the init scripts.
     sed -i 's|#!/usr/bin/env python3|#!/usr/bin/python3|' ${D}${bindir}/salt-*
+
+    # Remove all windows packages on Linux to free up space for ARM Targets
+    find ${D}${PYTHON_SITEPACKAGES_DIR}/salt/modules -name "win*.py*" -delete
 }
 
 ALLOW_EMPTY:${PN} = "1"
@@ -103,7 +105,6 @@ Between the remote execution system, and state management Salt addresses the bac
 SUMMARY:${PN}-minion = "client package for salt, the distributed remote execution system"
 DESCRIPTION:${PN}-minion = "${DESCRIPTION_COMMON} This particular package provides the worker agent for salt."
 RDEPENDS:${PN}-minion = "${PN}-common (= ${EXTENDPKGV}) python3-core python3-msgpack python3-distro"
-RDEPENDS:${PN}-minion += "${@bb.utils.contains('PACKAGECONFIG', 'zeromq', 'python3-pycryptodome python3-pyzmq (>= 20.0.0)', '',d)}"
 RDEPENDS:${PN}-minion += "${@bb.utils.contains('PACKAGECONFIG', 'tcp', 'python3-pycryptodome', '',d)}"
 RRECOMMENDS:${PN}-minion:append:x64 = "dmidecode"
 RSUGGESTS:${PN}-minion = "python3-augeas"
@@ -163,7 +164,6 @@ INITSCRIPT_PARAMS:${PN}-api = "defaults"
 SUMMARY:${PN}-master = "remote manager to administer servers via salt"
 DESCRIPTION:${PN}-master = "${DESCRIPTION_COMMON} This particular package provides the salt controller."
 RDEPENDS:${PN}-master = "${PN}-common (= ${EXTENDPKGV}) python3-core python3-msgpack"
-RDEPENDS:${PN}-master += "${@bb.utils.contains('PACKAGECONFIG', 'zeromq', 'python3-pycryptodome python3-pyzmq (>= 20.0.0)', '',d)}"
 RDEPENDS:${PN}-master += "${@bb.utils.contains('PACKAGECONFIG', 'tcp', 'python3-pycryptodome', '',d)}"
 CONFFILES:${PN}-master = "${sysconfdir}/init.d/${PN}-master  ${sysconfdir}/${PN}/master"
 RSUGGESTS:${PN}-master = "python3-git"
