@@ -1,25 +1,34 @@
-From ecbc7c60dee17c7eb6e88e78ff746d0fac09f5a6 Mon Sep 17 00:00:00 2001
+From 0e529129e45015cd11f59fd68c19a4c29f6cea86 Mon Sep 17 00:00:00 2001
 From: Shreejit C <shreejit.c@emerson.com>
-Date: Tue, 3 Feb 2026 03:27:24 +0530
-Subject: [PATCH] configure.ac: include previous hardening flags in checks
+Date: Fri, 6 Feb 2026 20:26:52 +0530
+Subject: [PATCH] configure.ac: fix hardening flag checks
+
+Include previously accumulated flags when probing new hardening
+flags, without breaking AX_CHECK_COMPILE_FLAG caching.
 
 Upstream-Status: Pending
 
+Signed-off-by: Shreejit C <shreejit.c@emerson.com>
 ---
  configure.ac | 3 +++
  1 file changed, 3 insertions(+)
 
 diff --git a/configure.ac b/configure.ac
-index 1ec6eb4..d9f6fcd 100644
+index 1ec6eb4..058d8bd 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -172,10 +172,13 @@ AS_IF([test "x$enable_overflow" = "xno"],
  	AC_DEFINE([DISABLE_OVERFLOW_BUILTINS], [], [Define to disable built in overflow math]))
  
  AC_DEFUN([add_hardened_c_flag], [
++  tpm2_pkcs11_save_CFLAGS="$CFLAGS"
++  CFLAGS="$CFLAGS $EXTRA_CFLAGS"
    AX_CHECK_COMPILE_FLAG([$1],
      [EXTRA_CFLAGS="$EXTRA_CFLAGS $1"],
      [AC_MSG_ERROR([Cannot enable $1, consider configuring with --disable-hardening])]
-+    [$EXTRA_CFLAGS]
    )
++  CFLAGS="$tpm2_pkcs11_save_CFLAGS"
  ])
+ 
+ AC_ARG_WITH(
+
