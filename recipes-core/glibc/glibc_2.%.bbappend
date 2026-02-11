@@ -21,6 +21,13 @@ SRC_URI =+ " \
 	file://alias-custom-locales.patch \
 "
 
+# Backport upstream fix for CVE-2026-0915
+SRC_URI += " \
+    file://CVE-2026-0915-fix-getnetbyaddr-stack-leak.patch \
+"
+
+CVE_STATUS[CVE-2026-0915] = "backported-patch: upstream commit e56ff82d5034ec66c6a78f517af6faa427f65b0b"
+
 ## package: ni-locale-alias ##
 PACKAGES =+ " ni-locale-alias "
 FILES:ni-locale-alias = "${datadir}/locale/locale.alias"
