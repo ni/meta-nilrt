@@ -2,6 +2,7 @@
 
 NI_PROPRIETARY_SAFEMODE_PACKAGES = "\
         ni-software-installation-daemon \
+        ni-sysapi-sshcli \
 "
 
 NI_PROPRIETARY_COMMON_PACKAGES = "\
