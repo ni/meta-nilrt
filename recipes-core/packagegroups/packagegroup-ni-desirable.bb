@@ -32,6 +32,7 @@ RDEPENDS:${PN} += "\
 	iperf3 \
 	ldd \
 	ltrace \
+	monit \
 	ntp \
 	nvme-cli \
 	openssl-dev \
