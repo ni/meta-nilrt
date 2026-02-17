@@ -48,24 +48,24 @@ INITSCRIPT_PACKAGES:remove = "${PN}-udhcpd"
 do_install:append () {
 	if grep "CONFIG_IFPLUGD=y" ${B}/.config; then
 		install -d ${D}${sysconfdir}/ifplugd/
-		install -m 0755 ${WORKDIR}/busybox-ifplugd ${D}${sysconfdir}/init.d/
-		install -m 0755 ${WORKDIR}/ifplugd.action ${D}${sysconfdir}/ifplugd/
-		install -m 0755 ${WORKDIR}/ifplugd.conf ${D}${sysconfdir}/ifplugd/
+		install -m 0755 ${UNPACKDIR}/busybox-ifplugd ${D}${sysconfdir}/init.d/
+		install -m 0755 ${UNPACKDIR}/ifplugd.action ${D}${sysconfdir}/ifplugd/
+		install -m 0755 ${UNPACKDIR}/ifplugd.conf ${D}${sysconfdir}/ifplugd/
 	fi
 	if grep "CONFIG_ACPID=y" ${B}/.config; then
-		install -m 0755 ${WORKDIR}/busybox-acpid ${D}${sysconfdir}/init.d/
-		install -m 0755 ${WORKDIR}/acpid.conf ${D}${sysconfdir}/
+		install -m 0755 ${UNPACKDIR}/busybox-acpid ${D}${sysconfdir}/init.d/
+		install -m 0755 ${UNPACKDIR}/acpid.conf ${D}${sysconfdir}/
 		install -d ${D}${sysconfdir}/acpi
-		install -m 0755 ${WORKDIR}/acpid_poweroff.sh ${D}${sysconfdir}/acpi/poweroff.sh
+		install -m 0755 ${UNPACKDIR}/acpid_poweroff.sh ${D}${sysconfdir}/acpi/poweroff.sh
 		install -d ${D}${sysconfdir}/logrotate.d
-		install -m 0644 ${WORKDIR}/acpid-logrotate.conf ${D}${sysconfdir}/logrotate.d/acpid.conf
+		install -m 0644 ${UNPACKDIR}/acpid-logrotate.conf ${D}${sysconfdir}/logrotate.d/acpid.conf
 	fi
 	if grep "CONFIG_ZCIP=y" ${B}/.config; then
 		install -d ${D}${sysconfdir}/natinst/networking
-		install -m 0755 ${WORKDIR}/zcip.script ${D}${sysconfdir}/natinst/networking/zcip.script
+		install -m 0755 ${UNPACKDIR}/zcip.script ${D}${sysconfdir}/natinst/networking/zcip.script
 	fi
 	if grep "CONFIG_UDHCPD=y" ${B}/.config; then
-		install -m 0644 ${WORKDIR}/udhcpd.wlan0.conf ${D}${sysconfdir}
+		install -m 0644 ${UNPACKDIR}/udhcpd.wlan0.conf ${D}${sysconfdir}
 
 		# Remove unused default busybox udhcpd init script
 		rm -f ${D}${sysconfdir}/init.d/busybox-udhcpd

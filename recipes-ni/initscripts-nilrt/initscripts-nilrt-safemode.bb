@@ -15,14 +15,14 @@ SRC_URI = " \
 	file://niselectnetnaming \
 "
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 do_install () {
 	install -d ${D}${sysconfdir}/init.d/
-	install -m 0755   ${WORKDIR}/mountcompatibility     ${D}${sysconfdir}/init.d
-	install -m 0755   ${WORKDIR}/mountuserfs            ${D}${sysconfdir}/init.d
-	install -m 0755   ${WORKDIR}/nisafemodereason       ${D}${sysconfdir}/init.d
-	install -m 0755   ${WORKDIR}/niselectnetnaming      ${D}${sysconfdir}/init.d
+	install -m 0755   ${S}/mountcompatibility     ${D}${sysconfdir}/init.d
+	install -m 0755   ${S}/mountuserfs            ${D}${sysconfdir}/init.d
+	install -m 0755   ${S}/nisafemodereason       ${D}${sysconfdir}/init.d
+	install -m 0755   ${S}/niselectnetnaming      ${D}${sysconfdir}/init.d
 
 	update-rc.d -r ${D} mountcompatibility start 97 S .
 	update-rc.d -r ${D} mountuserfs start 82 S .

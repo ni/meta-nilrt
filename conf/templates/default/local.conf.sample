@@ -64,9 +64,10 @@ DISTRO ?= "nilrt"
 # this includes the extraction and compilation of many applications and the toolchain
 # which can use Gigabytes of hard disk space.
 #
-# The default is a tmp directory under TOPDIR.
-#
-#TMPDIR = "${TOPDIR}/tmp"
+# Temporary compatibility override for ni-central components that still expect tmp-glibc.
+# Upstream OE-Core no longer uses TCLIBCAPPEND. Migration to ${TOPDIR}/tmp is tracked as tech debt.
+
+TMPDIR = "${TOPDIR}/tmp-glibc"
 
 #
 # SDK target architecture

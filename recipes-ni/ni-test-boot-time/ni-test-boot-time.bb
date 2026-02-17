@@ -12,7 +12,7 @@ SRC_URI = "\
 	file://zz-ni-record-boot-time \
 "
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 
 inherit ptest

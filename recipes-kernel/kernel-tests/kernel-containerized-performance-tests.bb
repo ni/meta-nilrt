@@ -8,7 +8,7 @@ inherit ptest
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}-files:"
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 DEPENDS = "virtual/kernel"
 RDEPENDS:${PN}-ptest += "bash python3 docker"

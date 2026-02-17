@@ -1,4 +1,5 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
+S = "${UNPACKDIR}"
 
 python () {
     buildname = d.getVar('BUILDNAME')
@@ -18,9 +19,9 @@ SRC_URI += " \
 
 do_install:append() {
 	# Install NI signing keys
-	install -m 0444 ${WORKDIR}/nilrt-feed-2019.gpg ${D}${datadir}/opkg/keyrings/
-	install -m 0444 ${WORKDIR}/nilrt-feed-2023.gpg ${D}${datadir}/opkg/keyrings/
-	install -m 0444 ${WORKDIR}/nilrt-feed-2025.gpg ${D}${datadir}/opkg/keyrings/
+	install -m 0444 ${UNPACKDIR}/nilrt-feed-2019.gpg ${D}${datadir}/opkg/keyrings/
+	install -m 0444 ${UNPACKDIR}/nilrt-feed-2023.gpg ${D}${datadir}/opkg/keyrings/
+	install -m 0444 ${UNPACKDIR}/nilrt-feed-2025.gpg ${D}${datadir}/opkg/keyrings/
 }
 
 PACKAGE_ADD_METADATA_IPK:opkg-keyrings = "DisplayName: Opkg-Keyrings\nUserVisible: yes\nEssential: yes\n"

@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
 inherit update-rc.d
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 SRC_URI = "file://LICENSE \
 	   file://niwatchdogpet.c \
@@ -17,7 +17,7 @@ INITSCRIPT_PARAMS = "start 05 S ."
 CFLAGS:append = " -std=c89 -Wall -Werror -pedantic"
 
 do_compile() {
-	${CC} -Os ${CFLAGS} ${WORKDIR}/niwatchdogpet.c -o niwatchdogpet ${LDFLAGS}
+	${CC} -Os ${CFLAGS} ${S}/niwatchdogpet.c -o niwatchdogpet ${LDFLAGS}
 }
 
 do_install() {

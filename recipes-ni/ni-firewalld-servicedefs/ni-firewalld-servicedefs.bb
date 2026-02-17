@@ -2,7 +2,7 @@ SUMMARY = "Firewalld XML service definitions for NI software"
 DESCRIPTION = "Installs firewalld service definitions for protocols implemented by NI software."
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
-
+S = "${UNPACKDIR}"
 PV = "1.0"
 
 SRC_URI = "\
@@ -38,7 +38,7 @@ do_install () {
 	for f in ${SRC_URI}; do
 		case $f in
 		"file://services/"*) echo "$f"; install -D -t ${D}${libdir}/firewalld/services/ \
-			-m 0644 "${WORKDIR}/${f##file://}" ;;
+			-m 0644 "${UNPACKDIR}/${f##file://}" ;;
 		esac
 	done
 }

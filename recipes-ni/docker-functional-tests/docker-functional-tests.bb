@@ -13,7 +13,7 @@ SRC_URI = "\
     file://test_parallel.Dockerfile \
     file://test_parallel_test_file.txt \
 "
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 inherit ptest
 

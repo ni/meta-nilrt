@@ -13,8 +13,6 @@ SRC_URI = "git://git.ti.com/wilink8-wlan/18xx-ti-utils.git;branch=master;tag=${S
            file://0001-fix-efuse_param_type_enm.patch \
 "
 
-S = "${WORKDIR}/git"
-
 export CROSS_COMPILE = "${TARGET_PREFIX}"
 
 EXTRA_OEMAKE = 'CFLAGS="${CFLAGS} -I${STAGING_INCDIR}/libnl3/ -DCONFIG_LIBNL32 " \

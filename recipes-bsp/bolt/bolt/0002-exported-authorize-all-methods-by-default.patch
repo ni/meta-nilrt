@@ -1,4 +1,4 @@
-From 26f0a98d57ddcc91a90730d98c0b5ccc298f9328 Mon Sep 17 00:00:00 2001
+From e59a141dff202f97496d4cd5db0ea5d26f1f480b Mon Sep 17 00:00:00 2001
 From: Chaitanya Vadrevu <chaitanya.vadrevu@ni.com>
 Date: Fri, 11 Aug 2023 15:24:56 -0500
 Subject: [PATCH] exported: authorize all methods by default
@@ -15,7 +15,7 @@ Signed-off-by: Chaitanya Vadrevu <chaitanya.vadrevu@ni.com>
  1 file changed, 1 insertion(+), 8 deletions(-)
 
 diff --git a/boltd/bolt-exported.c b/boltd/bolt-exported.c
-index 3c0ffb0..8a77b27 100644
+index fdbb5ca..c491e91 100644
 --- a/boltd/bolt-exported.c
 +++ b/boltd/bolt-exported.c
 @@ -593,14 +593,7 @@ handle_authorize_method_default (BoltExported          *exported,

@@ -17,10 +17,19 @@ SRC_URI = "\
 
 SRCREV = "4d466bf727347408307aa28ab4f090488360b592"
 
-S = "${WORKDIR}/git"
+
+# dkms does not ship a configure script and is not autotools-based.
+# Running standard oe_runconf/autotools tasks results in errors:
+#   ./configure: No such file
+# Therefore skip both tasks and call `make install` manually.
+do_configure[noexec] = "1"
+do_compile[noexec] = "1"
 
 
-inherit autotools-brokensep
+do_install() {
+	oe_runmake install DESTDIR=${D} LIBDIR=${libdir}/dkms
+}
+
 
 # We don't need the dist/ tarball.
 EXTRA_OEMAKE += " -o tarball"
@@ -28,7 +37,12 @@ EXTRA_OEMAKE += " -o tarball"
 INSANE_SKIP:${PN} += "dev-deps"
 
 
-FILES:${PN} += " ${datadir}/bash-completion/* ${datadir}/zsh/*"
+FILES:${PN} += " \
+	${datadir}/bash-completion/* \
+	${datadir}/zsh/* \
+	${libdir}/dkms/common.postinst \
+	${libdir}/dkms/dkms_autoinstaller \
+"
 
 RDEPENDS:${PN} += " \
 	bash \

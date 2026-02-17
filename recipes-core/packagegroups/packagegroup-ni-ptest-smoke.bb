@@ -32,7 +32,6 @@ RDEPENDS:${PN}:append = "\
 	ni-test-boot-time-ptest \
 	nilrt-snac-ptest \
 	opkg-ptest \
-	pango-ptest \
 	parted-ptest \
 	perl-ptest \
 	pstore-save-ptest \

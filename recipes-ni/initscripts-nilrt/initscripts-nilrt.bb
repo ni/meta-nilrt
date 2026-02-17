@@ -35,25 +35,25 @@ SRC_URI:append:xilinx-zynq = "\
 	file://mountutils \
 "
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 do_install () {
 	install -d ${D}${sysconfdir}/init.d/
-	install -m 0755 ${WORKDIR}/cleanvarcache         ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/mountconfig           ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/niconfiguretracefs    ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nicheckbiosconfig     ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nicleanefivars        ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nicleanstalelinks     ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nidisablecstates      ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nipopulateconfigdir   ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nisetcommitratio      ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nisetreboottype       ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nisetupkernelconfig   ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/populateconfig        ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/wirelesssetdomain     ${D}${sysconfdir}/init.d
+	install -m 0755 ${S}/cleanvarcache         ${D}${sysconfdir}/init.d
+	install -m 0755 ${S}/mountconfig           ${D}${sysconfdir}/init.d
+	install -m 0755 ${S}/niconfiguretracefs    ${D}${sysconfdir}/init.d
+	install -m 0755 ${S}/nicheckbiosconfig     ${D}${sysconfdir}/init.d
+	install -m 0755 ${S}/nicleanefivars        ${D}${sysconfdir}/init.d
+	install -m 0755 ${S}/nicleanstalelinks     ${D}${sysconfdir}/init.d
+	install -m 0755 ${S}/nidisablecstates      ${D}${sysconfdir}/init.d
+	install -m 0755 ${S}/nipopulateconfigdir   ${D}${sysconfdir}/init.d
+	install -m 0755 ${S}/nisetcommitratio      ${D}${sysconfdir}/init.d
+	install -m 0755 ${S}/nisetreboottype       ${D}${sysconfdir}/init.d
+	install -m 0755 ${S}/nisetupkernelconfig   ${D}${sysconfdir}/init.d
+	install -m 0755 ${S}/populateconfig        ${D}${sysconfdir}/init.d
+	install -m 0755 ${S}/wirelesssetdomain     ${D}${sysconfdir}/init.d
 
-	install -m 0755 ${WORKDIR}/firewall              ${D}${sysconfdir}/init.d
+	install -m 0755 ${S}/firewall              ${D}${sysconfdir}/init.d
 	# Substitute configfs paths
 	sed -i 's|^IPTABLES_CONF=.*$|IPTABLES_CONF=/etc/natinst/share/iptables.conf|g' ${D}${sysconfdir}/init.d/firewall
 	sed -i 's|^IP6TABLES_CONF=.*$|IP6TABLES_CONF=/etc/natinst/share/ip6tables.conf|g' ${D}${sysconfdir}/init.d/firewall
@@ -76,11 +76,11 @@ do_install () {
 	update-rc.d -r ${D} wirelesssetdomain     start 36 S .
 
 	install -d ${D}${sysconfdir}/natinst
-	install -m 0644 ${WORKDIR}/iso3166-translation.txt ${D}${sysconfdir}/natinst
+	install -m 0644 ${S}/iso3166-translation.txt ${D}${sysconfdir}/natinst
 }
 
 do_install:append:xilinx-zynq () {
-	install -m 0755 ${WORKDIR}/mountutils            ${D}${sysconfdir}/init.d
+	install -m 0755 ${S}/mountutils            ${D}${sysconfdir}/init.d
 }
 
 pkg_postinst_ontarget:${PN} () {
@@ -108,8 +108,8 @@ pkg_postinst_ontarget:${PN} () {
 }
 
 do_install_ptest () {
-	cp ${WORKDIR}/test-nisetcommitratio-* ${D}${PTEST_PATH}/
-	cp ${WORKDIR}/test-safemode-runlevel-init ${D}${PTEST_PATH}/
+	cp ${S}/test-nisetcommitratio-* ${D}${PTEST_PATH}/
+	cp ${S}/test-safemode-runlevel-init ${D}${PTEST_PATH}/
 }
 
 # /etc/init.d/populateconfig invokes wpa-supplicant.ipk scripts.

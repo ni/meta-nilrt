@@ -3,6 +3,7 @@ DESCRIPTION = "nilrt distro-specific safemode utilities that provide basic syste
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 SECTION = "base"
+S = "${UNPACKDIR}"
 
 SRC_URI = "\
 	file://nicompareversion  \
@@ -10,7 +11,7 @@ SRC_URI = "\
 	file://nisafemodeversion \
 "
 
-natinstbin="/usr/local/natinst/bin"
+natinstbin = "/usr/local/natinst/bin"
 
 FILES:${PN} += "\
 	${natinstbin}/nicompareversion   \
@@ -26,9 +27,9 @@ RDEPENDS:${PN}:append:xilinx-zynq = " u-boot-tools-mkimage "
 do_install () {
 	install -d ${D}${natinstbin}
 
-	install -m 0755   ${WORKDIR}/nicompareversion            ${D}${natinstbin}
-	install -m 0550   ${WORKDIR}/niinstallsafemode           ${D}${natinstbin}
-	install -m 0755   ${WORKDIR}/nisafemodeversion           ${D}${natinstbin}
+	install -m 0755   ${UNPACKDIR}/nicompareversion            ${D}${natinstbin}
+	install -m 0550   ${UNPACKDIR}/niinstallsafemode           ${D}${natinstbin}
+	install -m 0755   ${UNPACKDIR}/nisafemodeversion           ${D}${natinstbin}
 
 	chown 0:${LVRT_GROUP} ${D}${natinstbin}/niinstallsafemode
 }

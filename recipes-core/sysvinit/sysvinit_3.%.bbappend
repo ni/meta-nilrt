@@ -10,7 +10,7 @@ do_install:append() {
 	chown 0:${LVRT_GROUP} ${D}${base_sbindir}/halt
 
 	install -d "${D}${sysconfdir}"
-	install -m 0754 ${WORKDIR}/initscript "${D}${sysconfdir}/initscript"
+	install -m 0754 ${UNPACKDIR}/initscript "${D}${sysconfdir}/initscript"
 }
 
 

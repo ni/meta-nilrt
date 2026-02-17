@@ -40,7 +40,7 @@ SRC_URI = "\
 	file://uixml/nilinuxrt.rtprotocol_enable.def.xml \
 "
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 uixmldir = "${datadir}/nisysapi/uixml"
 settingsdatadir = "${datadir}/${BPN}/systemsettings"
@@ -67,7 +67,7 @@ do_install () {
 	install -d -m 0775 -o ${LVRT_USER} -g ${LVRT_GROUP} ${D}${systemsettingsdir}
 
 	install -d ${D}${sysconfdir}/init.d/
-	install -m 0755 ${WORKDIR}/nisetembeddeduixml ${D}${sysconfdir}/init.d
+	install -m 0755 ${S}/nisetembeddeduixml ${D}${sysconfdir}/init.d
 }
 
 pkg_postinst_ontarget:${PN} () {

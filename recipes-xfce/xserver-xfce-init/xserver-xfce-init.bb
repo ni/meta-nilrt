@@ -15,7 +15,7 @@ SRC_URI = " \
 	file://xserver-logrotate.conf \
 "
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 
 inherit allarch update-rc.d
@@ -35,7 +35,7 @@ do_install() {
 	if ${@bb.utils.contains('DISTRO_FEATURES','systemd','true','false',d)}; then
 		install -d ${D}${systemd_unitdir}/system
 		install -m 0644 xserver-xfce.conf ${D}${sysconfdir}/default/xserver-xfce
-		install -m 0644 ${WORKDIR}/xserver-xfce.service ${D}${systemd_unitdir}/system
+		install -m 0644 ${S}/xserver-xfce.service ${D}${systemd_unitdir}/system
 	fi
 	install -d ${D}${sysconfdir}/logrotate.d
 	install -m 0644 xserver-logrotate.conf ${D}${sysconfdir}/logrotate.d/xserver.conf
@@ -44,5 +44,5 @@ do_install() {
 
 FILES_${PN} += "${sysconfdir}/default/xserver-xfce"
 # Get util-linux for su
-RDEPENDS:${PN} = "xserver-common (>= 1.30) xinit xfce4-session util-linux"
+RDEPENDS:${PN} = "xserver-xorg xinit xfce4-session util-linux"
 RCONFLICTS:${PN} = "xserver-nodm-init"

@@ -14,11 +14,11 @@ SRC_URI = "file://ni-cgroups \
 INITSCRIPT_NAME = "ni-cgroups"
 INITSCRIPT_PARAMS = "start 04 S . stop 04 0 6 ."
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 do_install () {
 	install -d ${D}${sysconfdir}/init.d/
-	install -Dm 0755 ${WORKDIR}/ni-cgroups ${D}${sysconfdir}/init.d/
-	install -Dm 0755 ${WORKDIR}/ni-cgroups-v1 ${D}${sysconfdir}/init.d/
-	install -Dm 0755 ${WORKDIR}/ni-cgroups-v2 ${D}${sysconfdir}/init.d/
+	install -Dm 0755 ${S}/ni-cgroups ${D}${sysconfdir}/init.d/
+	install -Dm 0755 ${S}/ni-cgroups-v1 ${D}${sysconfdir}/init.d/
+	install -Dm 0755 ${S}/ni-cgroups-v2 ${D}${sysconfdir}/init.d/
 }

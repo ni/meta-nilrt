@@ -3,6 +3,7 @@ DESCRIPTION = "Utility to prevent shutdown/reboot to protect critical operations
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 SECTION = "base"
+S = "${UNPACKDIR}"
 
 SRC_URI = "\
 	file://holdoff-shutdown \
@@ -40,7 +41,7 @@ do_install () {
 	install -d ${D}${sysconfdir}/init.d
 	install -d ${D}${sysconfdir}/holdoff-shutdown.d
 
-	install -m 0755   ${WORKDIR}/rguard              ${D}${sbindir}
-	install -m 0755   ${WORKDIR}/holdoff-shutdown    ${D}${sysconfdir}/init.d
-	install -m 0644   ${WORKDIR}/nilrt-safemode      ${D}${sysconfdir}/holdoff-shutdown.d
+	install -m 0755   ${UNPACKDIR}/rguard              ${D}${sbindir}
+	install -m 0755   ${UNPACKDIR}/holdoff-shutdown    ${D}${sysconfdir}/init.d
+	install -m 0644   ${UNPACKDIR}/nilrt-safemode      ${D}${sysconfdir}/holdoff-shutdown.d
 }

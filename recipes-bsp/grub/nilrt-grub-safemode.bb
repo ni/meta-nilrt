@@ -3,6 +3,7 @@ DESCRIPTION = "NILRT distro-specific safemode boot files"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 SECTION = "base"
+S = "${UNPACKDIR}"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/grub:"
 
@@ -26,7 +27,7 @@ CONFFILES:${PN} += " \
 
 do_install () {
 	install -d ${D}/boot
-	install -m 0644 ${WORKDIR}/grub-safemode-bootimage.cfg ${D}/boot/bootimage.cfg
-	install -m 0644 ${WORKDIR}/grub-safemode.cfg ${D}/boot/grub.cfg
-	install -m 0644 ${WORKDIR}/grubenv ${D}/boot/grubenv
+	install -m 0644 ${UNPACKDIR}/grub-safemode-bootimage.cfg ${D}/boot/bootimage.cfg
+	install -m 0644 ${UNPACKDIR}/grub-safemode.cfg ${D}/boot/grub.cfg
+	install -m 0644 ${UNPACKDIR}/grubenv ${D}/boot/grubenv
 }
