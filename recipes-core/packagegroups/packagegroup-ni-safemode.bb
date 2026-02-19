@@ -18,7 +18,6 @@ RDEPENDS:${PN} = " \
 	ni-netcfgutil \
 	ni-shutdown-guard-safemode \
 	ni-systemimage \
-	sysconfig-settings-ssh \
 "
 
 RDEPENDS:${PN}:append:xilinx-zynq = " \
