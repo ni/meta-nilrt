@@ -8,6 +8,7 @@ PV = "1.0"
 
 SRC_URI = "\
 	file://ni-configpersistentlogs \
+	file://set_log_permissions.sh \
 "
 
 S = "${WORKDIR}"
@@ -20,11 +21,18 @@ inherit update-rc.d
 do_install () {
 	install -d ${D}${sysconfdir}/init.d/
 	install -m 0755 ${S}/ni-configpersistentlogs ${D}${sysconfdir}/init.d/
+	install -m 0755 ${S}/set_log_permissions.sh ${D}${sysconfdir}/init.d/
 }
 
 
 FILES:${PN} += "\
 	${sysconfdir}/init.d/ni-configpersistentlogs \
+	${sysconfdir}/init.d/set_log_permissions.sh \
 "
 
-RDEPENDS:${PN} += "bash initscripts"
+RDEPENDS:${PN} += "bash initscripts acl"
+DEPENDS += "update-rc.d-native"
+
+do_install:append () {
+	update-rc.d -r ${D} set_log_permissions.sh start 3 S .
+}
