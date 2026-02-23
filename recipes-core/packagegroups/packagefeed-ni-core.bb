@@ -11,6 +11,7 @@ RDEPENDS:${PN} = "\
 	packagegroup-ni-base \
 	packagegroup-ni-contributors \
 	packagegroup-ni-crio \
+	packagegroup-ni-initramfs \
 	packagegroup-ni-internal-deps \
 	packagegroup-ni-ptest-smoke \
 	packagegroup-ni-restoremode \
