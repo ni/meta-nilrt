@@ -74,3 +74,4 @@ radiusd:x:301:
 audio:x:29:
 postgres:x:28:
 mail:x:8:
+adm:x:4:
