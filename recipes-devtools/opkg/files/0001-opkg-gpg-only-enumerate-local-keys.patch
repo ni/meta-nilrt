@@ -1,0 +1,65 @@
+From c8bb89319c4d340fa0aa56e58572f6824a0315e4 Mon Sep 17 00:00:00 2001
+From: Shreejit C <shreejit.c@emerson.com>
+Date: Fri, 13 Feb 2026 05:13:29 +0530
+Subject: opkg: gpg: only enumerate local keys
+
+load_all_keys() enumerates keys already present in the local keyring.
+Passing those key objects back into gpgme_op_import_keys() is incorrect
+and may trigger a recv-keys path in gpg, which fails in minimal targets
+(e.g. without dirmngr) and breaks opkg update when signature checking is
+enabled.
+
+Only enumerate keys and log their keyid at DEBUG.
+
+Upstream-Status: Backport [https://git.yoctoproject.org/opkg/commit/?id=c8bb89319c4d340fa0aa56e58572f6824a0315e4]
+Signed-off-by: Shreejit C <shreejit.c@emerson.com>
+Signed-off-by: Alex Stewart <alex.stewart@emerson.com>
+---
+ libopkg/opkg_gpg.c | 17 +++++------------
+ 1 file changed, 5 insertions(+), 12 deletions(-)
+
+diff --git a/libopkg/opkg_gpg.c b/libopkg/opkg_gpg.c
+index d236c84..4fe291f 100644
+--- a/libopkg/opkg_gpg.c
++++ b/libopkg/opkg_gpg.c
+@@ -171,7 +171,6 @@ static int load_all_keys(gpgme_ctx_t ctx)
+ {
+     int ret = -1;
+     int import_attempts = 0;
+-    int import_failures = 0;
+     int has_lsctx = 0;
+     gpgme_key_t key[2] = {0, 0}; /* gpgme_op_import_keys() only takes NULL-terminated list */
+     gpgme_ctx_t lsctx;
+@@ -201,14 +200,8 @@ static int load_all_keys(gpgme_ctx_t ctx)
+     while(!gpgme_op_keylist_next(lsctx, &key[0])) {
+         ++import_attempts;
+ 
+-        err = gpgme_op_import_keys(ctx, key);
+-        if (err) {
+-            opkg_msg(DEBUG, "gpgme_op_import_keys() failed on keyid=\"%s\" (%d): %s\n",
+-                     get_keyid(key[0]),
+-                     import_attempts,
+-                     gpg_strerror(err));
+-            ++import_failures;
+-        }
++        opkg_msg(DEBUG, "Found public key: %s \n",
++                 get_keyid(key[0]));
+ 
+         gpgme_key_release(key[0]);
+     }
+@@ -223,9 +216,9 @@ static int load_all_keys(gpgme_ctx_t ctx)
+     ret = 0;
+ 
+  out_err:
+-    opkg_msg((import_failures == 0 ? INFO : ERROR),
+-             "Found %d keys, %d failed import\n",
+-             import_attempts, import_failures);
++    opkg_msg(INFO,
++             "Found %d keys\n",
++             import_attempts);
+ 
+     if (has_lsctx)
+         gpgme_release(lsctx);
+-- 
+cgit 1.2.3-korg
+
