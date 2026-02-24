@@ -4,6 +4,7 @@ SRC_URI += " \
 	file://opkg.conf \
 	file://opkg-signing.conf \
 	file://gpg.conf \
+	file://0001-opkg-gpg-only-enumerate-local-keys.patch \
 	file://run-ptest \
 "
 
