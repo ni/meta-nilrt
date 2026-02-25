@@ -1,0 +1,613 @@
+#!/bin/bash
+#
+# Copyright (C) 2013-2023 National Instruments
+# Copyright (C) 2023-2026 Emerson
+#
+# For grub and u-boot targets, format the rootfs and the config volumes and
+# delete the runmode kernel.
+# For RAUC targets, write init-action.cfg to format or boot into safemode on
+# the next boot.
+
+
+# include common utilities
+if [ -e /etc/init.d/mountutils ]; then
+	source /etc/init.d/mountutils
+fi
+
+# Bail out on first error
+set -E -o errexit
+
+
+# ==============================================================================
+# CONSTANTS
+# ==============================================================================
+
+ARCH=$(uname -m)
+
+declare -r BASENAME=${0##*/}
+
+COMMAND_RETRY_COUNT=30
+COMMAND_RETRY_SLEEP=1
+
+# Device partition discovery
+if [ "$ARCH" = "x86_64" ]; then
+	CONFIGFS_DEV=/dev/disk/by-label/niconfig
+	ROOTFS_DEV=/dev/disk/by-label/nirootfs
+fi
+CONFIG_MOUNT_POINT="/etc/natinst/share"
+ROOTFS_MOUNT_POINT="/mnt/userfs"
+TARGETINFO_PATH="$CONFIG_MOUNT_POINT/targetinfo.ini"
+
+RESET_OVERLAY=no
+
+# Network config
+NETCFG_MODE=bypass
+NETCFG_TMP=/tmp/netconfig.$$
+NINETCFGUTIL=/usr/local/natinst/bin/ninetcfgutil
+
+NIBOOT_DIR=/etc/niboot
+INIT_ACTION_CFG_FILE=$NIBOOT_DIR/init-action.cfg
+SYSCFG_IMAGE_TGZ_FILE=$NIBOOT_DIR/system-config-image.tgz
+
+# List of returnable errors
+declare -Ar EXITCODES=(
+	[UNSPECIFIED]=1             # No reason specified
+	[UNKNOWN_ERROR]=2           # Unexpected exit code encountered
+	[INVALID_ARGUMENT]=3        # An invalid combination of arguments was specified
+	[INVALID_FSTYPE]=4          # An invalid fstype was specified
+	[ILLTIMED]=5                # Called at an inappropriate time
+	[INVALID_ARCH]=6            # Running an unsupported processor architecture
+	[NO_KEY_BACKUP_DEVICE]=7    # Partition to store backup key could not be found; perhaps it's mislabeled or not plugged in
+)
+
+
+# ==============================================================================
+# FUNCTIONS
+# ==============================================================================
+
+# $1: exit code (key from EXITCODES)
+# ${@:2}: text
+die()
+{
+	echo -e "*** Error: $0:${BASH_LINENO[1]}: ${@:2}" >&2
+	exit ${EXITCODES[$1]}
+}
+
+die_with_usage()
+{
+	echo -e "*** Error: ${@:2}" >&2
+	usage
+	exit ${EXITCODES[$1]}
+}
+
+# $1: source path
+# $2: line no
+# $3: function name
+# $4: exit code
+handle_err()
+{
+	echo "*** Error: $1:$2 (fn=$3): Unexpected status code $4" >&2
+	exit ${EXITCODES[UNKNOWN_ERROR]}
+}
+
+# Retry loop for commands: Executes the specified command repeatedly
+# until it either exits with 0 or max number of retries are exhausted.
+# $@: Command and parameters
+with_retry()
+{
+	for attemptItr in `seq 1 "$COMMAND_RETRY_COUNT"`; do
+		if "$@"; then
+			return 0
+		fi
+
+		echo "$* failed with $? (attempt $attemptItr)" >&2
+		sleep "$COMMAND_RETRY_SLEEP"
+	done
+
+	echo "ERROR: $* failed ($COMMAND_RETRY_COUNT attempts)" >&2
+	return 1
+}
+
+install_default_err_handler()
+{
+	trap 'handle_err ${BASH_SOURCE} ${LINENO} ${FUNCNAME:-unknown} $?' ERR
+}
+
+
+is_bootflow_efi_ab()
+{
+    command -v nisysteminfo > /dev/null && \
+    command -v jq > /dev/null && \
+    $(nisysteminfo | jq -e '.bootflow | test("efi-ab.*")')
+}
+
+set_mode()
+{
+	if [ -n "$MODE" ]; then
+		die_with_usage INVALID_ARGUMENT "Only one operation can be specified at a time."
+	fi
+	MODE=$1
+}
+
+supported_fstypes()
+{
+	hash /usr/sbin/ubiformat 2>/dev/null && [ "$ARCH" = "armv7l" ] && echo -n "ubifs," || true
+	hash /sbin/mkfs.ext4 2>/dev/null && [ "$ARCH" = "x86_64" ] && echo -n "ext4," || true
+}
+
+# Find the filesystem type of the root partition (or volume)
+print_root_fstype()
+{
+	if [ "$OSMODE" != runmode ]; then
+		grep " $ROOTFS_MOUNT_POINT " /proc/mounts | awk '{print $3}'
+	else
+		# regarding skipping rootfs, see "What is rootfs?" at
+		# https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt
+		grep " / " /proc/mounts | awk '{if ($3 != "rootfs") print $3}'
+	fi
+}
+
+# Find the filesystem type of the config partition (or volume)
+print_config_fstype()
+{
+	grep " $CONFIG_MOUNT_POINT " /proc/mounts | awk '{print $3}'
+}
+
+# Format the rootfs volume
+# $1: filesystem to use (currently "ubifs" or "ext4")
+# $2: root device (defaults to $ROOTFS_DEV, only works for x86_64 on ARM is ignored)
+format_rootfs()
+{
+	# remove Zynq kernel
+	rm -f /boot/linux_runmode.itb
+
+	# remove any old kernel-dev files which were deposited in the /boot partition
+	rm -f /boot/Module.symvers-*
+	rm -f /boot/config-*
+	rm -f /boot/System.map-*
+
+	# remove x64 kernel
+	if [ -e /boot/runmode  ]; then
+		rm -R /boot/runmode
+		mkdir /boot/runmode
+	fi
+
+	# fstype is validated before calling format_rootfs
+	case "$1" in
+	  ubifs)
+		local partition_label="root"
+		local volume_number="0"
+		local volume_label="rootfs"
+		format_ubi_volume "$partition_label" "$volume_number" "$volume_label"
+		;;
+	  ext4)
+		local volume_label="nirootfs"
+		local options=""
+		mkfs.ext4 -q -F -L $volume_label $options ${2:-$ROOTFS_DEV}
+		;;
+	esac
+}
+
+# Format the config volume
+# $1: filesystem to use (currently "ubifs" or "ext4")
+# $2: configfs device (defaults to $CONFIGFS_DEV, only works for x86_64 on ARM is ignored)
+format_config()
+{
+	# fstype is validated before calling format_config
+	case "$1" in
+	  ubifs)
+		local partition_label="boot-config"
+		local volume_number="3"
+		local volume_label="config"
+		format_ubi_volume "$partition_label" "$volume_number" "$volume_label"
+		;;
+	  ext4)
+		local volume_label="niconfig"
+		local options=""
+		mkfs.ext4 -q -F -I 256 -L $volume_label $options ${2:-$CONFIGFS_DEV}
+		;;
+	esac
+}
+
+usage()
+{
+	if [ "$OSMODE" = runmode-rauc ]; then
+		cat >&2 <<-EOF
+		Usage: $BASENAME [-f [-o][-r][-n <mode>] | -s | -l | -4 [-r]]
+
+		-f	Format the user volume
+		-4	Boot into run level 4
+		-h	Print this help
+		-s	List current filesystem type
+		-l	List possible filesystem types
+
+		-o	Reset the user overlay only.
+		-r	Reboot the target immediately
+		-n	Preserve system configuration according to <mode>:
+		        all		Preserve all settings
+		        primary		Preserve primary, reset secondary
+		        none		Reset all settings
+		        bypass		No configuration handling, equivalent to none (default)
+
+		Examples:
+
+		$BASENAME -f -r     - format the userfs
+		$BASENAME -f        - format the userfs on next boot
+		$BASENAME -f -o     - reset the user overlay but do not reformat the userfs
+		$BASENAME -f -n all - reset the user overlay and preserve system configuration
+		$BASENAME -4 -r     - reboot into run level 4
+		$BASENAME -s        - list current filesystem type
+		$BASENAME -l        - list possible filesystem types (',' separated)
+
+		EOF
+	elif [ "$OSMODE" != runmode ]; then
+		cat >&2 <<-EOF
+		Usage: $BASENAME [-f -t <type> [-c][-r][-n <mode>][-e]|-s [-c]|-l] [-B <fslabel>] [-P <pcrset>] [-L keep|disable]
+
+		-f	Format the volume
+		-h	Print this help
+		-s	List current filesystem type
+		-l	List possible filesystem types
+
+		-t	Filesystem type
+		-c	Format the config volume (otherwise rootfs + kernel)
+		-r	Relaunch the system webserver after format
+		-n	Preserve network config according to <mode>:
+		        all		Preserve all settings
+		        primary		Preserve primary, reset secondary
+		        none		Reset all settings
+		        bypass		No configuration handling (default)
+
+		Examples:
+
+		$BASENAME -f -t <type>        - format the rootfs as <type> fs
+		$BASENAME -s -c		- print the filesystem type of the config volume
+		$BASENAME -l		- list possible filesystem types (',' separated)
+
+		EOF
+	else
+		cat >&2 <<-EOF
+		Usage: $BASENAME [-s [-c]|-l]
+
+		-h	Print this help
+		-s	List current filesystem type
+		-l	List supported filesystem types
+		-c	Config volume (otherwise rootfs + kernel)
+
+		Examples:
+
+		$BASENAME -s		print the filesystem type of the rootfs volume
+		$BASENAME -s -c		print the filesystem type of the config volume
+
+		EOF
+	fi
+}
+
+netconfig_pre()
+{
+	[[ $NETCFG_MODE == bypass || $NETCFG_MODE == none ]] && return 0
+	rm -rf $NETCFG_TMP
+	mkdir -p $NETCFG_TMP
+	OPTS=()
+	case "$NETCFG_MODE" in
+		all) OPTS+=(-g secondary) ;&
+		primary) OPTS+=(-g primary) ;;
+	esac
+	$NINETCFGUTIL save -d $NETCFG_TMP ${OPTS[@]}
+}
+
+netconfig_post()
+{
+	case "$NETCFG_MODE" in
+		bypass)
+			return 0 ;;
+		all|primary)
+			$NINETCFGUTIL restore -d $NETCFG_TMP
+			rm -rf $NETCFG_TMP
+			;;
+		none)
+			rm -rf $NETCFG_TMP
+			mkdir -p $NETCFG_TMP
+			$NINETCFGUTIL erase -d $NETCFG_TMP -g primary -g secondary
+			rm -rf $NETCFG_TMP
+			mkdir -p $NETCFG_TMP
+			$NINETCFGUTIL pulldefault -d $NETCFG_TMP -g primary -g secondary
+			rm -rf $NETCFG_TMP
+			;;
+	esac
+}
+
+targetinfo_restore()
+{
+	SUPPORTED_FS=$(supported_fstypes)
+	CURRENT_FS=$(print_root_fstype)
+	cat >"$TARGETINFO_PATH" <<-EOF
+	[FileSystem]
+	Current=$CURRENT_FS
+	Supported=$SUPPORTED_FS
+	EOF
+}
+
+# Top-level entry point for reformats. Stop storage-sensitive system services
+# prior to the format attempt. Restart services on success if requested, or on
+# failure if appropriate.
+format_rootfs_or_userfs()
+{
+	/etc/init.d/systemWebServer stop ||:
+	/etc/init.d/sshd stop ||:
+	/etc/init.d/niauth stop ||:
+
+	# ABORTED_ATTEMPT=yes means something went wrong before we actually reformatted
+	# anything: go ahead and restart all services. We set it at the outset,
+	# so that any premature failure will set it by default, and unset it once it
+	# is no longer applicable.
+	ABORTED_ATTEMPT=yes
+	local ret=0
+	format_rootfs_or_userfs_nosvc || ret=$?
+	if (( ! ret )) && [ "$RELAUNCH" = yes ] || [ "$ABORTED_ATTEMPT" = yes ]
+	then
+		/etc/init.d/niauth start ||:
+		/etc/init.d/sshd start ||:
+		/etc/init.d/systemWebServer start ||:
+	fi
+	return $ret
+}
+
+# Format operation, assuming all impacted services are shut down. Saves and
+# restores system configuration, if necessary.
+format_rootfs_or_userfs_nosvc()
+{
+	netconfig_pre || return $?
+
+	# Backup the restore files to the tmp dir. Do this even if we're only
+	# reformatting the configfs, because under some configurations,
+	# reformatting the configfs may also trigger reformatting the userfs.
+	# (And it doesn't cost us anything to do the copy)
+	if [ -e "$ROOTFS_MOUNT_POINT/.restore" ]; then
+		mkdir -p /tmp/restore &&
+			cp -R "$ROOTFS_MOUNT_POINT"/.restore/* /tmp/restore/ ||
+			return $?
+	fi
+
+	# If we errored out, either the error was unrecoverable (in which case
+	# the rest of this should be skipped), or recoverable (in which case no
+	# reformat happened and there is no need to restore configurations)
+	format_rootfs_or_userfs_nosvc_noconf || return $?
+
+	local ret=0
+
+	# Move the restore files back to the rootfs. Only do this if the
+	# reformat actually happened, i.e. /.restore doesn't exist. In order to
+	# make a best-effort attempt at recovery, try to move restore files back
+	# to the rootfs (if it exists) even if mountconfig failed.
+	if [ -e /tmp/restore -a ! -e "$ROOTFS_MOUNT_POINT/.restore" ] &&
+		   mountpoint -q "$ROOTFS_MOUNT_POINT"
+	then
+		mkdir -p "$ROOTFS_MOUNT_POINT/.restore" &&
+			mv /tmp/restore/* "$ROOTFS_MOUNT_POINT/.restore" &&
+			rmdir /tmp/restore || (( ret )) || ret=$?
+	fi
+
+	netconfig_post || (( ret )) || ret=$?
+	# targetinfo.ini needs to be restored or it will not be recreated until a reboot into safemode
+	targetinfo_restore || (( ret )) || ret=$?
+	return $ret
+}
+
+# Format operation, assuming all impacted services are shut down, and all
+# impacted system configuration has been saved off.
+format_rootfs_or_userfs_nosvc_noconf() {
+	local ret=0
+	if \
+		with_retry /etc/init.d/populateconfig stop &&
+		with_retry /etc/init.d/mountconfig stop &&
+		with_retry /etc/init.d/mountcompatibility stop &&
+		with_retry /etc/init.d/mountuserfs stop
+	then
+		format_rootfs_or_userfs_nomount || (( ret )) || ret=$?
+	else
+		ret=$?
+	fi
+	# If we are erroring out unrecoverably, skip the rest of this function
+	(( ret )) && ! [ "$ABORTED_ATTEMPT" = yes ] && return $ret
+
+	# configfs needs to be mounted before rootfs otherwise only one
+	# *etc/natinst/share will be mounted. (This may be a bug in the mount*
+	# initscripts.)
+	with_retry /etc/init.d/mountconfig start &&
+		with_retry /etc/init.d/populateconfig start || (( ret )) || ret=$?
+	with_retry /etc/init.d/mountuserfs start &&
+		with_retry /etc/init.d/mountcompatibility start || (( ret )) || ret=$?
+	return $ret
+}
+
+# Format operation, assuming all impacted mountpoints are unmounted. This is
+# what actually does the formatting.
+format_rootfs_or_userfs_nomount()
+{
+	ABORTED_ATTEMPT=	# After this point, failures are unrecoverable
+
+	configfs_dev="$CONFIGFS_DEV"
+	rootfs_dev="$ROOTFS_DEV"
+
+	if [ "$VOL" = config ]; then
+		format_config "$TYPE" "$configfs_dev"
+	else
+		format_rootfs "$TYPE" "$rootfs_dev"
+	fi
+}
+
+write_init_action()
+{
+    echo "$1=true" > $INIT_ACTION_CFG_FILE
+}
+
+enqueue_rauc_format()
+{
+	if [ "$NETCFG_MODE" = all -o "$NETCFG_MODE" = primary ]; then
+		# TODO: Distinguish between primary and secondary adapters
+		transconf save $SYSCFG_IMAGE_TGZ_FILE
+		RESET_OVERLAY=yes
+	elif [ "$NETCFG_MODE" = none ]; then
+		# The transconf image file may have been written by a previous
+		# invocation of this script if -r was not specified.
+		rm $SYSCFG_IMAGE_TGZ_FILE
+	fi
+
+	if [ "$MODE" = runlevel4 ]; then
+		write_init_action "boot_safemode"
+	elif [ "$RESET_OVERLAY" = yes ]; then
+		write_init_action "reset_overlay"
+	else
+		write_init_action "reformat_niuser"
+	fi
+
+	if [ "$RELAUNCH" = yes ]; then
+		reboot
+	fi
+}
+
+
+# ==============================================================================
+# MAIN
+# ==============================================================================
+
+install_default_err_handler
+
+# Are we running in safemode, restore mode, or runmode?
+if [ -f /etc/natinst/safemode ]; then
+	OSMODE=safemode
+elif [ -f /etc/natinst/restoremode ]; then
+	OSMODE=restore
+elif is_bootflow_efi_ab; then
+	OSMODE=runmode-rauc
+else
+	# in runmode the rootfs is in use, restricting available options
+	OSMODE=runmode
+fi
+
+case "$(/sbin/runlevel || true)" in
+*\ 6|*\ 0) die ILLTIMED "Called during shutdown; aborting." ;;
+esac
+
+# Script invoked with no command-line args?
+if [ $# -eq "0" ]; then
+	die_with_usage INVALID_ARGUMENT "No command-line arguments specified."
+fi
+
+while getopts "fhsl4n:t:coreB:P:L:" Option
+do
+	case $Option in
+		h)	usage; exit 0 ;;
+		f)	set_mode format;;
+		s)	set_mode status;;
+		l)	set_mode list;;
+		4)	set_mode runlevel4;;
+		t)	TYPE=$OPTARG;;
+		c)	VOL=config;;
+		o)	RESET_OVERLAY=yes;;
+		r)	RELAUNCH=yes;;
+		n)	NETCFG_MODE="$OPTARG";;
+		*)	usage;;
+	esac
+done
+
+if [ -z "$MODE" ]; then
+	die_with_usage INVALID_ARGUMENT "No operation specified."
+fi
+
+
+if [ "$OSMODE" = runmode-rauc ]; then
+	if [ -n "$TYPE" ]; then
+		die_with_usage INVALID_ARGUMENT \
+			"fstype option (-t) cannot be specified on RAUC targets."
+	elif [ -n "$VOL" ]; then
+		die_with_usage INVALID_ARGUMENT \
+			"Volume name (-v) cannot be specified on RAUC targets."
+	fi
+else
+	if [ "$RESET_OVERLAY" = yes ]; then
+		die_with_usage INVALID_ARGUMENT \
+			"Resetting the overlay is not supported in $OSMODE."
+	elif [ "$MODE" = runlevel4 ]; then
+		die_with_usage INVALID_ARGUMENT \
+			"Booting into run level 4 is not supported in $OSMODE."
+	fi
+fi
+
+if [ "$MODE" = format -a "$OSMODE" = runmode ]; then
+	die_with_usage INVALID_ARGUMENT "Formatting is not available in runmode."
+fi
+
+if [ "$RELAUNCH" = yes ]; then
+	if [ "$OSMODE" = runmode-rauc ]; then
+		if [ "$MODE" = list -o "$MODE" = status ]; then
+			die_with_usage INVALID_ARGUMENT \
+				"Reboot can only be used when formatting or booting into run level 4."
+		fi
+	else
+		if [ "$MODE" != format -o "$VOL" != config ]; then
+			die_with_usage INVALID_ARGUMENT \
+				"relaunch (-r) can only be used when formatting config partition (-f -c)"
+		fi
+		if [ "$OSMODE" = restore ]; then
+			die_with_usage INVALID_ARGUMENT \
+				"relaunch (-r) cannot be used in restore mode"
+		fi
+	fi
+fi
+
+if [ -n "$TYPE" ]; then
+	if [ "$MODE" = status -o "$MODE" = list ]; then
+		die_with_usage INVALID_ARGUMENT \
+			"fstype option (-t) cannot be used with status -s or -l"
+	fi
+fi
+
+if [ "$MODE" = list -a -n "$VOL" ]; then
+	die_with_usage INVALID_ARGUMENT \
+		"Volume name (-v) cannot be specified when listing fs types (-l)"
+fi
+
+if [ "$MODE" != format -a "$NETCFG_MODE" != "bypass" ]; then
+	die_with_usage INVALID_ARGUMENT \
+		"Network settings (-n) can only be specified when formatting (-f)"
+fi
+
+case "$NETCFG_MODE" in
+	all|primary|none|bypass) ;;
+	*)
+		die_with_usage INVALID_ARGUMENT \
+			"Unknown network config setting $NETCFG_MODE"
+		;;
+esac
+
+if [ "$MODE" = format -a "$OSMODE" != runmode-rauc ]; then
+	if [ -z "$TYPE" ]; then
+		die_with_usage INVALID_FSTYPE "No filesystem type was specified"
+	fi
+
+	[[ $(supported_fstypes) =~ (^|,)$TYPE(,) ]] || die_with_usage INVALID_FSTYPE "Invalid fstype '$TYPE'"
+fi
+
+case "$MODE" in
+	format|runlevel4)
+		if [ "$OSMODE" = "runmode-rauc" ]; then
+			enqueue_rauc_format
+		else
+			format_rootfs_or_userfs
+		fi
+	;;
+	status)
+		if [ "$VOL" = config ]; then
+			print_config_fstype
+		else
+			print_root_fstype
+		fi
+	;;
+	list)
+		echo -n $(supported_fstypes)
+	;;
+esac
+
+exit 0
