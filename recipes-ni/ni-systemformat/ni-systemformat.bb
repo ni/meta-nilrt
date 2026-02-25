@@ -56,18 +56,13 @@ do_install () {
 
 # nisystemformat
 FILES:${PN} += "\
-	${bindir}/nisystemformat \
-	${sysconfdir}/init.d/nitargetinfo \
 	/usr/local/natinst/bin/nisystemformat \
 "
 RDEPENDS:${PN} += "\
 	bash \
-	niacctbase \
-"
-
-RDEPENDS:${PN} += "\
 	coreutils \
 	e2fsprogs-mke2fs \
 	ni-netcfgutil \
+	niacctbase \
 	util-linux-lsblk \
 "
