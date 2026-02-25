@@ -325,7 +325,6 @@ RDEPENDS:${PN} = "\
 	kernel-module-nic7018-wdt \
 	kernel-module-nlmon \
 	kernel-module-nls-ucs2-utils \
-	kernel-module-ntfs \
 	kernel-module-ntfs3 \
 	kernel-module-nvme-fabrics \
 	kernel-module-nvme-rdma \
@@ -346,7 +345,6 @@ RDEPENDS:${PN} = "\
 	kernel-module-qcserial \
 	kernel-module-r8152 \
 	kernel-module-r8153-ecm \
-	kernel-module-radeon \
 	kernel-module-raid0 \
 	kernel-module-raid1 \
 	kernel-module-raid10 \
@@ -409,9 +407,6 @@ RDEPENDS:${PN} = "\
 	kernel-module-thunderbolt \
 	kernel-module-tls \
 	kernel-module-tmp421 \
-	kernel-module-tpm \
-	kernel-module-tpm-tis \
-	kernel-module-tpm-tis-core \
 	kernel-module-ts-bm \
 	kernel-module-ts-fsm \
 	kernel-module-ts-kmp \
@@ -531,7 +526,6 @@ RDEPENDS:${PN} = "\
 	kernel-module-xt-time \
 	kernel-module-xt-u32 \
 	kernel-module-zaurus \
-	kernel-module-zd1201 \
 	kernel-module-zd1211rw \
 	kernel-module-zstd \
 	kernel-module-zstd-compress \

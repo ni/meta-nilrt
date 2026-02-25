@@ -22,10 +22,10 @@ RDEPENDS:${PN} = "\
 	libpython3 \
 	librtpi \
 	libyaml \
-	linux-firmware-radeon \
 	lldpd \
 	mpfr \
 	nftables \
+	ni-cgroups \
 	ni-configpersistentlogs \
 	ni-locale-alias \
 	ni-modules-autoload \
@@ -123,8 +123,14 @@ RDEPENDS:${PN} = "\
 	zip \
 "
 
+RDEPENDS:${PN}:append:x64 = "\
+	linux-firmware-i915 \
+	kernel-module-radeon \
+	linux-firmware-radeon \
+"
+
 # Required components for Veristand.
 # Engineering contact: Marcelo Izaguirre
-RDEPENDS:${PN}:append = "\
+RDEPENDS:${PN}:append:x64 = "\
 	libfmi-dev \
 "

@@ -13,7 +13,14 @@ RDEPENDS:${PN} = "\
 	crda \
 	iw \
 	libnl \
+	ni-wireless-ath6kl-fw \
 	openssl \
 	rfkill \
 	wpa-supplicant \
-	wireless-regdb"
+	wireless-regdb \
+"
+
+RDEPENDS:${PN}:append:xilinx-zynq = " \
+	ni-wireless-wl127x-fw \
+	ti-wifi-utils \
+"

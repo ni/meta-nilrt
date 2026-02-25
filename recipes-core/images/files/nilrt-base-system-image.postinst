@@ -9,11 +9,13 @@
 # itself, regardless of if some other component ultimately will too.
 mkdir -p -m 755 /mnt/userfs/etc/natinst/share/uninstall
 
-# Delete the enable_initramfs variable so the target will no longer try to boot
-# using an initramfs in runmode.  This also disables the usage of an initramfs on
-# older runmodes and safemode combinations.  The enable_initramfs variable is
-# only set during provisioning, so it should remain unset for this target.
-grub-editenv /boot/grub/grubenv unset enable_initramfs
+if [ "$arch" = "x86_64" ]; then
+	# Delete the enable_initramfs variable so the target will no longer try to boot
+	# using an initramfs in runmode.  This also disables the usage of an initramfs on
+	# older runmodes and safemode combinations.  The enable_initramfs variable is
+	# only set during provisioning, so it should remain unset for this target.
+	grub-editenv /boot/grub/grubenv unset enable_initramfs
+fi
 
 # Enable ssh by default when installing SystemLink.
 /usr/local/natinst/bin/nirtcfg -s section=systemsettings,token=sshd.enabled,value=True
@@ -45,8 +47,8 @@ if grep -qs artemis /sys/firmware/devicetree/base/compatible ; then
     mkdir -p /etc/natinst/share
 
     # configure the path for fw_printenv to read environmental variables from u-boot
-    # replace /dev/mtd4 and /dev/mtd5 with /boot/uboot/uboot.env
-    sed -i '/mtd/d' /mnt/userfs/etc/fw_env.config
+    # replace /dev/ubi* with /boot/uboot/uboot.env
+    sed -i '/ubi/d' /mnt/userfs/etc/fw_env.config
     echo /boot/uboot/uboot.env         0x0000         0x20000 >> /mnt/userfs/etc/fw_env.config
 
 fi
@@ -61,28 +63,28 @@ if [ "$arch" = "x86_64" ]; then
     echo LABEL=niconfig         /etc/natinst/share   ext4       sync           0  0 >> /mnt/userfs/etc/fstab
 fi
 
-if [ "$arch" = "armv7l" ]; then
-	kernel="/mnt/userfs/boot/tmp/linux_runmode.itb"
-elif [ "$arch" = "x86_64" ]; then
-	kernel="/mnt/userfs/boot/tmp/runmode"
-else
-	echo >&2 "ERROR: Unsupported platform"
-	exit 1
-fi
-
 # in normal operation, /boot better exist
 awk '{print $2;}' < /proc/mounts | grep -q /boot || exit 1
 
 # Give hwclock CAP_SYS_TIME capabilties
 /usr/sbin/setcap CAP_SYS_TIME+ep /mnt/userfs/sbin/hwclock.util-linux
 
-# install the kernel
-[ "$arch" = "x86_64" ] && rm -rf /boot/runmode
-if mv "$kernel" "$mount_point"; then
-	# Remove the tmp path from the rootfs
-	rmdir "`dirname "$kernel"`"
-else
-	exit 1
+if [ "$arch" = "armv7l" ]; then
+   # safemodes older than 8.0 don't bind mount bootfs to /mnt/userfs/bootfs.
+   # So files that get extracted into /mnt/userfs/boot have to be moved into /boot.
+	if [ ! -f "$mount_point/linux_runmode.itb" ]; then
+		mv /mnt/userfs/boot/* "$mount_point"
+	fi
+elif [ "$arch" = "x86_64" ]; then
+	kernel="/mnt/userfs/boot/tmp/runmode"
+	# install the kernel
+	rm -rf /boot/runmode
+	if mv "$kernel" "$mount_point"; then
+		# Remove the tmp path from the rootfs
+		rmdir "`dirname "$kernel"`"
+	else
+		exit 1
+	fi
 fi
 
 # Use persistent names on PXI, not on any other targets
@@ -117,4 +119,4 @@ done
 
 # Upgrade opkg-keyrings so that users can get the latest signing keys
 # OR the command with true since the postinst script shouldn't return an error if the opkg update + upgrade fails.
-opkg -o /mnt/userfs/ update && opkg -o /mnt/userfs/ upgrade opkg-keyrings || true
+umask 022 && opkg -o /mnt/userfs/ update && opkg -o /mnt/userfs/ upgrade opkg-keyrings || true

@@ -32,13 +32,6 @@ PACKAGE_EXCLUDE += "python-core python3-core"
 
 PACKAGE_EXCLUDE += "rauc-mark-good"
 
-
-# Radeon firmware is huge and is not included in the safemode.
-# Blacklist the kernel module that gets automatically included.
-remove_radeon () {
-	echo "blacklist radeon" > "${IMAGE_ROOTFS}/etc/modprobe.d/blacklist_radeon.conf"
-}
-
 bootimg_fixup () {
 	# Empty out /boot. The kernel and grub are added to the exterior
 	# image and not this ramdisk container.
@@ -65,7 +58,7 @@ bootimg_fixup () {
 	opkg -o ${IMAGE_ROOTFS} -f ${IPKGCONF_TARGET} clean
 }
 
-IMAGE_PREPROCESS_COMMAND += " remove_radeon; bootimg_fixup; "
+IMAGE_PREPROCESS_COMMAND += " bootimg_fixup; "
 
 
 # We always want package-management support in this image, fail if not enabled

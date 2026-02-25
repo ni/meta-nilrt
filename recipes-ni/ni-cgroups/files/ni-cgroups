@@ -1,0 +1,43 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          ni-cgroups
+# Required-Start:    $local_fs
+# Required-Stop:
+# Default-Start:     S
+# Default-Stop:      0 6
+# Short-Description: Setup cgroups LabVIEW RT & assign tasks
+### END INIT INFO
+
+identify_lvrt_cgroup_version()
+{
+	# We only support cgroups v1 on ARM for now
+	local cpu_arch
+	cpu_arch="$(uname -m)"
+	case "$cpu_arch" in
+		arm*|aarch64)
+			echo 1
+			return
+			;;
+	esac
+
+	local lvrt_installed
+	lvrt_installed=$(opkg list-installed ni-labview-realtime 2>/dev/null)
+
+	# Default to cgroups v2 if LabVIEW RT is not installed
+	[ -z "$lvrt_installed" ] && echo 2 && return
+
+	local lvrt_version major_version
+	lvrt_version=$(awk '{print $3}' <<<"$lvrt_installed")
+	major_version=${lvrt_version%%.*}
+
+	# LabVIEW RT 2025 and prior versions only support cgroups v1
+	[ -n "$major_version" ] && [ "$major_version" -le 25 ] && echo 1 || echo 2
+}
+
+LVRT_CGROUP_VERSION=$(identify_lvrt_cgroup_version)
+
+if [ "$LVRT_CGROUP_VERSION" -eq 1 ]; then
+        /etc/init.d/ni-cgroups-v1 "$1"
+else
+        /etc/init.d/ni-cgroups-v2 "$1"
+fi

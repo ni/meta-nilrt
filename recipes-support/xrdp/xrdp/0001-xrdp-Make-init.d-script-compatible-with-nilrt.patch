@@ -1,0 +1,51 @@
+From aa73fb0f27d7ae660b005b363508410b93e50753 Mon Sep 17 00:00:00 2001
+From: Joe Hershberger <joe.hershberger@ni.com>
+Date: Fri, 31 Oct 2025 17:07:34 +0000
+Subject: [PATCH 1/2] xrdp: Make init.d script compatible with nilrt
+
+Point at the shared init functions in the correct path and implement the
+missing expected function.
+
+Signed-off-by: Joe Hershberger <joe.hershberger@ni.com>
+---
+ instfiles/init.d/xrdp | 24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
+
+diff --git a/instfiles/init.d/xrdp b/instfiles/init.d/xrdp
+index cbf2bc70..d4f51987 100644
+--- a/instfiles/init.d/xrdp
++++ b/instfiles/init.d/xrdp
+@@ -28,7 +28,29 @@ DESC="Remote Desktop Protocol server"
+ 
+ test -x $DAEMON || exit 0
+ 
+-. /lib/lsb/init-functions
++. /etc/init.d/functions
++
++# If not using LSB init-functions, provide local versions.
++log_daemon_msg() {
++    echo "$*"
++}
++log_end_msg() {
++    if [ "$1" -eq 0 ]; then
++        echo "Done."
++    else
++        echo "Failed."
++    fi
++}
++log_progress_msg() {
++    echo "$*"
++}
++log_success_msg() {
++    echo "$*"
++}
++log_failure_msg() {
++    echo "$*"
++}
++
+ 
+ check_root()  {
+     if [ "$(id -u)" != "0" ]; then
+-- 
+2.44.1
+

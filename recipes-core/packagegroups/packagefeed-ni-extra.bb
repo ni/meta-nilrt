@@ -4,7 +4,7 @@ LICENSE = "MIT"
 inherit packagegroup
 
 # Graphical extra packages
-RDEPENDS:${PN}:append = "\
+RDEPENDS:${PN}:append:x64 = "\
 	packagegroup-self-hosted \
 	packagegroup-xfce-extended \
 	consolekit \
@@ -37,7 +37,9 @@ RDEPENDS:${PN}:append = "\
 	xfontsel \
 	xlsfonts \
 	xmag \
+	xorgxrdp \
 	xrdb \
+	xrdp \
 	xterm \
 	xwd \
 "

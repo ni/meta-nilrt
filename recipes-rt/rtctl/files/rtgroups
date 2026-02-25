@@ -38,8 +38,11 @@
 #
 
 # Default policy
+
+watchdogd:f:29:*:\[watchdogd\]$
+card-crtc:f:27:*:\[card[0-9]+-crtc[0-9]+\]$
 kthreadd:f:25:*:\[kthreadd\]$
-irqthread:f:15:*:\[irq\/.+\]$
+irqthread:f:15:*:\[irq\/.+
 irq_work:f:12:*:\[irq_work\/.+\]$
 ktimers:f:10:*:\[ktimers\/.+\]$
 rcu:f:2:*:\[rcu(b|c|og)\/[0-9]+\]$

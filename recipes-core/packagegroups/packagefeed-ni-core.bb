@@ -7,25 +7,19 @@ RDEPENDS:${PN} = "\
 	packagegroup-base \
 	packagegroup-core-boot \
 	packagegroup-core-standalone-sdk-target \
-	packagegroup-core-x11 \
 	packagegroup-kernel-module-build \
 	packagegroup-ni-base \
 	packagegroup-ni-contributors \
 	packagegroup-ni-crio \
-	packagegroup-ni-graphical \
 	packagegroup-ni-internal-deps \
-	packagegroup-ni-nohz-kernel \
 	packagegroup-ni-ptest-smoke \
 	packagegroup-ni-restoremode \
 	packagegroup-ni-runmode \
 	packagegroup-ni-safemode \
 	packagegroup-ni-skyline \
-	packagegroup-ni-snac \
 	packagegroup-ni-tzdata \
 	packagegroup-ni-wifi \
 	dkms \
-	bolt \
-	onboard \
 "
 
 RDEPENDS:${PN}:append = "\
@@ -36,4 +30,11 @@ RDEPENDS:${PN}:append:x64 = "\
 	init-nilrt-ramfs \
 	nilrt-grub-runmode \
 	nilrt-grub-safemode \
+	packagegroup-core-x11 \
+	packagegroup-ni-graphical \
+	packagegroup-ni-nohz-kernel \
+	packagegroup-ni-snac \
+	packagegroup-ni-tpm \
+	bolt \
+	onboard \
 "

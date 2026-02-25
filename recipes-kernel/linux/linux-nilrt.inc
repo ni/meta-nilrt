@@ -13,6 +13,9 @@ KBUILD_FRAGMENTS_LOCATION ?= "nilrt"
 
 LINUX_VERSION_EXTENSION = "$([ "${LINUX_KERNEL_TYPE}" != "standard" ] && echo '-${LINUX_KERNEL_TYPE}')"
 
+# Only required for 4.14 kernels
+EXTRA_OEMAKE:append:xilinx-zynq = ' CFLAGS="${TOOLCHAIN_OPTIONS} -Wno-array-bounds" '
+
 # Kbuild intenionally clobbers CFLAGS/LDFLAGS for some binaries we ship in nilrt,
 # particularly in the tools/ dir (fixdep, genksyms etc), and OE has this insanity check
 # to see if binaries were built using the OE-supplied *FLAGS, so skip this sanity check to
@@ -58,7 +61,7 @@ KERNEL_MODULE_AUTOLOAD += "ehci-hcd g_ether xilinx-xadcps"
 # i915 video driver module options to disable render and display power saving
 # disabling them improves real-time determinism
 KERNEL_MODULE_PROBECONF += "i915"
-module_conf_i915 = "options i915 enable_rc6=0 enable_dc=0"
+module_conf_i915 = "options i915 enable_dc=0"
 
 # radeon video driver module options to disable (broken) dynamic power management
 KERNEL_MODULE_PROBECONF += "radeon"

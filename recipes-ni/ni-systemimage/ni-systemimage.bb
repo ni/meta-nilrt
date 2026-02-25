@@ -35,4 +35,5 @@ RDEPENDS:${PN} += "\
 	niacctbase \
 	pv \
 	tar \
+	xz \
 "

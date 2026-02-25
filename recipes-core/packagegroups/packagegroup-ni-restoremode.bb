@@ -12,24 +12,17 @@ RDEPENDS:${PN} += "\
 	bash \
 	bzip2 \
 	coreutils \
-	dmidecode \
 	dosfstools \
 	e2fsprogs \
 	e2fsprogs-mke2fs \
 	e2fsprogs-tune2fs \
-	efibootmgr \
-	efivar \
 	findutils \
-	fw-printenv \
+	fw-printenv         \
 	gawk \
 	gptfdisk \
 	grep \
-	grub \
-	grub-editenv \
-	grub-efi \
 	init-restore-mode \
 	kmod \
-	ni-smbios-helper \
 	ni-systemreplication \
 	parted \
 	procps \
@@ -39,6 +32,22 @@ RDEPENDS:${PN} += "\
 	util-linux-agetty \
 	vim-tiny \
 "
+
+RDEPENDS:${PN}:append:x64 = "\
+	dmidecode           \
+	efibootmgr          \
+	efivar              \
+	eudev               \
+	grub                \
+	grub-editenv        \
+	grub-efi            \
+	ni-smbios-helper    \
+	"
+
+RDEPENDS:${PN}:append:xilinx-zynq = "\
+	mtd-utils           \
+	mtd-utils-ubifs     \
+	"
 
 RRECOMMENDS:${PN}:x64 = "\
 	kernel-module-tpm-tis \

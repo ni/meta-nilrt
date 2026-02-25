@@ -11,7 +11,6 @@ NI_PROPRIETARY_COMMON_PACKAGES = "\
         ni-avahi-client \
         ni-ca-certs \
         ni-rt-exec-webservice \
-        ni-sdmon \
         ni-service-locator \
         ni-software-action-services \
         ni-software-installation-websvc \
@@ -26,17 +25,26 @@ NI_PROPRIETARY_COMMON_PACKAGES = "\
         ni-webserver-libs \
         ni-webservices-webserver-support \
         ni-wif-landingpage \
-        ni-wifibledd \
-        ni-wireless-ath6kl \
         nicurl \
         nirtcfg \
         nirtmdnsd \
 "
 
+# TODO: ni-wifibledd is required for ARM but there is no ARM build for it.
+# Add it back to NI_PROPRIETARY_COMMON_PACKAGES when there is.
+NI_PROPRIETARY_COMMON_PACKAGES:append:x64 = "\
+        ni-sdmon \
+        ni-wifibledd \
+"
+
 NI_PROPRIETARY_RUNMODE_PACKAGES = "\
         ni-arch-gen \
+        python3-ni-asset-discovery \
+"
+
+# SystemLink dependencies
+NI_PROPRIETARY_RUNMODE_PACKAGES:append = "\
         ni-sysmgmt-salt-minion-support \
         ni-sysmgmt-sysapi-expert \
-        python3-ni-asset-discovery \
         python3-ni-systemlink-sdk \
 "

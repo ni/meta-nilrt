@@ -1,0 +1,24 @@
+#!/bin/sh
+
+#Common functions for configuring wireless LAN interfaces
+
+# Usage: setup_wireless <interface_name>
+setup_wireless()
+{
+    INTERFACEW=$1
+
+    export DISABLE_CERTIFICATE_TIME_STAMP_VERIFICATION=1
+
+    # Bring the interface up, unless the radio's disabled, in which case rfkill it so
+    # it can't be brought up inadvertantly (e.g. by wpa_supplicant).
+    RADIOENABLED=`/usr/local/natinst/bin/nirtcfg --get section=${INTERFACEW},token=radioenabled,value=0`
+    if [ ${RADIOENABLED} = 1 ] ; then
+       ifconfig $INTERFACEW up
+    else
+       rfkill block wlan 0
+    fi
+
+    iw dev ${INTERFACEW} set power_save off
+
+    /etc/network/wpa_supplicant_conf
+}

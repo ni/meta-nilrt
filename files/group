@@ -9,6 +9,8 @@ systemd-network:x:497:
 systemd-resolve:x:496:
 render:x:495:
 # free space
+krill:x:404:
+xrdp:x:403:
 arpwatch:x:402:
 ptest:x:401:
 ossec:x:400:

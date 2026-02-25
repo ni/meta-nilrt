@@ -3,7 +3,7 @@
 # Copyright (c) 2013 National Instruments
 #
 # Script used to get the current version of safemode on the system, the version of safemode
-# for the specified cfg file, or the comparision of the safemode version on the system with
+# for the specified cfg file, or the comparison of the safemode version on the system with
 # the version of the safemode on the cfg file.
 #
 # returns:
@@ -12,7 +12,7 @@
 #    2 if the version for comparison is older
 #    3 if the version for comparison is the same
 #    4 if the version for comparison is newer
-#    5 if the comparison is invalid due to an unkown version for either the current or given safemode
+#    5 if the comparison is invalid due to an unknown version for either the current or given safemode
 
 usage()
 {
@@ -28,6 +28,20 @@ cleanup()
 
 unknown_ver_string=unknown
 
+get_version_itb()
+{
+	if [ -x /usr/bin/uboot-dumpimage ]; then
+		version_string=`/usr/bin/uboot-dumpimage -l $1 2>/dev/null | grep "FIT description" | awk -F ' - ' '{print $2}'`
+		if [ $? -ne 0 ]; then
+			version_string=""
+		fi
+	fi
+	if [ -z "$version_string" ]; then
+		version_string=$unknown_ver_string
+	fi
+	echo ${version_string//\"/}
+}
+
 get_version_grub()
 {
 	version_string=`grep ^component_version= $1`
@@ -39,9 +53,13 @@ get_version_grub()
 }
 
 mount_point="/boot"
-
-bootimage_data="bootimage.ini"
-get_version=get_version_grub
+if [ -f $mount_point/.safe/linux_safemode.itb ]; then
+	bootimage_data="linux_safemode.itb"
+	get_version=get_version_itb
+else
+	bootimage_data="bootimage.ini"
+	get_version=get_version_grub
+fi
 
 current_version_source=$mount_point/.safe/$bootimage_data
 version_source=$current_version_source

@@ -15,14 +15,12 @@ inherit packagegroup
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS ?= ""
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS ?= ""
 
-
 RDEPENDS:${PN} = "\
 	${MACHINE_ESSENTIAL_EXTRA_RDEPENDS} \
 	${VIRTUAL-RUNTIME_mountpoint} \
 "
 
 RDEPENDS:${PN} += "\
-	packagegroup-kernel-modules-essential \
 	${@bb.utils.contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
 	${@bb.utils.contains('MACHINE_FEATURES', 'acpi', 'busybox-acpid', '', d)} \
 	${@bb.utils.contains('MACHINE_FEATURES', 'keyboard', 'keymaps', '', d)} \
@@ -45,12 +43,7 @@ RDEPENDS:${PN} += "\
 	cronie \
 	curl \
 	daemonize \
-	dmidecode \
 	dpkg-start-stop \
-	e2fsprogs \
-	e2fsprogs-mke2fs \
-	efibootmgr \
-	efivar \
 	ethtool \
 	fw-printenv \
 	glibc-gconv-utf-16 \
@@ -67,7 +60,6 @@ RDEPENDS:${PN} += "\
 	libpam \
 	librtpi \
 	libstdc++ \
-	linux-firmware-i915 \
 	logrotate \
 	lsbinitscripts \
 	netbase \
@@ -88,7 +80,6 @@ RDEPENDS:${PN} += "\
 	opkg-keyrings \
 	os-release \
 	pigz \
-	pstore-save \
 	run-postinsts \
 	sudo \
 	sysconfig-settings \
@@ -103,4 +94,21 @@ RDEPENDS:${PN} += "\
 	util-linux-mount \
 	util-linux-runuser \
 	util-linux-umount \
+"
+
+RDEPENDS:${PN}:append:x64 = "\
+	packagegroup-kernel-modules-essential \
+	dmidecode \
+	e2fsprogs \
+	e2fsprogs-mke2fs \
+	efibootmgr \
+	efivar \
+	pstore-save \
+"
+
+RDEPENDS:${PN}:append:xilinx-zynq = "\
+	kernel-modules \
+	mtd-utils \
+	mtd-utils-ubifs \
+	jitterentropy-rngd \
 "
