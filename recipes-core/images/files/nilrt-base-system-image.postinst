@@ -3,6 +3,8 @@
 # Copyright (c) 2013,2017 National Instruments
 #
 
+arch="`uname -m`"
+
 # Something in base is installing /etc/natinst/share/uninstall that may not be
 # getting installed for SystemLink. nisid will fail if this directory doesn't
 # install, so this component ought to install /etc/natinst/share/uninstall
@@ -23,6 +25,12 @@ fi
 # Enable PersistentLogs by default so that technical reports can be generated via
 # Hardware Config Utility.
 /usr/local/natinst/bin/nirtcfg -s section=systemsettings,token=PersistentLogs.enabled,value=True
+
+# Temporarily enable ConsoleOut for all ARM targets to debug AB#3748097.
+# Will be removed in AB#3760326.
+if [ "$arch" = "armv7l" ]; then
+	/usr/local/natinst/bin/nirtcfg -s section=systemsettings,token=ConsoleOut.enabled,value=True
+fi
 
 # Add the memory reservation for Base. We assert that if the section exists,
 # it's already been added.
@@ -53,7 +61,6 @@ if grep -qs artemis /sys/firmware/devicetree/base/compatible ; then
 
 fi
 
-arch="`uname -m`"
 mount_point="/boot"
 class="`/sbin/fw_printenv -n TargetClass`"
 
