@@ -6,3 +6,4 @@ tmpfs                /run                 tmpfs      mode=0755,nodev,nosuid,stri
 tmpfs                /var/volatile        tmpfs      size=26%              0  0
 tmpfs                /dev/shm             tmpfs      mode=0777             0  0
 ubi0:bootfs          /boot                ubifs      noatime,sync          0  0
+ubi0:config          /etc/natinst/share   ubifs      sync                  0  0
