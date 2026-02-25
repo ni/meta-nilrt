@@ -25,7 +25,7 @@ FILES:${PN} += "\
 
 RDEPENDS:${PN} += "ni-wireless-common"
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 do_install() {
 	install -pd ${D}${base_libdir}/firmware/ath6k/AR6004/hw3.0
