@@ -12,7 +12,7 @@ WIRELESS_COMMON:xilinx-zynq = "wireless.common.arm"
 
 SRC_URI = "file://${WIRELESS_COMMON}"
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 do_install() {
 	install -d ${D}${sysconfdir}/natinst/networking

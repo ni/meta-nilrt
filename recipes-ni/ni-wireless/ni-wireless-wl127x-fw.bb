@@ -23,7 +23,7 @@ FILES:${PN} += "\
 
 RDEPENDS:${PN} += "ni-wireless-common"
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 do_install() {
 	install -pd ${D}${base_libdir}/firmware/ti-connectivity
