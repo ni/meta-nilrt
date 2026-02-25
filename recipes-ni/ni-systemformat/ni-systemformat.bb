@@ -7,8 +7,12 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 SECTION = "base"
 
-
 DEPENDS += "niacctbase"
+
+
+# ==============================================================================
+# SOURCES
+# ==============================================================================
 
 SRC_URI = "\
 	file://nisystemformat \
@@ -16,6 +20,21 @@ SRC_URI = "\
 "
 
 S = "${UNPACKDIR}"
+
+
+# ==============================================================================
+# BBCLASSES
+# ==============================================================================
+
+inherit update-rc.d
+
+INITSCRIPT_NAME = "nitargetinfo"
+INITSCRIPT_PARAMS = "start 20 S ."
+
+
+# ==============================================================================
+# TASKS
+# ==============================================================================
 
 do_install () {
 	install -d ${D}${bindir}
@@ -25,28 +44,27 @@ do_install () {
 	install -d ${D}${sysconfdir}/init.d
 	install -m 0755 ${S}/nitargetinfo ${D}${sysconfdir}/init.d/
 
-    # legacy symlink location
-    install -d ${D}/usr/local/natinst/bin
-    ln -sf ${bindir}/nisystemformat ${D}/usr/local/natinst/bin/nisystemformat
+	# legacy symlink location
+	install -d ${D}/usr/local/natinst/bin
+	ln -sf ${bindir}/nisystemformat ${D}/usr/local/natinst/bin/nisystemformat
 }
 
 
+# ==============================================================================
+# PACKAGING
+# ==============================================================================
+
+# nisystemformat
 FILES:${PN} += "\
 	${bindir}/nisystemformat \
 	${sysconfdir}/init.d/nitargetinfo \
 	/usr/local/natinst/bin/nisystemformat \
 "
-
-inherit update-rc.d
-
-INITSCRIPT_NAME = "nitargetinfo"
-INITSCRIPT_PARAMS = "start 20 S ."
-
 RDEPENDS:${PN} += "\
 	bash \
 	niacctbase \
 "
-# nisystemformat rdeps
+
 RDEPENDS:${PN} += "\
 	coreutils \
 	e2fsprogs-mke2fs \
