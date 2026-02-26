@@ -7,7 +7,7 @@
 # delete the runmode kernel.
 
 # Bail out on first error
-set -E -o errexit
+set -E -u -o errexit
 
 
 # ==============================================================================
@@ -32,22 +32,16 @@ CONFIG_MOUNT_POINT="/etc/natinst/share"
 ROOTFS_MOUNT_POINT="/mnt/userfs"
 TARGETINFO_PATH="$CONFIG_MOUNT_POINT/targetinfo.ini"
 
-# Network config
-NETCFG_MODE=bypass
-NETCFG_TMP=/tmp/netconfig.$$
-NINETCFGUTIL=/usr/local/natinst/bin/ninetcfgutil
-
 
 # ==============================================================================
 # IMPORTS
 # ==============================================================================
 
-source "$libdir"/exit_codes.sh   || exit
-	# EXITCODES
+source "$libdir"/exit_codes.sh   || exit 8
 source "$libdir"/util.sh  || exit ${EXITCODES[IMPORT_ERROR]}
-	# die, handle_err, with_retry, install_default_err_handler
 source "$libdir"/usage.sh || exit ${EXITCODES[IMPORT_ERROR]}
-	# parse_args, validate_args
+source "$libdir"/netconfig.sh || exit ${EXITCODES[IMPORT_ERROR]}
+
 
 # include common utilities
 if [ -e /etc/init.d/mountutils ]; then
@@ -136,41 +130,6 @@ format_config()
 		local options=""
 		mkfs.ext4 -q -F -I 256 -L $volume_label $options ${2:-$CONFIGFS_DEV}
 		;;
-	esac
-}
-
-
-netconfig_pre()
-{
-	[[ $NETCFG_MODE == bypass || $NETCFG_MODE == none ]] && return 0
-	rm -rf $NETCFG_TMP
-	mkdir -p $NETCFG_TMP
-	OPTS=()
-	case "$NETCFG_MODE" in
-		all) OPTS+=(-g secondary) ;&
-		primary) OPTS+=(-g primary) ;;
-	esac
-	$NINETCFGUTIL save -d $NETCFG_TMP ${OPTS[@]}
-}
-
-netconfig_post()
-{
-	case "$NETCFG_MODE" in
-		bypass)
-			return 0 ;;
-		all|primary)
-			$NINETCFGUTIL restore -d $NETCFG_TMP
-			rm -rf $NETCFG_TMP
-			;;
-		none)
-			rm -rf $NETCFG_TMP
-			mkdir -p $NETCFG_TMP
-			$NINETCFGUTIL erase -d $NETCFG_TMP -g primary -g secondary
-			rm -rf $NETCFG_TMP
-			mkdir -p $NETCFG_TMP
-			$NINETCFGUTIL pulldefault -d $NETCFG_TMP -g primary -g secondary
-			rm -rf $NETCFG_TMP
-			;;
 	esac
 }
 
@@ -334,6 +293,7 @@ esac
 
 parse_args "${@}"
 
+
 case "$MODE" in
 	format)
 		format_rootfs_or_userfs
@@ -350,4 +310,5 @@ case "$MODE" in
 	;;
 esac
 
-exit 0
+
+exit ${EXITCODES[OK]}
