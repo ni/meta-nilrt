@@ -38,15 +38,18 @@ clean :
 
 
 install : mkinstalldirs
+	cp -r $(srcdir)/lib/* $(DESTDIR)$(pkglibdir)
 	install -m 0550 $(srcdir)/nisystemformat $(DESTDIR)$(bindir)
 .PHONY : install
 
 
 mkinstalldirs :
 	mkdir -p $(DESTDIR)$(bindir)
+	mkdir -p $(DESTDIR)$(pkglibdir)
 .PHONY : mkinstalldirs
 
 
 uninstall :
+	rm -rf $(DESTDIR)$(pkglibdir)
 	rm -f $(DESTDIR)$(bindir)/nisystemformat
 .PHONY : uninstall
