@@ -37,7 +37,6 @@ RDEPENDS:${PN}:append:x64 = "\
 	dmidecode           \
 	efibootmgr          \
 	efivar              \
-	eudev               \
 	grub                \
 	grub-editenv        \
 	grub-efi            \
