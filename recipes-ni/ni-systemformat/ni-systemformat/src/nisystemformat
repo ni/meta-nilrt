@@ -74,13 +74,6 @@ is_bootflow_efi_ab()
     $(nisysteminfo | jq -e '.bootflow | test("efi-ab.*")')
 }
 
-set_mode()
-{
-	if [ -n "$MODE" ]; then
-		die_with_usage INVALID_ARGUMENT "Only one operation can be specified at a time."
-	fi
-	MODE=$1
-}
 
 supported_fstypes()
 {
@@ -213,6 +206,8 @@ targetinfo_restore()
 # failure if appropriate.
 format_rootfs_or_userfs()
 {
+	[[ $(supported_fstypes) =~ (^|,)$TYPE(,) ]] || die_with_usage INVALID_FSTYPE "Invalid fstype '$TYPE'"
+
 	/etc/init.d/systemWebServer stop ||:
 	/etc/init.d/sshd stop ||:
 	/etc/init.d/niauth stop ||:
