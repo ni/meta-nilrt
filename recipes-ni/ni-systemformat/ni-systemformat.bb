@@ -65,4 +65,5 @@ RDEPENDS:${PN} += "\
 	ni-netcfgutil \
 	niacctbase \
 	util-linux-lsblk \
+	util-linux-logger \
 "

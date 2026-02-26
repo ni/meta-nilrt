@@ -34,6 +34,33 @@ function handle_err() {
 export -f handle_err
 
 
+# Log a message with the specified log level.
+# Error messages will also be sent to syslog with the "user.err" priority.
+function log() {
+	local level="$1"  # log level (e.g. "INFO", "WARN", "ERROR")
+	local msg="${*:2}"  # message text
+
+	case "$level" in
+		INFO)
+			if [ "${VERBOSE}" = true ]; then
+				echo "INFO: $msg"
+			fi
+			;;
+		WARN)
+			echo "WARN: $msg"
+			;;
+		ERROR)
+			echo "ERROR: $msg"
+			logger -p user.err "nisystemformat: $msg" || :
+			;;
+		*)
+			echo "UNKNOWN: $msg"
+			;;
+	esac
+}
+export -f log
+
+
 # Retry loop for commands: Executes the specified command repeatedly
 # until it either exits with 0 or max number of retries are exhausted.
 function with_retry() {

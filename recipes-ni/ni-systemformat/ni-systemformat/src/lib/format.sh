@@ -1,4 +1,5 @@
 # Shell functions related to nisystemformat 'format' operations.
+# The main entrypoint for this library is ``format_rootfs_or_userfs``.
 
 
 # ==============================================================================
@@ -16,6 +17,22 @@ fi
 
 export CONFIG_MOUNT_POINT="/etc/natinst/share"
 export ROOTFS_MOUNT_POINT="/mnt/userfs"
+
+# WARN: The ordering of this array shows their *start order*. They will be
+# stopped in the reverse order.
+NECESSARY_SERVICES=( \
+	niauth \
+	sshd \
+	systemWebServer \
+)
+
+
+# ==============================================================================
+# IMPORTS
+# ==============================================================================
+
+source ${BASH_SOURCE%/*}/exit_codes.sh || exit 8
+source ${BASH_SOURCE%/*}/netconfig.sh || exit ${EXITCODES[IMPORT_ERROR]}
 
 
 # ==============================================================================
@@ -82,30 +99,42 @@ function format_rootfs()
 # Top-level entry point for reformats. Stop storage-sensitive system services
 # prior to the format attempt. Restart services on success if requested, or on
 # failure if appropriate.
-function format_rootfs_or_userfs()
-{
-	[[ $(supported_fstypes) =~ (^|,)$TYPE(,) ]] || die_with_usage INVALID_FSTYPE "Invalid fstype '$TYPE'"
-
-	/etc/init.d/systemWebServer stop ||:
-	/etc/init.d/sshd stop ||:
-	/etc/init.d/niauth stop ||:
-
+# Returns: 0 on success, nonzero on failure.
+function format_rootfs_or_userfs() {
 	# ABORTED_ATTEMPT=yes means something went wrong before we actually reformatted
 	# anything: go ahead and restart all services. We set it at the outset,
 	# so that any premature failure will set it by default, and unset it once it
 	# is no longer applicable.
 	ABORTED_ATTEMPT=yes
-	local ret=0
+	local ret=0  # function return code.
+	
+	# REQUEST VALIDATION
+	[[ $(supported_fstypes) =~ (^|,)$TYPE(,) ]] || \
+		die_with_usage INVALID_FSTYPE "Invalid fstype '$TYPE'"
+	# /REQUEST VALIDATION
+
+	# Stop services that may be impacted by the format operation.
+	trap "_necessary_services_action start" EXIT
+	_necessary_services_action stop
+	# Save off the current network configuration.
+	netconfig_pre
+	trap "netconfig_post; _necessary_services_action start" EXIT
+
+	# Do the actual format.
 	format_rootfs_or_userfs_nosvc || ret=$?
-	if (( ! ret )) && [ "$RELAUNCH" = yes ] || [ "$ABORTED_ATTEMPT" = yes ]
-	then
-		/etc/init.d/niauth start ||:
-		/etc/init.d/sshd start ||:
-		/etc/init.d/systemWebServer start ||:
-	fi
+
+	# Restore the network configuration.
+	netconfig_post || (( ret )) || ret=$?
+	# Restart services
+	_necessary_services_action start
+	trap - EXIT
+
+	# targetinfo.ini needs to be restored or it will not be recreated until
+	# a reboot into safemode
+	targetinfo_restore
+
 	return $ret
 }
-export -f format_rootfs_or_userfs
 
 
 # Format operation, assuming all impacted mountpoints are unmounted. This is
@@ -129,8 +158,6 @@ function format_rootfs_or_userfs_nomount()
 # restores system configuration, if necessary.
 function format_rootfs_or_userfs_nosvc()
 {
-	netconfig_pre || return $?
-
 	# Backup the shared .shadow file to the tmp dir.
 	if [ -f "$CONFIG_MOUNT_POINT/.shadow" ]; then
 		trap 'rm -f "$ACCTINFO_TMP/.shadow"' EXIT HUP INT TERM
@@ -175,10 +202,6 @@ function format_rootfs_or_userfs_nosvc()
 		mv -f "$ACCTINFO_TMP/.shadow" $CONFIG_MOUNT_POINT &&
 			rmdir $ACCTINFO_TMP	|| (( ret )) || ret=$?
 	fi
-
-	netconfig_post || (( ret )) || ret=$?
-	# targetinfo.ini needs to be restored or it will not be recreated until a reboot into safemode
-	targetinfo_restore || (( ret )) || ret=$?
 	return $ret
 }
 
@@ -216,7 +239,6 @@ function print_config_fstype()
 {
 	grep " $CONFIG_MOUNT_POINT " /proc/mounts | awk '{print $3}'
 }
-export -f print_config_fstype
 
 
 # Find the filesystem type of the root partition (or volume)
@@ -230,7 +252,47 @@ function print_root_fstype()
 		grep " / " /proc/mounts | awk '{if ($3 != "rootfs") print $3}'
 	fi
 }
-export -f print_root_fstype
+
+
+# Remount any impacted volumes if they were unmounted.
+# This is a no-op if the volumes were not unmounted.
+function _remount_volumes() {
+	mountpoint -q "$CONFIG_MOUNT_POINT" || mount "$CONFIG_MOUNT_POINT" ||:
+	mountpoint -q "$ROOTFS_MOUNT_POINT" || mount "$ROOTFS_MOUNT_POINT" ||:
+}
+
+
+# Perform the specified initscript action on all necessary services, in the
+# appropriate order depending on the action. If a service initscript does not
+# exist, it will be skipped.
+function _necessary_services_action() {
+	local action="$1"  # The initscript action to pass to the services.
+
+	case "$action" in
+		start|restart)
+			local services=("${NECESSARY_SERVICES[@]}")
+		;;
+		stop)
+			# Stop services in reverse order
+			local services=()
+			for ((i=${#NECESSARY_SERVICES[@]}-1; i>=0; i--)); do
+				services+=("${NECESSARY_SERVICES[i]}")
+			done
+			;;
+		*)
+			die INVALID_ARGUMENT "Invalid service action '$action'"
+		;;
+	esac
+
+	for service in "${services[@]}"; do
+		
+		if [ ! -e "/etc/init.d/$service" ]; then
+			log WARN "Service '$service' does not exist; skipping $action action for this service."
+			continue
+		fi
+		with_retry /etc/init.d/$service $action
+	done
+}
 
 
 # Print the supported filesystem types for this system.
@@ -241,5 +303,26 @@ function supported_fstypes()
 	hash /usr/sbin/ubiformat 2>/dev/null && [ "$ARCH" = "armv7l" ] && echo -n "ubifs," || true
 	hash /sbin/mkfs.ext4 2>/dev/null && [ "$ARCH" = "x86_64" ] && echo -n "ext4," || true
 }
-export -f supported_fstypes
 
+
+function targetinfo_restore()
+{
+	SUPPORTED_FS=$(supported_fstypes)
+	CURRENT_FS=$(print_root_fstype)
+	cat >"$TARGETINFO_PATH" <<-EOF
+	[FileSystem]
+	Current=$CURRENT_FS
+	Supported=$SUPPORTED_FS
+	EOF
+}
+
+
+# ==============================================================================
+# EXPORTS
+# ==============================================================================
+
+export -f format_rootfs_or_userfs
+export -f print_config_fstype
+export -f print_root_fstype
+export -f supported_fstypes
+export -f targetinfo_restore

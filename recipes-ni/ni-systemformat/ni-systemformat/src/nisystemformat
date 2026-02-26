@@ -45,16 +45,6 @@ fi
 # FUNCTIONS
 # ==============================================================================
 
-targetinfo_restore()
-{
-	SUPPORTED_FS=$(supported_fstypes)
-	CURRENT_FS=$(print_root_fstype)
-	cat >"$TARGETINFO_PATH" <<-EOF
-	[FileSystem]
-	Current=$CURRENT_FS
-	Supported=$SUPPORTED_FS
-	EOF
-}
 
 
 # ==============================================================================

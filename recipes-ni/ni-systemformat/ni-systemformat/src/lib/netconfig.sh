@@ -41,7 +41,9 @@ netconfig_pre()
 export -f netconfig_pre
 
 
-# Post-restore cleanup
+# Post-format, restore the network configuration from the temporary location.
+# If NETCFG_MODE is "bypass", no action is taken.
+# Returns 0 on success, nonzero on failure.
 netconfig_post()
 {
 	case "$NETCFG_MODE" in
