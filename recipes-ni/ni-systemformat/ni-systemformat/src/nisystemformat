@@ -5,8 +5,6 @@
 #
 # For grub and u-boot targets, format the rootfs and the config volumes and
 # delete the runmode kernel.
-# For RAUC targets, write init-action.cfg to format or boot into safemode on
-# the next boot.
 
 # Bail out on first error
 set -E -o errexit
@@ -34,16 +32,10 @@ CONFIG_MOUNT_POINT="/etc/natinst/share"
 ROOTFS_MOUNT_POINT="/mnt/userfs"
 TARGETINFO_PATH="$CONFIG_MOUNT_POINT/targetinfo.ini"
 
-RESET_OVERLAY=no
-
 # Network config
 NETCFG_MODE=bypass
 NETCFG_TMP=/tmp/netconfig.$$
 NINETCFGUTIL=/usr/local/natinst/bin/ninetcfgutil
-
-NIBOOT_DIR=/etc/niboot
-INIT_ACTION_CFG_FILE=$NIBOOT_DIR/init-action.cfg
-SYSCFG_IMAGE_TGZ_FILE=$NIBOOT_DIR/system-config-image.tgz
 
 
 # ==============================================================================
@@ -66,14 +58,6 @@ fi
 # ==============================================================================
 # FUNCTIONS
 # ==============================================================================
-
-is_bootflow_efi_ab()
-{
-    command -v nisysteminfo > /dev/null && \
-    command -v jq > /dev/null && \
-    $(nisysteminfo | jq -e '.bootflow | test("efi-ab.*")')
-}
-
 
 supported_fstypes()
 {
@@ -328,35 +312,6 @@ format_rootfs_or_userfs_nomount()
 	fi
 }
 
-write_init_action()
-{
-	echo "$1=true" > $INIT_ACTION_CFG_FILE
-}
-
-enqueue_rauc_format()
-{
-	if [ "$NETCFG_MODE" = all -o "$NETCFG_MODE" = primary ]; then
-		# TODO: Distinguish between primary and secondary adapters
-		transconf save $SYSCFG_IMAGE_TGZ_FILE
-		RESET_OVERLAY=yes
-	elif [ "$NETCFG_MODE" = none ]; then
-		# The transconf image file may have been written by a previous
-		# invocation of this script if -r was not specified.
-		rm $SYSCFG_IMAGE_TGZ_FILE
-	fi
-
-	if [ "$MODE" = runlevel4 ]; then
-		write_init_action "boot_safemode"
-	elif [ "$RESET_OVERLAY" = yes ]; then
-		write_init_action "reset_overlay"
-	else
-		write_init_action "reformat_niuser"
-	fi
-
-	if [ "$RELAUNCH" = yes ]; then
-		reboot
-	fi
-}
 
 # ==============================================================================
 # MAIN
@@ -369,10 +324,7 @@ if [ -f /etc/natinst/safemode ]; then
 	OSMODE=safemode
 elif [ -f /etc/natinst/restoremode ]; then
 	OSMODE=restore
-elif is_bootflow_efi_ab; then
-	OSMODE=runmode-rauc
 else
-	# in runmode the rootfs is in use, restricting available options
 	OSMODE=runmode
 fi
 
@@ -383,12 +335,8 @@ esac
 parse_args "${@}"
 
 case "$MODE" in
-	format|runlevel4)
-		if [ "$OSMODE" = "runmode-rauc" ]; then
-			enqueue_rauc_format
-		else
-			format_rootfs_or_userfs
-		fi
+	format)
+		format_rootfs_or_userfs
 	;;
 	status)
 		if [ "$VOL" = config ]; then
