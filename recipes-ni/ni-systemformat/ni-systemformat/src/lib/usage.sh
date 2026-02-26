@@ -50,85 +50,53 @@ function parse_args() {
 export -f parse_args
 
 
+# Set the script command mode, stored in the global ``MODE`` variable.
+function set_mode()
+{
+	local mode="$1"
+	if [ -n "$MODE" ]; then
+		die_with_usage INVALID_ARGUMENT "Only one operation can be specified at a time."
+	fi
+	MODE=$mode
+}
+export -f set_mode
+
+
 # Print usage information for the nisystemformat utility.
 usage()
 {
-	if [ "$OSMODE" = runmode-rauc ]; then
-		cat >&2 <<-EOF
-		Usage: $BASENAME [-f [-o][-r][-n <mode>] | -s | -l | -4 [-r]]
+	cat >&2 <<EOF
+# Commands
 
-		-f	Format the user volume
-		-4	Boot into run level 4
-		-h	Print this help
-		-s	List current filesystem type
-		-l	List possible filesystem types
-
-		-o	Reset the user overlay only.
-		-r	Reboot the target immediately
-		-n	Preserve system configuration according to <mode>:
-				all		Preserve all settings
-				primary		Preserve primary, reset secondary
-				none		Reset all settings
-				bypass		No configuration handling, equivalent to none (default)
-
-		Examples:
-
-		$BASENAME -f -r     - format the userfs
-		$BASENAME -f        - format the userfs on next boot
-		$BASENAME -f -o     - reset the user overlay but do not reformat the userfs
-		$BASENAME -f -n all - reset the user overlay and preserve system configuration
-		$BASENAME -4 -r     - reboot into run level 4
-		$BASENAME -s        - list current filesystem type
-		$BASENAME -l        - list possible filesystem types (',' separated)
-
-		EOF
-	elif [ "$OSMODE" != runmode ]; then
-		cat >&2 <<EOF
-# Synopsis
-
-Format the rootfs & configfs:
+Print help and exit:
+	$BASENAME -h
+Format the userfs with a specified filesystem type:
 	$BASENAME -f -t <type> [-c] [-r] [-n <mode>]
-Print the filesystem type of the rootfs or configfs:
+Print the current filesystem type of the userfs:
 	$BASENAME -s [-c]
 List possible filesystem types:
 	$BASENAME -l
 
 
-# Commands
+## RAUC only commands
 
--f  Format the volume.
--h  Print this help and exit.
--s  List current filesystem type.
--l  List possible filesystem types (',' separated).
+Reboot to runlevel 4:
+	$BASENAME -4 [-r]
+Reset the user overlay without formatting the userfs:
+	$BASENAME -f -o [-r] [-n <mode>]
 
 
 # Options
 
--c           Format the config volume (otherwise rootfs + kernel)
--t  <type>   Filesystem type
--r           Relaunch the system webserver after format
--n           Preserve network config according to <mode>:
+-c          Target the command at the niconfig volume instead of the userfs.
+-t  <type>  Filesystem type
+-r          Relaunch the system webserver after format
+-n          Preserve network config according to <mode>:
 	all      Preserve all settings
 	primary  Preserve primary, reset secondary
 	none     Reset all settings
 	bypass   No configuration handling (default)
 EOF
-	else
-		cat >&2 <<-EOF
-		Usage: $BASENAME [-s [-c]|-l]
-
-		-h	Print this help
-		-s	List current filesystem type
-		-l	List supported filesystem types
-		-c	Config volume (otherwise rootfs + kernel)
-
-		Examples:
-
-		$BASENAME -s		print the filesystem type of the rootfs volume
-		$BASENAME -s -c		print the filesystem type of the config volume
-
-		EOF
-	fi
 }
 export -f usage
 
@@ -147,7 +115,7 @@ function validate_args() {
 				"fstype option (-t) cannot be specified on RAUC targets."
 		elif [ -n "$VOL" ]; then
 			die_with_usage INVALID_ARGUMENT \
-				"Volume name (-v) cannot be specified on RAUC targets."
+				"niconfig volume (-c) cannot be specified on RAUC targets."
 		fi
 	else
 		if [ "$RESET_OVERLAY" = yes ]; then
@@ -190,7 +158,7 @@ function validate_args() {
 
 	if [ "$MODE" = list -a -n "$VOL" ]; then
 		die_with_usage INVALID_ARGUMENT \
-			"Volume name (-v) cannot be specified when listing fs types (-l)"
+			"niconfig volume (-c) cannot be specified when listing fs types (-l)"
 	fi
 
 	if [ "$MODE" != format -a "$NETCFG_MODE" != "bypass" ]; then
@@ -210,7 +178,5 @@ function validate_args() {
 		if [ -z "$TYPE" ]; then
 			die_with_usage INVALID_FSTYPE "No filesystem type was specified"
 		fi
-
-		[[ $(supported_fstypes) =~ (^|,)$TYPE(,) ]] || die_with_usage INVALID_FSTYPE "Invalid fstype '$TYPE'"
 	fi
 }
