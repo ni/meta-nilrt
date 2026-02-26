@@ -4,6 +4,8 @@
 #
 # Depends on exit_codes.sh for the EXITCODES associative array.
 
+source ${BASH_SOURCE%/*}/exit_codes.sh || exit 8
+
 
 COMMAND_RETRY_COUNT=30
 COMMAND_RETRY_SLEEP=1
