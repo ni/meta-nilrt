@@ -10,21 +10,22 @@ ARCH=${ARCH:=$(uname -m)}
 
 ACCTINFO_TMP=/tmp/acctinfo
 
+# The *partition* labels for each logical volume.
+# If LUKS encryption is used, the LUKS partition labels will have "-luks" appended.
+USERFS_PARTLABEL=nirootfs
+NICONFIG_PARTLABEL=niconfig
+# The *Filesystem* labels for each logical volume.
+# These will also be the dm mapping names if encryption is used.
+USERFS_LABEL=nirootfs
+NICONFIG_LABEL=niconfig
+
 if [ "$ARCH" = "x86_64" ]; then
-	CONFIGFS_DEV=/dev/disk/by-label/niconfig
-	ROOTFS_DEV=/dev/disk/by-label/nirootfs
+	CONFIGFS_DEV=/dev/disk/by-partlabel/$NICONFIG_PARTLABEL
+	ROOTFS_DEV=/dev/disk/by-partlabel/$USERFS_PARTLABEL
 fi
 
 export CONFIG_MOUNT_POINT="/etc/natinst/share"
 export ROOTFS_MOUNT_POINT="/mnt/userfs"
-
-# WARN: The ordering of this array shows their *start order*. They will be
-# stopped in the reverse order.
-NECESSARY_SERVICES=( \
-	niauth \
-	sshd \
-	systemWebServer \
-)
 
 
 # ==============================================================================
@@ -32,6 +33,7 @@ NECESSARY_SERVICES=( \
 # ==============================================================================
 
 source ${BASH_SOURCE%/*}/exit_codes.sh || exit 8
+source ${BASH_SOURCE%/*}/encryption.sh || exit ${EXITCODES[IMPORT_ERROR]}
 source ${BASH_SOURCE%/*}/netconfig.sh || exit ${EXITCODES[IMPORT_ERROR]}
 
 
@@ -39,11 +41,67 @@ source ${BASH_SOURCE%/*}/netconfig.sh || exit ${EXITCODES[IMPORT_ERROR]}
 # FUNCTIONS
 # ==============================================================================
 
+# Convert a device partition to a LUKS encrypted volume, using TPM-based key
+# management.
+function _convert_to_luks() {
+	local dev="$1"  # the block device to convert (e.g. /dev/sda1)
+	local fslabel="$2"
+
+	# If the USERFS partition is not a LUKS volume, make sure to remove its FSLabel
+	if ! cryptsetup isLuks "$dev" 2>/dev/null; then
+		log INFO "Removing existing filesystem label from $dev (if any)"
+		e2label "$dev" "" 2>/dev/null
+	fi
+
+	# Generate a random master key, which we will discard later.
+	master_keyfile=$(mktemp -p /dev/shm ni-systemformat.masterkey.XXXXXX)
+	chmod 0600 "$master_keyfile"
+	dd if=/dev/urandom of="$master_keyfile" bs=512 count=1 2>/dev/null || \
+		die UNKNOWN_ERROR "Failed to generate random master key"
+
+	# TODO: restrict cipher characteristics
+	cryptsetup luksFormat \
+		--encrypt \
+		--label "$fslabel-luks" \
+		--type luks2 \
+		--key-slot 0 \
+		--key-size 256 \
+		--cipher aes-xts-plain64 \
+		--batch-mode \
+		--key-file "$master_keyfile" \
+		"$dev"
+	ni-reseal-luks --yes "$master_keyfile"
+	clevis luks unlock \
+		-d "$dev" \
+		-n "$fslabel"
+
+	# Best-effort to remove the master keyfile, but it is on a tmpfs anyway.
+	rm -f "$master_keyfile"
+	
+	ROOTFS_DEV="/dev/mapper/$fslabel"
+}
+
+
 # Format the config volume
 function format_config()
 {
 	local fstype="$1"  # filesystem type
 	local configfs_dev="${2:-$CONFIGFS_DEV}"  # device to format (optional, defaults to $CONFIGFS_DEV)
+
+		# Optionally convert the userfs to a LUKS volume and mount it.
+	if [ "$OPT_ENCRYPT" = yes ]; then
+		log INFO "Encrypting $configfs_dev with LUKS..."
+		_convert_to_luks "$configfs_dev" "$NICONFIG_PARTLABEL" \
+			|| die UNKNOWN_ERROR "Failed to convert configfs partition to LUKS."
+		log INFO "DONE"
+		configfs_dev="$CONFIGFS_DEV"  # update configfs_dev to point to the new mapper device
+	else
+		if cryptsetup isLuks "$configfs_dev" 2>/dev/null; then
+			log INFO "Converting $configfs_dev back to non-LUKS."
+			cryptsetup erase -q "${configfs_dev}"
+		fi
+	fi
+
 	# fstype is validated before calling format_config
 	case "$1" in
 	  ubifs)
@@ -65,6 +123,7 @@ function format_rootfs()
 {
 	local fstype="$1"  # filesystem type
 	local rootfs_dev="${2:-$ROOTFS_DEV}"  # device to format (optional)
+
 	# remove Zynq kernel
 	rm -f /boot/linux_runmode.itb
 
@@ -79,6 +138,20 @@ function format_rootfs()
 		mkdir /boot/runmode
 	fi
 
+	# Optionally convert the userfs to a LUKS volume and mount it.
+	if [ "$OPT_ENCRYPT" = yes ]; then
+		log INFO "Encrypting $rootfs_dev with LUKS..."
+		_convert_to_luks "$rootfs_dev" "$USERFS_PARTLABEL" \
+			|| die UNKNOWN_ERROR "Failed to convert rootfs partition to LUKS."
+		log INFO "DONE"
+		rootfs_dev="$ROOTFS_DEV"  # update rootfs_dev to point to the new mapper device
+	else
+		if cryptsetup isLuks "$rootfs_dev" 2>/dev/null; then
+			log INFO "Converting $rootfs_dev back to non-LUKS."
+			cryptsetup erase -q "${rootfs_dev}"
+		fi
+	fi
+
 	# fstype is validated before calling format_rootfs
 	case "$fstype" in
 	  ubifs)
@@ -90,7 +163,7 @@ function format_rootfs()
 	  ext4)
 		local volume_label="nirootfs"
 		local options=""
-		mkfs.ext4 -q -F -L $volume_label $options "${rootfs_dev}"
+		mkfs.ext4 -q -F -L "$volume_label" $options "$rootfs_dev"
 		;;
 	esac
 }
@@ -111,14 +184,20 @@ function format_rootfs_or_userfs() {
 	# REQUEST VALIDATION
 	[[ $(supported_fstypes) =~ (^|,)$TYPE(,) ]] || \
 		die_with_usage INVALID_FSTYPE "Invalid fstype '$TYPE'"
+	if [ "$OPT_ENCRYPT" = yes ]; then
+		check_tpm || die BAD_ENVIRONMENT \
+			"Encryption was requested but no TPM device was found."
+		type cryptsetup >/dev/null || die BAD_ENVIRONMENT \
+			"Encryption was requested but cryptsetup is not installed."
+	fi
 	# /REQUEST VALIDATION
 
 	# Stop services that may be impacted by the format operation.
-	trap "_necessary_services_action start" EXIT
-	_necessary_services_action stop
+	trap "_necessary_services_start" EXIT
+	_necessary_services_stop
 	# Save off the current network configuration.
 	netconfig_pre
-	trap "netconfig_post; _necessary_services_action start" EXIT
+	trap "netconfig_post; _necessary_services_start" EXIT
 
 	# Do the actual format.
 	format_rootfs_or_userfs_nosvc || ret=$?
@@ -126,7 +205,7 @@ function format_rootfs_or_userfs() {
 	# Restore the network configuration.
 	netconfig_post || (( ret )) || ret=$?
 	# Restart services
-	_necessary_services_action start
+	_necessary_services_start
 	trap - EXIT
 
 	# targetinfo.ini needs to be restored or it will not be recreated until
@@ -210,12 +289,7 @@ function format_rootfs_or_userfs_nosvc()
 # impacted system configuration has been saved off.
 function format_rootfs_or_userfs_nosvc_noconf() {
 	local ret=0
-	if \
-		with_retry /etc/init.d/populateconfig stop &&
-		with_retry /etc/init.d/mountconfig stop &&
-		with_retry /etc/init.d/mountcompatibility stop &&
-		with_retry /etc/init.d/mountuserfs stop
-	then
+	if _unmount_volumes; then
 		format_rootfs_or_userfs_nomount || (( ret )) || ret=$?
 	else
 		ret=$?
@@ -226,10 +300,7 @@ function format_rootfs_or_userfs_nosvc_noconf() {
 	# configfs needs to be mounted before rootfs otherwise only one
 	# *etc/natinst/share will be mounted. (This may be a bug in the mount*
 	# initscripts.)
-	with_retry /etc/init.d/mountconfig start &&
-		with_retry /etc/init.d/populateconfig start || (( ret )) || ret=$?
-	with_retry /etc/init.d/mountuserfs start &&
-		with_retry /etc/init.d/mountcompatibility start || (( ret )) || ret=$?
+	_mount_volumes || (( ret )) || ret=$?
 	return $ret
 }
 
@@ -253,47 +324,23 @@ function print_root_fstype()
 	fi
 }
 
-
-# Remount any impacted volumes if they were unmounted.
-# This is a no-op if the volumes were not unmounted.
-function _remount_volumes() {
-	mountpoint -q "$CONFIG_MOUNT_POINT" || mount "$CONFIG_MOUNT_POINT" ||:
-	mountpoint -q "$ROOTFS_MOUNT_POINT" || mount "$ROOTFS_MOUNT_POINT" ||:
+function _necessary_services_stop() {
+	/etc/init.d/systemWebServer stop
+	# SSHd uses start-stop-daemon without the --oknodo arg, so returns nonzero
+	# if the daemon is not running.
+	# That's OK. So use the initscript's 'status' command to double-check.
+	if ! /etc/init.d/sshd stop; then
+		/etc/init.d/sshd status && [ $? -eq 3 ]
+	fi
+	/etc/init.d/niauth stop
 }
 
 
-# Perform the specified initscript action on all necessary services, in the
-# appropriate order depending on the action. If a service initscript does not
-# exist, it will be skipped.
-function _necessary_services_action() {
-	local action="$1"  # The initscript action to pass to the services.
-
-	case "$action" in
-		start|restart)
-			local services=("${NECESSARY_SERVICES[@]}")
-		;;
-		stop)
-			# Stop services in reverse order
-			local services=()
-			for ((i=${#NECESSARY_SERVICES[@]}-1; i>=0; i--)); do
-				services+=("${NECESSARY_SERVICES[i]}")
-			done
-			;;
-		*)
-			die INVALID_ARGUMENT "Invalid service action '$action'"
-		;;
-	esac
-
-	for service in "${services[@]}"; do
-		
-		if [ ! -e "/etc/init.d/$service" ]; then
-			log WARN "Service '$service' does not exist; skipping $action action for this service."
-			continue
-		fi
-		with_retry /etc/init.d/$service $action
-	done
+function _necessary_services_start() {
+	with_retry /etc/init.d/niauth start
+	with_retry /etc/init.d/sshd start
+	with_retry /etc/init.d/systemWebServer start
 }
-
 
 # Print the supported filesystem types for this system.
 # The output is a comma-separated list of filesystem types,
@@ -305,6 +352,7 @@ function supported_fstypes()
 }
 
 
+# Restore the targetinfo.ini file on the configfs.
 function targetinfo_restore()
 {
 	SUPPORTED_FS=$(supported_fstypes)
@@ -314,6 +362,39 @@ function targetinfo_restore()
 	Current=$CURRENT_FS
 	Supported=$SUPPORTED_FS
 	EOF
+}
+
+function _mount_volumes() {
+	local ret=0
+	# Mount volumes in the rcS.d order.
+	with_retry /etc/init.d/mountconfig start || ret=$?
+	with_retry /etc/init.d/populateconfig start || ret=$?
+	with_retry /etc/init.d/mountuserfs start || ret=$?
+	with_retry /etc/init.d/mountcompatibility start || ret=$?
+	return $ret
+}
+
+
+# Unmount volumes in reverse rcS.d order.
+# Handle open crypto mappings as well.
+# Returns: 0 on success, nonzero on failure.
+function _unmount_volumes() {
+	# Unount volumes in reverse rcS.d order.
+	with_retry /etc/init.d/mountcompatibility stop || return $?
+	with_retry /etc/init.d/mountuserfs stop || return $?
+	with_retry /etc/init.d/populateconfig stop || return $?
+	with_retry /etc/init.d/mountconfig stop || return $?
+
+	# Close open crypto mappings
+	if type cryptsetup >/dev/null 2>&1; then
+		for fslabel in $USERFS_LABEL $NICONFIG_LABEL; do
+			dmsetup ls --target crypt | grep -q "^$fslabel\s" || continue
+			log INFO "Closing crypto mapping for $fslabel"
+			cryptsetup close -q "$fslabel" || return $?
+		done
+	fi
+
+	return 0
 }
 
 

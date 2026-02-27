@@ -2,6 +2,25 @@
 #
 # Depends upon util.sh.
 
+source ${BASH_SOURCE%/*}/util.sh || exit 8
+
+
+# ==============================================================================
+# OPTIONS
+# ==============================================================================
+
+export MODE=""  # Command mode to run in; one of "format", "status", "list", or "runlevel4"
+export NETCFG_MODE=bypass  # Whether and how to preserve network config when formatting
+export OPT_ENCRYPT=no  # Whether to encrypt the partition with LUKS when formatting
+export RELAUNCH=no  # Whether to relaunch the system webserver after format
+export TYPE=""  # Filesystem type to format with, for format command
+export VOL=userfs  # Volume to operate on; either "userfs" or "config"
+
+
+# ==============================================================================
+# FUNCTIONS
+# ==============================================================================
+
 
 # Exit with usage information and an error message.
 function die_with_usage() {
@@ -23,11 +42,12 @@ function parse_args() {
 		die_with_usage INVALID_ARGUMENT "No command-line arguments specified."
 	fi
 
-	while getopts "4cfhln:orst:" option
+	while getopts "4cefhln:orst:" option
 	do
 		case $option in
 			4)  set_mode runlevel4;;
 			c)  VOL=config;;
+			e)  OPT_ENCRYPT=yes;;
 			f)  set_mode format;;
 			h)
 				usage
@@ -53,7 +73,7 @@ export -f parse_args
 function set_mode()
 {
 	local mode="$1"
-	if [ -n "$MODE" ]; then
+	if [ -n "${MODE:-}" ]; then
 		die_with_usage INVALID_ARGUMENT "Only one operation can be specified at a time."
 	fi
 	MODE=$mode
@@ -70,7 +90,7 @@ usage()
 Print help and exit:
 	$BASENAME -h
 Format the userfs with a specified filesystem type:
-	$BASENAME -f -t <type> [-c [-r]] [-n <mode>]
+	$BASENAME -f -t <type> [-c [-r]] [-e] [-n <mode>]
 Print the current filesystem type of the userfs:
 	$BASENAME -s [-c]
 List possible filesystem types:
@@ -80,6 +100,7 @@ List possible filesystem types:
 # Options
 
 -c          Target the command at the niconfig volume instead of the userfs.
+-e          Encrypt the partition with LUKS, when formatting.
 -t  <type>  Filesystem type
 -r          Relaunch the system webserver after format
 -n          Preserve network config according to <mode>:

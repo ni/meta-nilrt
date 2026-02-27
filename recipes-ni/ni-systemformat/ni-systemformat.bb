@@ -54,7 +54,6 @@ do_install () {
 # PACKAGING
 # ==============================================================================
 
-# nisystemformat
 FILES:${PN} += "\
 	/usr/local/natinst/bin/nisystemformat \
 "
@@ -62,8 +61,15 @@ RDEPENDS:${PN} += "\
 	bash \
 	coreutils \
 	e2fsprogs-mke2fs \
+	pkgconfig \
 	ni-netcfgutil \
 	niacctbase \
 	util-linux-lsblk \
 	util-linux-logger \
+"
+# LUKS encryption support
+RDEPENDS:${PN} += "\
+	coreutils-shred \
+	cryptsetup \
+	ni-device-encryption \
 "
