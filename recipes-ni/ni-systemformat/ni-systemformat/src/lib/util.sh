@@ -34,6 +34,15 @@ function handle_err() {
 export -f handle_err
 
 
+# Install the default error handler for the nisystemformat scripts, which will
+# print an error message and exit with the UNKNOWN_ERROR exit code whenever a
+# command exits with a non-zero status and is not otherwise handled.
+function install_default_err_handler() {
+	trap 'handle_err ${BASH_SOURCE} ${LINENO} ${FUNCNAME:-unknown} $?' ERR
+}
+export -f install_default_err_handler
+
+
 # Log a message with the specified log level.
 # Error messages will also be sent to syslog with the "user.err" priority.
 function log() {
@@ -42,7 +51,7 @@ function log() {
 
 	case "$level" in
 		INFO)
-			if [ "${VERBOSE}" = true ]; then
+			if [ "${VERBOSE:-}" = true ]; then
 				echo "INFO: $msg"
 			fi
 			;;
@@ -59,6 +68,29 @@ function log() {
 	esac
 }
 export -f log
+
+
+# Creates a temporary file (as through mktemp) in a private directory in
+# shared memory which will be deleted on process exit.
+# The private directory path is exported as ``TMPDIR_PRIVATE`` and reused
+# for subsequent calls to this function.
+function mktemp_private() {
+	local template="${1:-XXXXXX}"  # template for the temp file
+
+	# If the TMPDIR_PRIVATE doesn't exist yet, create it.
+	if [ -z "$TMPDIR_PRIVATE" -o ! -d "$TMPDIR_PRIVATE" ]; then
+		TMPDIR_PRIVATE=$(mktemp -d -p /dev/shm ni-systemformat.XXXXXX)
+		chmod 0700 "$TMPDIR_PRIVATE"
+		trap 'rm -rf "$TMPDIR_PRIVATE"' EXIT INT TERM
+	fi
+
+	# Create the temp file in the private directory.
+	local tmpfile="$(mktemp -p "$TMPDIR_PRIVATE" "$template")"
+	chmod 0600 "$tmpfile"
+	echo "$tmpfile"
+}
+export -f mktemp_private
+export TMPDIR_PRIVATE=""
 
 
 # Retry loop for commands: Executes the specified command repeatedly
@@ -78,12 +110,3 @@ function with_retry() {
 	return 1
 }
 export -f with_retry
-
-
-# Install the default error handler for the nisystemformat scripts, which will
-# print an error message and exit with the UNKNOWN_ERROR exit code whenever a
-# command exits with a non-zero status and is not otherwise handled.
-function install_default_err_handler() {
-	trap 'handle_err ${BASH_SOURCE} ${LINENO} ${FUNCNAME:-unknown} $?' ERR
-}
-export -f install_default_err_handler
