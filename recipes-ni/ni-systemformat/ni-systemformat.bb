@@ -15,8 +15,10 @@ DEPENDS += "niacctbase"
 # ==============================================================================
 
 SRC_URI = "\
-	file://nisystemformat \
-	file://nitargetinfo \
+	file://src/nisystemformat \
+	file://init/ \
+	file://src/ \
+	file://Makefile \
 "
 
 S = "${UNPACKDIR}"
@@ -37,12 +39,14 @@ INITSCRIPT_PARAMS = "start 20 S ."
 # ==============================================================================
 
 do_install () {
-	install -d ${D}${bindir}
-	install -m 0550 ${S}/nisystemformat ${D}${bindir}
-	chown 0:${LVRT_GROUP} ${D}${bindir}/nisystemformat
+	oe_runmake install DESTDIR=${D}
 
+	# Install project initscripts
 	install -d ${D}${sysconfdir}/init.d
-	install -m 0755 ${S}/nitargetinfo ${D}${sysconfdir}/init.d/
+	install -m 0544 ${S}/init/nitargetinfo ${D}${sysconfdir}/init.d/nitargetinfo
+
+	# The nisystemformat binary can ban executed by anyone in the 'ni' group.
+	chown 0:${LVRT_GROUP} ${D}${bindir}/nisystemformat
 
 	# legacy symlink location
 	install -d ${D}/usr/local/natinst/bin
