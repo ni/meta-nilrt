@@ -45,6 +45,9 @@ bootimg_fixup_x64() {
 
 bootimg_fixup_arm() {
 	mv "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/fitImage" "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/linux_runmode.itb"
+    find ${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST} -maxdepth 1 -type f \
+        ! -name 'linux_runmode.itb' \
+        -exec rm -f {} +
 }
 
 IMAGE_PREPROCESS_COMMAND:append:x64 = " bootimg_fixup_x64; "
