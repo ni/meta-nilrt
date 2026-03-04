@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# If the nvs file doesn't exist grab it from the u-boot env (if that exists)
+if ! [ -f /lib/firmware/ti-connectivity/wl1271-nvs.bin -a \
+       -f /lib/firmware/ti-connectivity/wl127x-nvs.bin ]
+then
+   [ "${VERBOSE}" != "no" ] && echo "Creating wl12xx nvs."
+   wl12xxnvs=`fw_printenv -n wl12xxnvs 2> /dev/null` &&
+      echo $wl12xxnvs | tr '`' '\n' | uudecode &&
+      gunzip -f /lib/firmware/ti-connectivity/wl1271-nvs.bin.gz &&
+      ln -s /lib/firmware/ti-connectivity/wl1271-nvs.bin \
+            /lib/firmware/ti-connectivity/wl127x-nvs.bin
+fi
