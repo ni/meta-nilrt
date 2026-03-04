@@ -1,0 +1,4 @@
+# Package variables for ni-device-encryption
+
+export PACKAGE=@PACKAGE@
+export VERSION=@VERSION@
