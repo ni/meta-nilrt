@@ -40,7 +40,13 @@ bootimg_fixup_x64() {
 }
 
 bootimg_fixup_arm() {
-	mv "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/fitImage" "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/linux_runmode.itb"
+	# Stage the ITB under boot/runmode/ rather than directly in boot/.
+	# This prevents u-boot from attempting to boot a partially-extracted
+	# runmode installation: if BSI extraction fails (e.g. disk full), postinst
+	# never runs, so the ITB is never moved to its final /boot location and
+	# u-boot will correctly treat runmode as not installed.
+	install -d "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/runmode"
+	mv "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/fitImage" "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/runmode/linux_runmode.itb"
     find ${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST} -maxdepth 1 -type f \
         ! -name 'linux_runmode.itb' \
         -exec rm -f {} +

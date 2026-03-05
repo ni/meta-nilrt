@@ -81,6 +81,11 @@ if [ "$arch" = "armv7l" ]; then
    # So files that get extracted into /mnt/userfs/boot have to be moved into /boot.
 	if [ ! -f "$mount_point/linux_runmode.itb" ]; then
 		mv /mnt/userfs/boot/* "$mount_point"
+		# The ITB is staged in boot/runmode/ inside the rootfs archive to prevent
+		# u-boot from seeing a partially-installed runmode if BSI extraction fails.
+		# Move it to its final /boot location now that all other files are in place.
+		mv "$mount_point/runmode/linux_runmode.itb" "$mount_point/linux_runmode.itb"
+		rmdir "$mount_point/runmode" 2>/dev/null || true
 	fi
 elif [ "$arch" = "x86_64" ]; then
 	kernel="/mnt/userfs/boot/tmp/runmode"
