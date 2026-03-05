@@ -1,7 +1,5 @@
 COMPATIBLE_MACHINE = "xilinx-zynq"
-PROVIDES += "fw-printenv"
 DEPENDS += "niacctbase"
-RPROVIDES:${PN}-bin += "fw-printenv"
 RDEPENDS:${PN}-bin += "u-boot-env"
 
 do_install:append() {
