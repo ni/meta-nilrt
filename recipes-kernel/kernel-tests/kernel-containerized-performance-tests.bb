@@ -12,8 +12,7 @@ S = "${UNPACKDIR}"
 
 DEPENDS = "virtual/kernel"
 RDEPENDS:${PN}-ptest += "bash python3 docker"
-RDEPENDS:${PN}-ptest:append:x64 = " fw-printenv"
-RDEPENDS:${PN}-ptest:append:armv7a = " u-boot-fw-utils"
+RDEPENDS:${PN}-ptest:append = " fw-printenv"
 
 ALLOW_EMPTY:${PN} = "1"
 
