@@ -15,7 +15,6 @@ RDEPENDS:${PN} = " \
 	e2fsprogs-e2fsck \
 	e2fsprogs-mke2fs \
 	e2fsprogs-tune2fs \
-	ni-acctsync \
 	ni-netcfgutil \
 	ni-shutdown-guard-safemode \
 	ni-systemimage \

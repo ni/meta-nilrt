@@ -25,7 +25,6 @@ RDEPENDS:${PN} = "\
 	lldpd \
 	mpfr \
 	nftables \
-	ni-acctsync \
 	ni-cgroups \
 	ni-configpersistentlogs \
 	ni-locale-alias \

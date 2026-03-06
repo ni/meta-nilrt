@@ -1,0 +1,6 @@
+#!/bin/sh
+
+[ "$PAM_TYPE" = "password" ] || exit 0
+[ "$PAM_USER" = "root" ] || exit 0
+
+/etc/init.d/ni-acctsync stop

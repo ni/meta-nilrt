@@ -61,6 +61,7 @@ RDEPENDS:${PN} += "\
 	lsbinitscripts \
 	modutils-initscripts \
 	netbase \
+	ni-acctsync \
 	ni-hw-scripts \
 	ni-rtfeatures \
 	ni-safemode-utils \
