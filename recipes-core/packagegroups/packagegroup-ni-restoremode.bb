@@ -49,7 +49,6 @@ RDEPENDS:${PN}:append:xilinx-zynq = "\
 	"
 
 RRECOMMENDS:${PN}:x64 = "\
-	kernel-module-tpm-tis \
 	kernel-module-atkbd \
 	kernel-module-hyperv-keyboard \
 	kernel-module-hv-storvsc \
