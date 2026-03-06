@@ -1,7 +1,7 @@
 PACKAGES += "${PN}-fw-utils"
 
-PROVIDES += "fw-printenv"
-RPROVIDES:${PN}-fw-utils = "fw-printenv"
+PROVIDES:xilinx-zynq += "fw-printenv"
+RPROVIDES:${PN}-fw-utils:xilinx-zynq = "fw-printenv"
 RCONFLICTS:${PN}-fw-utils = "libubootenv-bin"
 DEPENDS += "niacctbase"
 RDEPENDS:${PN}-fw-utils = "u-boot-env"
