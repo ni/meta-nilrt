@@ -1,11 +1,16 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
 
+RDEPENDS:${PN} += "ni-acctsync pam-plugin-exec"
+
 SRC_URI += "\
 	file://security/faillock.conf \
+	file://scripts/ni-acctsync-pam \
 "
 
 do_install:append() {
 	install -m 644 ${UNPACKDIR}/security/faillock.conf ${D}${sysconfdir}/security/faillock.conf
+	install -m 700 ${UNPACKDIR}/scripts/ni-acctsync-pam ${D}${sbindir}/ni-acctsync-pam
+	sed -E -i '/^password[[:space:]]+requisite[[:space:]]+pam_deny\.so$/a password\toptional\t\t\tpam_exec.so /usr/sbin/ni-acctsync-pam' "${D}${sysconfdir}/pam.d/common-password"
 }
 
 pkg_postinst:pam-plugin-faillock:append() {
