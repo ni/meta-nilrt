@@ -25,16 +25,14 @@ NI_PROPRIETARY_COMMON_PACKAGES = "\
         ni-webserver-libs \
         ni-webservices-webserver-support \
         ni-wif-landingpage \
+        ni-wifibledd \
         nicurl \
         nirtcfg \
         nirtmdnsd \
 "
 
-# TODO: ni-wifibledd is required for ARM but there is no ARM build for it.
-# Add it back to NI_PROPRIETARY_COMMON_PACKAGES when there is.
 NI_PROPRIETARY_COMMON_PACKAGES:append:x64 = "\
         ni-sdmon \
-        ni-wifibledd \
 "
 
 NI_PROPRIETARY_RUNMODE_PACKAGES = "\
