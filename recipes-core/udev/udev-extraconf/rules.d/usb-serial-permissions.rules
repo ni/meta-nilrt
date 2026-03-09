@@ -1,2 +1,10 @@
-SUBSYSTEM=="tty", KERNEL=="ttyUSB*", GROUP="tty", MODE="0666"
-SUBSYSTEM=="tty", KERNEL=="ttyACM*", GROUP="tty", MODE="0666"
+# Import runtime toggle (NI_WORLDWRITABLE) from /etc/udev/scripts/ni-worldwritable.sh
+IMPORT{program}="/etc/udev/scripts/ni-worldwritable.sh"
+
+# When NI_WORLDWRITABLE=1, keep world-writable (0666)
+SUBSYSTEM=="tty", KERNEL=="ttyUSB*", ENV{NI_WORLDWRITABLE}=="1", MODE:="0666", GROUP="dialout"
+SUBSYSTEM=="tty", KERNEL=="ttyACM*", ENV{NI_WORLDWRITABLE}=="1", MODE:="0666", GROUP="dialout"
+
+# Otherwise default to 0664 (no world-write)
+SUBSYSTEM=="tty", KERNEL=="ttyUSB*", ENV{NI_WORLDWRITABLE}!="1", MODE:="0664", GROUP="dialout"
+SUBSYSTEM=="tty", KERNEL=="ttyACM*", ENV{NI_WORLDWRITABLE}!="1", MODE:="0664", GROUP="dialout"

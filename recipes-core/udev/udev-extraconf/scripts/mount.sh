@@ -51,10 +51,23 @@ automount() {
 		MOUNT="$MOUNT -o silent"
 	fi
 
+	# --- Runtime configuration for VFAT permissions ---
+	# Read worldwritable.enabled from /etc/natinst/share/ni-rt.ini, if available.
+	# False (default) => fmask=0002,dmask=0002  (group-writable, not world-writable)
+	# True            => fmask=0000,dmask=0000  (world-writable)
+	enable=$(/usr/local/natinst/bin/nirtcfg --get section=SystemSettings,token=worldwritable.enabled,value="false" | tr "[:upper:]" "[:lower:]")
+
+	# Default VFAT options (restrictive)
+	VFAT_OPTS="fmask=0002,dmask=0002,quiet"
+	case "${enable}" in
+	    true)
+			VFAT_OPTS="fmask=0000,dmask=0000,quiet" ;;
+	esac
+
 	case "$ID_FS_TYPE" in
 		# If mounting vfat, set partition to be world-writable, and
 		# disable permissions warnings
-		vfat) MOUNT="$MOUNT -o fmask=0000,dmask=0000,quiet" ;;
+		vfat) MOUNT="$MOUNT -o $VFAT_OPTS" ;;
 	esac
 
 	if ! $MOUNT -t auto $DEVNAME "/media/$name"
