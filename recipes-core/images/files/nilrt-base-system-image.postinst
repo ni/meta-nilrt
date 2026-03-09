@@ -55,8 +55,8 @@ if grep -qs artemis /sys/firmware/devicetree/base/compatible ; then
     mkdir -p /etc/natinst/share
 
     # configure the path for fw_printenv to read environmental variables from u-boot
-    # replace /dev/ubi* with /boot/uboot/uboot.env
-    sed -i '/ubi/d' /mnt/userfs/etc/fw_env.config
+    # replace /dev/mtd4 and /dev/mtd5 with /boot/uboot/uboot.env
+    sed -i '/mtd/d' /mnt/userfs/etc/fw_env.config
     echo /boot/uboot/uboot.env         0x0000         0x20000 >> /mnt/userfs/etc/fw_env.config
 
 fi
