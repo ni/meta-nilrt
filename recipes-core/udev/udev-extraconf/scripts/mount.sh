@@ -12,6 +12,7 @@ sgdisk_sed="s/^\/dev\/((sd[a-z]+)|(mmcblk[0-9]+)p)([0-9]+)$/sgdisk -i \4 \/dev\/
 blacklisted_gpt_part_guids_egrep="(C12A7328-F81F-11D2-BA4B-00A0C93EC93B)|(4F68BCE3-E8CD-4DB1-96E7-FBCAF984B709)"
 export PATH="$PATH:/usr/sbin"
 
+
 [ "$DISABLE_AUTOMOUNT_BLACKLIST" ] || \
 	for line in `grep -v ^# /etc/udev/mount.blacklist`
 do
@@ -51,10 +52,22 @@ automount() {
 		MOUNT="$MOUNT -o silent"
 	fi
 
+	# --- Runtime configuration for VFAT permissions ---
+	# Read worldwritable.enabled from /etc/natinst/share/ni-rt.ini, if available.
+	# False (default) => fmask=0002,dmask=0002  (group-writable, not world-writable)
+	# True            => fmask=0000,dmask=0000  (world-writable)
+	enable=$(/usr/local/natinst/bin/nirtcfg --get section=SystemSettings,token=worldwritable.enabled,value="false" | tr "[:upper:]" "[:lower:]")
+
+	# Default VFAT options (restrictive)
+	VFAT_OPTS="fmask=0002,dmask=0002,quiet"
+	case "${enable}" in
+	    1|yes|true|TRUE|Yes|True) VFAT_OPTS="fmask=0000,dmask=0000,quiet" ;;
+	esac
+
 	case "$ID_FS_TYPE" in
 		# If mounting vfat, set partition to be world-writable, and
 		# disable permissions warnings
-		vfat) MOUNT="$MOUNT -o fmask=0000,dmask=0000,quiet" ;;
+		vfat) MOUNT="$MOUNT -o $VFAT_OPTS" ;;
 	esac
 
 	if ! $MOUNT -t auto $DEVNAME "/media/$name"
