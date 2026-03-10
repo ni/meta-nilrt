@@ -5,7 +5,11 @@
 
 arch=`uname -m`
 
+if [ "$arch" = "armv7l" ]; then
+WD_MODE_PATH=/sys/bus/i2c/devices/0-0040/watchdog_mode
+elif [ "$arch" = "x86_64" ]; then
 WD_MODE_PATH=/sys/bus/acpi/devices/NIC775C\:00/watchdog_mode
+fi
 
 STATUS_LED_PATH=/sys/class/leds/nilrt:status:yellow/brightness
 
