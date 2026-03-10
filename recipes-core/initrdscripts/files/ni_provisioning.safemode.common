@@ -407,10 +407,12 @@ fixup_configfs()
 set_root_password()
 {
 	# Set the restore mode password
-	if [[ -n $ROOT_PASSWORD ]]; then
-		echo "root:$ROOT_PASSWORD" | chpasswd
-	else
+	if ! [[ -v PROVISION_ROOT_PASSWORD ]]; then
 		passwd
+	elif [[ -z "$PROVISION_ROOT_PASSWORD" ]]; then
+		passwd -d root
+	else
+		echo "root:$PROVISION_ROOT_PASSWORD" | chpasswd
 	fi
 
 	# Get the root password hash
