@@ -27,7 +27,6 @@ RDEPENDS:${PN}:append = "\
 "
 
 RDEPENDS:${PN}:append:x64 = "\
-	init-nilrt-ramfs \
 	nilrt-grub-runmode \
 	nilrt-grub-safemode \
 	packagegroup-core-x11 \
