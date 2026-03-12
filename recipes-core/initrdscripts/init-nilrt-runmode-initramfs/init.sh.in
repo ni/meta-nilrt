@@ -1,0 +1,221 @@
+#!/bin/sh
+# Copyright (c) 2026 Emerson T&M (NI).
+# LICENSE: MIT
+#
+# PID 1 script for the NILRT runmode initramfs (ramdisk) image.
+# This script should do basic setup of the kernel, find and mount the userfs,
+# and then switch_root into it.
+#
+# If any step fails, it will print the error and give the user 10 seconds to
+# press a key to enter a recovery shell. If no key is pressed, it will reboot
+# to safemode.
+
+
+# ==============================================================================
+# CONSTANTS
+# ==============================================================================
+
+RECOVERY_SHELL_TIMEOUT=10
+
+LOG_CONTEXT="(initramfs)"
+
+NI_CRYPTDISKS="@sysconfdir@/init.d/ni-cryptdisks.sh"
+NIROOTFS_INIT="/sbin/init"
+
+
+# ==============================================================================
+# EARLY SETUP
+# ==============================================================================
+
+early_setup(){
+	mount -t proc proc /proc || true
+	mount -t sysfs sysfs /sys || true
+	mount -t devtmpfs devtmpfs /dev || true
+
+	export PATH="/sbin:/bin:/usr/sbin:/usr/bin"
+	umask 0022
+}
+early_setup
+
+
+# ==============================================================================
+# IMPORTS
+# ==============================================================================
+
+pkglibdir=@pkglibdir@
+. "$pkglibdir/kernel-vars.sh" || {
+	echo "(initramfs) WARNING: Failed to source kernel-vars.sh. Defaulting to VERBOSE output."
+}
+
+
+# ==============================================================================
+# FUNCTIONS
+# ==============================================================================
+
+
+# Find and mount the encrypted drives.
+decrypt_drives() {
+	# Find and mount the userfs partition.
+	if [ -x /etc/init.d/ni-cryptdisks.sh ]; then
+		log DEBUG "Running ni-cryptdisks start..."
+		/etc/init.d/ni-cryptdisks.sh start || {
+			log ERROR "Failed to unlock encrypted volumes"
+			return 1
+		}
+	else
+		log INFO "/etc/init.d/ni-cryptdisks not found, skipping encryption setup"
+	fi
+}
+
+
+# Prints an error message, waits for user input, and enters a recovery shell if
+# the user presses a key within the timeout. Otherwise, reboots the system.
+enter_recovery_shell() {
+	echo "Entering recovery shell. Type 'reboot' to restart." >/dev/console || :
+
+	# Unmount filesystems to give the recovery shell a clean environment
+	umount -a -r 2>/dev/null || true
+	sync
+	early_setup
+
+	# Spawn recovery shells in a loop so exiting doesn't kill init
+	while true; do
+		/bin/sh </dev/console >/dev/console 2>&1 || true
+		echo "Shell exited. Respawning..." >/dev/console || :
+		sleep 1
+	done
+}
+
+
+# Prints an error message, waits for a timeout, and reboots the system.
+fail_and_reboot() {
+	set +e
+
+	log ERROR "initramfs init/ failure."
+	echo "Press any key within $RECOVERY_SHELL_TIMEOUT seconds to enter recovery shell..." >/dev/console
+
+	# Note: read -t is supported by busybox and bash, but not strictly POSIX
+	# We accept this since busybox is our target shell
+	# Redirect stdin explicitly and handle both success and timeout
+	response=""
+	if read -t $RECOVERY_SHELL_TIMEOUT response </dev/console >/dev/console 2>&1; then
+		log INFO "Key pressed, entering recovery shell..."
+		enter_recovery_shell
+		# Should never return from enter_recovery_shell (infinite loop)
+		while true; do sleep 1; done
+	fi
+
+	# No key pressed, reboot using kernel sysrq
+	log INFO "Timeout expired, rebooting..."
+	sync
+	echo b > /proc/sysrq-trigger 2>/dev/null || true
+
+	# Fallback: if sysrq didn't work, try reboot command
+	reboot 2>/dev/null || true
+
+	# Last resort: loop forever to prevent kernel panic
+	while true; do sleep 1; done
+}
+
+
+switch_root_rootfs() {
+	log INFO "Setting up root filesystem..."
+
+	decrypt_drives
+
+	log DEBUG "Looking for nirootfs partition..."
+	nirootfs_path=$(blkid --label "nirootfs" --output device) || {
+		log ERROR "Failed to find nirootfs partition"
+		return 1
+	}
+	log DEBUG "Found nirootfs at $nirootfs_path"
+
+	mount "$nirootfs_path" /mnt || {
+		log ERROR "Failed to mount $nirootfs_path"
+		return 1
+	}
+
+	log DEBUG "Bind mounting virtual filesystems..."
+	mount --rbind /dev /mnt/dev || log WARNING "Failed to bind mount /dev"
+	mount --rbind /proc /mnt/proc || log WARNING "Failed to bind mount /proc"
+	mount --rbind /sys /mnt/sys || log WARNING "Failed to bind mount /sys"
+
+	log DEBUG "Setting up /run in new root..."
+	# Ensure /run exists in the new root and mount tmpfs on it
+	mkdir -p /mnt/run || true
+	mount -t tmpfs tmpfs /mnt/run -o nosuid,nodev,mode=0755 || log WARNING "Failed to mount tmpfs on /mnt/run"
+
+	log INFO "Switching to root filesystem..."
+
+	if ! chroot /mnt test -x "$NIROOTFS_INIT"; then
+		log ERROR "Init binary $NIROOTFS_INIT not found or not executable in new root"
+		return 1
+	fi
+	exec switch_root /mnt $NIROOTFS_INIT 5 || {
+		log ERROR "switch_root failed to exec $NIROOTFS_INIT"
+		return 1
+	}
+	
+	# Should never reach here - if we do, exec failed
+	log ERROR "switch_root failed to exec"
+	return 1
+}
+
+
+# Print output to the screen and kernel log, depending on the log level.
+log() {
+	level="$1"
+	shift
+	msg="$*"
+
+	if [ "$level" = "DEBUG" ] && [ "${DEBUG:-}" != "yes" ]; then
+		return
+	fi
+	if [ "$level" = "INFO" ] && [ "${VERBOSE:-}" != "yes" ]; then
+		return
+	fi
+	echo "$LOG_CONTEXT $level: $msg" >/dev/kmsg 2>/dev/null || true
+}
+
+
+# ==============================================================================
+# GLOBALS
+# ==============================================================================
+
+VERBOSE=${VERBOSE:-yes}
+DEBUG=${DEBUG:-no}
+
+# If set, break into the recovery shell rather than proceed.
+RD_BREAK=${RD_BREAK:-""}
+
+
+# ==============================================================================
+# MAIN
+# ==============================================================================
+
+trap fail_and_reboot ERR
+
+log INFO "/init"
+
+if [ "$DEBUG" = "yes" ]; then
+	# Redirect kernel messages to the console so that the user can see them
+	echo on >"/proc/sys/kernel/printk_devkmsg" 2>/dev/null || true
+	VERBOSE=yes
+fi
+
+if [ "$RD_BREAK" = "premount" ]; then
+	log INFO "RD_BREAK is set, entering recovery shell..."
+	enter_recovery_shell
+fi
+
+if ! switch_root_rootfs; then
+	log ERROR "switch_root_rootfs failed"
+	fail_and_reboot
+fi
+
+# If we somehow get here, something went very wrong
+log ERROR "Reached end of init script unexpectedly"
+enter_recovery_shell
+
+# Should never reach here
+while true; do sleep 1; done
