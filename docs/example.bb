@@ -12,9 +12,9 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 # RECIPE VARIABLES
 # ==============================================================================
 
-# Don't set PV explicitly, if the version is already in the bb recipe filename,
-# or if the recipe source is entirely in the meta layer.
-# PV = "1.0"
+# If the recipe sources are entirely within OE, we can set the package version
+# to match the DISTRO_VERSION.
+# PV = "${DISTRO_VERSION}"
 
 
 # ==============================================================================
