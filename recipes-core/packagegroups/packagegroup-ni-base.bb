@@ -97,15 +97,16 @@ RDEPENDS:${PN} += "\
 
 RDEPENDS:${PN}:append:x64 = "\
 	packagegroup-kernel-modules-essential \
+	clevis \
+	cryptsetup \
 	dmidecode \
 	e2fsprogs \
 	e2fsprogs-mke2fs \
 	efibootmgr \
 	efivar \
-	pstore-save \
-	clevis \
-	cryptsetup \
 	libtss2-tcti-device \
+	ni-device-encryption \
+	pstore-save \
 	tpm2-tools \
 "
 

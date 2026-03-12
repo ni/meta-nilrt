@@ -32,10 +32,10 @@ RDEPENDS:${PN} += "\
 "
 
 # TPM Interaction
-RDEPENDS:${PN}:append:x64 = "\
+RDEPENDS:${PN}:x64 += "\
 	cryptsetup \
-	kernel-module-tpm-tis \
 	libtss2-tcti-device \
+	ni-device-encryption \
 	tpm2-tools \
 "
 
