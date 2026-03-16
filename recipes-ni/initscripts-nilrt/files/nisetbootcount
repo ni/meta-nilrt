@@ -1,0 +1,16 @@
+#!/bin/sh
+# (c) 2013 National Instruments Corporation
+[ "${VERBOSE}" != "no" ] && echo -n "Updating system boot count"
+
+BOOTCOUNT=`/sbin/fw_printenv -n bootcount 2>&1`
+if test $? -ne 0
+then
+    BOOTCOUNT=0
+    [ "${VERBOSE}" != "no" ] && echo -n " (first boot detected)"
+fi
+
+BOOTCOUNT=$((BOOTCOUNT+1))
+[ "${VERBOSE}" != "no" ] && echo -n ": $BOOTCOUNT..."
+/sbin/fw_setenv bootcount $BOOTCOUNT
+
+[ "${VERBOSE}" != "no" ] && echo "done"
