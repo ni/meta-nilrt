@@ -1,0 +1,163 @@
+#!/bin/sh
+
+progName="niusbgadget"
+tmpPath="/run/niusbgadget"
+
+vendorName="National Instruments"
+bcdUSB="0x0200"
+usbPower="100"
+usbAttribute="0xC0"  # Self-powered
+
+imgPath="/usr/share/natinst/usbmassgadget.img"
+
+language=0x409  # en-US
+
+startGadget(){
+    # Check if the script run before?
+    if [ -f $tmpPath ]
+    then
+        exit 0
+    fi
+
+    # Only start USB ConfigFS on required targets
+    # PID: 0x793C -> ELVIS III
+    device=`fw_printenv -n DeviceCode | awk '{print tolower($0)}'`
+    if [ $device != '0x793c' ]
+    then
+        [ "$VERBOSE" != no ] && echo "USB ConfigFS not supported: exiting"
+        return
+    fi
+
+    [ "$VERBOSE" != no ] && echo -n "Starting $progName: "
+
+    vid=`fw_printenv -n USBVendorID`
+    pid=`fw_printenv -n USBProductID`
+    product=`fw_printenv -n USBProduct`
+    bcdDev=`fw_printenv -n USBDevice | awk '{print tolower($0)}'`
+    hostname=`fw_printenv -n hostname`
+    serial=`fw_printenv -n serial#`
+    dev_addr=`fw_printenv -n usbgadgetethaddr`
+
+    # Check for variable
+    if [[ -z "$vid" || -z "$pid" || -z "$bcdDev" ||
+          -z "$product" || -z "$hostname" ||
+          -z "$serial" || -z "$dev_addr" ]]
+    then
+        [ "$VERBOSE" != no ] && echo -n "fail"
+        exit 1
+    fi
+
+    # Stop old USB-Ethernet Gadget Module
+    modprobe -r g_ether
+
+    # Navigate to USB Gadget configFS
+    cd /sys/kernel/config/usb_gadget/
+    mkdir eth_mass_gadget && cd eth_mass_gadget
+
+    # USB Configuration
+    echo $vid > idVendor       # USB Vendor ID
+    echo $pid > idProduct      # USB Product ID
+    echo $bcdUSB > bcdUSB      # USB 2.0
+
+    # Construct Vendor & USB Information
+    mkdir -p strings/$language
+    echo $serial > strings/$language/serialnumber
+    echo $vendorName > strings/$language/manufacturer
+    echo "$product [$hostname]" > strings/$language/product
+
+    # Construct USB Power Information
+    mkdir -p configs/c.1
+    echo $usbPower > configs/c.1/MaxPower
+    echo $usbAttribute > configs/c.1/bmAttributes
+
+    # Assign ethernet function to the USB
+    mkdir -p functions/eem.usb0    # CDC EEM
+    if [ $? -ne 0 ]  # Execution status check
+    then
+        [ "$VERBOSE" != no ] && echo "fail"
+        exit 1
+    fi
+    # Assign ethernet device address
+    echo $dev_addr > functions/eem.usb0/dev_addr
+    ln -s functions/eem.usb0 configs/c.1/
+
+    # Assign mass storage function to the USB
+    mkdir -p functions/mass_storage.usb0  # Mass Storage
+    if [ $? -ne 0 ]  # Execution status check
+    then
+        [ "$VERBOSE" != no ] && echo "fail"
+        exit 1
+    fi
+    ln -s functions/mass_storage.usb0 configs/c.1/
+
+    # IMG image exist, enable Mass Storage gadget
+    if [ -f $imgPath ]
+    then
+        # Mount IMG image
+        echo 1 > functions/mass_storage.usb0/lun.0/ro
+        echo $imgPath > functions/mass_storage.usb0/lun.0/file
+    fi
+
+    # Mount configFS to USB UDC
+    ls /sys/class/udc/ > UDC
+    if [ $? -ne 0 ]  # Execution status check
+    then
+        [ "$VERBOSE" != no ] && echo "fail"
+        exit 1
+    fi
+
+    touch $tmpPath
+    [ "$VERBOSE" != no ] && echo "done"
+}
+
+stopGadget(){
+    # Check if the script run before?
+    if [ ! -f $tmpPath ]
+    then
+        exit 0
+    fi
+
+    [ "$VERBOSE" != no ] && echo -n "Stopping $progName: "
+
+    # Unmount USB UDC
+    cd /sys/kernel/config/usb_gadget/eth_mass_gadget
+    echo "" > UDC
+
+    # Gadget configs clean up
+    rm configs/c.1/eem.usb0
+    rm configs/c.1/mass_storage.usb0
+    rmdir configs/c.1
+
+    # Remove gadget function
+    rmdir functions/eem.usb0
+    rmdir functions/mass_storage.usb0
+
+    # USB description string clean up
+    rmdir strings/0x409
+
+    # Remove eth_mass_gadget directory
+    cd /
+    rmdir /sys/kernel/config/usb_gadget/eth_mass_gadget
+
+    rm $tmpPath
+    [ "$VERBOSE" != no ] && echo "done"
+}
+
+case "$1" in
+  start)
+        startGadget
+        ;;
+  stop)
+        stopGadget
+        ;;
+  force-reload|restart|reload)
+        stopGadget
+        startGadget
+        ;;
+  *)
+        echo "Usage: $progName {start|stop|restart|reload|force-reload}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

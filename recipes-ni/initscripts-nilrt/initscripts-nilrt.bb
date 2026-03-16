@@ -22,6 +22,7 @@ SRC_URI = "\
 	file://nisetcommitratio \
 	file://nisetreboottype \
 	file://nisetupkernelconfig \
+	file://niusbgadget \
 	file://populateconfig \
 	file://run-ptest \
 	file://test-nisetcommitratio-common.sh \
@@ -80,7 +81,10 @@ do_install () {
 }
 
 do_install:append:xilinx-zynq () {
-	install -m 0755 ${S}/mountutils            ${D}${sysconfdir}/init.d
+	install -m 0755 ${WORKDIR}/mountutils            ${D}${sysconfdir}/init.d
+	install -m 0750 ${WORKDIR}/niusbgadget           ${D}${sysconfdir}/init.d
+
+	update-rc.d -r ${D} niusbgadget           start 0  5 . stop 81 0 6 .
 }
 
 pkg_postinst_ontarget:${PN} () {
