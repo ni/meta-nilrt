@@ -45,6 +45,8 @@ kthreadd:f:25:*:\[kthreadd\]$
 irqthread:f:15:*:\[irq\/.+
 irq_work:f:12:*:\[irq_work\/.+\]$
 ktimers:f:10:*:\[ktimers\/.+\]$
+ktimersoftd:f:10:*:\[ktimersoftd\/.+\]$
 rcu:f:2:*:\[rcu(b|c|og)\/[0-9]+\]$
 rcu_preempt:f:2:\[rcu_preempt\]$
+rcu_sched:f:2:\[rcu_sched\]$
 ksoftirqd:f:1:*:\[ksoftirqd\/.+\]$
