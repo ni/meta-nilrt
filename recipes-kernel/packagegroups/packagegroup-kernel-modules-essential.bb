@@ -33,8 +33,6 @@ RDEPENDS:${PN} = "\
 	kernel-module-ath6kl-usb \
 	kernel-module-atkbd \
 	kernel-module-auth-rpcgss \
-	kernel-module-authenc \
-	kernel-module-authencesn \
 	kernel-module-ax88179-178a \
 	kernel-module-ax88796b \
 	kernel-module-backlight \
@@ -76,16 +74,12 @@ RDEPENDS:${PN} = "\
 	kernel-module-crc-itu-t \
 	kernel-module-crc7 \
 	kernel-module-crc8 \
-	kernel-module-crypto-null \
 	kernel-module-crypto-simd \
 	kernel-module-ctr \
 	kernel-module-curve25519-x86-64 \
 	kernel-module-cuse \
-	kernel-module-dax \
 	kernel-module-deflate \
 	kernel-module-digi-acceleport \
-	kernel-module-dm-crypt \
-	kernel-module-dm-mod \
 	kernel-module-dm-raid \
 	kernel-module-dmi-sysfs \
 	kernel-module-drbg \
@@ -113,7 +107,6 @@ RDEPENDS:${PN} = "\
 	kernel-module-esp4-offload \
 	kernel-module-esp6 \
 	kernel-module-esp6-offload \
-	kernel-module-essiv \
 	kernel-module-ezusb \
 	kernel-module-failover \
 	kernel-module-ff-memless \
