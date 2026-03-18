@@ -230,7 +230,7 @@ format_ubi_volume()
 	# Create an empty ubifs (write version 4) so that kernel doesn't
 	# make a newer version of ubifs on mount. Linux 4.14 makes ubifs v5
 	# on empty volumes. Previous versions of Linux make ubifs v4.
-	mkfs.ubifs /dev/ubi${ubidev}_$2
+	mkfs.ubifs --compr=zlib /dev/ubi${ubidev}_$2
 }
 
 # mount_ubi_volume() - mounts an ubi volume
