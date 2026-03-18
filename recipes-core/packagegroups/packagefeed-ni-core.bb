@@ -39,3 +39,9 @@ RDEPENDS:${PN}:append:x64 = "\
 	onboard \
 	env-config-container \	
 "
+
+# Image-specific packages kept separately so they are not accidentally
+# installed via a packagegroup dependency into the wrong image.
+RDEPENDS:${PN}:append:x64 = "\
+	init-nilrt-runmode-initramfs \
+"
