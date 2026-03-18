@@ -20,7 +20,7 @@ source "$CONFIG_FILE" || fail "Failed to run $CONFIG_FILE"
 
 # only present on first boot
 if [ -e "$LOGFILE" ]; then
-    if egrep -i 'warn|error|fatal|fail' "$LOGFILE"; then
+    if grep -Eiw 'warn(ing)?|error(s|ed)?|err|fatal|fail(ed|ure|ures)?' "$LOGFILE"; then
         fail "One or more errors in LOGFILE=$LOGFILE"
     fi
 fi
