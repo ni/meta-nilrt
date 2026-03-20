@@ -16,7 +16,6 @@ NI_PROPRIETARY_COMMON_PACKAGES = "\
         ni-software-installation-websvc \
         ni-ssl-webserver-support \
         ni-sysapi \
-        ni-sysapi-sshcli \
         ni-sysapi-remote \
         ni-sysapi-webservice \
         ni-sysmgmt-auth-utils \
