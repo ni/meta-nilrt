@@ -146,6 +146,26 @@ pkg_prerm_ontarget:${PN}-console () {
 	rm -f ${systemsettingsdir}/consoleout.ini
 }
 
+
+# sysconfig-settings-ssh package
+PACKAGES += "${PN}-ssh"
+SUMMARY:${PN}-ssh = "System configuration files for ssh"
+DESCRIPTION:${PN}-ssh = "SSH configuration files for the National Instruments System Configuration subsystem."
+
+SRC_URI:append = "\
+	file://uixml/nilinuxrt.sshd_enable.binding.xml \
+	file://uixml/nilinuxrt.sshd_enable.const.de.xml \
+	file://uixml/nilinuxrt.sshd_enable.const.fr.xml \
+	file://uixml/nilinuxrt.sshd_enable.const.ja.xml \
+	file://uixml/nilinuxrt.sshd_enable.const.ko.xml \
+	file://uixml/nilinuxrt.sshd_enable.const.xml \
+	file://uixml/nilinuxrt.sshd_enable.const.zh-CN.xml \
+	file://uixml/nilinuxrt.sshd_enable.def.xml \
+"
+
+FILES:${PN}-ssh = "${uixmldir}/nilinuxrt.sshd_enable.*"
+
+
 # sysconfig-settings-ui package
 PACKAGES += "${PN}-ui"
 SUMMARY:${PN}-ui = "System configuration files to enable UI"
