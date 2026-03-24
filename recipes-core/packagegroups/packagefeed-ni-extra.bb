@@ -365,7 +365,6 @@ RDEPENDS:${PN} += "\
 	ccid \
 	ckermit \
 	cpufrequtils \
-	cryptsetup \
 	daemonize \
 	daemontools \
 	dfu-util \
