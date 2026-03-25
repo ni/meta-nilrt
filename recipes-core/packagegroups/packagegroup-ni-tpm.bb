@@ -14,4 +14,5 @@ RDEPENDS:${PN} = "\
 	clevis \
 	cryptsetup \
 	libtss2-tcti-device \
+	tpm2-tools \
 "
