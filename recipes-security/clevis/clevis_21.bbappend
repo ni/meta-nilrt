@@ -1,1 +1,1 @@
-PACKAGECONFIG = "docs dracut luks pkcs11 tpm2"
+PACKAGECONFIG = "docs luks pkcs11 tpm2"
