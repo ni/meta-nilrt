@@ -17,7 +17,7 @@ PACKAGECONFIG = "tcp"
 PACKAGECONFIG[tcp] = ",,python3-pycryptodome"
 
 SRC_URI = "\
-    git://github.com/ni/salt.git;protocol=https;branch=ni/master/3006.13 \
+    git://github.com/ni/salt.git;protocol=https;branch=ni/skyline-26.3/3006.13 \
     file://minion \
     file://salt-minion \
     file://salt-common.bash_completion \
