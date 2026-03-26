@@ -4,7 +4,7 @@ This package contains utilities for creating and using LUKS-encrypted root \
 partitions for NILRT. Installs the ni-cryptdisks.sh initscript.\
 "
 HOMEPAGE = "https://github.com/ni/meta-nilrt"
-SECTION = "test"
+SECTION = "security"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
