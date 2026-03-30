@@ -16,13 +16,9 @@ do_patch_oe_source () {
 addtask patch_oe_source after do_patch before do_configure
 
 do_install:append () {
-	sed 's|check_for_no_start() {|&\
-	# if sshd is not enabled in ni-rt.ini, do not start sshd\
-	enable=`/usr/local/natinst/bin/nirtcfg --get section=SystemSettings,token=sshd.enabled,value="false" \|tr "[:upper:]" "[:lower:]"`\
-	if [ "$enable" != "true" ]; then\
-		[ "${VERBOSE}" != "no" ] \&\& echo "SSHD not enabled in ni-rt.ini"\
-		exit 0\
-	fi|' -i ${D}${sysconfdir}/init.d/sshd
+	sed -i '/check_for_no_start() {/a \
+	# Ignore sshd.enabled in /etc/natinst/share/ni.rt.ini\
+	enable="true"' ${D}${sysconfdir}/init.d/sshd
 
 	# customize sshd_config
 	sed -e 's|^[#[:space:]]*Banner .*|Banner /etc/issue.net|' \
