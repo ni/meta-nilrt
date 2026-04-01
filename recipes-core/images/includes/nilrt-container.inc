@@ -39,8 +39,9 @@ OCI_IMAGE_BACKEND = "sloci-image"
 
 
 inherit image-oci
+inherit image-oci-docker
 
-IMAGE_FSTYPES = "container oci"
+IMAGE_FSTYPES = "container oci docker"
 
 
 SFILES = "${THISDIR}/files/container"
