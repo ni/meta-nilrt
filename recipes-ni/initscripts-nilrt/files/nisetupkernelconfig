@@ -9,6 +9,8 @@ safemodeflag=/etc/natinst/safemode
 if [ -f $safemodeflag ]; then
   if [ ! -d /mnt/userfs/var/local/natinst/log ]; then
     mkdir -p /mnt/userfs/var/local/natinst/log
+    chown lvuser:ni /mnt/userfs/var/local/natinst/log
+    chmod 775 /mnt/userfs/var/local/natinst/log
   fi
   echo "/mnt/userfs/var/local/natinst/log/core_dump.%E" > /proc/sys/kernel/core_pattern
 else
