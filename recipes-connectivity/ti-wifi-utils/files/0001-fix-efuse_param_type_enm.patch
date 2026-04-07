@@ -2,6 +2,7 @@ From c4d382a73a1c96c4c1568d4b33363d3ce91c42ba Mon Sep 17 00:00:00 2001
 From: Can Wong <can.wong@emerson.com>
 Date: Wed, 22 Oct 2025 14:55:52 -0500
 Subject: [PATCH] fix efuse_param_type_enm
+Upstream-Status: Inappropriate
 
 ---
  plt.h | 2 +-
