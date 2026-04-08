@@ -24,6 +24,12 @@ early_setup "$@"
 # Source default answer file to prompt user for all questions
 source_default_answer_file
 
+# Source user's answer file, if present
+source_answer_file
+echo
+
+set_target_from_answer_file
+
 if in_recovery_mode; then
 	echo "Automatic provision and reboot in recovery mode"
 	PROVISION_REPARTITION_TARGET="y"
@@ -31,10 +37,6 @@ if in_recovery_mode; then
 fi
 
 if [[ $restore == "provision-safe" ]]; then
-	# source user's answer file, if present
-	source_answer_file
-	echo
-
 	if [[ "$PROVISION_REPARTITION_TARGET" != "y" ]]; then
 		ask_for_continue
 	fi
@@ -51,10 +53,6 @@ elif [[ $restore == "backward-migrate" ]]; then
 	ASK_BEFORE_REBOOT=1
 	PROVISION_REBOOT_METHOD="reboot"
 elif [[ $restore == "provision" ]]; then
-	# source user's answer file, if present
-	source_answer_file
-	echo
-
 	if [[ "$PROVISION_PART_NILRT_ID" = "auto" ]]; then
 		ask_for_continue
 
@@ -108,10 +106,6 @@ elif [[ $restore == "migrate" ]]; then
 elif [[ $restore == "get-image" ]]; then
 	echo "Get Image"
 
-	# source user's answer file, if present
-	source_answer_file
-	echo
-
 	source /sbin/nisystemreplication get
 	if [[ "${FORCE_PROVISIONING}" -eq 1 ]]; then
 		PROVISION_REBOOT_METHOD=${RESTART_OPTION}
@@ -119,10 +113,6 @@ elif [[ $restore == "get-image" ]]; then
 	ASK_BEFORE_REBOOT=1
 elif [[ $restore == "set-image" ]]; then
 	echo "Set Image"
-
-	# source user's answer file, if present
-	source_answer_file
-	echo
 
 	source /sbin/nisystemreplication set
 	if [[ "${FORCE_PROVISIONING}" -eq 1 ]]; then
