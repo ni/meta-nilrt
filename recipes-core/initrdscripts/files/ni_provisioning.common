@@ -70,6 +70,16 @@ provision_successfull()
 	echo -e ${GREEN}"PROVISIONING SUCCESSFUL!"${NC} 1>&3 2>&4
 }
 
+set_target_from_answer_file()
+{
+	if [[ -n "$PROVISION_TARGET_DISK" ]]; then
+		TARGET_DISK="$PROVISION_TARGET_DISK"
+		if [[ "${TARGET_DISK: -1}" =~ [0-9] ]]; then
+			PART_SEPARATOR='p'
+		fi
+	fi
+}
+
 umount_partition()
 {
 	if [ ! -z "`mount | grep $1`" ]; then
