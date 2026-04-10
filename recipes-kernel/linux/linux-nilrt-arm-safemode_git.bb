@@ -6,6 +6,7 @@ COMPATIBLE_MACHINE = "xilinx-zynq"
 require linux-nilrt-alternate.inc
 
 INITRAMFS_IMAGE = "nilrt-safemode-initramfs"
+FIT_DESC = "zynq_safemode - ${BUILDNAME}"
 
 kernel_do_deploy:append() {
     # Create a symlink that's useful to identify the correct fitImage and is also shorter.
