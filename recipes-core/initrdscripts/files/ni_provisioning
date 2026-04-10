@@ -24,17 +24,17 @@ early_setup "$@"
 # Source default answer file to prompt user for all questions
 source_default_answer_file
 
-# Source user's answer file, if present
-source_answer_file
-echo
-
-set_target_from_answer_file
-
 if in_recovery_mode; then
 	echo "Automatic provision and reboot in recovery mode"
 	PROVISION_REPARTITION_TARGET="y"
 	PROVISION_REBOOT_METHOD="reboot"
 fi
+
+# Source user's answer file, if present
+source_answer_file
+echo
+
+set_target_from_answer_file
 
 if [[ $restore == "provision-safe" ]]; then
 	if [[ "$PROVISION_REPARTITION_TARGET" != "y" ]]; then
