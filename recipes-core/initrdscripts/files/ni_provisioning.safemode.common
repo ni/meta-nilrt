@@ -217,7 +217,7 @@ mount_grub_partition()
 {
 	GRUB_MOUNTPOINT=/var/volatile/grub
 	mkdir $GRUB_MOUNTPOINT -p
-	MOUNT_ERROR=`mount -L $PART1_LABEL $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
+	MOUNT_ERROR=`mount ${TARGET_DISK}${PART_SEPARATOR}1 $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
 }
 
 install_grub()
@@ -244,7 +244,7 @@ mount_bootfs_partition()
 {
 	BOOTFS_MOUNTPOINT=/var/volatile/bootfs
 	mkdir $BOOTFS_MOUNTPOINT -p
-	BOOTFS_ERROR=`mount -L $PART2_LABEL $BOOTFS_MOUNTPOINT 2>&1` || die "$BOOTFS_ERROR"
+	BOOTFS_ERROR=`mount ${TARGET_DISK}${PART_SEPARATOR}2 $BOOTFS_MOUNTPOINT 2>&1` || die "$BOOTFS_ERROR"
 }
 
 install_safemode()
@@ -381,7 +381,7 @@ fixup_configfs()
 	CONFIG_MOUNTPOINT=/var/volatile/configfs
 
 	mkdir -p $CONFIG_MOUNTPOINT
-	mount -L $PART3_LABEL $CONFIG_MOUNTPOINT
+	mount ${TARGET_DISK}${PART_SEPARATOR}3 $CONFIG_MOUNTPOINT
 
 	# Set root dir ownership to lvuser:ni
 	chown 500:500 $CONFIG_MOUNTPOINT
@@ -422,7 +422,7 @@ set_root_password()
 	# Create the shared shadow file and add root entry
 	CONFIG_MOUNTPOINT=/var/volatile/configfs
 	mkdir -p $CONFIG_MOUNTPOINT
-	mount -L $PART3_LABEL $CONFIG_MOUNTPOINT
+	mount ${TARGET_DISK}${PART_SEPARATOR}3 $CONFIG_MOUNTPOINT
 	touch "$CONFIG_MOUNTPOINT/.shadow"
 	chmod 400 "$CONFIG_MOUNTPOINT/.shadow"
 	echo "$ROOT_HASH" > "$CONFIG_MOUNTPOINT/.shadow"
