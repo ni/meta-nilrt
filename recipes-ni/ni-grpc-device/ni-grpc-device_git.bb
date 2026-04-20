@@ -13,6 +13,7 @@ DEPENDS += "\
 	googletest-native \
 	grpc \
 	grpc-native \
+	ni-grpc-sideband \
 	nlohmann-json-native \
 	protobuf \
 	protobuf-native \
@@ -26,14 +27,16 @@ DEPENDS += "\
 PV = "2.14.0"
 
 
-SRC_URI = "git://github.com/ni/grpc-device.git;name=grpc-device;branch=main;protocol=https \
-           git://github.com/ni/grpc-sideband.git;name=grpc-sideband;branch=main;protocol=https;destsuffix=git/third_party/grpc-sideband \
-           file://ptest \
-           file://0001-CMakeLists-Make-grpc-device-buildable-on-NILRT-11-10.patch \
-           file://0001-Rename-shutdown-variable-to-shutdown_server-to-avoid.patch \
-           "
+SRC_URI = "\
+	git://github.com/ni/grpc-device.git;name=grpc-device;branch=main;protocol=https \
+	git://github.com/ni/grpc-sideband.git;name=grpc-sideband;protocol=https;nobranch=1;destsuffix=git/third_party/grpc-sideband \
+	git://github.com/ni/ni-apis.git;name=ni-apis;protocol=https;nobranch=1;destsuffix=git/third_party/ni-apis \
+	file://ptest \
+"
 
-SRCREV_grpc-device = "609fdf8c7ec99597373cf35f2b9608422b1955c9"
+SRCREV_grpc-device = "a1830a7ac5274c34f955046cdc719fbf1648ab90"
+SRCREV_grpc-sideband = "e351b75f2df9d932fb7993520429d7c680031864"
+SRCREV_ni-apis = "00356cce09dd61d15f6799a87c27460a7d7a0c24"
 SRCREV_FORMAT = "grpc-device"
 SRCREV_grpc-sideband = "0ce928851df2e335ebdc385cced6d46a662c505e"
 inherit cmake python3native
@@ -41,6 +44,28 @@ inherit cmake python3native
 EXTRA_OECMAKE += "-DCMAKE_CROSSCOMPILING=True -DCMAKE_BUILD_TYPE=Release -DUSE_SUBMODULE_LIBS=OFF -DUSE_PYTHON_VIRTUALENV=OFF"
 OECMAKE_TARGET_COMPILE = "ni_grpc_device_server"
 OECMAKE_GENERATOR = "Unix Makefiles"
+
+# When USE_SUBMODULE_LIBS=OFF the protoc invocations for driver protos only
+# have imports/protobuf/ on their -I path. Copy the ni-apis proto files there
+# so they can be found without patching CMakeLists.txt.
+# Also add the missing absl_log_* deps (needed by waveform.pb.cc).
+do_configure:prepend() {
+    cp ${S}/third_party/ni-apis/ni/grpcdevice/v1/session.proto \
+        ${S}/imports/protobuf/
+    install -d ${S}/imports/protobuf/ni/protobuf/types
+    cp ${S}/third_party/ni-apis/ni/protobuf/types/precision_timestamp.proto \
+        ${S}/imports/protobuf/ni/protobuf/types/
+    cp ${S}/third_party/ni-apis/ni/protobuf/types/waveform.proto \
+        ${S}/imports/protobuf/ni/protobuf/types/
+
+    # Add find_library calls for absl_log_* libs after the existing _ABSEIL_SYNC line
+    sed -i 's|find_library(_ABSEIL_SYNC absl_synchronization REQUIRED)|find_library(_ABSEIL_SYNC absl_synchronization REQUIRED)\n  find_library(_ABSEIL_LOG_MSG absl_log_internal_message REQUIRED)\n  find_library(_ABSEIL_LOG_NULLGUARD absl_log_internal_nullguard REQUIRED)\n  find_library(_ABSEIL_LOG_GLOBALS absl_log_internal_globals REQUIRED)\n  find_library(_ABSEIL_LOG_CONDITIONS absl_log_internal_conditions REQUIRED)\n  find_library(_ABSEIL_LOG_FORMAT absl_log_internal_format REQUIRED)\n  find_library(_ABSEIL_LOG_PROTO absl_log_internal_proto REQUIRED)\n  find_library(_ABSEIL_LOG_SINK_SET absl_log_internal_log_sink_set REQUIRED)\n  find_library(_ABSEIL_LOG_SINK absl_log_sink REQUIRED)\n  find_library(_ABSEIL_LOG_ENTRY absl_log_entry REQUIRED)|' \
+        ${S}/CMakeLists.txt
+
+    # Add all absl log libs to server_lib_deps (after nlohmann_json line)
+    sed -i 's|  nlohmann_json::nlohmann_json|  nlohmann_json::nlohmann_json\n  ${_ABSEIL_LOG_MSG}\n  ${_ABSEIL_LOG_NULLGUARD}\n  ${_ABSEIL_LOG_GLOBALS}\n  ${_ABSEIL_LOG_CONDITIONS}\n  ${_ABSEIL_LOG_FORMAT}\n  ${_ABSEIL_LOG_PROTO}\n  ${_ABSEIL_LOG_SINK_SET}\n  ${_ABSEIL_LOG_SINK}\n  ${_ABSEIL_LOG_ENTRY}|' \
+        ${S}/CMakeLists.txt
+}
 
 
 #inherit ptest
@@ -96,6 +121,18 @@ do_install () {
 PACKAGE_BEFORE_PN = "${PN}-examples"
 
 # ${PN}
+do_install:append () {
+	install -d ${D}${sysconfdir}/nitlsconfig/server.d
+	install --mode=0644 ${S}/source/config/ni-grpc-device.conf.yml \
+		${D}${sysconfdir}/nitlsconfig/server.d/ni-grpc-device.conf.yml
+	install --mode=0644 ${S}/source/config/ni-grpc-device.caps.yml \
+		${D}${sysconfdir}/nitlsconfig/server.d/ni-grpc-device.caps.yml
+}
+
+FILES:${PN} += "\
+	${sysconfdir}/nitlsconfig/server.d/ni-grpc-device.conf.yml \
+	${sysconfdir}/nitlsconfig/server.d/ni-grpc-device.caps.yml \
+"
 RDEPENDS:${PN} += "\
 	grpc \
 	protobuf \
