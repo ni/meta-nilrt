@@ -7,6 +7,9 @@ require linux-nilrt-alternate.inc
 
 INITRAMFS_IMAGE = "nilrt-safemode-initramfs"
 FIT_DESC = "zynq_safemode - ${BUILDNAME}"
+FIT_VERSION = "${BUILDNAME}"
+FIT_DEVICECODE = "0x${@d.getVar('NILRT_ARM_DEVICE_CODES').split()[0]}"
+FIT_DEVICECODES = "${@' '.join('0x' + x for x in (d.getVar('NILRT_ARM_DEVICE_CODES')).split())}"
 
 kernel_do_deploy:append() {
     # Create a symlink that's useful to identify the correct fitImage and is also shorter.
