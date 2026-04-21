@@ -2,6 +2,7 @@ From 868075373104c403bc96f061c3117d762a8dae69 Mon Sep 17 00:00:00 2001
 From: Can Wong <can.wong@emerson.com>
 Date: Wed, 22 Oct 2025 14:48:10 -0500
 Subject: [PATCH] fix packed member warning
+Upstream-Status: Inappropriate [NI specific]
 
 ---
  ini.c | 112 +++++++++++++++++++++++++++++++++++++++++-----------------

@@ -8,7 +8,7 @@ PV = "R8.6+git${SRCPV}"
 
 #Tag: R8.6
 SRCREV = "cf8965aad73764022669647fa33852558a657930"
-SRC_URI = "git://git.ti.com/wilink8-wlan/18xx-ti-utils.git;branch=master;tag=${SRCREV} \
+SRC_URI = "git://git.ti.com/wilink8-wlan/18xx-ti-utils.git;protocol=https;branch=master \
            file://0001-fix-packed-member-warning.patch \
            file://0001-fix-efuse_param_type_enm.patch \
 "
