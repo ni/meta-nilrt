@@ -16,7 +16,6 @@ NI_PROPRIETARY_COMMON_PACKAGES = "\
         ni-software-installation-websvc \
         ni-ssl-webserver-support \
         ni-sysapi \
-        ni-sysapi-sshcli \
         ni-sysapi-remote \
         ni-sysapi-webservice \
         ni-sysmgmt-auth-utils \
@@ -36,6 +35,7 @@ NI_PROPRIETARY_COMMON_PACKAGES = "\
 NI_PROPRIETARY_COMMON_PACKAGES:append:x64 = "\
         ni-sdmon \
         ni-wifibledd \
+        ni-sysapi-sshcli \
 "
 
 NI_PROPRIETARY_RUNMODE_PACKAGES = "\
