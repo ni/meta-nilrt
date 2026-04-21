@@ -14,6 +14,10 @@ IMAGE_INSTALL:append:x64 = "\
 	nilrt-grub-runmode \
 	"
 
+IMAGE_INSTALL:append:xilinx-zynq = "\
+	linux-nilrt-fitimage \
+	"
+
 require includes/nilrt-image-base.inc
 require includes/nilrt-xfce.inc
 require includes/nilrt-proprietary.inc
