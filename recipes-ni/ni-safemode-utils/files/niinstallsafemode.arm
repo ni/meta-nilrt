@@ -1,0 +1,146 @@
+#!/bin/bash
+#
+# Copyright (c) 2013 National Instruments
+#
+# Returns 1 on usage error, 2 if trying to downgrade without -f, 3 if
+# reapplying the same version without -f, 5 on error manipulating /boot/.safe;
+# 6 if shutting down
+
+if [ $# -ne 1 ] && [ $# -ne 2 ]; then
+	echo "Usage: `basename $0` <safemode .cfg file> [-f]"
+	exit 1
+fi
+
+case "$(/sbin/runlevel)" in
+*\ 6|*\ 0) echo "$0: called during shutdown; aborting."; exit 6 ;;
+esac
+
+restore_itb_on_failure=no
+restore_defbit_on_failure=no
+ver_cmp=/usr/local/natinst/bin/nicompareversion
+mount_point="/boot"
+source_file="$1"
+tmp_dir_new=$(mktemp -d -t new-safemode.XXXXXX)
+itb="linux_safemode.itb"
+defbit="default.bit.*"
+
+# Bail out on first error
+set -o errexit
+
+cleanup()
+{
+	set +o errexit
+	if [ "$restore_itb_on_failure" = yes ]; then
+		chmod u+w $mount_point/.safe
+		chmod u+w $mount_point/.safe/$itb
+		cp -f $tmp_dir_old/$itb $mount_point/.safe/$itb
+		chmod u-w $mount_point/.safe/$itb
+		chmod u-w $mount_point/.safe
+	fi
+	if [ "$restore_defbit_on_failure" = yes ]; then
+		chmod u+w $mount_point/.defbit
+		chmod u+w $mount_point/.defbit/$defbit
+		cp -f $tmp_dir_old/.defbit/$defbit $mount_point/.defbit/ && chmod u-w $mount_point/.safe/$itb && chmod u-w $mount_point/.safe
+		chmod u-w $mount_point/.defbit/$defbit
+		chmod u-w $mount_point/.defbit
+	fi
+	rm -rf $tmp_dir_new
+	rm -rf $tmp_dir_old
+	set -o errexit
+}
+
+# Make sure we only replace older firmware with newer firmware
+check_version()
+{
+	cur_ver_string=`/sbin/fdtview -l / version $mount_point/.safe/$itb | awk -F = '{print $2}'`
+	tmp_ver_string=`/sbin/fdtview -l / version $tmp_dir_new/$itb | awk -F = '{print $2}'`
+
+	result=$($ver_cmp "$cur_ver_string" "$tmp_ver_string")
+	if [ "$result" == "older" ]; then
+		echo "$0": not updating $cur_ver_string to older $tmp_ver_string, use -f to downgrade or reapply the current version
+		exit 2
+	elif [ "$result" == "equal" ]; then
+		echo "$0": not updating as $cur_ver_string is already present, use -f to downgrade or reapply the current version
+		exit 3
+	fi
+}
+
+# Read a property from an fdt file
+# Params are: (file, fdt_path, fdt_property)
+get_fdt_prop()
+{
+	value=`/sbin/fdtview -l $2 $3 $1`
+	value="${value##*= \"}"
+	echo "${value%\"}"
+}
+
+[ -x /sbin/fdtview ]
+
+trap cleanup INT TERM EXIT
+
+# Require 200k of free space on /boot before attempting a firmware upgrade
+free_space=$(df $mount_point | tail -1 | awk '{ print $4 }')
+if [ $free_space -lt 200 ]; then
+        echo "Not enough free space on $mount_point"
+        exit 5
+fi
+
+tar -x --warning=no-timestamp -f $source_file -C $tmp_dir_new
+
+if [ -e /etc/natinst/safemode ]; then
+	userfs_mount_point="/mnt/userfs"
+else
+	userfs_mount_point="/"
+fi
+tmp_dir_old=$(mktemp -d -t -p $userfs_mount_point old-safemode.XXXXXX)
+cp -f $mount_point/.safe/$itb $tmp_dir_old/$itb
+mkdir $tmp_dir_old/.defbit
+cp -f $mount_point/.defbit/$defbit $tmp_dir_old/.defbit/
+
+if [ "$2" != "-f" ]; then check_version; fi
+
+if [ -x $tmp_dir_new/preinst ]; then
+	$tmp_dir_new/preinst
+fi
+
+# Validate hashes in ITB
+/sbin/fdtview -i $tmp_dir_new/$itb
+
+itb_device_codes=`get_fdt_prop $tmp_dir_new/$itb / DeviceCodes`
+itb_device_codes="$itb_device_codes `get_fdt_prop $tmp_dir_new/$itb / DeviceCode`"
+
+target_device_code=`/sbin/fw_printenv -n DeviceCode`
+
+# Ensure that the ITB is built for this device
+[[ $itb_device_codes =~ (^| )$target_device_code($| ) ]]
+
+# Ensure the bootscript exists
+itb_script_type=`/sbin/fdtview -l /images/bootscript type $tmp_dir_new/$itb`
+itb_script_type="${itb_script_type##*= \"}"
+itb_script_type="${itb_script_type%\"}"
+[ "$itb_script_type" = script ]
+
+# Return a different error code if there is a failure while touching the ITB or bitfile
+chmod u+w $mount_point/.safe || exit 5
+chmod u+w $mount_point/.safe/$itb || exit 5
+restore_itb_on_failure=yes
+cp -f $tmp_dir_new/$itb $mount_point/.safe/ || exit 5
+chmod u-w $mount_point/.safe/$itb || exit 5
+chmod u-w $mount_point/.safe || exit 5
+
+chmod u+w $mount_point/.defbit || exit 5
+chmod u+w $mount_point/.defbit/$defbit || exit 5
+restore_defbit_on_failure=yes
+cp -f $tmp_dir_new/$target_device_code/$defbit $mount_point/.defbit/ || \
+  cp -f $tmp_dir_new/$defbit $mount_point/.defbit/ || exit 5
+chmod u-w $mount_point/.defbit/$defbit || exit 5
+chmod u-w $mount_point/.defbit || exit 5
+
+if [ -x $tmp_dir_new/postinst ]; then
+	$tmp_dir_new/postinst
+fi
+
+restore_itb_on_failure=no
+restore_defbit_on_failure=no
+trap - INT TERM EXIT
+cleanup
