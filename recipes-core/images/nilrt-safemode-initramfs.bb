@@ -39,10 +39,6 @@ bootimg_fixup () {
 	mkdir -p "${IMAGE_ROOTFS}/etc/natinst/share"
 	mkdir -p "${IMAGE_ROOTFS}/mnt/userfs"
 
-	echo "LABEL=nibootfs /boot ext4 sync 0 0" >> "${IMAGE_ROOTFS}/etc/fstab"
-	echo "LABEL=niconfig /etc/natinst/share ext4 sync 0 0" >> "${IMAGE_ROOTFS}/etc/fstab"
-	echo "LABEL=nirootfs /mnt/userfs ext4 defaults 0 0" >> "${IMAGE_ROOTFS}/etc/fstab"
-
 	# Add safemode marker
 	echo "safemode" > "${IMAGE_ROOTFS}/etc/natinst/safemode"
 
@@ -55,7 +51,19 @@ bootimg_fixup () {
 	opkg -o ${IMAGE_ROOTFS} -f ${IPKGCONF_TARGET} clean
 }
 
+bootimg_fixup_x64 () {
+	echo "LABEL=nibootfs /boot ext4 sync 0 0" >> "${IMAGE_ROOTFS}/etc/fstab"
+	echo "LABEL=niconfig /etc/natinst/share ext4 sync 0 0" >> "${IMAGE_ROOTFS}/etc/fstab"
+	echo "LABEL=nirootfs /mnt/userfs ext4 defaults 0 0" >> "${IMAGE_ROOTFS}/etc/fstab"
+}
+
+bootimg_fixup_arm () {
+    echo "ubi1:rootfs /mnt/userfs ubifs defaults 0 0" >> "${IMAGE_ROOTFS}/etc/fstab"
+}
+
 IMAGE_PREPROCESS_COMMAND += " bootimg_fixup; "
+IMAGE_PREPROCESS_COMMAND:append:x64 = " bootimg_fixup_x64; "
+IMAGE_PREPROCESS_COMMAND:append:xilinx-zynq = " bootimg_fixup_arm; "
 
 
 # We always want package-management support in this image, fail if not enabled
