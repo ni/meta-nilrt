@@ -52,8 +52,8 @@ cleanup()
 # Make sure we only replace older firmware with newer firmware
 check_version()
 {
-	cur_ver_string=`/sbin/fdtview -l / version $mount_point/.safe/$itb | awk -F = '{print $2}'`
-	tmp_ver_string=`/sbin/fdtview -l / version $tmp_dir_new/$itb | awk -F = '{print $2}'`
+	cur_ver_string=$(/usr/bin/fdtget $mount_point/.safe/$itb / version)
+	tmp_ver_string=$(/usr/bin/fdtget $tmp_dir_new/$itb / version)
 
 	result=$($ver_cmp "$cur_ver_string" "$tmp_ver_string")
 	if [ "$result" == "older" ]; then
@@ -69,12 +69,12 @@ check_version()
 # Params are: (file, fdt_path, fdt_property)
 get_fdt_prop()
 {
-	value=`/sbin/fdtview -l $2 $3 $1`
+	value=`/usr/bin/fdtget $1 $2 $3`
 	value="${value##*= \"}"
 	echo "${value%\"}"
 }
 
-[ -x /sbin/fdtview ]
+[ -x /usr/bin/fdtget ]
 
 trap cleanup INT TERM EXIT
 
@@ -103,8 +103,10 @@ if [ -x $tmp_dir_new/preinst ]; then
 	$tmp_dir_new/preinst
 fi
 
+# TODO: Enable hash validation in AB#3842951
 # Validate hashes in ITB
-/sbin/fdtview -i $tmp_dir_new/$itb
+# [ -x /sbin/fdtview ]
+# /sbin/fdtview -i $tmp_dir_new/$itb
 
 itb_device_codes=`get_fdt_prop $tmp_dir_new/$itb / DeviceCodes`
 itb_device_codes="$itb_device_codes `get_fdt_prop $tmp_dir_new/$itb / DeviceCode`"
@@ -115,9 +117,7 @@ target_device_code=`/sbin/fw_printenv -n DeviceCode`
 [[ $itb_device_codes =~ (^| )$target_device_code($| ) ]]
 
 # Ensure the bootscript exists
-itb_script_type=`/sbin/fdtview -l /images/bootscript type $tmp_dir_new/$itb`
-itb_script_type="${itb_script_type##*= \"}"
-itb_script_type="${itb_script_type%\"}"
+itb_script_type=$(/usr/bin/fdtget $tmp_dir_new/$itb /images/bootscript type)
 [ "$itb_script_type" = script ]
 
 # Return a different error code if there is a failure while touching the ITB or bitfile
