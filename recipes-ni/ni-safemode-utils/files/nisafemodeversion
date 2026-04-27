@@ -30,8 +30,8 @@ unknown_ver_string=unknown
 
 get_version_itb()
 {
-	if [ -x /usr/bin/uboot-dumpimage ]; then
-		version_string=`/usr/bin/uboot-dumpimage -l $1 2>/dev/null | grep "FIT description" | awk -F ' - ' '{print $2}'`
+	if [ -x /usr/bin/fdtget ]; then
+		version_string=$(/usr/bin/fdtget $1 / version)
 		if [ $? -ne 0 ]; then
 			version_string=""
 		fi
