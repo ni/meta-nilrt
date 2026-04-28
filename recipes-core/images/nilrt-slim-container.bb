@@ -2,6 +2,7 @@ DESCRIPTION = "NI Linux RT runmode - slimmed - container image"
 
 IMAGE_INSTALL = "\
 	packagegroup-ni-runmode \
+	env-config-container \
 "
 
 require includes/nilrt-image-base.inc

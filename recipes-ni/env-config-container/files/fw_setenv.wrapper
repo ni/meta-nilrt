@@ -1,0 +1,48 @@
+#!/bin/bash
+# Wrapper for fw_setenv that writes to grubenv
+GRUBENV="/boot/grub/grubenv"
+
+# Handle -s flag (set from file)
+if [[ "$1" == "-s" ]]; then
+    INPUT_FILE="$2"
+    if [[ "$INPUT_FILE" == "-" ]]; then
+        INPUT_FILE="/dev/stdin"
+    fi
+    
+    while IFS= read -r line; do
+        [[ "$line" =~ ^# ]] && continue
+        [[ -z "$line" ]] && continue
+        
+        VAR_NAME=$(echo "$line" | awk '{print $1}')
+        VAR_VALUE=$(echo "$line" | cut -d' ' -f2-)
+        
+        if [[ -z "$VAR_NAME" ]]; then
+            echo "Error: Variable name required in line: $line" >&2
+            continue
+        fi
+        
+        if [[ -z "$VAR_VALUE" ]]; then
+            # Delete variable
+            grub-editenv "$GRUBENV" unset "$VAR_NAME"
+        else
+            # Update or add variable
+            grub-editenv "$GRUBENV" set "$VAR_NAME=$VAR_VALUE"
+        fi
+    done < "$INPUT_FILE"
+else
+    VAR_NAME="$1"
+    VAR_VALUE="$2"
+    
+    if [[ -z "$VAR_NAME" ]]; then
+        echo "Error: Variable name required" >&2
+        exit 1
+    fi
+    
+    if [[ -z "$VAR_VALUE" ]]; then
+        # Delete variable
+        grub-editenv "$GRUBENV" unset "$VAR_NAME"
+    else
+        # Update or add variable
+        grub-editenv "$GRUBENV" set "$VAR_NAME=$VAR_VALUE"
+    fi
+fi

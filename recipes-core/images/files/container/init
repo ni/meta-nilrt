@@ -2,6 +2,17 @@
 # This is a custom init file for the NILRT container, that does some fixups and
 # then executes the container's CMD..
 
+# Create softlinks to wrapper scripts for fw_printenv and fw_setenv
+if [ -f /sbin/fw_printenv.wrapper ]; then
+    ln -sf /sbin/fw_printenv.wrapper /sbin/fw_printenv
+fi
+
+if [ -f /sbin/fw_setenv.wrapper ]; then
+    ln -sf /sbin/fw_setenv.wrapper /sbin/fw_setenv
+fi
+
+fw_setenv serial# $(hostname)
+
 setcap CAP_SYS_TIME+ep /sbin/hwclock.util-linux
 
 /etc/init.d/populateconfig start
@@ -12,5 +23,5 @@ fi
 
 /etc/init.d/run-postinsts start
 
-# Execute the CMD passed to the container'
-$@
+# Execute the CMD passed to the container
+exec "$@"
