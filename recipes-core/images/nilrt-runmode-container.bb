@@ -5,6 +5,7 @@ IMAGE_INSTALL = "\
 	packagegroup-ni-wifi \
 	dkms \
 	nilrt-grub-runmode \
+	env-config-container \
 	"
 
 require includes/nilrt-image-base.inc

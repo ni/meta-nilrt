@@ -1,0 +1,29 @@
+#!/bin/bash
+# Wrapper for fw_printenv that reads from grubenv
+GRUBENV="/boot/grub/grubenv"
+
+# Parse arguments
+SUPPRESS_NAME=0
+if [[ "$1" == "-n" ]]; then
+    SUPPRESS_NAME=1
+    shift
+fi
+
+VAR_NAME="$1"
+
+if [[ -z "$VAR_NAME" ]]; then
+    # List all variables
+    grub-editenv "$GRUBENV" list
+else
+    # Get specific variable
+    VALUE=$(grub-editenv "$GRUBENV" list | grep "^${VAR_NAME}=" | cut -d= -f2-)
+    if [[ -n "$VALUE" ]]; then
+        if [[ $SUPPRESS_NAME -eq 1 ]]; then
+            echo "$VALUE"
+        else
+            echo "${VAR_NAME}=${VALUE}"
+        fi
+    else
+        echo "Error: $VAR_NAME not defined" >&2
+    fi
+fi
