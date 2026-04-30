@@ -24,7 +24,7 @@ DEPENDS += "\
 	utf8cpp-native \
 "
 
-PV = "2.14.0"
+PV = "2.18.0+git${SRCPV}"
 
 
 SRC_URI = "\
@@ -135,6 +135,7 @@ FILES:${PN} += "\
 "
 RDEPENDS:${PN} += "\
 	grpc \
+	ni-grpc-sideband \
 	protobuf \
 "
 
