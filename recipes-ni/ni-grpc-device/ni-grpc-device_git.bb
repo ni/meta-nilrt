@@ -24,7 +24,7 @@ DEPENDS += "\
 	utf8cpp-native \
 "
 
-PV = "2.18.0+git${SRCPV}"
+PV = "2.17.0+git${SRCPV}"
 
 
 SRC_URI = "\
