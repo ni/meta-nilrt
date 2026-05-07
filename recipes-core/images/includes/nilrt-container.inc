@@ -9,9 +9,24 @@ FORCE_RO_REMOVE = "1"
 # The backing func will test the installed package manifest and only
 # issue an opkg remove if the package name is present. So no wildcards.
 ROOTFS_RO_UNNEEDED = "\
-	ni-arch-gen \
 	kernel-devsrc \
 "
+
+# Ensure ni-arch-gen is available in all container variants to generate
+# /etc/opkg/ni-arch.conf at first boot via run-postinsts.
+IMAGE_INSTALL_NODEPS += "ni-arch-gen"
+
+# ni-sysapi-webservice provides the /nisysapi/server endpoint needed
+# for NI MAX connectivity.
+# ni-auth is required by SystemWebServer (segfaults without niauth_daemon).
+# ni-system-webserver provides the web server for deployment and discovery
+# by NI MAX and VeriStand.
+# ni-webdav-system-webserver-support provides mod_nidav.so for WebDAV file
+# deployment (how VeriStand deploys .rtexe to /c).
+IMAGE_INSTALL_NODEPS += "ni-sysapi-webservice ni-auth ni-system-webserver ni-webdav-system-webserver-support"
+
+# nirtmdnsd provides NI RT mDNS service for target discovery.
+IMAGE_INSTALL_NODEPS += "nirtmdnsd"
 
 # Necessary whenever building a container.
 # Though this appears to do nothing, given how our kernel recipes are constructed.
@@ -54,14 +69,41 @@ fakeroot container_rootfs_post() {
 
 	install -m 544 ${SFILES}/init ${IMAGE_ROOTFS}/init
 	install -m 0755 ${SFILES}/nilrt-container.postinst ${IMAGE_ROOTFS}/postinst
+
+	# Shadow /usr/bin/opkg with a wrapper that restarts lvrt after
+	# install/upgrade so newly-installed RT applications (e.g. the VeriStand
+	# Engine) launch without requiring a container reboot. /usr/local/bin
+	# precedes /usr/bin on PATH.
+	install -d ${IMAGE_ROOTFS}${prefix}/local/bin
+	install -m 0755 ${SFILES}/opkg-wrapper.sh ${IMAGE_ROOTFS}${prefix}/local/bin/opkg
 }
 ROOTFS_POSTPROCESS_COMMAND += " container_rootfs_post; "
 
+# Inject dummy opkg status entries for packages that segfault in containers.
+# This makes opkg believe ni-dim/ni-mdbg are already installed at a very high
+# version, satisfying any ">=" constraints from dependent packages (e.g.
+# ni-daqmx-ef requires ni-dim >= 26.3.0) without actually installing them.
+CONTAINER_DUMMY_OPKG_PACKAGES = "ni-dim ni-dim-dkms ni-dim-libs ni-dim-sysapi libnidimu1 ni-mdbg ni-mdbg-dkms ni-mdbg-errors"
+fakeroot container_inject_dummy_deps() {
+	statusfile="${IMAGE_ROOTFS}/var/lib/opkg/status"
+	infodir="${IMAGE_ROOTFS}/var/lib/opkg/info"
+	install -d "$infodir"
+	for pkg in ${CONTAINER_DUMMY_OPKG_PACKAGES}; do
+		cat >> "$statusfile" <<EOF
+
+Package: ${pkg}
+Version: 99.0.0
+Status: install ok installed
+Architecture: all
+Description: Dummy entry - prevents installation in containers
+EOF
+		# opkg expects an installed package to have a corresponding .list file.
+		: > "$infodir/${pkg}.list"
+	done
+}
+IMAGE_PREPROCESS_COMMAND += " container_inject_dummy_deps; "
 
 fakeroot container_image_pre() {
-	# configure opkg
-	echo "arch DeviceCode77E1 51" >>${IMAGE_ROOTFS}/${sysconfdir}/opkg/arch.conf
-
 	# remake some removed volatile directories that do_rootfs removes
 	install -m 1777 -d ${IMAGE_ROOTFS}/${localstatedir}/volatile/tmp
 	install -m 755 -d ${IMAGE_ROOTFS}/${localstatedir}/volatile/log
@@ -69,5 +111,15 @@ fakeroot container_image_pre() {
 	# Workaround for nirtcfg's ni-rt.ini.lock bug
 	# /run/lock cannot have the sticky-bit set.
 	install -m 777 -d ${IMAGE_ROOTFS}/run/lock
+
+	# Enable sshd by default in containers
+	if ! grep -q '^\[systemsettings\]' ${IMAGE_ROOTFS}${sysconfdir}/natinst/share/ni-rt.ini 2>/dev/null; then
+		printf '\n[systemsettings]\n' >> ${IMAGE_ROOTFS}${sysconfdir}/natinst/share/ni-rt.ini
+	fi
+	if grep -q '^sshd\.enabled=' ${IMAGE_ROOTFS}${sysconfdir}/natinst/share/ni-rt.ini 2>/dev/null; then
+		sed -i 's/^sshd\.enabled=.*/sshd.enabled="True"/' ${IMAGE_ROOTFS}${sysconfdir}/natinst/share/ni-rt.ini
+	else
+		sed -i '/^\[systemsettings\]/a sshd.enabled="True"' ${IMAGE_ROOTFS}${sysconfdir}/natinst/share/ni-rt.ini
+	fi
 }
 IMAGE_PREPROCESS_COMMAND += " container_image_pre; "
