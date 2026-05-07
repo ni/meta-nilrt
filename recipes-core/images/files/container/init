@@ -23,5 +23,10 @@ fi
 
 /etc/init.d/run-postinsts start
 
+if [ -x /postinst ]; then
+    /postinst
+    rm -f /postinst
+fi
+
 # Execute the CMD passed to the container
 exec "$@"
