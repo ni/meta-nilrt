@@ -53,6 +53,7 @@ fakeroot container_rootfs_post() {
 	install ${SFILES}/grubenv ${IMAGE_ROOTFS}/boot/grub/grubenv
 
 	install -m 544 ${SFILES}/init ${IMAGE_ROOTFS}/init
+	install -m 0755 ${SFILES}/nilrt-container.postinst ${IMAGE_ROOTFS}/postinst
 }
 ROOTFS_POSTPROCESS_COMMAND += " container_rootfs_post; "
 

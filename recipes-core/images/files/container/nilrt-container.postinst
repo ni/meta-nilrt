@@ -1,0 +1,11 @@
+#!/bin/bash
+#
+# Copyright (c) 2025 National Instruments
+#
+# Post-installation script for NILRT container images.
+# Runs once on first container start to update the opkg feed index
+# and upgrade signing keys.
+
+# Update the package feed index and upgrade signing keys so users can
+# opkg install packages immediately.
+opkg update && opkg upgrade opkg-keyrings || true
