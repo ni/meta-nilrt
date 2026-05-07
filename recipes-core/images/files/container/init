@@ -13,13 +13,11 @@ fi
 
 fw_setenv serial# $(hostname)
 
-setcap CAP_SYS_TIME+ep /sbin/hwclock.util-linux
-
 /etc/init.d/populateconfig start
+/etc/init.d/niauth start
 
-if [ -f /etc/init.d/niauth ]; then
-    /etc/init.d/niauth start
-fi
+# Bind-mount /boot so ni-arch-gen can detect it as mounted
+mount --bind /boot /boot
 
 /etc/init.d/run-postinsts start
 
@@ -27,6 +25,19 @@ if [ -x /postinst ]; then
     /postinst
     rm -f /postinst
 fi
+
+# Start D-Bus (required by Avahi)
+/etc/init.d/dbus-1 start
+
+/etc/init.d/avahi-daemon start
+/etc/init.d/nirtmdnsd start
+
+# Fix /run/natinst ownership so webserv can create PID file
+mkdir -p /run/natinst
+chown webserv:ni /run/natinst
+/etc/init.d/systemWebServer start
+
+/etc/init.d/sshd start
 
 # Execute the CMD passed to the container
 exec "$@"
