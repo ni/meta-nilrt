@@ -14,8 +14,9 @@ PV = "${DISTRO_VERSION}"
 
 IMAGE_INSTALL += "\
 	packagegroup-ni-safemode \
-	packagegroup-ni-wifi \
 "
+
+IMAGE_INSTALL:append:x64 = " packagegroup-ni-wifi "
 
 IMAGE_INSTALL_NODEPS += "\
 	${NI_PROPRIETARY_COMMON_PACKAGES} \
