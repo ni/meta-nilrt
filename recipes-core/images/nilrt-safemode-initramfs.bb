@@ -24,6 +24,8 @@ IMAGE_INSTALL_NODEPS += "\
 
 BAD_RECOMMENDATIONS:append:pn-${PN} = " shared-mime-info *-lic"
 
+IMAGE_LINGUAS:remove = "ja-jp.windows-31j zh-cn.cp936"
+
 # Do not allow python to be installed into safemode ramdisk due to size
 PACKAGE_EXCLUDE += "python-core python3-core"
 
