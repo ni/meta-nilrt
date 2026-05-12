@@ -115,7 +115,7 @@ EFI_PROVIDER = "grub-efi"
 
 INCLUDE_PYCS = "0"
 
-DISTRO_FEATURES_BACKFILL_CONSIDERED:arm = "gobject-introspection-data"
+DISTRO_FEATURES_OPTED_OUT:arm = "gobject-introspection-data"
 
 # touchsreen calibration doesn't work with xf86-input-libinput, only with xf86-input-edev
 BAD_RECOMMENDATIONS += "xf86-input-libinput"
