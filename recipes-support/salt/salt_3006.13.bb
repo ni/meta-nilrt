@@ -132,7 +132,6 @@ RDEPENDS:${PN}-common = "\
     python3-psutil (>= 5.0.0) \
     python3-pyyaml \
     python3-requests (>= 2.32.3) \
-    python3-singledispatch (>= 3.4.0.3) \
     python3-urllib3 (>= 1.26.20) \
 "
 RRECOMMENDS:${PN}-common = "lsb-release"
