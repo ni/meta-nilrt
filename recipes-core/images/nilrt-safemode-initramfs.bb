@@ -30,6 +30,9 @@ IMAGE_LINGUAS:remove = "ja-jp.windows-31j zh-cn.cp936"
 # Do not allow python to be installed into safemode ramdisk due to size
 PACKAGE_EXCLUDE += "python-core python3-core"
 
+# Do not allow tzdata to be installed into safemode ramdisk due to size
+PACKAGE_EXCLUDE += "packagegroup-ni-tzdata"
+
 PACKAGE_EXCLUDE += "rauc-mark-good"
 
 bootimg_fixup () {
