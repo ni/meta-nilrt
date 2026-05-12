@@ -60,7 +60,7 @@ bootimg_fixup_x64 () {
 }
 
 bootimg_fixup_arm () {
-    echo "ubi1:rootfs /mnt/userfs ubifs defaults 0 0" >> "${IMAGE_ROOTFS}/etc/fstab"
+	echo "ubi1:rootfs /mnt/userfs ubifs defaults 0 0" >> "${IMAGE_ROOTFS}/etc/fstab"
 }
 
 IMAGE_PREPROCESS_COMMAND += " bootimg_fixup; "
