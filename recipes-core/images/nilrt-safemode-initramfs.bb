@@ -51,6 +51,7 @@ bootimg_fixup () {
 
 	# opkg cleanup
 	opkg -o ${IMAGE_ROOTFS} -f ${IPKGCONF_TARGET} clean
+	rm -rf "${IMAGE_ROOTFS}/var/lib/opkg/lists"
 }
 
 bootimg_fixup_x64 () {
