@@ -103,8 +103,9 @@ if [ -x $tmp_dir_new/preinst ]; then
 	$tmp_dir_new/preinst
 fi
 
+# TODO: Enable hash validation in AB#3842951
 # Validate hashes in ITB
-/sbin/fdtview -i $tmp_dir_new/$itb
+# /sbin/fdtview -i $tmp_dir_new/$itb
 
 itb_device_codes=`get_fdt_prop $tmp_dir_new/$itb / DeviceCodes`
 itb_device_codes="$itb_device_codes `get_fdt_prop $tmp_dir_new/$itb / DeviceCode`"
