@@ -135,7 +135,7 @@ FILES:${PN} += "\
 "
 RDEPENDS:${PN} += "\
 	grpc \
-	ni-grpc-sideband \
+	ni-grpc-sideband-dev \
 	protobuf \
 "
 
