@@ -17,6 +17,3 @@ if ! grep -qs mtd /proc/mtd ; then
     sed -i '/mtd/d' /etc/fw_env.config
     echo /boot/uboot/uboot.env         0x0000         0x20000 >>/etc/fw_env.config
 fi
-
-# we don't need this to run all the time, remove after first boot
-update-rc.d -f nisdbootconfig remove
