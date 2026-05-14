@@ -48,3 +48,7 @@ RDEPENDS:${PN}:append:x64 = "\
 	linux-firmware-i915-bxt-dmc \
 	linux-firmware-i915-tgl-dmc \
 "
+
+RDEPENDS:${PN}:append:armv7a = " \
+	nisdbootconfig \
+"
