@@ -8,6 +8,9 @@ NI_PROPRIETARY_COMMON_PACKAGES = "\
         libnitargetcfg \
         ni-auth \
         ni-auth-webservice \
+        pam-plugin-niauth \
+        libnss-niauth \
+        ni-auth-networkcontroller \    
         ni-avahi-client \
         ni-ca-certs \
         ni-rt-exec-webservice \
