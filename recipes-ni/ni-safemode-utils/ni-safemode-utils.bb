@@ -29,9 +29,9 @@ RDEPENDS:${PN}:append:xilinx-zynq = " u-boot-tools-fdtview "
 do_install () {
 	install -d ${D}${natinstbin}
 
-	install -m 0755   ${WORKDIR}/nicompareversion            ${D}${natinstbin}
-	install -m 0550   ${WORKDIR}/${NIINSTALLSAFEMODE}        ${D}${natinstbin}/niinstallsafemode
-	install -m 0755   ${WORKDIR}/nisafemodeversion           ${D}${natinstbin}
+	install -m 0755   ${UNPACKDIR}/nicompareversion            ${D}${natinstbin}
+	install -m 0550   ${UNPACKDIR}/${NIINSTALLSAFEMODE}        ${D}${natinstbin}/niinstallsafemode
+	install -m 0755   ${UNPACKDIR}/nisafemodeversion           ${D}${natinstbin}
 
 	chown 0:${LVRT_GROUP} ${D}${natinstbin}/niinstallsafemode
 }
