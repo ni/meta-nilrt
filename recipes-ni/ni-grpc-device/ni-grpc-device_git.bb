@@ -29,8 +29,8 @@ PV = "2.17.0+git${SRCPV}"
 
 SRC_URI = "\
 	git://github.com/ni/grpc-device.git;name=grpc-device;branch=main;protocol=https \
-	git://github.com/ni/grpc-sideband.git;name=grpc-sideband;protocol=https;nobranch=1;destsuffix=${BB_GIT_DEFAULT_DESTSUFFIX}/third_party/grpc-sideband \
-	git://github.com/ni/ni-apis.git;name=ni-apis;protocol=https;nobranch=1;destsuffix=${BB_GIT_DEFAULT_DESTSUFFIX}/third_party/ni-apis \
+	git://github.com/ni/grpc-sideband.git;name=grpc-sideband;protocol=https;nobranch=1;destsuffix=${S}/third_party/grpc-sideband \
+	git://github.com/ni/ni-apis.git;name=ni-apis;protocol=https;nobranch=1;destsuffix=${S}/third_party/ni-apis \
 	file://ptest \
 "
 
