@@ -2,7 +2,6 @@ MAINTAINER = "NI Linux Real-Time Maintainers <nilrt@emerson.com>"
 
 TARGET_VENDOR = "-nilrt"
 
-DISTRO_FEATURES += "${DISTRO_FEATURES_DEFAULT}"
 # Common features enabled on all NILRT flavours
 DISTRO_FEATURES += "\
         argp \
