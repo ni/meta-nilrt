@@ -12,8 +12,6 @@ DEPENDS += "\
 SRC_URI = "git://github.com/ni/grpc-sideband.git;protocol=https;nobranch=1"
 SRCREV = "e351b75f2df9d932fb7993520429d7c680031864"
 
-S = "${WORKDIR}/git"
-
 inherit cmake
 
 EXTRA_OECMAKE += "\
