@@ -29,8 +29,8 @@ PV = "2.17.0+git${SRCPV}"
 
 SRC_URI = "\
 	git://github.com/ni/grpc-device.git;name=grpc-device;branch=main;protocol=https \
-	git://github.com/ni/grpc-sideband.git;name=grpc-sideband;protocol=https;nobranch=1;destsuffix=git/third_party/grpc-sideband \
-	git://github.com/ni/ni-apis.git;name=ni-apis;protocol=https;nobranch=1;destsuffix=git/third_party/ni-apis \
+	git://github.com/ni/grpc-sideband.git;name=grpc-sideband;protocol=https;nobranch=1;destsuffix=${BB_GIT_DEFAULT_DESTSUFFIX}/third_party/grpc-sideband \
+	git://github.com/ni/ni-apis.git;name=ni-apis;protocol=https;nobranch=1;destsuffix=${BB_GIT_DEFAULT_DESTSUFFIX}/third_party/ni-apis \
 	file://ptest \
 "
 
@@ -38,12 +38,15 @@ SRCREV_grpc-device = "a1830a7ac5274c34f955046cdc719fbf1648ab90"
 SRCREV_grpc-sideband = "e351b75f2df9d932fb7993520429d7c680031864"
 SRCREV_ni-apis = "00356cce09dd61d15f6799a87c27460a7d7a0c24"
 SRCREV_FORMAT = "grpc-device"
-SRCREV_grpc-sideband = "0ce928851df2e335ebdc385cced6d46a662c505e"
+
 inherit cmake python3native
 
 EXTRA_OECMAKE += "-DCMAKE_CROSSCOMPILING=True -DCMAKE_BUILD_TYPE=Release -DUSE_SUBMODULE_LIBS=OFF -DUSE_PYTHON_VIRTUALENV=OFF"
 OECMAKE_TARGET_COMPILE = "ni_grpc_device_server"
 OECMAKE_GENERATOR = "Unix Makefiles"
+
+# Don't error on deprecated declarations warnings
+CXXFLAGS:append = " -Wno-error=deprecated-declarations"
 
 # When USE_SUBMODULE_LIBS=OFF the protoc invocations for driver protos only
 # have imports/protobuf/ on their -I path. Copy the ni-apis proto files there
