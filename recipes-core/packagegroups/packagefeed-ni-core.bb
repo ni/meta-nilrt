@@ -37,4 +37,5 @@ RDEPENDS:${PN}:append:x64 = "\
 	packagegroup-ni-tpm \
 	bolt \
 	onboard \
+	env-config-container \	
 "
