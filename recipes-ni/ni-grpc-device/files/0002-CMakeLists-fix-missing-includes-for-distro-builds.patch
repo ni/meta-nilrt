@@ -1,0 +1,40 @@
+From 24c66c50c173fffcb42e69674f4ffa28b3665946 Mon Sep 17 00:00:00 2001
+From: Alex Stewart <alex.stewart@emerson.com>
+Date: Fri, 22 May 2026 17:18:59 -0400
+Subject: [PATCH] CMakeLists: fix missing includes for distro builds
+
+The inclusion of the ni-api sources is gated on using the submodule
+libs. But ni-apis is a source-repo that does not have its own package,
+and so should be used even by distro builds that do not otherwise want
+to use the submodules.
+
+So move the ni-api header includes out of the conditional.
+
+Signed-off-by: Alex Stewart <alex.stewart@emerson.com>
+
+Upstream-Status: Submitted [https://github.com/ni/grpc-device/pull/1261]
+---
+ CMakeLists.txt | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 77cdf623..077f3a85 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -319,11 +319,12 @@ function(GenerateGrpcSources)
+   set(output_files "${GENERATE_ARGS_OUTPUT}")
+   set(proto_file "${GENERATE_ARGS_PROTO}")
+   if(USE_SUBMODULE_LIBS)
+-    set(protobuf_includes_arg 
+-      -I ${CMAKE_SOURCE_DIR}/third_party/grpc/third_party/protobuf/src/
+-      -I ${CMAKE_SOURCE_DIR}/third_party/ni-apis/ni/grpcdevice/v1/ # for session.proto
+-      -I ${CMAKE_SOURCE_DIR}/third_party/ni-apis/)
++    set(protobuf_includes_arg
++      -I ${CMAKE_SOURCE_DIR}/third_party/grpc/third_party/protobuf/src/)
+   endif()
++  list(APPEND protobuf_includes_arg
++    -I ${CMAKE_SOURCE_DIR}/third_party/ni-apis/ni/grpcdevice/v1/ # for session.proto
++    -I ${CMAKE_SOURCE_DIR}/third_party/ni-apis/)
+   get_filename_component(proto_name "${proto_file}" NAME)
+   get_filename_component(proto_path "${proto_file}" PATH)
+   # Asssumption: all outputs are in the same directory: use the zero-th.

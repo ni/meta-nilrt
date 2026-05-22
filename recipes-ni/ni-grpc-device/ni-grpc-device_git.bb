@@ -28,12 +28,13 @@ PV = "2.17.0+git${SRCPV}"
 
 
 SRC_URI = "git://github.com/ni/grpc-device.git;name=grpc-device;branch=main;protocol=https \
-	git://github.com/ni/ni-apis.git;name=ni-apis;protocol=https;nobranch=1;destsuffix=${S}/third_party/ni-apis \
-	file://ptest \
-	file://0003-CMakeLists-honor-USE_SUBMODULE_LIBS-when-including.patch \
-"
+           git://github.com/ni/ni-apis.git;name=ni-apis;protocol=https;nobranch=1;destsuffix=${S}/third_party/ni-apis \
+           file://ptest \
+           file://0001-CMakeLists-honor-USE_SUBMODULE_LIBS-when-including.patch \
+           file://0002-CMakeLists-fix-missing-includes-for-distro-builds.patch \
+           "
 
-SRCREV_grpc-device = "a1830a7ac5274c34f955046cdc719fbf1648ab90"
+SRCREV_grpc-device = "6bfbfa5a83cbeaf7400a409aff168a43d711b5b9"
 SRCREV_ni-apis = "00356cce09dd61d15f6799a87c27460a7d7a0c24"
 SRCREV_FORMAT = "grpc-device"
 
