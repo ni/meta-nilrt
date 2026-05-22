@@ -1,0 +1,44 @@
+From 0c1a30178d2fe52dac142d326bfcc4a44f36a2f9 Mon Sep 17 00:00:00 2001
+From: Alex Stewart <alex.stewart@emerson.com>
+Date: Fri, 22 May 2026 13:36:09 -0400
+Subject: [PATCH] CMakeLists: honor USE_SUBMODULE_LIBS when including
+
+A section of the CMakeLists attempts to include protobuf headers from
+the third_party submodules unconditionally, even if the submodules are
+not supposed to be used for the build.
+
+Branch these includes behind a check for if USE_SUBMODULE_LIBS is
+enabled.
+
+Signed-off-by: Alex Stewart <alex.stewart@emerson.com>
+
+Upstream-Status: Submitted [https://github.com/ni/grpc-device/pull/1261]
+---
+ CMakeLists.txt | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 552bc562..77cdf623 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -137,9 +137,18 @@ include_directories(
+   "./generated"
+   "./imports/include"
+   "./source"
+-  "./third_party/grpc-sideband/src"
+-  "./third_party/grpc-sideband/moniker_src"
+ )
++
++if(USE_SUBMODULE_LIBS)
++  include_directories(
++    "./third_party/grpc-sideband/src"
++    "./third_party/grpc-sideband/moniker_src"
++  )
++else()
++  find_path(GRPC_SIDEBAND_INCLUDE_DIR ni-grpc-sideband REQUIRED)
++  include_directories("${GRPC_SIDEBAND_INCLUDE_DIR}/ni-grpc-sideband")
++endif()
++
+ if(WIN32)
+   link_directories("./imports/lib/win64")
+ endif()

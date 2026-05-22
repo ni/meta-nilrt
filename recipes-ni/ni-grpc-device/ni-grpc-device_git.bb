@@ -27,10 +27,10 @@ DEPENDS += "\
 PV = "2.17.0+git${SRCPV}"
 
 
-SRC_URI = "\
-	git://github.com/ni/grpc-device.git;name=grpc-device;branch=main;protocol=https \
+SRC_URI = "git://github.com/ni/grpc-device.git;name=grpc-device;branch=main;protocol=https \
 	git://github.com/ni/ni-apis.git;name=ni-apis;protocol=https;nobranch=1;destsuffix=${S}/third_party/ni-apis \
 	file://ptest \
+	file://0003-CMakeLists-honor-USE_SUBMODULE_LIBS-when-including.patch \
 "
 
 SRCREV_grpc-device = "a1830a7ac5274c34f955046cdc719fbf1648ab90"
