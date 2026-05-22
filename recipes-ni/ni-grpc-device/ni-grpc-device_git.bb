@@ -128,17 +128,19 @@ do_install () {
 PACKAGE_BEFORE_PN = "${PN}-examples"
 
 # ${PN}
+nitlsconfig_sysconfdir = "${sysconfdir}/nitlsconfig/server.d"
 do_install:append () {
-	install -d ${D}${sysconfdir}/nitlsconfig/server.d
-	install --mode=0644 ${S}/source/config/ni-grpc-device.conf.yml \
-		${D}${sysconfdir}/nitlsconfig/server.d/ni-grpc-device.conf.yml
-	install --mode=0644 ${S}/source/config/ni-grpc-device.caps.yml \
-		${D}${sysconfdir}/nitlsconfig/server.d/ni-grpc-device.caps.yml
+	install -d ${D}${nitlsconfig_sysconfdir}
+	install --mode=0644 \
+		${B}/ni-grpc-device.conf.yml \
+		${D}${nitlsconfig_sysconfdir}/${BPN}.conf.yml
+	install --mode=0644 \
+		${B}/ni-grpc-device.caps.yml \
+		${D}${nitlsconfig_sysconfdir}/${BPN}.caps.yml
 }
 
 FILES:${PN} += "\
-	${sysconfdir}/nitlsconfig/server.d/ni-grpc-device.conf.yml \
-	${sysconfdir}/nitlsconfig/server.d/ni-grpc-device.caps.yml \
+	${nitlsconfig_sysconfdir}/${BPN}.* \
 "
 RDEPENDS:${PN} += "\
 	grpc \
