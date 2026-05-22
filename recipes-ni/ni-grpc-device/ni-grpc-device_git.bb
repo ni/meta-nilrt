@@ -149,7 +149,7 @@ RDEPENDS:${PN} += "\
 "
 
 # ${PN}-dev
-FILES:${PN}-dev:append = "${datadir}/${BPN}/*.proto"
+FILES:${PN}-dev:append = " ${datadir}/${BPN}/*.proto"
 RDEPENDS:${PN}-dev:append = "\
 	grpc-dev \
 "
