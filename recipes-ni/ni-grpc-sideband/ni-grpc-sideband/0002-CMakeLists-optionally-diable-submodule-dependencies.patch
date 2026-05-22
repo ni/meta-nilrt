@@ -1,0 +1,49 @@
+From d03d16bc4320db9854724f1466b6657c89f4e856 Mon Sep 17 00:00:00 2001
+From: Alex Stewart <alex.stewart@emerson.com>
+Date: Wed, 20 May 2026 16:23:33 -0400
+Subject: [PATCH] CMakeLists: optionally diable submodule dependencies
+
+Including project dependencies as git submodules isn't ideal for OS
+packagers - including NILRT - who prefer to dynamically link libraries
+against installations controlled by the distro.
+
+Add a ``USE_SUBMODULE_DEPENDENCIES`` cmake option that will cause the
+build to ignore the ``third_party`` directory entirely.
+
+Signed-off-by: Alex Stewart <alex.stewart@emerson.com>
+
+Upstream-Status: Submitted [https://github.com/ni/grpc-sideband/pull/17]
+---
+ CMakeLists.txt | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index e3658c6..55b87a5 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -6,6 +6,7 @@ project(ni-grpc-sideband C CXX)
+ 
+ option(INCLUDE_SIDEBAND_RDMA "Include support for RDMA sideband transfers" ON)
+ option(SIDEBAND_STATIC "Build static library, disabled by default" OFF)
++option(USE_SUBMODULE_DEPENDENCIES "Use bundled third-party libraries from the /third_party directory instead of distribution libraries" ON)
+ 
+ if(NOT MSVC)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+@@ -23,7 +24,16 @@ if (INCLUDE_SIDEBAND_RDMA)
+ endif()
+ 
+ if (INCLUDE_SIDEBAND_RDMA)
+-  add_subdirectory(third_party/easyrdma ${CMAKE_CURRENT_BINARY_DIR}/easyrdma)
++  if (USE_SUBMODULE_DEPENDENCIES)
++    add_subdirectory(third_party/easyrdma ${CMAKE_CURRENT_BINARY_DIR}/easyrdma)
++  else()
++    find_library(EASYRDMA_LIBRARY REQUIRED NAMES easyrdma)
++    find_path(EASYRDMA_INCLUDE_DIR REQUIRED NAMES easyrdma.h)
++    add_library(easyrdma UNKNOWN IMPORTED)
++    set_target_properties(easyrdma PROPERTIES
++      IMPORTED_LOCATION "${EASYRDMA_LIBRARY}"
++      INTERFACE_INCLUDE_DIRECTORIES "${EASYRDMA_INCLUDE_DIR}")
++  endif()
+ endif()
+ 
+ find_package(Threads REQUIRED)

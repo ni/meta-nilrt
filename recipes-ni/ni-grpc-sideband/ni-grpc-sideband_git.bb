@@ -5,30 +5,24 @@ SECTION = "base"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=75f4e5c7ec4f89925cd35ff3952beafa"
 
-DEPENDS += "\
-	grpc \
-"
 
-SRC_URI = "git://github.com/ni/grpc-sideband.git;protocol=https;nobranch=1"
-SRCREV = "e351b75f2df9d932fb7993520429d7c680031864"
+PV = "0.1.0+git${SRCPV}"
+
+
+SRC_URI = "git://github.com/ni/grpc-sideband.git;protocol=https;nobranch=1 \
+	file://0001-Revert-update-function-to-accept-boolean-trigger-11.patch \
+	file://0002-CMakeLists-optionally-diable-submodule-dependencies.patch \
+	file://0003-CMakeLists-version-project-0.1.0.patch \
+	file://0006-CMakeLists-install-headers-to-namespaced-subdir.patch \
+"
+SRCREV = "0ce928851df2e335ebdc385cced6d46a662c505e"
+
 
 inherit cmake
 
 EXTRA_OECMAKE += "\
 	-DINCLUDE_SIDEBAND_RDMA=OFF \
 	-DSIDEBAND_STATIC=OFF \
+	-DUSE_SUBMODULE_DEPENDENCIES=OFF \
 	-DCMAKE_BUILD_TYPE=Release \
 "
-
-do_install:append() {
-	# grpc-sideband has no cmake install() targets; copy the shared library manually
-	install -d ${D}${libdir}
-	install --mode=0755 ${B}/libni_grpc_sideband.so ${D}${libdir}/libni_grpc_sideband.so
-}
-
-FILES:${PN} += "${libdir}/libni_grpc_sideband.so"
-FILES:${PN}-dev += "${libdir}/libni_grpc_sideband.so"
-
-# The .so has no SONAME so it lands in -dev; suppress the resulting QA warnings
-INSANE_SKIP:${PN} += "dev-so"
-INSANE_SKIP:${PN}-dev += "dev-elf"

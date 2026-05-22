@@ -1,0 +1,107 @@
+From 64e391a3deb9b9a5f410cb553e01ebf1aeda7f54 Mon Sep 17 00:00:00 2001
+From: sagrahar <sumit.agrahari@ni.com>
+Date: Thu, 13 Mar 2025 16:20:26 +0530
+Subject: [PATCH] Revert "update function to accept boolean trigger (#11)"
+
+This reverts commit 32c499cad3d74ac1566d888960d8c737f98ae7a6.
+
+
+Upstream-Status: Submitted [https://github.com/ni/grpc-sideband/pull/15]
+---
+ src/sideband_data.h     |  2 +-
+ src/sideband_sockets.cc | 54 +++++++++--------------------------------
+ 2 files changed, 13 insertions(+), 43 deletions(-)
+
+diff --git a/src/sideband_data.h b/src/sideband_data.h
+index 938a035..4e40b83 100644
+--- a/src/sideband_data.h
++++ b/src/sideband_data.h
+@@ -53,7 +53,7 @@ int32_t _SIDEBAND_FUNC CloseSidebandData(int64_t dataToken);
+ 
+ //---------------------------------------------------------------------
+ //---------------------------------------------------------------------
+-int32_t _SIDEBAND_FUNC RunSidebandSocketsAccept(const char* address, int port, std::atomic<bool>& stop_flag);
++int32_t _SIDEBAND_FUNC RunSidebandSocketsAccept(const char* address, int port);
+ int32_t _SIDEBAND_FUNC AcceptSidebandRdmaSendRequests();
+ int32_t _SIDEBAND_FUNC AcceptSidebandRdmaReceiveRequests();
+ int32_t _SIDEBAND_FUNC GetSidebandConnectionAddress(::SidebandStrategy strategy, char address[1024]);
+diff --git a/src/sideband_sockets.cc b/src/sideband_sockets.cc
+index 28fc67e..5945c18 100644
+--- a/src/sideband_sockets.cc
++++ b/src/sideband_sockets.cc
+@@ -360,7 +360,7 @@ std::string GetSocketsPort()
+ 
+ //---------------------------------------------------------------------
+ //---------------------------------------------------------------------
+-int32_t _SIDEBAND_FUNC RunSidebandSocketsAccept(const char* address, int port, std::atomic<bool>& stop_flag)
++int32_t _SIDEBAND_FUNC RunSidebandSocketsAccept(const char* address, int port)
+ {
+     int sockfd, newsockfd;
+     socklen_t clilen;
+@@ -397,54 +397,24 @@ int32_t _SIDEBAND_FUNC RunSidebandSocketsAccept(const char* address, int port, s
+     listen(sockfd, 5);
+ 
+     std::cout << "Listening for sideband sockets at: " << address << ":" << port << std::endl;
+-
+-    while (!stop_flag.load())
++    while (true)
+     {
+-        fd_set read_fds;
+-        FD_ZERO(&read_fds);
+-        FD_SET(sockfd, &read_fds);
+-
+-        struct timeval timeout;
+-        timeout.tv_sec = 0;
+-        timeout.tv_usec = 1000000; // 1000ms timeout
+-
+-        int activity = select(sockfd + 1, &read_fds, nullptr, nullptr, &timeout);
+-
+-        if (activity < 0)
+-        {
+-            std::cout << "ERROR on select" << std::endl;
++        sockaddr_in cli_addr {};
++        clilen = sizeof(cli_addr);
++        newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
++        if (newsockfd < 0)
++        { 
++            std::cout << "ERROR on accept" << std::endl;
+             return -1;
+         }
++        std::cout << "Connection!" << std::endl;
+ 
+-        if (activity == 0)
+-        {
+-            // Timed out, continue the loop.
+-            continue;
+-        }
+-
+-        if (FD_ISSET(sockfd, &read_fds))
+-        {
+-            sockaddr_in cli_addr{};
+-            clilen = sizeof(cli_addr);
+-            newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+-            if (newsockfd < 0)
+-            {
+-                std::cout << "ERROR on accept" << std::endl;
+-                return -1;
+-            }
+-
+-            std::cout << "Connection!" << std::endl;
+-            SocketSidebandData::InitFromConnection(newsockfd);
+-        }
++        SocketSidebandData::InitFromConnection(newsockfd);
+     }
+-
+-    std::cout << "Closing socket..." << std::endl;
+-
+ #ifdef _WIN32
+     closesocket(sockfd);
+ #else
+     close(sockfd);
+ #endif
+-
+-    return 0;
+-}
++    return 0; 
++}
+\ No newline at end of file

@@ -1,0 +1,32 @@
+From 4856b1a5a1e2204d8d2ba2c20e00fc63df0ae53f Mon Sep 17 00:00:00 2001
+From: Alex Stewart <alex.stewart@emerson.com>
+Date: Fri, 22 May 2026 12:04:45 -0400
+Subject: [PATCH] CMakeLists: install headers to namespaced subdir
+
+Instead of dumping headers directly into the includedir, we should put
+them in a namespaced subdir to help avoid collisions with other
+packages.
+
+Signed-off-by: Alex Stewart <alex.stewart@emerson.com>
+
+Upstream-Status: Submitted [https://github.com/ni/grpc-sideband/pull/17]
+---
+ CMakeLists.txt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 358c2c5..b7e6f88 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -93,9 +93,9 @@ install(FILES
+   src/sideband_grpc.h
+   src/sideband_internal.h
+   src/sideband_semaphore.h
+-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
++  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
+ 
+ install(FILES
+   moniker_src/moniker_service.h
+   moniker_src/data_moniker.proto
+-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
++  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})

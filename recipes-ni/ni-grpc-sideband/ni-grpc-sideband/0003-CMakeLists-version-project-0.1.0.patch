@@ -1,0 +1,68 @@
+From d4a6badcfa1d7f4fe8bad4810e20f8d2cce5e643 Mon Sep 17 00:00:00 2001
+From: Alex Stewart <alex.stewart@emerson.com>
+Date: Wed, 20 May 2026 16:31:56 -0400
+Subject: [PATCH] CMakeLists: version project 0.1.0
+
+Add a real project version - v0.1.0 - and assert this as the
+SONAME so that we can actually install versioned dynamic libs.
+
+Also add real install targets, so that users can ``make install`` the
+project.
+
+Signed-off-by: Alex Stewart <alex.stewart@emerson.com>
+
+Upstream-Status: Submitted [https://github.com/ni/grpc-sideband/pull/17]
+---
+ CMakeLists.txt | 28 +++++++++++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 55b87a5..0b670cc 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -2,7 +2,12 @@
+ #----------------------------------------------------------------------
+ cmake_minimum_required(VERSION 3.12.0)
+ 
+-project(ni-grpc-sideband C CXX)
++project(ni-grpc-sideband
++  VERSION 0.1.0
++  LANGUAGES C CXX
++)
++
++include(GNUInstallDirs)
+ 
+ option(INCLUDE_SIDEBAND_RDMA "Include support for RDMA sideband transfers" ON)
+ option(SIDEBAND_STATIC "Build static library, disabled by default" OFF)
+@@ -59,6 +64,11 @@ add_library(ni_grpc_sideband ${LIB_TYPE}
+   src/sideband_shared_memory.cc
+   src/sideband_rdma.cc
+   )
++
++set_target_properties(ni_grpc_sideband PROPERTIES
++  VERSION ${PROJECT_VERSION}
++  SOVERSION ${PROJECT_VERSION_MAJOR})
++
+ target_include_directories(ni_grpc_sideband
+   PUBLIC
+     src
+@@ -74,3 +84,19 @@ else()
+     ${_REFLECTION}
+   )
+ endif()
++
++install(TARGETS ni_grpc_sideband
++  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
++  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
++
++install(FILES
++  src/sideband_data.h
++  src/sideband_grpc.h
++  src/sideband_internal.h
++  src/sideband_semaphore.h
++  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
++
++install(FILES
++  moniker_src/moniker_service.h
++  moniker_src/data_moniker.proto
++  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
