@@ -4,12 +4,16 @@ HOMEPAGE = "https://github.com/ni/grpc-sideband"
 SECTION = "base"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=75f4e5c7ec4f89925cd35ff3952beafa"
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 DEPENDS += "\
 	grpc \
 "
 
-SRC_URI = "git://github.com/ni/grpc-sideband.git;protocol=https;nobranch=1"
+SRC_URI = "\
+	git://github.com/ni/grpc-sideband.git;protocol=https;nobranch=1 \
+	file://0001-sideband_data-Fix-format-security-warning-in-sprintf.patch \
+"
 SRCREV = "e351b75f2df9d932fb7993520429d7c680031864"
 
 inherit cmake
