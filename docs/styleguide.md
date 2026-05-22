@@ -1,4 +1,4 @@
-Before you read this document, you should familiarize yourself with the upstream [yocto project styleguide](https://www.openembedded.org/wiki/Styleguide). meta-nilrt roughly follows the upstream guide, except where the rules in this document disagree.
+Before you read this document, you should familiarize yourself with the upstream [yocto project styleguide](https://docs.yoctoproject.org/dev/contributor-guide/recipe-style-guide.html). meta-nilrt roughly follows the upstream guide, except where the rules in this document disagree.
 
 
 # General
