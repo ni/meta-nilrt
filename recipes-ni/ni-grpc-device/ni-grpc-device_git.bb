@@ -52,28 +52,6 @@ OECMAKE_GENERATOR = "Unix Makefiles"
 # Don't error on deprecated declarations warnings
 CXXFLAGS:append = " -Wno-error=deprecated-declarations"
 
-# When USE_SUBMODULE_LIBS=OFF the protoc invocations for driver protos only
-# have imports/protobuf/ on their -I path. Copy the ni-apis proto files there
-# so they can be found without patching CMakeLists.txt.
-# Also add the missing absl_log_* deps (needed by waveform.pb.cc).
-do_configure:prepend() {
-    cp ${S}/third_party/ni-apis/ni/grpcdevice/v1/session.proto \
-        ${S}/imports/protobuf/
-    install -d ${S}/imports/protobuf/ni/protobuf/types
-    cp ${S}/third_party/ni-apis/ni/protobuf/types/precision_timestamp.proto \
-        ${S}/imports/protobuf/ni/protobuf/types/
-    cp ${S}/third_party/ni-apis/ni/protobuf/types/waveform.proto \
-        ${S}/imports/protobuf/ni/protobuf/types/
-
-    # Add find_library calls for absl_log_* libs after the existing _ABSEIL_SYNC line
-    sed -i 's|find_library(_ABSEIL_SYNC absl_synchronization REQUIRED)|find_library(_ABSEIL_SYNC absl_synchronization REQUIRED)\n  find_library(_ABSEIL_LOG_MSG absl_log_internal_message REQUIRED)\n  find_library(_ABSEIL_LOG_NULLGUARD absl_log_internal_nullguard REQUIRED)\n  find_library(_ABSEIL_LOG_GLOBALS absl_log_internal_globals REQUIRED)\n  find_library(_ABSEIL_LOG_CONDITIONS absl_log_internal_conditions REQUIRED)\n  find_library(_ABSEIL_LOG_FORMAT absl_log_internal_format REQUIRED)\n  find_library(_ABSEIL_LOG_PROTO absl_log_internal_proto REQUIRED)\n  find_library(_ABSEIL_LOG_SINK_SET absl_log_internal_log_sink_set REQUIRED)\n  find_library(_ABSEIL_LOG_SINK absl_log_sink REQUIRED)\n  find_library(_ABSEIL_LOG_ENTRY absl_log_entry REQUIRED)|' \
-        ${S}/CMakeLists.txt
-
-    # Add all absl log libs to server_lib_deps (after nlohmann_json line)
-    sed -i 's|  nlohmann_json::nlohmann_json|  nlohmann_json::nlohmann_json\n  ${_ABSEIL_LOG_MSG}\n  ${_ABSEIL_LOG_NULLGUARD}\n  ${_ABSEIL_LOG_GLOBALS}\n  ${_ABSEIL_LOG_CONDITIONS}\n  ${_ABSEIL_LOG_FORMAT}\n  ${_ABSEIL_LOG_PROTO}\n  ${_ABSEIL_LOG_SINK_SET}\n  ${_ABSEIL_LOG_SINK}\n  ${_ABSEIL_LOG_ENTRY}|' \
-        ${S}/CMakeLists.txt
-}
-
 
 #inherit ptest
 #
