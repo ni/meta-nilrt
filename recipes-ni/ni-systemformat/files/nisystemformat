@@ -25,7 +25,14 @@ declare -r BASENAME=${0##*/}
 
 NINETCFGUTIL=/usr/local/natinst/bin/ninetcfgutil
 
-if [ "$arch" = "x86_64" ]; then
+# check for artemis compatibility from devicetree
+# set mountfs to ext4 if artemis model is detected
+# this allows fstype to return ext4 instead of ubifs
+if grep -qs artemis /sys/firmware/devicetree/base/compatible ; then
+	mountfs=ext4
+fi
+
+if [ "$arch" = "x86_64" ] || [ "$mountfs" = "ext4" ]; then # Adding $mountfs condition to support labelling for Artemis
 	LABEL_TYPE=$(lsblk -lno PARTLABEL | grep -q nirootfs && echo PARTLABEL || echo LABEL)
 	CONFIGFS_DEV=/dev/$(lsblk -l -n -o $LABEL_TYPE,NAME | grep '^niconfig '| tr -s ' ' | cut -d' ' -f2)
 	ROOTFS_DEV=/dev/$(lsblk -l -n -o $LABEL_TYPE,NAME | grep '^nirootfs '| tr -s ' ' | cut -d' ' -f2)
@@ -117,7 +124,13 @@ set_mode()
 
 supported_fstypes()
 {
-	hash /usr/sbin/ubiformat 2>/dev/null && [ "$arch" = "armv7l" ] && echo -n "ubifs," || true
+	if [ "$arch" = "armv7l" ]; then
+		if [ "$mountfs" = "ext4" ]; then # Adding $mountfs condition to properly report fstype for Artemis
+			hash /sbin/mkfs.ext4 2>/dev/null && echo -n "ext4," || true
+		else
+			hash /usr/sbin/ubiformat 2>/dev/null && echo -n "ubifs," || true
+		fi
+	fi
 	hash /sbin/mkfs.ext4 2>/dev/null && [ "$arch" = "x86_64" ] && echo -n "ext4," || true
 }
 
