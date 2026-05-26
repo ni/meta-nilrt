@@ -56,14 +56,14 @@ pkglibdir=@pkglibdir@
 # Find and mount the encrypted drives.
 decrypt_drives() {
 	# Find and mount the userfs partition.
-	if [ -x /etc/init.d/ni-cryptdisks.sh ]; then
-		log DEBUG "Running ni-cryptdisks start..."
-		/etc/init.d/ni-cryptdisks.sh start || {
+	if [ -x "${NI_CRYPTDISKS}" ]; then
+		log DEBUG "Running ${NI_CRYPTDISKS} start..."
+		"${NI_CRYPTDISKS}" start || {
 			log ERROR "Failed to unlock encrypted volumes"
 			return 1
 		}
 	else
-		log INFO "/etc/init.d/ni-cryptdisks not found, skipping encryption setup"
+		log INFO "${NI_CRYPTDISKS} not found, skipping encryption setup"
 	fi
 }
 
