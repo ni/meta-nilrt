@@ -94,6 +94,6 @@ makeinstalldirs :
 
 
 uninstall :
-	rm -rf $(DESTDIR)$(pkgdatadir)
+	rm -rf $(DESTDIR)$(pkglibdir)
 	rm -f $(DESTDIR)$(datadir)/pkgconfig/$(PACKAGE).pc
 .PHONY : uninstall
