@@ -33,7 +33,14 @@ _cmdline_get_key() {
 	key="$1"      # The key to search for in the command line.
 	default="$2"  # The value to return, if the key is not found.
 
-	value="$(echo "$CMDLINE" | sed -n "s/.*\b${key}=\([^ ]*\).*/\1/p" || true)"
+	value=""
+ 	for token in $CMDLINE; do
+ 		case "$token" in
+ 			"$key="*)
+ 				value="${token#"$key="}"
+ 				;;
+ 		esac
+ 	done
 	echo "${value:-$default}"
 }
 
