@@ -124,8 +124,7 @@ function stop() {
 	find_partitions
 
 	if [ -n "$userfs_luks_path" ]; then
-		cryptsetup close "$USERFS_PARTLABEL"
-		if [ $? -eq 0 ]; then
+		if cryptsetup close "$USERFS_PARTLABEL"; then
 			echo "Closed LUKS partition $USERFS_PARTLABEL"
 		else
 			log WARN "Failed to close $USERFS_PARTLABEL"
@@ -133,8 +132,7 @@ function stop() {
 	fi
 
 	if [ -n "$niconfig_luks_path" ]; then
-		cryptsetup close "$NICONFIG_PARTLABEL"
-		if [ $? -eq 0]; then
+		if cryptsetup close "$NICONFIG_PARTLABEL"; then
 			echo "Closed LUKS partition $NICONFIG_PARTLABEL"
 		else
 			log WARN "Failed to close $NICONFIG_PARTLABEL"
