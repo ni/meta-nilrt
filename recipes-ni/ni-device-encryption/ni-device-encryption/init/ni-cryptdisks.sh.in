@@ -8,7 +8,7 @@
 # Required-Stop:
 # Default-Start:     S
 # Default-Stop:
-# Description:       Detects and mounts LUKS-encrypted partitions.
+# Description:       Detects and unlocks LUKS-encrypted partitions.
 ### END INIT INFO
 set -eu
 
