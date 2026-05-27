@@ -101,7 +101,7 @@ function start() {
 
 	if [ -n "$userfs_luks_path" ]; then
 		echo "Opening LUKS partition $userfs_luks_path as $USERFS_PARTLABEL"
-		dmsetup ls --target crypt | grep -q "^$USERFS_PARTLABEL\s" || {
+		dmsetup ls --target crypt | grep -q "^$USERFS_PARTLABEL[[:space:]]" || {
 			clevis luks unlock \
 				-d "${userfs_luks_path}" \
 				-n "$USERFS_PARTLABEL"
@@ -110,7 +110,7 @@ function start() {
 
 	if [ -n "$niconfig_luks_path" ]; then
 		echo "Opening LUKS partition $niconfig_luks_path as $NICONFIG_PARTLABEL"
-		dmsetup ls --target crypt | grep -q "^$NICONFIG_PARTLABEL\s" || {
+		dmsetup ls --target crypt | grep -q "^$NICONFIG_PARTLABEL[[:space:]]" || {
 			clevis luks unlock \
 				-d "${niconfig_luks_path}" \
 				-n "$NICONFIG_PARTLABEL"
