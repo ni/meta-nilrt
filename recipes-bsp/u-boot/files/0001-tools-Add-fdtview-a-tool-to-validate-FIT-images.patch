@@ -1,4 +1,4 @@
-From 69ea62a6c6b925a9fc4a6a92f852c3d8ef29c4b0 Mon Sep 17 00:00:00 2001
+From b5aa5ce9b18358291799897f243f745f984a48c9 Mon Sep 17 00:00:00 2001
 From: Chaitanya Vadrevu <chaitanya.vadrevu@emerson.com>
 Date: Fri, 24 Apr 2026 16:03:12 -0500
 Subject: [PATCH] tools: Add fdtview, a tool to validate FIT images
@@ -7,11 +7,37 @@ Upstream-Status: Inappropriate [NI specific]
 
 Signed-off-by: Chaitanya Vadrevu <chaitanya.vadrevu@emerson.com>
 ---
- tools/Makefile  |   4 +-
- tools/fdtview.c | 541 ++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 544 insertions(+), 1 deletion(-)
+ boot/image-fit.c |   7 +-
+ tools/Makefile   |   4 +-
+ tools/fdtview.c  | 542 +++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 550 insertions(+), 3 deletions(-)
  create mode 100644 tools/fdtview.c
 
+diff --git a/boot/image-fit.c b/boot/image-fit.c
+index 3cc556b727f..3910dd32170 100644
+--- a/boot/image-fit.c
++++ b/boot/image-fit.c
+@@ -1427,7 +1427,9 @@ int fit_image_verify(const void *fit, int image_noffset)
+ 	size_t		size;
+ 	char		*err_msg = "";
+ 
+-	if (IS_ENABLED(CONFIG_FIT_SIGNATURE) && strchr(name, '@')) {
++	/* Disable this check as NI DTs contain @ */
++	/* if (IS_ENABLED(CONFIG_FIT_SIGNATURE) && strchr(name, '@')) { */
++	if (0) {
+ 		/*
+ 		 * We don't support this since libfdt considers names with the
+ 		 * name root but different @ suffix to be equal
+@@ -1684,7 +1686,8 @@ int fit_check_format(const void *fit, ulong size)
+ 		 * attached. Protect against this by disallowing unit addresses.
+ 		 */
+ 		if (!ret && CONFIG_IS_ENABLED(FIT_SIGNATURE)) {
+-			ret = fdt_check_no_at(fit, 0);
++			/* Disable this check as NI DTs contain @ */
++			/* ret = fdt_check_no_at(fit, 0); */
+ 
+ 			if (ret) {
+ 				log_debug("FIT check error %d\n", ret);
 diff --git a/tools/Makefile b/tools/Makefile
 index 1aa1e36137b..5d7fc165e6c 100644
 --- a/tools/Makefile
@@ -43,10 +69,10 @@ index 1aa1e36137b..5d7fc165e6c 100644
  HOSTLDLIBS_fdt_add_pubkey := $(HOSTLDLIBS_mkimage)
 diff --git a/tools/fdtview.c b/tools/fdtview.c
 new file mode 100644
-index 00000000000..e4397572554
+index 00000000000..5d6a9a62e23
 --- /dev/null
 +++ b/tools/fdtview.c
-@@ -0,0 +1,541 @@
+@@ -0,0 +1,542 @@
 +
 +#include "os_support.h"
 +#include <errno.h>
@@ -533,6 +559,7 @@ index 00000000000..e4397572554
 +				retval = 1;
 +			} else {
 +				fit_print_contents(working_fdt);
++				image_set_host_blob(working_fdt);
 +
 +				if (!fit_all_image_verify(working_fdt)) {
 +					puts("Bad hash in FIT image!\n");
