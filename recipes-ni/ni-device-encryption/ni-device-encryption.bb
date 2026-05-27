@@ -72,6 +72,7 @@ RDEPENDS:${PN} = "\
 	clevis \
 	cryptsetup \
 	libdevmapper \
+	lvm2 \
 	util-linux-blkid \
 	util-linux-logger \
 "
