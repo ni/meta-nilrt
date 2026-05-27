@@ -51,14 +51,16 @@ $(PACKAGE).pc :
 
 
 $(srcdatadir)/pkg.sh : $(srcdatadir)/pkg.sh.in
-	sed $< >$@ \
+	sed \
 		-e 's/@PACKAGE@/$(PACKAGE)/g' \
-		-e 's/@VERSION@/$(VERSION)/g'
+		-e 's/@VERSION@/$(VERSION)/g' \
+		$< >$@
 
 
 init/ni-cryptdisks.sh : init/ni-cryptdisks.sh.in
-	sed $< >$@ \
-		-e 's%@pkglibdir@%$(pkglibdir)%g'
+	sed \
+		-e 's%@pkglibdir@%$(pkglibdir)%g' \
+		$< >$@
 
 
 # ==============================================================================
