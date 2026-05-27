@@ -34,11 +34,11 @@ S = "${UNPACKDIR}"
 
 inherit update-alternatives
 
-ALTERNATIVES:${PN} = "halt reboot"
-ALTERNATIVE_TARGET[halt] = "${sbindir}/halt"
-ALTERNATIVE_TARGET[reboot] = "${sbindir}/reboot"
-ALTERNATIVE_LINK_NAME[halt] = "halt.${PN}"
-ALTERNATIVE_LINK_NAME[reboot] = "reboot.${PN}"
+ALTERNATIVE:${PN} = "halt reboot"
+ALTERNATIVE_LINK_NAME[halt] = "${sbindir}/halt"
+ALTERNATIVE_LINK_NAME[reboot] = "${sbindir}/reboot"
+ALTERNATIVE_TARGET[halt] = "${sbindir}/halt.${PN}"
+ALTERNATIVE_TARGET[reboot] = "${sbindir}/reboot.${PN}"
 
 
 # ==============================================================================
