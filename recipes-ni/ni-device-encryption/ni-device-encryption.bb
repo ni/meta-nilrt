@@ -50,11 +50,11 @@ do_install () {
 
 	# Create a symlink to the package share directory from the prefix share, for compat w/ other packages
 	install -d ${D}${datadir}
-	ln -sf ../lib/${BPN}/share ${D}${datadir}/${BPN}
+	ln -sf ${libdir}/${BPN}/share ${D}${datadir}/${BPN}
 
 	# Install sbin symlink
 	install -d ${D}${sbindir}
-	ln -sf ../lib/${BPN}/bin/ni-reseal-luks.sh ${D}${sbindir}/ni-reseal-luks
+	ln -sf ${libdir}/${BPN}/bin/ni-reseal-luks.sh ${D}${sbindir}/ni-reseal-luks
 
 	# Install initscript
 	install -d ${D}${sysconfdir}/init.d
