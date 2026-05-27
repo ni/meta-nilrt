@@ -55,13 +55,14 @@ IMAGE_PREPROCESS_COMMAND += " bootimg_fixup; "
 # DEPLOYMENT
 # ==============================================================================
 
-IMAGE_FSTYPES = "cpio.xz"
+INITRAMFS_FSTYPES ?= "cpio.xz"
 IMAGE_NAME_SUFFIX = ""
 XZ_COMPRESSION_LEVEL = "-e -9"
 XZ_INTEGRITY_CHECK = "crc32"
 
 # Some BSPs use IMAGE_FSTYPES:<machine override> which would override
-# an assignment to IMAGE_FSTYPES so we need anon python
+# a plain assignment to IMAGE_FSTYPES, so derive it from INITRAMFS_FSTYPES
+# via setVar to bypass machine-level overrides on IMAGE_FSTYPES.
 python () {
     d.setVar("IMAGE_FSTYPES", d.getVar("INITRAMFS_FSTYPES"))
 }
