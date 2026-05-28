@@ -77,6 +77,10 @@ function set_mode()
 		die_with_usage INVALID_ARGUMENT "Only one operation can be specified at a time."
 	fi
 	MODE=$mode
+
+	if [ "$MODE" = format -a "$EUID" -ne 0 ]; then
+		die INSUFFICIENT_PRIVILEGES "Insufficient privileges for the requested operation; aborting."
+	fi
 }
 export -f set_mode
 
