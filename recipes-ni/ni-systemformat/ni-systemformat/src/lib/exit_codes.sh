@@ -10,5 +10,6 @@ declare -A EXITCODES=(
 	[NO_KEY_BACKUP_DEVICE]=7    # Partition to store backup key could not be found; perhaps it's mislabeled or not plugged in
 	[IMPORT_ERROR]=8            # Error importing a script library
 	[BAD_ENVIRONMENT]=9         # The script was invoked in an unexpected environment, such as with missing dependencies or on an unsupported OS version
+	[INSUFFICIENT_PRIVILEGES]=10  # The requested operation requires elevated privileges
 )
 export EXITCODES
