@@ -14,7 +14,7 @@
 CMDLINE_PATH="/proc/cmdline"
 if ! [ -r "$CMDLINE_PATH" ]; then
 	echo "ERROR: Unable to read $CMDLINE_PATH" >&2
-	exit 1
+	return 1 2>/dev/null || exit 1
 fi
 
 CMDLINE="$(cat "$CMDLINE_PATH")"
