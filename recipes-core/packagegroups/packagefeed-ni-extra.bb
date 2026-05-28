@@ -671,7 +671,6 @@ RDEPENDS:${PN} += "\
 	python3-rtslib-fb \
 	python3-setuptools-git \
 	python3-simplegeneric \
-	python3-singledispatch \
 	python3-six \
 	python3-sqlalchemy \
 	python3-stevedore \
