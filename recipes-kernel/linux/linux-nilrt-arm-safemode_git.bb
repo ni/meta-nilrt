@@ -7,7 +7,7 @@ require linux-nilrt-alternate.inc
 
 INITRAMFS_IMAGE = "nilrt-safemode-initramfs"
 FIT_DESC = "zynq_safemode - ${BUILDNAME}"
-FIT_VERSION = "${BUILDNAME}"
+FIT_VERSION = "${@d.getVar('BUILDNAME').split('-', 1)[0]}"
 FIT_DEVICECODE = "0x${@d.getVar('NILRT_ARM_DEVICE_CODES').split()[0]}"
 FIT_DEVICECODES = "${@' '.join('0x' + x for x in (d.getVar('NILRT_ARM_DEVICE_CODES')).split())}"
 
