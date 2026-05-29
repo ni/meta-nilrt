@@ -56,6 +56,7 @@ IMAGE_PREPROCESS_COMMAND += " bootimg_fixup; "
 # ==============================================================================
 
 IMAGE_FSTYPES = "cpio.xz"
+INITRAMFS_FSTYPES = "cpio.xz"
 IMAGE_NAME_SUFFIX = ""
 XZ_COMPRESSION_LEVEL = "-e -9"
 XZ_INTEGRITY_CHECK = "crc32"
