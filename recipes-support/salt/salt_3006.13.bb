@@ -139,6 +139,7 @@ RDEPENDS:${PN}-common = "\
 RRECOMMENDS:${PN}-common = "lsb-release"
 RSUGGESTS:${PN}-common = "python3-mako python3-git"
 RCONFLICTS:${PN}-common = "python3-mako (< 0.7.0)"
+RDEPENDS:${PN}-common:append:xilinx-zynq = " u-boot-tools-mkimage"
 CONFFILES:${PN}-common="${sysconfdir}/logrotate.d/${PN}-common"
 FILES:${PN}-common = "${bindir}/${PN}-call ${PYTHON_SITEPACKAGES_DIR} ${CONFFILES:${PN}-common}"
 
