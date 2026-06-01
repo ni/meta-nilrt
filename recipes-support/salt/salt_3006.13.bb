@@ -138,6 +138,7 @@ RRECOMMENDS:${PN}-common = "lsb-release"
 RSUGGESTS:${PN}-common = "python3-mako python3-git"
 RCONFLICTS:${PN}-common = "python3-mako (< 0.7.0)"
 CONFFILES:${PN}-common = "${sysconfdir}/logrotate.d/${PN}-common"
+RDEPENDS:${PN}-common:append:xilinx-zynq = " u-boot-tools-mkimage"
 FILES:${PN}-common = "${bindir}/${PN}-call ${PYTHON_SITEPACKAGES_DIR} ${CONFFILES:${PN}-common}"
 
 SUMMARY:${PN}-ssh = "remote manager to administer servers via salt"
