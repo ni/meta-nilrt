@@ -12,7 +12,7 @@ SRC_URI = "\
 	file://fw_setenv.wrapper \
 "
 
-S = "${UNPACKDIR}"
+S = "${WORKDIR}"
 
 do_install () {
 	install -d ${D}${base_sbindir}
