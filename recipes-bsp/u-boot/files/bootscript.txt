@@ -2,9 +2,9 @@ if fdt addr ${loadaddr} && fdt get value rd_desc /images/ramdisk-1 description; 
   # Initramfs present. So this must be safemode
 
   if test ${DeviceCode} -eq 0x7AAE; then
-    setenv set_args 'setenv bootargs ${consoleparam} ramdisk_size=populate-ramdisk-size root=/dev/ram rw ${usb_gadget_args} $othbootargs';
+    setenv set_args 'setenv bootargs ${consoleparam} root=/dev/ram rw ${usb_gadget_args} $othbootargs';
   else
-    setenv set_args 'setenv bootargs ${consoleparam} $mtdparts ubi.mtd=boot-config ubi.mtd=root ramdisk_size=populate-ramdisk-size root=/dev/ram rw ${usb_gadget_args} $othbootargs';
+    setenv set_args 'setenv bootargs ${consoleparam} $mtdparts ubi.mtd=boot-config ubi.mtd=root root=/dev/ram rw ${usb_gadget_args} $othbootargs';
   fi
 
   # usb host or device mode switching
