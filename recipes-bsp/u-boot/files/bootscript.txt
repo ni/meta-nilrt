@@ -23,7 +23,13 @@ if fdt addr ${loadaddr} && fdt get value rd_desc /images/ramdisk-1 description; 
 
   # cRIO-9068 doesn't have USB gadget, so skip it on that device
   if test ${DeviceCode} != 0x76D6; then
-    usb_gadget_args="g_ether.idVendor=${USBVendorID} g_ether.idProduct=${USBProductID} g_ether.iProduct=\"${USBProduct} [${hostname}]\" g_ether.iSerialNumber=${serial#} g_ether.dev_addr=${usbgadgetethaddr} g_ether.bcdDevice=${USBDevice}"
+    # myRIO should use ethaddr for the USB gadget to ensure a persistent address
+    if test ${DeviceCode} == 0x762F || test ${DeviceCode} == 0x76D3; then
+      usb_gadget_addr=${ethaddr}
+    else
+      usb_gadget_addr=${usbgadgetethaddr}
+    fi
+    usb_gadget_args="g_ether.idVendor=${USBVendorID} g_ether.idProduct=${USBProductID} g_ether.iProduct=\"${USBProduct} [${hostname}]\" g_ether.iSerialNumber=${serial#} g_ether.dev_addr=${usb_gadget_addr} g_ether.bcdDevice=${USBDevice}"
   fi
 
   if test -n \"$bootscriptenvsafe\" ; then run bootscriptenvsafe; fi
