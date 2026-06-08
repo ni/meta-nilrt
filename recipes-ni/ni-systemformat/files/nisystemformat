@@ -323,7 +323,7 @@ format_rootfs_or_userfs()
 {
 	/etc/init.d/systemWebServer stop ||:
 	/etc/init.d/sshd stop ||:
-	/etc/init.d/niauth stop ||:
+	# NIAuth is not managed during system format.
 
 	# ABORTED_ATTEMPT=yes means something went wrong before we actually reformatted
 	# anything: go ahead and restart all services. We set it at the outset,
@@ -334,7 +334,6 @@ format_rootfs_or_userfs()
 	format_rootfs_or_userfs_nosvc || ret=$?
 	if (( ! ret )) && [ "$RELAUNCH" = yes ] || [ "$ABORTED_ATTEMPT" = yes ]
 	then
-		/etc/init.d/niauth start ||:
 		/etc/init.d/sshd start ||:
 		/etc/init.d/systemWebServer start ||:
 	fi

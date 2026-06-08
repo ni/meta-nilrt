@@ -25,4 +25,4 @@ pkg_prerm:pam-plugin-faillock:append() {
 	sed -E -i 's/^(.+)success=2(.+)$/\1success=1\2/' "${sysconfdir}/pam.d/common-auth"
 }
 
-RCONFLICTS:pam-plugin-faillock:append = " ni-auth"
+#RCONFLICTS:pam-plugin-faillock:append = " ni-auth"
