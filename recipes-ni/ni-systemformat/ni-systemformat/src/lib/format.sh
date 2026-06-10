@@ -60,11 +60,23 @@ function _convert_to_luks() {
 		e2label "$dev" "" 2>/dev/null
 	fi
 
-	# Generate a random master key, which we will discard later.
-	master_keyfile=$(mktemp -p /dev/shm ni-systemformat.masterkey.XXXXXX)
-	chmod 0600 "$master_keyfile"
-	dd if=/dev/urandom of="$master_keyfile" bs=512 count=1 2>/dev/null || \
-		die UNKNOWN_ERROR "Failed to generate random master key"
+	# Generate a random master key. Open an fd to a tmpfs file, then unlink it
+	# from the filesystem immediately. The key data lives only in the kernel's
+	# page cache, referenced solely by this fd. It is freed automatically when
+	# the fd is closed — on function return, process exit, or any other exit
+	# path — with no trap or explicit cleanup required.
+	# We pass /proc/$$/fd/$_key_fd (parent PID, expanded here) to subprocesses
+	# so the path remains valid even if an intermediate process closes its
+	# inherited copy of the fd before exec (e.g. clevis calling close_range).
+	local _keyfile_tmp _key_fd _keyfile_path
+	_keyfile_tmp=$(mktemp -p /dev/shm ni-systemformat.masterkey.XXXXXX)
+	chmod 0600 "$_keyfile_tmp"
+	exec {_key_fd}<>"$_keyfile_tmp"
+	rm -f "$_keyfile_tmp"
+	_keyfile_path="/proc/$$/fd/$_key_fd"
+
+	dd if=/dev/urandom of="$_keyfile_path" bs=512 count=1 2>/dev/null \
+		|| die UNKNOWN_ERROR "Failed to generate random master key"
 
 	# TODO: restrict cipher characteristics
 	cryptsetup luksFormat \
@@ -75,15 +87,17 @@ function _convert_to_luks() {
 		--key-size 256 \
 		--cipher aes-xts-plain64 \
 		--batch-mode \
-		--key-file "$master_keyfile" \
-		"$dev"
-	ni-reseal-luks --yes "$master_keyfile"
+		--key-file "$_keyfile_path" \
+		"$dev" \
+		|| die UNKNOWN_ERROR "Failed to luksFormat $dev"
+	ni-reseal-luks --yes "$_keyfile_path" \
+		|| die UNKNOWN_ERROR "Failed to reseal LUKS keys on $dev"
 	clevis luks unlock \
 		-d "$dev" \
-		-n "$fslabel"
+		-n "$fslabel" \
+		|| die UNKNOWN_ERROR "Failed to unlock $dev with clevis"
 
-	# Best-effort to remove the master keyfile, but it is on a tmpfs anyway.
-	rm -f "$master_keyfile"
+	exec {_key_fd}>&-
 
 	if [ "$fslabel" = "$NICONFIG_PARTLABEL" ]; then
 		CONFIGFS_DEV="/dev/mapper/$fslabel"
