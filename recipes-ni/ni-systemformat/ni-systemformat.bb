@@ -47,7 +47,7 @@ do_install () {
 	install -d ${D}${sysconfdir}/init.d
 	install -m 0544 ${S}/init/nitargetinfo ${D}${sysconfdir}/init.d/nitargetinfo
 
-	# The nisystemformat binary can ban executed by anyone in the 'ni' group.
+	# The nisystemformat binary can be executed by anyone in the 'ni' group.
 	chown 0:${LVRT_GROUP} ${D}${bindir}/nisystemformat
 
 	# legacy symlink location
