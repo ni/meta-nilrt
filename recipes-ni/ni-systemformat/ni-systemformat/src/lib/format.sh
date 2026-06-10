@@ -358,7 +358,9 @@ function _necessary_services_stop() {
 	# if the daemon is not running.
 	# That's OK. So use the initscript's 'status' command to double-check.
 	if ! /etc/init.d/sshd stop; then
-		/etc/init.d/sshd status && [ $? -eq 3 ]
+		local sshd_status=0
+		/etc/init.d/sshd status || sshd_status=$?
+		[ "$sshd_status" -eq 3 ]
 	fi
 	/etc/init.d/niauth stop
 }
