@@ -84,8 +84,12 @@ function _convert_to_luks() {
 
 	# Best-effort to remove the master keyfile, but it is on a tmpfs anyway.
 	rm -f "$master_keyfile"
-	
-	ROOTFS_DEV="/dev/mapper/$fslabel"
+
+	if [ "$fslabel" = "$NICONFIG_PARTLABEL" ]; then
+		CONFIGFS_DEV="/dev/mapper/$fslabel"
+	else
+		ROOTFS_DEV="/dev/mapper/$fslabel"
+	fi
 }
 
 
@@ -95,7 +99,7 @@ function format_config()
 	local fstype="$1"  # filesystem type
 	local configfs_dev="${2:-$CONFIGFS_DEV}"  # device to format (optional, defaults to $CONFIGFS_DEV)
 
-		# Optionally convert the userfs to a LUKS volume and mount it.
+	# Optionally convert the configfs to a LUKS volume and mount it.
 	if [ "$OPT_ENCRYPT" = yes ]; then
 		log INFO "Encrypting $configfs_dev with LUKS..."
 		_convert_to_luks "$configfs_dev" "$NICONFIG_PARTLABEL" \
@@ -120,7 +124,7 @@ function format_config()
 	  ext4)
 		local volume_label="niconfig"
 		local options=""
-		mkfs.ext4 -q -F -I 256 -L $volume_label $options ${2:-$CONFIGFS_DEV}
+		mkfs.ext4 -q -F -I 256 -L $volume_label $options "$configfs_dev"
 		;;
 	esac
 }
