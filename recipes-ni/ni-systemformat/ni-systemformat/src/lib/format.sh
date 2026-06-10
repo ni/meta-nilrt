@@ -54,7 +54,7 @@ function _convert_to_luks() {
 	local dev="$1"  # the block device to convert (e.g. /dev/sda1)
 	local fslabel="$2"
 
-	# If the USERFS partition is not a LUKS volume, make sure to remove its FSLabel
+	# If the partition is not a LUKS volume, make sure to remove its FSLabel
 	if ! cryptsetup isLuks "$dev" 2>/dev/null; then
 		log INFO "Removing existing filesystem label from $dev (if any)"
 		e2label "$dev" "" 2>/dev/null
@@ -135,20 +135,6 @@ function format_rootfs()
 	local fstype="$1"  # filesystem type
 	local rootfs_dev="${2:-$ROOTFS_DEV}"  # device to format (optional)
 
-	# remove Zynq kernel
-	rm -f /boot/linux_runmode.itb
-
-	# remove any old kernel-dev files which were deposited in the /boot partition
-	rm -f /boot/Module.symvers-*
-	rm -f /boot/config-*
-	rm -f /boot/System.map-*
-
-	# remove x64 kernel
-	if [ -e /boot/runmode  ]; then
-		rm -R /boot/runmode
-		mkdir /boot/runmode
-	fi
-
 	# Optionally convert the userfs to a LUKS volume and mount it.
 	if [ "$OPT_ENCRYPT" = yes ]; then
 		log INFO "Encrypting $rootfs_dev with LUKS..."
@@ -177,6 +163,20 @@ function format_rootfs()
 		mkfs.ext4 -q -F -L "$volume_label" $options "$rootfs_dev"
 		;;
 	esac
+
+	# remove Zynq kernel
+	rm -f /boot/linux_runmode.itb
+
+	# remove any old kernel-dev files which were deposited in the /boot partition
+	rm -f /boot/Module.symvers-*
+	rm -f /boot/config-*
+	rm -f /boot/System.map-*
+
+	# remove x64 kernel
+	if [ -e /boot/runmode  ]; then
+		rm -R /boot/runmode
+		mkdir /boot/runmode
+	fi
 }
 
 
