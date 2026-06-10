@@ -26,7 +26,7 @@ if grep -qs artemis /sys/firmware/devicetree/base/compatible ; then
 	mountfs=ext4
 fi
 
-if [ "$ARCH" = "x86_64" ] || [ "$mountfs" = "ext4" ]; then
+if [ "$ARCH" = "x86_64" ] || [ "${mountfs:-}" = "ext4" ]; then
 	CONFIGFS_DEV=/dev/disk/by-partlabel/$NICONFIG_PARTLABEL
 	ROOTFS_DEV=/dev/disk/by-partlabel/$USERFS_PARTLABEL
 fi
@@ -355,7 +355,7 @@ function _necessary_services_start() {
 function supported_fstypes()
 {
 	if [ "$ARCH" = "armv7l" ]; then
-		if [ "$mountfs" = "ext4" ]; then # Adding $mountfs condition to properly report fstype for Artemis
+		if [ "${mountfs:-}" = "ext4" ]; then # Adding $mountfs condition to properly report fstype for Artemis
 			hash /sbin/mkfs.ext4 2>/dev/null && echo -n "ext4," || true
 		else
 			hash /usr/sbin/ubiformat 2>/dev/null && echo -n "ubifs," || true
