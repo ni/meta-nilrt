@@ -128,7 +128,7 @@ function format_config()
 	fi
 
 	# fstype is validated before calling format_config
-	case "$1" in
+	case "$fstype" in
 	  ubifs)
 		local partition_label="boot-config"
 		local volume_number="3"
@@ -137,11 +137,12 @@ function format_config()
 		;;
 	  ext4)
 		local volume_label="niconfig"
-		local options=""
-		mkfs.ext4 -q -F -I 256 -L $volume_label $options "$configfs_dev"
+		local -a options=()
+		mkfs.ext4 -q -F -I 256 -L "$volume_label" "${options[@]}" "$configfs_dev"
 		;;
 	esac
 }
+
 
 # Format the rootfs volume
 function format_rootfs()
@@ -173,8 +174,8 @@ function format_rootfs()
 		;;
 	  ext4)
 		local volume_label="nirootfs"
-		local options=""
-		mkfs.ext4 -q -F -L "$volume_label" $options "$rootfs_dev"
+		local -a options=()
+		mkfs.ext4 -q -F -L "$volume_label" "${options[@]}" "$rootfs_dev"
 		;;
 	esac
 
@@ -207,7 +208,7 @@ function format_rootfs_or_userfs() {
 	local ret=0  # function return code.
 	
 	# REQUEST VALIDATION
-	[[ $(supported_fstypes) =~ (^|,)$TYPE(,) ]] || \
+	[[ $(supported_fstypes) =~ (^|,)"${TYPE}"(,) ]] || \
 		die_with_usage INVALID_FSTYPE "Invalid fstype '$TYPE'"
 	if [ "$OPT_ENCRYPT" = yes ]; then
 		check_tpm || die BAD_ENVIRONMENT \
@@ -304,8 +305,8 @@ function format_rootfs_or_userfs_nosvc()
 	if [ -f "$ACCTINFO_TMP/.shadow" -a ! -f "$CONFIG_MOUNT_POINT/.shadow" ] &&
 		   mountpoint -q "$CONFIG_MOUNT_POINT"
 	then
-		mv -f "$ACCTINFO_TMP/.shadow" $CONFIG_MOUNT_POINT &&
-			rmdir $ACCTINFO_TMP	|| (( ret )) || ret=$?
+		mv -f "$ACCTINFO_TMP/.shadow" "$CONFIG_MOUNT_POINT" &&
+			rmdir "$ACCTINFO_TMP"	|| (( ret )) || ret=$?
 	fi
 	return $ret
 }
@@ -350,6 +351,7 @@ function print_root_fstype()
 	fi
 }
 
+
 function _necessary_services_stop() {
 	/etc/init.d/systemWebServer stop
 	# SSHd uses start-stop-daemon without the --oknodo arg, so returns nonzero
@@ -368,9 +370,10 @@ function _necessary_services_start() {
 	with_retry /etc/init.d/systemWebServer start
 }
 
+
 # Print the supported filesystem types for this system.
-# The output is a comma-separated list of filesystem types,
-# with no trailing comma.
+# The output is a comma-separated list of filesystem types, with a trailing
+# comma. The trailing comma is required by the regex in format_rootfs_or_userfs.
 function supported_fstypes()
 {
 	if [ "$ARCH" = "armv7l" ]; then
@@ -387,6 +390,7 @@ function supported_fstypes()
 # Restore the targetinfo.ini file on the configfs.
 function targetinfo_restore()
 {
+	[[ -n "$TARGETINFO_PATH" ]] || die BAD_ENVIRONMENT "TARGETINFO_PATH is not set"
 	SUPPORTED_FS=$(supported_fstypes)
 	CURRENT_FS=$(print_root_fstype)
 	cat >"$TARGETINFO_PATH" <<-EOF
@@ -395,6 +399,7 @@ function targetinfo_restore()
 	Supported=$SUPPORTED_FS
 	EOF
 }
+
 
 function _mount_volumes() {
 	local ret=0
@@ -419,7 +424,7 @@ function _unmount_volumes() {
 
 	# Close open crypto mappings
 	if type cryptsetup >/dev/null 2>&1; then
-		for fslabel in $USERFS_LABEL $NICONFIG_LABEL; do
+		for fslabel in "$USERFS_LABEL" "$NICONFIG_LABEL"; do
 			dmsetup ls --target crypt | grep -q "^$fslabel\s" || continue
 			log INFO "Closing crypto mapping for $fslabel"
 			cryptsetup close -q "$fslabel" || return $?
