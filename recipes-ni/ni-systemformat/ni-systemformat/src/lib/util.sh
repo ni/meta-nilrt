@@ -96,13 +96,14 @@ export TMPDIR_PRIVATE=""
 # Retry loop for commands: Executes the specified command repeatedly
 # until it either exits with 0 or max number of retries are exhausted.
 function with_retry() {
-	local cmd="$@"  # command to execute (with args)
-	for attemptItr in `seq 1 "$COMMAND_RETRY_COUNT"`; do
-		if eval "$cmd"; then
+	local attemptItr
+	for attemptItr in $(seq 1 "$COMMAND_RETRY_COUNT"); do
+		if "$@"; then
 			return 0
 		fi
 
-		echo "$* failed with $? (attempt $attemptItr)" >&2
+		local rc=$?
+		echo "$* failed with $rc (attempt $attemptItr)" >&2
 		sleep "$COMMAND_RETRY_SLEEP"
 	done
 
