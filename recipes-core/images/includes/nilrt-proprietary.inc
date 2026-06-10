@@ -6,9 +6,7 @@ NI_PROPRIETARY_SAFEMODE_PACKAGES = "\
 
 NI_PROPRIETARY_COMMON_PACKAGES = "\
         libnitargetcfg \
-        libnss-niauth \
         ni-auth \
-        ni-auth-networkcontroller \
         ni-auth-webservice \
         ni-avahi-client \
         ni-ca-certs \
@@ -31,7 +29,6 @@ NI_PROPRIETARY_COMMON_PACKAGES = "\
         nicurl \
         nirtcfg \
         nirtmdnsd \
-        pam-plugin-niauth \
 "
 
 NI_PROPRIETARY_COMMON_PACKAGES:append:x64 = "\
