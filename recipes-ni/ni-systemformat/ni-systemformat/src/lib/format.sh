@@ -222,11 +222,13 @@ function format_rootfs_or_userfs() {
 	_necessary_services_stop
 	# Save off the current network configuration.
 	netconfig_pre
-	trap "netconfig_post; _necessary_services_start" EXIT
+	trap "rm -f '$ACCTINFO_TMP/.shadow'; netconfig_post; _necessary_services_start" EXIT
 
 	# Do the actual format.
 	format_rootfs_or_userfs_nosvc || ret=$?
 
+	# Remove the shadow backup if it was not already restored by nosvc.
+	rm -f "$ACCTINFO_TMP/.shadow"
 	# Restore the network configuration.
 	netconfig_post || (( ret )) || ret=$?
 	# Restart services
@@ -264,7 +266,6 @@ function format_rootfs_or_userfs_nosvc()
 {
 	# Backup the shared .shadow file to the tmp dir.
 	if [ -f "$CONFIG_MOUNT_POINT/.shadow" ]; then
-		trap 'rm -f "$ACCTINFO_TMP/.shadow"' EXIT HUP INT TERM
 		mkdir -p "$ACCTINFO_TMP" &&
 			cp "$CONFIG_MOUNT_POINT/.shadow" "$ACCTINFO_TMP" ||
 			return $?
