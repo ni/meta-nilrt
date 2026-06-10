@@ -42,10 +42,9 @@ function parse_args() {
 		die_with_usage INVALID_ARGUMENT "No command-line arguments specified."
 	fi
 
-	while getopts "4cefhln:orst:" option
+	while getopts "cefhln:rst:" option
 	do
 		case $option in
-			4)  set_mode runlevel4;;
 			c)  VOL=config;;
 			e)  OPT_ENCRYPT=yes;;
 			f)  set_mode format;;
