@@ -35,7 +35,7 @@ def known_permissions_tree():
             '.': system_dir,
             '*': system_dir,
             'lvuser': permissions(0o2775, 'lvuser', 'ni', FT_DIR),
-            'root': system_link('/home/admin'),
+            'root': system_dir,
             'webserv': permissions(0o2755, 'webserv', 'ni', FT_DIR)
         },
         'lib': {

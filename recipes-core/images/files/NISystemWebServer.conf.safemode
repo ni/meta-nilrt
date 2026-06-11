@@ -7,7 +7,7 @@ ErrorLog /var/local/natinst/log/SystemWebServer.log, backup=1, size=10K
 
 LoadModulePath "/usr/local/natinst/share/NIWebServer"
 LoadModule niSessionManagerModule mod_nisessmgr
-# LoadModule niAuthModule mod_niauth
+LoadModule niAuthModule mod_niauth
 LoadModule EspModule mod_niesp
 LoadModule niSslInitModule mod_nissl
 LoadModule sslModule mod_ssl
@@ -37,7 +37,7 @@ TypesConfig /etc/natinst/mime.types
 #
 SetConnector netConnector
 
-# AddHandler niAuthHandler
+AddHandler niAuthHandler
 AddHandler WSRuntime
 AddHandler niWebDavOptionsHandler
 AddHandler dirHandler
@@ -58,25 +58,24 @@ NI.WSRuntime.Configuration system
     Options Indexes
     LimitRequestBody 0
 
-    # NIAuth authentication disabled.
-#    AuthName NIAuth
-#    AuthMethod NIAuth
-#    AuthType Digest
-#    AuthDigestQop auth
+    AuthName NIAuth
+    AuthMethod NIAuth
+    AuthType Digest
+    AuthDigestQop auth
 
-#    Require valid-user
-#    NI.Auth.Require OPTIONS PROPFIND GET permission FSRead
-#    NI.Auth.Require PROPPATCH PUT MKCOL permission FSWrite
-#    NI.Auth.Require DELETE COPY MOVE LOCK UNLOCK permission FSRead FSWrite
+    Require valid-user
+    NI.Auth.Require OPTIONS PROPFIND GET permission FSRead
+    NI.Auth.Require PROPPATCH PUT MKCOL permission FSWrite
+    NI.Auth.Require DELETE COPY MOVE LOCK UNLOCK permission FSRead FSWrite
 
-#    Reset pipeline
-#    AddHandler niAuthPermHandler
+    Reset pipeline
+    AddHandler niAuthPermHandler
     AddHandler niWebDavHandler
     AddHandler fileHandler ""
 
     AddOutputFilter chunkFilter
 
-#    Require group administrators
+    Require group administrators
 </Route>
 
 <Route ^/files(/|$)>
@@ -88,19 +87,18 @@ NI.WSRuntime.Configuration system
     Options Indexes
     LimitRequestBody 0
 
-    # NIAuth authentication disabled.
-#    AuthName NIAuth
-#    AuthMethod NIAuth
-#    AuthType Digest
-#    AuthDigestQop auth
+    AuthName NIAuth
+    AuthMethod NIAuth
+    AuthType Digest
+    AuthDigestQop auth
 
-#    Require valid-user
-#    NI.Auth.Require OPTIONS PROPFIND GET permission FSRead
-#    NI.Auth.Require PROPPATCH PUT MKCOL permission FSWrite
-#    NI.Auth.Require DELETE COPY MOVE LOCK UNLOCK permission FSRead FSWrite
+    Require valid-user
+    NI.Auth.Require OPTIONS PROPFIND GET permission FSRead
+    NI.Auth.Require PROPPATCH PUT MKCOL permission FSWrite
+    NI.Auth.Require DELETE COPY MOVE LOCK UNLOCK permission FSRead FSWrite
 
-#    Reset pipeline
-#    AddHandler niAuthPermHandler
+    Reset pipeline
+    AddHandler niAuthPermHandler
     AddHandler niWebDavHandler
     AddHandler fileHandler ""
 

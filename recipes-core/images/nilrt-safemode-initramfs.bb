@@ -48,6 +48,11 @@ bootimg_fixup () {
 	# Add safemode marker
 	echo "safemode" > "${IMAGE_ROOTFS}/etc/natinst/safemode"
 
+	# Override NISystemWebServer config with one for safemode
+	rm -f ${IMAGE_ROOTFS}/etc/natinst/appweb/NISystemWebServer.conf
+	install -m 0644 "${THISDIR}/files/NISystemWebServer.conf.safemode" \
+		"${IMAGE_ROOTFS}/etc/natinst/appweb/NISystemWebServer.conf"
+
 	# opkg cleanup
 	opkg -o ${IMAGE_ROOTFS} -f ${IPKGCONF_TARGET} clean
 	rm -rf "${IMAGE_ROOTFS}/var/lib/opkg/lists"
