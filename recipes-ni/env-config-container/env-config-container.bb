@@ -18,12 +18,7 @@ do_install () {
 	install -d ${D}${base_sbindir}
 
 	# Install wrapper scripts with .wrapper suffix (softlinks will be created by init)
-	# fw_printenv needs group 'ni' (gid 500) execute permission because
-	# SystemWebServer runs as webserv:ni and libnitargetcfg calls
-	# /sbin/fw_printenv to read DeviceCode/DeviceDesc. Without execute
-	# access, NI MAX shows model "Pele".
-	install -m 0550 ${S}/fw_printenv.wrapper ${D}${base_sbindir}/
-	chgrp 500 ${D}${base_sbindir}/fw_printenv.wrapper
-	install -m 0550 ${S}/fw_setenv.wrapper ${D}${base_sbindir}/
+	install -m 0550   ${S}/fw_printenv.wrapper ${D}${base_sbindir}/
+	install -m 0550   ${S}/fw_setenv.wrapper   ${D}${base_sbindir}/
 }
 
