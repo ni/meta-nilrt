@@ -105,6 +105,7 @@ RDEPENDS:${PN} += "\
 RDEPENDS:${PN}:append:x64 = "\
 	libglu \
 "
+
 # Required by PAtools Runtimesystem
 # Team: Transportation BU - Modern Battery Lab
 # Contact: Deborah Bryant
@@ -122,4 +123,9 @@ RDEPENDS:${PN} += "\
 RDEPENDS:${PN} += "\
 	mosquitto \
 	paho-mqtt-cpp \
+"
+
+# Required by multiple product groups
+RDEPENDS:${PN} += "\
+	minizip \
 "
