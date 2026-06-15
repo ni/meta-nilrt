@@ -9,3 +9,16 @@
 # Update the package feed index and upgrade signing keys so users can
 # opkg install packages immediately.
 opkg update && opkg upgrade opkg-keyrings || true
+
+# Restore file capabilities lost during OCI image packaging (tar layers
+# do not preserve xattrs). These persist on the container filesystem
+# so they only need to be applied once.
+if command -v setcap >/dev/null 2>&1; then
+    if [ -x /sbin/hwclock.util-linux ]; then
+        setcap cap_sys_time+ep /sbin/hwclock.util-linux || true
+    fi
+    if [ -x /usr/local/natinst/share/NIWebServer/SystemWebServer ]; then
+        setcap cap_net_bind_service,cap_net_admin,cap_ipc_lock,cap_sys_rawio,cap_sys_boot,cap_sys_nice,cap_sys_time,cap_syslog+ep \
+            /usr/local/natinst/share/NIWebServer/SystemWebServer || true
+    fi
+fi
