@@ -126,7 +126,6 @@ RDEPENDS:${PN} += "\
 	paho-mqtt-cpp \
 "
 
-
 # Required by multiple product groups
 RDEPENDS:${PN} += "\
 	minizip \
