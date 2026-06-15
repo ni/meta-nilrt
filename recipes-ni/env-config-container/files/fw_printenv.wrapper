@@ -2,6 +2,17 @@
 # Wrapper for fw_printenv that reads from grubenv
 GRUBENV="/boot/grub/grubenv"
 
+# Read the grub environment block directly instead of using grub-editenv.
+# grub-editenv tries to canonicalize the backing block device of the file's
+# filesystem, which fails on a container's overlayfs rootfs with
+# "failed to get canonical path of 'overlay'". The grubenv is a plain-text
+# "GRUB Environment Block": a header comment, name=value lines, then '#'
+# padding. Stripping all '#' lines yields the same output as
+# `grub-editenv list`.
+grubenv_list() {
+    grep -v '^#' "$GRUBENV"
+}
+
 # Parse arguments
 SUPPRESS_NAME=0
 if [[ "$1" == "-n" ]]; then
@@ -13,10 +24,10 @@ VAR_NAME="$1"
 
 if [[ -z "$VAR_NAME" ]]; then
     # List all variables
-    grub-editenv "$GRUBENV" list
+    grubenv_list
 else
     # Get specific variable
-    VALUE=$(grub-editenv "$GRUBENV" list | grep "^${VAR_NAME}=" | cut -d= -f2-)
+    VALUE=$(grubenv_list | grep "^${VAR_NAME}=" | cut -d= -f2-)
     if [[ -n "$VALUE" ]]; then
         if [[ $SUPPRESS_NAME -eq 1 ]]; then
             echo "$VALUE"
