@@ -6,7 +6,7 @@ case "$#" in
 		docker run --privileged --network=host \
 		       -v ${LOG_DIR}:${LOG_DIR} \
 		       -v ${TEST_DIR}:${TEST_DIR} \
-		       -v /home/admin:/home/admin \
+		       -v /root:/root \
 		       -v /usr/share/fw_printenv:/usr/share/fw_printenv \
 		       -v /sbin/fw_printenv:/sbin/fw_printenv \
 		       -v /usr/share/nisysinfo:/usr/share/nisysinfo \
@@ -22,7 +22,7 @@ case "$#" in
 		       --cpuset-cpus "$2" \
 		       -v ${LOG_DIR}:${LOG_DIR} \
 		       -v ${TEST_DIR}:${TEST_DIR} \
-		       -v /home/admin:/home/admin \
+		       -v /root:/root \
 		       -v /usr/share/fw_printenv:/usr/share/fw_printenv \
 		       -v /sbin/fw_printenv:/sbin/fw_printenv \
 		       -v /usr/share/nisysinfo:/usr/share/nisysinfo \

@@ -4,5 +4,5 @@ set -e
 
 sudo -u lvuser touch "$1"
 chmod 440 "$1"
-chown admin:administrators "$1"
+chown root:root "$1"
 trace-cmd extract -o "$1"

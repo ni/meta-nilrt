@@ -55,7 +55,7 @@ int try_file_capability(const char *exec_file_path, int cap, cap_t *get_caps_chi
 	command_result[0] = '\0';
 	command[0] = '\0';
 
-	//command := "su lvuser -c '/home/root/dist/tested_program 14'"
+	//command := "su lvuser -c '/root/dist/tested_program 14'"
 	sprintf(command, "%s '%s %d'", "su lvuser -c", exec_file_path, cap);
 
 	test_and_fail(execute_linux_command(command, command_result, sizeof(command_result)),

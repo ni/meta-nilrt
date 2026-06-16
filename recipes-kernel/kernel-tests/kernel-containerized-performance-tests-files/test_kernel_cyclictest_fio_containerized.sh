@@ -5,7 +5,7 @@ source "$(dirname "$0")"/common.cfg
 LOAD_CONT=$(docker run -d --privileged --network=host \
 		   -v ${LOG_DIR}:${LOG_DIR} \
 		   -v ${TEST_DIR}:${TEST_DIR} \
-		   -v /home/admin:/home/admin \
+		   -v /root:/root \
 		   -t parallel-container)
 docker exec -d $LOAD_CONT "$TEST_DIR/fio-load" "start"
 

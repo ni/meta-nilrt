@@ -2,7 +2,7 @@
 
 TEST_NAME="test_boot_time"
 TEST_LOG="/var/log/boottime"
-INFLUXDB_INFO="/home/admin/.influxdb.info"
+INFLUXDB_INFO="/root/.influxdb.info"
 
 if [[ -f "$INFLUXDB_INFO" ]]; then
 	source "$INFLUXDB_INFO"
