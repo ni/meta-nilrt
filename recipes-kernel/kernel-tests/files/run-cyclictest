@@ -56,7 +56,7 @@ function add_system_info()
 function run_cyclictest()
 {
 	LOG="$LOG_DIR/cyclictest-$1-`date +'%Y_%m_%d-%H_%M_%S'`.log"
-	INFLUXDB_INFO="/home/admin/.influxdb.info"
+	INFLUXDB_INFO="/root/.influxdb.info"
 	cyclictest --smp --priority=98 --mlockall --interval=997 --quiet --duration="$TEST_DURATION" --histofall=1000 --histfile="$LOG" > /dev/null
 	add_system_info "$LOG"
 	if [[ -f "$INFLUXDB_INFO" ]]; then

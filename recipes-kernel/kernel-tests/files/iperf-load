@@ -1,12 +1,12 @@
 #!/bin/bash
 source "$(dirname "$0")"/common.cfg
-source /home/admin/.iperf.info
+source /root/.iperf.info
 
 case "$1" in
 	check)
 		if [ -z "$IPERF_SERVER" ]; then
 			echo "Warning: iperf server not configured; skipping iperf based network load test."
-			echo "Create/edit /home/admin/.iperf.info file with IPERF_SERVER=<server> and IPERF_PORT=<port> to configure a server to connect to for this test."
+			echo "Create/edit /root/.iperf.info file with IPERF_SERVER=<server> and IPERF_PORT=<port> to configure a server to connect to for this test."
 			echo "SKIP: test_kernel_cyclictest_iperf"
 			exit 77
 		fi
