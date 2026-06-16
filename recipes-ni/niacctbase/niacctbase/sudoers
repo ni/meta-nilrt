@@ -1,3 +1,0 @@
-
-# Allow the admin user (UID 0) to invoke sudo without a password
-admin ALL=(ALL) NOPASSWD: ALL
