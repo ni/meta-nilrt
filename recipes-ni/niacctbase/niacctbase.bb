@@ -40,7 +40,6 @@ USERADD_PARAM:${PN} = " \
 useradd_preinst:append () {
 	eval ${PSEUDO} chmod g+sw ${SYSROOT}/home/${LVRT_USER} || true
 	eval ${PSEUDO} chmod g+s ${SYSROOT}/home/webserv || true
-	eval ${PSEUDO} ln -sf /home/admin ${SYSROOT}/home/root || true
 }
 
 
