@@ -6,7 +6,6 @@ NI_PROPRIETARY_SAFEMODE_PACKAGES = "\
 
 NI_PROPRIETARY_COMMON_PACKAGES = "\
         libnitargetcfg \
-        ni-auth \
         ni-auth-webservice \
         ni-avahi-client \
         ni-ca-certs \
