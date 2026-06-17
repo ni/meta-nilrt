@@ -78,7 +78,6 @@ function _convert_to_luks() {
 	dd if=/dev/urandom of="$_keyfile_path" bs=512 count=1 2>/dev/null \
 		|| die UNKNOWN_ERROR "Failed to generate random master key"
 
-	# TODO: restrict cipher characteristics
 	cryptsetup luksFormat \
 		--encrypt \
 		--label "$fslabel-luks" \
