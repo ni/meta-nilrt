@@ -1,7 +1,7 @@
 # Bash library containing functions for encrypting partitions with LUKS
 # and backing those LUKS partitions with keys stored in HSMs such as TPMs.
 
-source ${BASH_SOURCE%/*}/util.sh || exit 1
+source ${BASH_SOURCE%/*}/util.sh || exit 8
 
 
 # Check that the system has a TPM device and exit with an error if not.
