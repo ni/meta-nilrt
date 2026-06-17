@@ -98,12 +98,6 @@ function _convert_to_luks() {
 		|| die UNKNOWN_ERROR "Failed to unlock $dev with clevis"
 
 	exec {_key_fd}>&-
-
-	if [ "$fslabel" = "$NICONFIG_PARTLABEL" ]; then
-		CONFIGFS_DEV="/dev/mapper/$fslabel"
-	else
-		ROOTFS_DEV="/dev/mapper/$fslabel"
-	fi
 }
 
 
@@ -118,6 +112,7 @@ function format_config()
 		log INFO "Encrypting $configfs_dev with LUKS..."
 		_convert_to_luks "$configfs_dev" "$NICONFIG_PARTLABEL" \
 			|| die UNKNOWN_ERROR "Failed to convert configfs partition to LUKS."
+		CONFIGFS_DEV="/dev/mapper/$NICONFIG_PARTLABEL"
 		log INFO "DONE"
 		configfs_dev="$CONFIGFS_DEV"  # update configfs_dev to point to the new mapper device
 	else
@@ -155,6 +150,7 @@ function format_rootfs()
 		log INFO "Encrypting $rootfs_dev with LUKS..."
 		_convert_to_luks "$rootfs_dev" "$USERFS_PARTLABEL" \
 			|| die UNKNOWN_ERROR "Failed to convert rootfs partition to LUKS."
+		ROOTFS_DEV="/dev/mapper/$USERFS_PARTLABEL"
 		log INFO "DONE"
 		rootfs_dev="$ROOTFS_DEV"  # update rootfs_dev to point to the new mapper device
 	else
