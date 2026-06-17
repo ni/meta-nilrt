@@ -23,11 +23,6 @@ RDEPENDS:${PN} += "\
 	apr-iconv \
 "
 
-# ni-sync
-RDEPENDS:${PN}:append:x64 = "\
-	ni-grpc-device \
-"
-
 # Required components for Veristand/aim-arinc-429.
 # Engineering contact:
 RDEPENDS:${PN} += "\
