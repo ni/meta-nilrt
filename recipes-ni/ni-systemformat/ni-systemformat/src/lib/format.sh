@@ -11,7 +11,7 @@ ARCH=${ARCH:=$(uname -m)}
 ACCTINFO_TMP=/tmp/acctinfo
 
 # The *partition* labels for each logical volume.
-# If LUKS encryption is used, the LUKS partition labels will have "-luks" appended.
+# If LUKS encryption is used, the LUKS device labels will have "-luks" appended.
 USERFS_PARTLABEL=nirootfs
 NICONFIG_PARTLABEL=niconfig
 # The *Filesystem* labels for each logical volume.
