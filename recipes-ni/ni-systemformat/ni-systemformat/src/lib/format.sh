@@ -233,7 +233,7 @@ function format_rootfs_or_userfs() {
 
 	# targetinfo.ini needs to be restored or it will not be recreated until
 	# a reboot into safemode
-	targetinfo_restore
+	targetinfo_restore || (( ret )) || ret=$?
 
 	return $ret
 }
