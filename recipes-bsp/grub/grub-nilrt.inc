@@ -4,6 +4,7 @@ SRC_URI += "\
 	file://cmd-test-Add-bitwise-AND-document-the-feature.patch \
 	file://grub-advertise-NI-NILRT-over-GNU-GRUB.patch \
 	file://add-inbit-command-to-io-module.patch \
+	file://add-pcr15-verifier-for-measured-boot.patch \
 	file://cfg \
 	file://grub.d \
 "
