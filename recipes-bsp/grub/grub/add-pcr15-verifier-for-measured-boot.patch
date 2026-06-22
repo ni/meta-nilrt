@@ -1,0 +1,131 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Jeffrey Pautler <jeffrey.pautler@emerson.com>
+Date: Mon, 22 Jun 2026 17:06:37 -0500
+Subject: [PATCH] grub: add PCR 15 verifier for NILRT measured boot
+
+Add a second TPM verifier that extends PCR 15 with the hashes of
+boot-relevant files. This enables NILRT measured boot, where LUKS
+decryption keys are sealed against a curated set of boot artifacts
+that can be pre-calculated from userspace ahead of a reboot.
+
+Only the following file types are measured into PCR 15:
+  GRUB_FILE_TYPE_CONFIG       grub.cfg, grubvar_readonly, bootmode,
+                              bootimage.cfg, cpu-mitigations.cfg, etc.
+  GRUB_FILE_TYPE_LOADENV      grubenv
+  GRUB_FILE_TYPE_LINUX_KERNEL bzImage
+  GRUB_FILE_TYPE_LINUX_INITRD ramdisk.xz
+
+All other file types (modules, fonts, themes, signature files, etc.)
+are excluded. This keeps PCR 15 small and pre-calculable.
+
+Unlike PCR 8/9, which accumulate ~140 GRUB-internal measurements for
+our config covering every command run and every file read, PCR 15 is
+application-specific (starts at 0x00...00 each boot) and contains only
+the files listed above. NILRT userspace tooling replicates the same
+measurement sequence to pre-calculate the value ahead of a reboot:
+  new_PCR = SHA256(current_PCR || SHA256(file_content))
+
+Upstream-Status: Inappropriate [NI NILRT specific]
+
+---
+ grub-core/commands/tpm.c | 69 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 69 insertions(+)
+
+diff --git a/grub-core/commands/tpm.c b/grub-core/commands/tpm.c
+--- a/grub-core/commands/tpm.c
++++ b/grub-core/commands/tpm.c
+@@ -29,6 +29,9 @@
+ 
+ GRUB_MOD_LICENSE ("GPLv3+");
+ 
++/* PCR index used for NILRT measured boot artifact measurements */
++#define GRUB_MEASURED_BOOT_PCR 15
++
+ static grub_err_t
+ grub_tpm_verify_init (grub_file_t io,
+ 		      enum grub_file_type type __attribute__ ((unused)),
+@@ -104,6 +107,70 @@
+   .verify_string = grub_tpm_verify_string,
+ };
+ 
++/*
++ * PCR 15 verifier for NILRT measured boot.
++ *
++ * Extends PCR 15 with the hashes of boot-relevant files. Only the
++ * following file types are measured; all others are skipped:
++ *   GRUB_FILE_TYPE_CONFIG, GRUB_FILE_TYPE_LOADENV,
++ *   GRUB_FILE_TYPE_LINUX_KERNEL, GRUB_FILE_TYPE_LINUX_INITRD
++ *
++ * The measurement formula is identical to PCR 8/9:
++ *   new_PCR = SHA256(current_PCR || SHA256(file_content))
++ *
++ * PCR 15 starts at 0x00...00 on each boot (application-specific PCR;
++ * not extended by UEFI firmware or GRUB internals before this verifier
++ * runs). NILRT userspace tooling replicates this same sequence
++ * to pre-calculate the expected PCR 15 before resealing LUKS keys.
++ */
++static grub_err_t
++grub_tpm_pcr15_verify_init (grub_file_t io,
++			     enum grub_file_type type,
++			     void **context,
++			     enum grub_verify_flags *flags)
++{
++  enum grub_file_type t = type & GRUB_FILE_TYPE_MASK;
++
++  /*
++   * Measure only boot-relevant file types into PCR 15. Skip modules,
++   * fonts, themes, signature files, and all other file types.
++   */
++  if (t != GRUB_FILE_TYPE_CONFIG &&
++      t != GRUB_FILE_TYPE_LOADENV &&
++      t != GRUB_FILE_TYPE_LINUX_KERNEL &&
++      t != GRUB_FILE_TYPE_LINUX_INITRD)
++    {
++      *flags |= GRUB_VERIFY_FLAGS_SKIP_VERIFICATION;
++      return GRUB_ERR_NONE;
++    }
++
++  *context = io->name;
++  *flags |= GRUB_VERIFY_FLAGS_SINGLE_CHUNK;
++  return GRUB_ERR_NONE;
++}
++
++static grub_err_t
++grub_tpm_pcr15_verify_write (void *context, void *buf, grub_size_t size)
++{
++  grub_err_t status = grub_tpm_measure (buf, size, GRUB_MEASURED_BOOT_PCR,
++					context);
++
++  if (status == GRUB_ERR_NONE)
++    return GRUB_ERR_NONE;
++
++  grub_dprintf ("tpm", "PCR 15 measuring failed for %s: %d\n",
++		(char *) context, status);
++  return grub_is_tpm_fail_fatal () ? status : GRUB_ERR_NONE;
++}
++
++/* No .verify_string: only files (not strings, e.g. the kernel cmdline)
++ * are measured into PCR 15, keeping the value reproducible. */
++static struct grub_file_verifier grub_tpm_pcr15_verifier = {
++  .name = "tpm-pcr15",
++  .init = grub_tpm_pcr15_verify_init,
++  .write = grub_tpm_pcr15_verify_write,
++};
++
+ GRUB_MOD_INIT (tpm)
+ {
+   /*
+@@ -115,6 +168,7 @@
+   if (!grub_tpm_present())
+     return;
+   grub_verifier_register (&grub_tpm_verifier);
++  grub_verifier_register (&grub_tpm_pcr15_verifier);
+ }
+ 
+ GRUB_MOD_FINI (tpm)
+@@ -122,4 +176,5 @@
+   if (!grub_tpm_present())
+     return;
+   grub_verifier_unregister (&grub_tpm_verifier);
++  grub_verifier_unregister (&grub_tpm_pcr15_verifier);
+ }
