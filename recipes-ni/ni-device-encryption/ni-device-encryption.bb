@@ -18,6 +18,7 @@ SRC_URI = "\
 	file://bin/ \
 	file://init/ \
 	file://share/ \
+	file://src/ \
 "
 
 S = "${UNPACKDIR}"
@@ -31,6 +32,14 @@ S = "${UNPACKDIR}"
 inherit update-rc.d
 INITSCRIPT_PARAMS = "start 30 S ."
 INITSCRIPT_NAME = "ni-cryptdisks.sh"
+
+
+# ==============================================================================
+# BUILD DEPENDENCIES
+# ==============================================================================
+
+# openssl: required to build ni-pcr-precalc (links against -lcrypto)
+DEPENDS += "openssl"
 
 
 # ==============================================================================
@@ -52,9 +61,15 @@ do_install () {
 	install -d ${D}${datadir}
 	ln -sf ${libdir}/${BPN}/share ${D}${datadir}/${BPN}
 
-	# Install sbin symlink
+	# Install sbin symlinks
 	install -d ${D}${sbindir}
 	ln -sf ${libdir}/${BPN}/bin/ni-reseal-luks.sh ${D}${sbindir}/ni-reseal-luks
+	ln -sf ${libdir}/${BPN}/bin/ni-pcr-precalc ${D}${sbindir}/ni-pcr-precalc
+
+	# Install PCR artifact lists to the package share directory, where they
+	# are reachable from both the safemode initramfs and the runmode rootfs.
+	install -m 0644 ${S}/share/ni-pcr-runmode-artifacts.list ${D}${libdir}/${BPN}/share/ni-pcr-runmode-artifacts.list
+	install -m 0644 ${S}/share/ni-pcr-safemode-artifacts.list ${D}${libdir}/${BPN}/share/ni-pcr-safemode-artifacts.list
 
 	# Install initscript
 	install -d ${D}${sysconfdir}/init.d
@@ -76,3 +91,5 @@ RDEPENDS:${PN} = "\
 	util-linux-blkid \
 	util-linux-logger \
 "
+
+FILES:${PN} += "${libdir}/${BPN}/share/ni-pcr-runmode-artifacts.list ${libdir}/${BPN}/share/ni-pcr-safemode-artifacts.list"

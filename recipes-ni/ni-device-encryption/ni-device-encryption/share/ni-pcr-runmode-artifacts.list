@@ -1,0 +1,21 @@
+# PCR 15 artifact list for runmode boot
+#
+# Lists the boot artifacts that GRUB measures into PCR 15 during a runmode
+# boot, in measurement order. This file is read by ni-pcr-precalc to
+# pre-calculate the expected PCR 15 value before resealing LUKS keys.
+#
+# Format:
+#   nigrub:<path>   file on the nigrub partition (relative to mount point)
+#   /<path>         absolute filesystem path (nibootfs files are under /boot/)
+#   # comment       ignored
+#   Paths with * or ? are expanded as sorted globs; missing files are skipped.
+#
+# The order must exactly match GRUB's execution sequence in grub.cfg.
+nigrub:efi/boot/grub.cfg
+nigrub:grubvar_readonly
+/boot/grub/grubenv
+/boot/bootmode
+/boot/runmode/bootimage.cfg
+/boot/runmode/cpu-mitigations.cfg
+/boot/runmode/bzImage
+/boot/runmode/ramdisk.xz

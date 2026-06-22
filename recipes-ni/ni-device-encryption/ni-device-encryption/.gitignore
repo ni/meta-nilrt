@@ -1,2 +1,3 @@
 share/pkg.sh
 init/ni-cryptdisks.sh
+bin/ni-pcr-precalc

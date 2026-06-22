@@ -4,11 +4,23 @@ DESCRIPTION := Tools for encrypting NI devices.
 VERSION ?= dev
 
 
+# TOOLCHAIN
+
+CC  ?= gcc
+CFLAGS  ?= -Wall -Wextra -O2
+LDFLAGS ?=
+LDLIBS  += -lcrypto
+
+
 # SOURCE FILES
 
 srcdir = .
 srcdatadir = $(srcdir)/share
 srcbindir = $(srcdir)/bin
+srcsrcdir = $(srcdir)/src
+
+# Compiled binaries
+ni_pcr_precalc = $(srcbindir)/ni-pcr-precalc
 
 SRC = \
 	$(wildcard $(srcbindir)/*) \
@@ -34,6 +46,9 @@ pkglibdir = $(libdir)/$(PACKAGE)
 # ==============================================================================
 # REAL TARGETS
 # ==============================================================================
+
+$(ni_pcr_precalc) : $(srcsrcdir)/ni-pcr-precalc.c
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< $(LDLIBS)
 
 $(PACKAGE).pc :
 	@{ \
@@ -67,7 +82,7 @@ init/ni-cryptdisks.sh : init/ni-cryptdisks.sh.in
 # PHONY TARGETS
 # ==============================================================================
 
-all : $(SRC) $(PACKAGE).pc
+all : $(SRC) $(PACKAGE).pc $(ni_pcr_precalc)
 .PHONY : all
 
 
@@ -75,6 +90,7 @@ clean :
 	rm -f $(PACKAGE).pc
 	rm -f $(srcdatadir)/pkg.sh
 	rm -f init/ni-cryptdisks.sh
+	rm -f $(ni_pcr_precalc)
 .PHONY : clean
 
 
