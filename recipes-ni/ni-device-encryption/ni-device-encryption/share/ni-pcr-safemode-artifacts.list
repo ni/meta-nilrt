@@ -1,0 +1,21 @@
+# PCR 15 artifact list for safemode boot
+#
+# Lists the boot artifacts that GRUB measures into PCR 15 during a safemode
+# boot, in measurement order. This file is read by ni-pcr-precalc to
+# pre-calculate the expected PCR 15 value before resealing LUKS keys.
+#
+# Format:
+#   nigrub:<path>   file on the nigrub partition (relative to mount point)
+#   /<path>         absolute filesystem path (nibootfs files are under /boot/)
+#   # comment       ignored
+#   Paths with * or ? are expanded as sorted globs; missing files are skipped.
+#
+# The order must exactly match GRUB's execution sequence in grub.cfg.
+# Safemode does not use cpu-mitigations.cfg or bootimage.cfg.d/.
+nigrub:efi/boot/grub.cfg
+nigrub:grubvar_readonly
+/boot/grub/grubenv
+/boot/bootmode
+/boot/.safe/bootimage.cfg
+/boot/.safe/bzImage
+/boot/.safe/ramdisk.xz
