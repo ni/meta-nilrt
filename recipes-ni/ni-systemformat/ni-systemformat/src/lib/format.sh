@@ -19,6 +19,9 @@ NICONFIG_PARTLABEL=niconfig
 USERFS_LABEL=nirootfs
 NICONFIG_LABEL=niconfig
 
+CONFIGFS_DEV=
+ROOTFS_DEV=
+
 # check for artemis compatibility from devicetree
 # set mountfs to ext4 if artemis model is detected
 # this allows fstype to return ext4 instead of ubifs
