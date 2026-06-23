@@ -129,3 +129,11 @@ RDEPENDS:${PN} += "\
 RDEPENDS:${PN} += "\
 	minizip \
 "
+
+# Required by niControllerDriver
+# Team: Core Software & Drivers
+# Contact: Kevin Khai-Wern Lim
+RDEPENDS:${PN}:append:x64 = "\
+	fwupd \
+	fwupd-efi \
+"
