@@ -226,14 +226,14 @@ function format_rootfs_or_userfs() {
 	# Remove the shadow backup if it was not already restored by nosvc.
 	rm -f "$ACCTINFO_TMP/.shadow"
 	# Restore the network configuration.
-	netconfig_post || (( ret )) || ret=$?
+	netconfig_post || { local rc=$?; (( ret )) || ret=$rc; }
 	# Restart services
 	_necessary_services_start
 	trap - EXIT
 
 	# targetinfo.ini needs to be restored or it will not be recreated until
 	# a reboot into safemode
-	targetinfo_restore || (( ret )) || ret=$?
+	targetinfo_restore || { local rc=$?; (( ret )) || ret=$rc; }
 
 	return $ret
 }
@@ -293,7 +293,7 @@ function format_rootfs_or_userfs_nosvc()
 	then
 		mkdir -p "$ROOTFS_MOUNT_POINT/.restore" &&
 			mv /tmp/restore/* "$ROOTFS_MOUNT_POINT/.restore" &&
-			rmdir /tmp/restore || (( ret )) || ret=$?
+			rmdir /tmp/restore || { local rc=$?; (( ret )) || ret=$rc; }
 	fi
 
 	# Move the .shadow file back to the configfs.
@@ -301,7 +301,7 @@ function format_rootfs_or_userfs_nosvc()
 		   mountpoint -q "$CONFIG_MOUNT_POINT"
 	then
 		mv -f "$ACCTINFO_TMP/.shadow" "$CONFIG_MOUNT_POINT" &&
-			rmdir "$ACCTINFO_TMP"	|| (( ret )) || ret=$?
+			rmdir "$ACCTINFO_TMP"	|| { local rc=$?; (( ret )) || ret=$rc; }
 	fi
 	return $ret
 }
@@ -312,7 +312,7 @@ function format_rootfs_or_userfs_nosvc()
 function format_rootfs_or_userfs_nosvc_noconf() {
 	local ret=0
 	if _unmount_volumes; then
-		format_rootfs_or_userfs_nomount || (( ret )) || ret=$?
+		format_rootfs_or_userfs_nomount || { local rc=$?; (( ret )) || ret=$rc; }
 	else
 		ret=$?
 	fi
@@ -322,7 +322,7 @@ function format_rootfs_or_userfs_nosvc_noconf() {
 	# configfs needs to be mounted before rootfs otherwise only one
 	# *etc/natinst/share will be mounted. (This may be a bug in the mount*
 	# initscripts.)
-	_mount_volumes || (( ret )) || ret=$?
+	_mount_volumes || { local rc=$?; (( ret )) || ret=$rc; }
 	return $ret
 }
 
