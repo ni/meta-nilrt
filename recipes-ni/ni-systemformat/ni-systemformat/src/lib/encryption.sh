@@ -16,7 +16,7 @@ export -f check_tpm
 # Check if the system has a TPM device.
 # Returns 0 if a TPM device is found, 1 otherwise.
 function has_tpm() {
-	if [ -d /sys/class/tpm ]; then
+	if [ -e /sys/class/tpm/tpm0 ]; then
 		return 0
 	else
 		return 1
