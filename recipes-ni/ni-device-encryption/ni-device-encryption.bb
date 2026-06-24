@@ -86,6 +86,8 @@ RDEPENDS:${PN} = "\
 	bash \
 	clevis \
 	cryptsetup \
+	jose \
+	jq \
 	libdevmapper \
 	lvm2 \
 	util-linux-blkid \

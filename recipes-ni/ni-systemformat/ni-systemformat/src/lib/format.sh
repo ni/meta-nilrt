@@ -22,6 +22,13 @@ NICONFIG_LABEL=niconfig
 CONFIGFS_DEV=
 ROOTFS_DEV=
 
+# Current-boot keyslot: sealed to current-boot PCR state (no pcr_digest).
+# Added by _convert_to_luks to allow same-session re-open; removed by
+# ni-reseal-luks on the next reseal call. This must not collide with the
+# runtime keyslots assigned in const_luks.sh (ni-device-encryption) — slot 0
+# is the master key, and slots 1 (safemode) and 2 (runmode) are reserved there.
+LUKS_KEYSLOT_CURRENT_BOOT=3
+
 # check for artemis compatibility from devicetree
 # set mountfs to ext4 if artemis model is detected
 # this allows fstype to return ext4 instead of ubifs
@@ -92,12 +99,30 @@ function _convert_to_luks() {
 		--key-file "$_keyfile_path" \
 		"$dev" \
 		|| die UNKNOWN_ERROR "Failed to luksFormat $dev"
-	ni-reseal-luks --yes "$_keyfile_path" \
+	ni-reseal-luks --yes --label "$fslabel-luks" "$_keyfile_path" \
 		|| die UNKNOWN_ERROR "Failed to reseal LUKS keys on $dev"
-	clevis luks unlock \
+	# Open the LUKS volume using the master keyfile (not the TPM policy).
+	# The TPM policy is pre-sealed for the *next* boot's PCR values, so it
+	# will not unseal correctly during the same current-boot session.
+	cryptsetup open \
+		--key-file "$_keyfile_path" \
+		"$dev" \
+		"$fslabel" \
+		|| die UNKNOWN_ERROR "Failed to unlock $dev with master keyfile"
+
+	# Add a current-boot keyslot sealed to the *current* TPM PCR state
+	# (omitting pcr_digest causes clevis to seal to current PCR values).
+	# This allows the LUKS mapping to be re-opened within the same boot
+	# session — e.g. by a subsequent nisystemformat or ni-reseal-luks call —
+	# without keeping the master key in any named file.
+	# ni-reseal-luks removes this slot automatically when it next reseals.
+	clevis luks bind \
 		-d "$dev" \
-		-n "$fslabel" \
-		|| die UNKNOWN_ERROR "Failed to unlock $dev with clevis"
+		-s $LUKS_KEYSLOT_CURRENT_BOOT \
+		-k "$_keyfile_path" \
+		-y \
+		tpm2 '{"pcr_bank":"sha256","pcr_ids":"7,15"}' \
+		|| die UNKNOWN_ERROR "Failed to add current-boot keyslot to $dev; reseal before reboot is now impossible."
 
 	exec {_key_fd}>&-
 }
@@ -403,6 +428,27 @@ function targetinfo_restore()
 
 function _mount_volumes() {
 	local ret=0
+	# Re-open any LUKS mappings that were closed by _unmount_volumes.
+	# Uses the current-boot keyslot (sealed to current-boot PCR values) so
+	# no raw key material needs to be kept in any named file.
+	if type cryptsetup >/dev/null 2>&1 && type clevis >/dev/null 2>&1; then
+		local _fslabel _blkdev
+		for _fslabel in "$NICONFIG_LABEL" "$USERFS_LABEL"; do
+			# Already open?
+			dmsetup ls --target crypt 2>/dev/null | grep -q "^${_fslabel}[[:space:]]" && continue
+			# Find the underlying LUKS block device (labelled "<fslabel>-luks").
+			_blkdev=$(blkid --label "${_fslabel}-luks" --output device 2>/dev/null) || continue
+			cryptsetup isLuks "$_blkdev" 2>/dev/null || continue
+			log INFO "Re-opening LUKS $_fslabel via TPM keyslot"
+			# 'clevis luks unlock' probes every clevis-bound keyslot until one
+			# unseals. Slots that don't match the live PCR state fail their unseal
+			# and emit noisy 'Esys_Unseal policy check failed' / 'Unsealing jwk
+			# from TPM failed' chatter before a matching slot succeeds. Suppress
+			# it; the exit status still gates the WARN below.
+			clevis luks unlock -d "$_blkdev" -n "$_fslabel" 2>/dev/null || \
+				log WARN "Could not re-open LUKS $_fslabel; mountconfig may fail"
+		done
+	fi
 	# Mount volumes in the rcS.d order.
 	with_retry /etc/init.d/mountconfig start || ret=$?
 	with_retry /etc/init.d/populateconfig start || ret=$?
