@@ -1,5 +1,5 @@
 DESCRIPTION = "NILRT safemode itb for ARM targets"
-NI_RELEASE_VERSION = "master"
+NI_RELEASE_VERSION = "26.5"
 LINUX_VERSION:xilinx-zynq = "4.14"
 COMPATIBLE_MACHINE = "xilinx-zynq"
 
