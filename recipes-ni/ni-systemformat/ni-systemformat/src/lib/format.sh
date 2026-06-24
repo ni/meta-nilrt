@@ -88,6 +88,11 @@ function _convert_to_luks() {
 	dd if=/dev/urandom of="$_keyfile_path" bs=512 count=1 2>/dev/null \
 		|| die UNKNOWN_ERROR "Failed to generate random master key"
 
+	# --luks2-metadata-size 16k: 16k is the current LUKS2 default; pin it so a
+	#   future default increase cannot silently grow the header.
+	# --luks2-keyslots-size 1m: the default keyslots area (~16 MiB) is too large
+	#   for the ~15 MB configfs partition, so reduce it to 1m, which is still
+	#   sufficient for all the keyslots we currently need with a little headroom.
 	cryptsetup luksFormat \
 		--encrypt \
 		--label "$fslabel-luks" \
@@ -96,6 +101,8 @@ function _convert_to_luks() {
 		--key-size 256 \
 		--cipher aes-xts-plain64 \
 		--batch-mode \
+		--luks2-metadata-size 16k \
+		--luks2-keyslots-size 1m \
 		--key-file "$_keyfile_path" \
 		"$dev" \
 		|| die UNKNOWN_ERROR "Failed to luksFormat $dev"
