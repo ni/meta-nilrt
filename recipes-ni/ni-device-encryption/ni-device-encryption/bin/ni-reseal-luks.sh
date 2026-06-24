@@ -36,6 +36,19 @@ source "$SCRIPT_DIR/../share/const_luks.sh" || exit ${EXITCODES[IMPORT_ERROR]}
 # ==============================================================================
 
 
+# Shreds any temporary key/PCR material recorded in _cleanup_files. Registered
+# as the EXIT trap so that secrets are never left behind in /dev/shm if the
+# script aborts partway through (e.g. via 'set -e').
+function _cleanup() {
+	set +e
+	local f
+	for f in "${_cleanup_files[@]}"; do
+		[ -n "$f" ] && [ -e "$f" ] && shred -u "$f"
+	done
+	_cleanup_files=()
+}
+
+
 # Checks that the script is being run in a suitable environment.
 function _check_env() {
 	if [[ "$EUID" -ne 0 ]]; then
@@ -123,7 +136,7 @@ function _reseal_device_keyslot() {
 	if [ -z "$master_keyfile" ]; then
 		local keyfile=$(mktemp -p /dev/shm ni-reseal-luks.XXXXXX.keyfile)
 		chmod 0600 "$keyfile"
-		trap "shred -u $keyfile" EXIT
+		_cleanup_files+=("$keyfile")
 
 		clevis luks pass -d "$device" -s "$keyslot" >"$keyfile" || {
 			echo >&2 "ERROR: No master keyfile provided, but no existing clevis bind policy on $device, slot $keyslot. Unable to make an original seal without the master keyfile."
@@ -135,7 +148,7 @@ function _reseal_device_keyslot() {
 
 	if $opt_dry_run; then
 		echo >&2 "Dry run. Skipping."
-		test -z "$master_keyfile" && shred -u "$keyfile" && trap - EXIT || :
+		test -z "$master_keyfile" && shred -u "$keyfile" || :
 		return
 	fi
 
@@ -163,7 +176,7 @@ function _reseal_device_keyslot() {
 	fi
 	
 	# Clean up the tempkey, if we're using one
-	test -z "$master_keyfile" && shred -u "$keyfile" && trap - EXIT || :
+	test -z "$master_keyfile" && shred -u "$keyfile" || :
 }
 
 
@@ -239,6 +252,9 @@ opt_yes=false
 arg_keyfile=""
 arg_label=""
 
+# Temporary state cleaned up by the EXIT trap (_cleanup).
+_cleanup_files=()
+
 
 # ==============================================================================
 # MAIN
@@ -246,6 +262,9 @@ arg_label=""
 
 _check_env || exit ${EXITCODES[BADENV]}
 parse_args "$@" || exit ${EXITCODES[BADARGS]}
+
+# Ensure temporary secrets are cleaned up on any exit.
+trap _cleanup EXIT
 
 # Determine which LUKS devices to reseal.
 if [[ -n "$arg_label" ]]; then
