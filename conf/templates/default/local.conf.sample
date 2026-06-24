@@ -16,7 +16,7 @@
 
 #
 # Machine Selection
-#   Supported NILRT machine values are: x64
+#   Supported NILRT machine values are: x64, xilinx-zynq
 MACHINE ?= "x64"
 
 # Distribution selection
