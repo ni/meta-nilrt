@@ -1,0 +1,5 @@
+# Give 'admin' user (UID 0) all permissions.
+Devices=list,listen,modify
+Exceptions=listen
+Parameters=list,listen,modify
+Policy=list,modify
