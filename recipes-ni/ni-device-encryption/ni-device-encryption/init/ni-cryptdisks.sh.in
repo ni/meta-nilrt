@@ -4,7 +4,7 @@
 #
 ### BEGIN INIT INFO
 # Provides:          ni-cryptdisks
-# Required-Start:    mountall sysfs
+# Required-Start:    mountall sysfs udev
 # Required-Stop:
 # Default-Start:     S
 # Default-Stop:
@@ -54,16 +54,45 @@ function check_env() {
 }
 
 
-# Populates the following global variables:
-#   - userfs_path
-#   - userfs_luks_path
-#   - niconfig_path
-#   - niconfig_luks_path
+# Prints the given device only if it currently holds a LUKS header; otherwise
+# prints nothing.
+function _luks_device_for() {
+	local dev="${1:-}"
+	[ -n "$dev" ] || return 0
+	if [ "$(blkid --match-tag TYPE --output value "$dev" 2>/dev/null || :)" = crypto_LUKS ]; then
+		printf '%s\n' "$dev"
+	fi
+}
+
+
+# Populates userfs_path, userfs_luks_path, niconfig_path, niconfig_luks_path.
+#
+# Locate the data partitions by GPT PARTLABEL via a direct scan, which reflects
+# the kernel/devtmpfs view immediately. Retry (wall-clock bounded) as insurance
+# for a still-enumerating disk.
 function find_partitions() {
+	local deadline=$((SECONDS + 30)) userfs_dev niconfig_dev
+	while true; do
+		userfs_dev=$(blkid --match-token PARTLABEL="$USERFS_PARTLABEL" --output device 2>/dev/null || :)
+		niconfig_dev=$(blkid --match-token PARTLABEL="$NICONFIG_PARTLABEL" --output device 2>/dev/null || :)
+
+		if { [ -n "$userfs_dev" ] && [ -n "$niconfig_dev" ]; } \
+			|| [ "$SECONDS" -ge "$deadline" ]; then
+			break
+		fi
+		# A data partition is not visible yet; give udev/the kernel a moment to
+		# finish enumerating the disk, then re-scan.
+		type udevadm >/dev/null 2>&1 && udevadm settle --timeout=5 || :
+		sleep 1
+	done
+
+	[ -n "$userfs_dev" ] && [ -n "$niconfig_dev" ] \
+		|| log WARN "Timed out waiting for data partitions to appear"
+
+	userfs_luks_path=$(_luks_device_for "$userfs_dev")
+	niconfig_luks_path=$(_luks_device_for "$niconfig_dev")
 	userfs_path=$(blkid --label "$USERFS_PARTLABEL" --output device || :)
-	userfs_luks_path=$(blkid --label "$USERFS_PARTLABEL-luks" --output device || :)
 	niconfig_path=$(blkid --label "$NICONFIG_PARTLABEL" --output device || :)
-	niconfig_luks_path=$(blkid --label "$NICONFIG_PARTLABEL-luks" --output device || :)
 }
 
 
