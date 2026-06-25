@@ -1,6 +1,7 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRC_URI += "file://usbguard.init \
+    file://IPCAccessControl.d/ \
 "
 
 inherit update-rc.d
@@ -19,4 +20,17 @@ do_install:append() {
         # Remove /etc/volatile.cache if it exists in the target image
         rm -f ${D}${sysconfdir}/volatile.cache
     fi
+
+    install -d ${D}${sysconfdir}/${BPN}/IPCAccessControl.d
+    install \
+        -t ${D}${sysconfdir}/${BPN}/IPCAccessControl.d \
+        --mode 0600 \
+        ${WORKDIR}/IPCAccessControl.d/*
 }
+
+
+# ==============================================================================
+# PACKAGING
+# ==============================================================================
+
+CONFFILES:${PN} += "${sysconfdir}/${BPN}/IPCAccessControl.d"
