@@ -33,4 +33,4 @@ do_install:append() {
 # PACKAGING
 # ==============================================================================
 
-CONFFILES:${PN} += "${sysconfdir}/${BPN}/IPCAccessControl.d"
+CONFFILES:${PN} += "${sysconfdir}/${BPN}/IPCAccessControl.d/*"
