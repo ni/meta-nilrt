@@ -18,12 +18,14 @@ IMAGE_INSTALL_NODEPS += "ni-arch-gen"
 
 # ni-sysapi-webservice provides the /nisysapi/server endpoint needed
 # for NI MAX connectivity.
-# ni-auth is required by SystemWebServer (segfaults without niauth_daemon).
 # ni-system-webserver provides the web server for deployment and discovery
 # by NI MAX and VeriStand.
 # ni-webdav-system-webserver-support provides mod_nidav.so for WebDAV file
 # deployment (how VeriStand deploys .rtexe to /c).
-IMAGE_INSTALL_NODEPS += "ni-sysapi-webservice ni-auth ni-system-webserver ni-webdav-system-webserver-support"
+# NOTE: ni-auth has been intentionally removed from the default install.
+# The root account is used instead of admin. ni-auth remains in the feeds
+# and may still be pulled in as a transitive dependency of ni-system-webserver.
+IMAGE_INSTALL_NODEPS += "ni-sysapi-webservice ni-system-webserver ni-webdav-system-webserver-support"
 
 # nirtmdnsd provides NI RT mDNS service for target discovery.
 IMAGE_INSTALL_NODEPS += "nirtmdnsd"

@@ -30,6 +30,7 @@ RDEPENDS:${PN}:append = "\
 	nettle-ptest \
 	ni-hw-scripts-ptest \
 	ni-test-boot-time-ptest \
+	niauth-tests-ptest \
 	nilrt-snac-ptest \
 	opkg-ptest \
 	parted-ptest \
