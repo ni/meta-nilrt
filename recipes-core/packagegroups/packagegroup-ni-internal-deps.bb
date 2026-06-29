@@ -123,6 +123,8 @@ RDEPENDS:${PN} += "\
 # Required by multiple product groups
 RDEPENDS:${PN} += "\
 	minizip \
+	grpc \
+	grpc-dev \
 "
 
 # Required by niControllerDriver
