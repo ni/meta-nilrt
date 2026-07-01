@@ -39,6 +39,8 @@ USERADD_PARAM:${PN} = " \
 useradd_preinst:append () {
 	eval ${PSEUDO} chmod g+sw ${SYSROOT}/home/${LVRT_USER} || true
 	eval ${PSEUDO} chmod g+s ${SYSROOT}/home/webserv || true
+	# Keep legacy /home/admin working by pointing it at root's home (/root).
+	eval ${PSEUDO} ln -sf /root ${SYSROOT}/home/admin || true
 }
 
 
