@@ -25,7 +25,7 @@ do_install:append() {
     install \
         -t ${D}${sysconfdir}/${BPN}/IPCAccessControl.d \
         --mode 0600 \
-        ${WORKDIR}/IPCAccessControl.d/*
+        ${UNPACKDIR}/IPCAccessControl.d/*
 }
 
 
