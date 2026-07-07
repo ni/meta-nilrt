@@ -10,7 +10,7 @@ c     = nilrt-core-image.inc       # NI-specific modifications to the core-image
 ## Images
       | nilrt-base-system-image.bb  # NILRT base system image archive and CDF
 c     | nilrt-recovery-media.bb     # NILRT installation/recovery media ISO
-cbnxp | nilrt-runmode-container.bb  # The runmode rootfs, installed into an OCI container.
+cbn p | nilrt-runmode-container.bb  # The runmode rootfs, installed into an OCI container.
 cb xp | nilrt-runmode-rootfs.bb
 cb  p | nilrt-safemode-initramfs.bb
       | nilrt-safemode-rootfs.bb

@@ -9,7 +9,6 @@ IMAGE_INSTALL = "\
 	"
 
 require includes/nilrt-image-base.inc
-require includes/nilrt-xfce.inc
 require includes/nilrt-proprietary.inc
 
 IMAGE_INSTALL_NODEPS += "\
