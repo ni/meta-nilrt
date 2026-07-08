@@ -10,7 +10,6 @@ DEPENDS += "shadow-native pseudo-native update-rc.d-native niacctbase"
 
 SRC_URI = "\
 	file://cleanvarcache \
-	file://firewall \
 	file://iso3166-translation.txt \
 	file://mountconfig \
 	file://niconfiguretracefs \
@@ -55,15 +54,7 @@ do_install () {
 	install -m 0755 ${S}/populateconfig        ${D}${sysconfdir}/init.d
 	install -m 0755 ${S}/wirelesssetdomain     ${D}${sysconfdir}/init.d
 
-	install -m 0755 ${S}/firewall              ${D}${sysconfdir}/init.d
-	# Substitute configfs paths
-	sed -i 's|^IPTABLES_CONF=.*$|IPTABLES_CONF=/etc/natinst/share/iptables.conf|g' ${D}${sysconfdir}/init.d/firewall
-	sed -i 's|^IP6TABLES_CONF=.*$|IP6TABLES_CONF=/etc/natinst/share/ip6tables.conf|g' ${D}${sysconfdir}/init.d/firewall
-	# sanity check: break build if new _CONF vars exist which aren't substituted above
-	! egrep '^[a-zA-Z0-9]*_CONF=.*$' ${D}${sysconfdir}/init.d/firewall | egrep -v '^(IPTABLES_CONF)|(IP6TABLES_CONF)=.*$'
-
 	update-rc.d -r ${D} cleanvarcache         start 38 0 6 S .
-	update-rc.d -r ${D} firewall              start 39 S .
 	update-rc.d -r ${D} mountconfig           start 35 S .
 	update-rc.d -r ${D} niconfiguretracefs    start 82 S .
 	update-rc.d -r ${D} nicheckbiosconfig     start 99 4 5 .
