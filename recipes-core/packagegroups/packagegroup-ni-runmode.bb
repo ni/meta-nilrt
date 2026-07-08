@@ -124,9 +124,11 @@ RDEPENDS:${PN} = "\
 "
 
 RDEPENDS:${PN}:append:x64 = "\
+	firewalld \
 	linux-firmware-i915 \
 	kernel-module-radeon \
 	linux-firmware-radeon \
+	ni-firewalld-servicedefs \
 "
 
 # Required components for Veristand.
