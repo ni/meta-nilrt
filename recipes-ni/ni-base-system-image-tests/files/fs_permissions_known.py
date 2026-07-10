@@ -17,10 +17,10 @@ def known_permissions_tree():
             'grub': {
                 '.': system_dir,
                 '*': system_file,
-                'grubenv': permissions(0o664, 'admin', 'ni', FT_REG),
-                'grubenv.bak': permissions(0o664, 'admin', 'ni', FT_REG),
-                'grub-ni-version': permissions(0o0444, 'admin', 'administrators', FT_REG),
-                'recoverytool-ni-version': permissions(0o0444, 'admin', 'administrators', FT_REG)
+                'grubenv': permissions(0o664, 'root', 'ni', FT_REG),
+                'grubenv.bak': permissions(0o664, 'root', 'ni', FT_REG),
+                'grub-ni-version': permissions(0o0444, 'root', 'root', FT_REG),
+                'recoverytool-ni-version': permissions(0o0444, 'root', 'root', FT_REG)
             },
             'runmode': {
                 '.': system_dir,
@@ -34,8 +34,8 @@ def known_permissions_tree():
         'home': {
             '.': system_dir,
             '*': system_dir,
+            'admin': system_link('/root'),
             'lvuser': permissions(0o2775, 'lvuser', 'ni', FT_DIR),
-            'root': system_link('/home/admin'),
             'webserv': permissions(0o2755, 'webserv', 'ni', FT_DIR)
         },
         'lib': {
@@ -119,15 +119,15 @@ def permissions(mode, user, group, file_type):
 
 # Typical system file
 def system_file(path, stats, logger, md5sum):
-    return permissions(0o0644, 'admin', 'administrators', FT_REG)(path, stats, logger, md5sum)
+    return permissions(0o0644, 'root', 'root', FT_REG)(path, stats, logger, md5sum)
 
 # Sys file with executable bit set
 def system_file_exec(path, stats, logger, md5sum):
-    return permissions(0o0755, 'admin', 'administrators', FT_REG)(path, stats, logger, md5sum)
+    return permissions(0o0755, 'root', 'root', FT_REG)(path, stats, logger, md5sum)
 
 # Typical system dir
 def system_dir(path, stats, logger, md5sum):
-    return permissions(0o0755, 'admin', 'administrators', FT_DIR)(path, stats, logger, md5sum)
+    return permissions(0o0755, 'root', 'root', FT_DIR)(path, stats, logger, md5sum)
 
 # Only care about ownership and r/w access not link status, directory status, exec bit, etc
 def system_hier(path, stats, logger, md5sum):
@@ -137,7 +137,7 @@ def system_hier(path, stats, logger, md5sum):
         0o0755 if is_dir or stat.S_IMODE(stats.st_mode) == 0o0755 else 0o0644
     )
     file_type = FT_DIR if is_dir else (FT_LNK if is_link else FT_REG)
-    return permissions(mode, 'admin', 'administrators', file_type)(path, stats, logger, md5sum)
+    return permissions(mode, 'root', 'root', file_type)(path, stats, logger, md5sum)
 
 # What would be a typical system file but is actually a link
 def system_link(target):
@@ -148,7 +148,7 @@ def system_link(target):
         if not correct_link:
             log_mismatch('link', target, real_target, path, logger, md5sum)
         return \
-            permissions(0o0777, 'admin', 'administrators', FT_LNK)(path, stats, logger, md5sum) \
+            permissions(0o0777, 'root', 'root', FT_LNK)(path, stats, logger, md5sum) \
             and correct_link
     return ret
 
