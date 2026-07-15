@@ -5,6 +5,7 @@ nogroup:x:65534:
 ni:x:500:
 openvpn:x:499:
 niwscerts:x:498:
+datacomm:x:497:
 # free space
 clevis:x:405:
 krill:x:404:

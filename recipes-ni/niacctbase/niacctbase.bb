@@ -28,12 +28,13 @@ GROUPADD_PARAM:${PN} = " \
 	--system ${LVRT_GROUP}; \
 	--system openvpn; \
 	--system niwscerts; \
-	--system network"
+	--system network; \
+	--system datacomm"
 
 # add parameter -m if you want home directories created with default files (.profile, .bashrc)
 USERADD_PARAM:${PN} = " \
-	-m -N -g ${LVRT_GROUP} -G network,niwscerts,plugdev,tty,video -c 'LabVIEW user' ${LVRT_USER}; \
-	-m -N -g ${LVRT_GROUP} -G niwscerts,plugdev,adm,tty -c 'Web services user' webserv; \
+	-m -N -g ${LVRT_GROUP} -G network,niwscerts,plugdev,tty,video,datacomm -c 'LabVIEW user' ${LVRT_USER}; \
+	-m -N -g ${LVRT_GROUP} -G niwscerts,plugdev,adm,tty,datacomm -c 'Web services user' webserv; \
 	-N -g openvpn -G network -c 'OpenVPN' -r openvpn; \
 "
 
