@@ -33,6 +33,7 @@ SRC_URI = "\
 "
 
 SRC_URI:append:xilinx-zynq = "\
+	file://firewall \
 	file://mountutils \
 "
 
@@ -79,6 +80,18 @@ do_install:append:xilinx-zynq () {
 
 	update-rc.d -r ${D} nisetbootcount        start 40 S .
 	update-rc.d -r ${D} niusbgadget           start 0  5 . stop 81 0 6 .
+
+	# Legacy static iptables firewall, retained for non-x64 (arm) targets until
+	# firewalld is supported there (requires a kernel >= 4.18 for the nftables
+	# inet backend). x64 uses firewalld instead (see packagegroup-ni-runmode).
+	install -m 0755 ${S}/firewall              ${D}${sysconfdir}/init.d
+	# Substitute configfs paths
+	sed -i 's|^IPTABLES_CONF=.*$|IPTABLES_CONF=/etc/natinst/share/iptables.conf|g' ${D}${sysconfdir}/init.d/firewall
+	sed -i 's|^IP6TABLES_CONF=.*$|IP6TABLES_CONF=/etc/natinst/share/ip6tables.conf|g' ${D}${sysconfdir}/init.d/firewall
+	# sanity check: break build if new _CONF vars exist which aren't substituted above
+	! egrep '^[a-zA-Z0-9]*_CONF=.*$' ${D}${sysconfdir}/init.d/firewall | egrep -v '^(IPTABLES_CONF)|(IP6TABLES_CONF)=.*$'
+
+	update-rc.d -r ${D} firewall              start 39 S .
 }
 
 pkg_postinst_ontarget:${PN} () {
