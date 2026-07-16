@@ -316,8 +316,13 @@ add_group_kitchensink () {
 	TOKENS+=(
 		"SYSTEMSETTINGS;Host_Name"
 	)
+	# firewalld config (x64 runmode). Only existing paths are persisted.
 	add_to_files etc/firewalld
 	add_to_files etc/sysconfig/firewalld
+	# Legacy static iptables rules, still used by the firewall init script on
+	# non-x64 (arm) targets. Kept so save/restore does not drop their rules.
+	add_to_files etc/natinst/share/iptables.conf
+	add_to_files etc/natinst/share/ip6tables.conf
 	add_to_files etc/natinst/share/openvpn
 	add_to_files etc/natinst/share/certstore
 	add_to_files etc/natinst/share/ssh
