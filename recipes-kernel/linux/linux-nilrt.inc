@@ -13,9 +13,6 @@ KBUILD_FRAGMENTS_LOCATION ?= "nilrt"
 
 LINUX_VERSION_EXTENSION = "$([ "${LINUX_KERNEL_TYPE}" != "standard" ] && echo '-${LINUX_KERNEL_TYPE}')"
 
-# Only required for 4.14 kernels
-EXTRA_OEMAKE:append:xilinx-zynq = ' CFLAGS="${TOOLCHAIN_OPTIONS} -Wno-array-bounds" '
-
 # Kbuild intenionally clobbers CFLAGS/LDFLAGS for some binaries we ship in nilrt,
 # particularly in the tools/ dir (fixdep, genksyms etc), and OE has this insanity check
 # to see if binaries were built using the OE-supplied *FLAGS, so skip this sanity check to
@@ -45,7 +42,6 @@ PV = "${LINUX_VERSION}+git${SRCPV}"
 CVE_VERSION = "${KERNEL_VERSION}+git${SRCPV}"
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=6bc538ed5bd9a7fc9398086aedcd7e46"
-LIC_FILES_CHKSUM:xilinx-zynq = "file://COPYING;md5=d7810fab7487fb0aad327b76f1be7cd7"
 
 # This checks ${PV} == version from kernel sources which our PV/AUTOREV breaks, so skip it.
 KERNEL_VERSION_SANITY_SKIP="1"

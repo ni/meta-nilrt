@@ -1,6 +1,6 @@
 DESCRIPTION = "NILRT safemode itb for ARM targets"
 NI_RELEASE_VERSION = "master"
-LINUX_VERSION:xilinx-zynq = "4.14"
+LINUX_VERSION:xilinx-zynq = "6.18"
 COMPATIBLE_MACHINE = "xilinx-zynq"
 
 require linux-nilrt-alternate.inc
