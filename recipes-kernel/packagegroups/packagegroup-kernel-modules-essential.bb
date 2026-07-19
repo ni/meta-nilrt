@@ -17,9 +17,7 @@ RDEPENDS:${PN} = "\
 	kernel-module-ar5523 \
 	kernel-module-arc4 \
 	kernel-module-arcmsr \
-	kernel-module-arp-tables \
 	kernel-module-arpt-mangle \
-	kernel-module-arptable-filter \
 	kernel-module-asix \
 	kernel-module-async-memcpy \
 	kernel-module-async-pq \
@@ -59,10 +57,9 @@ RDEPENDS:${PN} = "\
 	kernel-module-cfg80211 \
 	kernel-module-ch341 \
 	kernel-module-ch9200 \
-	kernel-module-chacha-x86-64 \
+	kernel-module-chacha \
 	kernel-module-chipreg \
 	kernel-module-cifs \
-	kernel-module-cifs-arc4 \
 	kernel-module-cifs-md4 \
 	kernel-module-cls-basic \
 	kernel-module-cls-u32 \
@@ -74,9 +71,7 @@ RDEPENDS:${PN} = "\
 	kernel-module-crc-itu-t \
 	kernel-module-crc7 \
 	kernel-module-crc8 \
-	kernel-module-crypto-simd \
 	kernel-module-ctr \
-	kernel-module-curve25519-x86-64 \
 	kernel-module-cuse \
 	kernel-module-deflate \
 	kernel-module-digi-acceleport \
@@ -101,7 +96,6 @@ RDEPENDS:${PN} = "\
 	kernel-module-ecc \
 	kernel-module-ecdh-generic \
 	kernel-module-echainiv \
-	kernel-module-eeprom-93cx6 \
 	kernel-module-em-cmp \
 	kernel-module-esp4 \
 	kernel-module-esp4-offload \
@@ -152,10 +146,8 @@ RDEPENDS:${PN} = "\
 	kernel-module-intel-gtt \
 	kernel-module-intel-rng \
 	kernel-module-ip-gre \
-	kernel-module-ip-tables \
 	kernel-module-ip-tunnel \
 	kernel-module-ip-vs \
-	kernel-module-ip6-tables \
 	kernel-module-ip6-udp-tunnel \
 	kernel-module-ip6t-ah \
 	kernel-module-ip6t-eui64 \
@@ -165,10 +157,6 @@ RDEPENDS:${PN} = "\
 	kernel-module-ip6t-mh \
 	kernel-module-ip6t-reject \
 	kernel-module-ip6t-rt \
-	kernel-module-ip6table-filter \
-	kernel-module-ip6table-mangle \
-	kernel-module-ip6table-raw \
-	kernel-module-ip6table-security \
 	kernel-module-ipcomp \
 	kernel-module-ipcomp6 \
 	kernel-module-ipheth \
@@ -176,11 +164,6 @@ RDEPENDS:${PN} = "\
 	kernel-module-ipt-ah \
 	kernel-module-ipt-ecn \
 	kernel-module-ipt-reject \
-	kernel-module-iptable-filter \
-	kernel-module-iptable-mangle \
-	kernel-module-iptable-nat \
-	kernel-module-iptable-raw \
-	kernel-module-iptable-security \
 	kernel-module-ipv6 \
 	kernel-module-iw-cm \
 	kernel-module-ixgbe \
@@ -200,7 +183,6 @@ RDEPENDS:${PN} = "\
 	kernel-module-libchacha20poly1305 \
 	kernel-module-libcomposite \
 	kernel-module-libcurve25519 \
-	kernel-module-libcurve25519-generic \
 	kernel-module-libpoly1305 \
 	kernel-module-libps2 \
 	kernel-module-libsas \
@@ -321,14 +303,12 @@ RDEPENDS:${PN} = "\
 	kernel-module-ntfs3 \
 	kernel-module-nvme-fabrics \
 	kernel-module-nvme-rdma \
-	kernel-module-p8022 \
 	kernel-module-pcrypt \
 	kernel-module-pegasus \
 	kernel-module-phy-generic \
 	kernel-module-phylink \
 	kernel-module-pl2303 \
 	kernel-module-plusb \
-	kernel-module-poly1305-x86-64 \
 	kernel-module-ppp-async \
 	kernel-module-ppp-deflate \
 	kernel-module-ppp-generic \
@@ -373,7 +353,7 @@ RDEPENDS:${PN} = "\
 	kernel-module-serio \
 	kernel-module-serport \
 	kernel-module-sha3-generic \
-	kernel-module-sha512-generic \
+	kernel-module-sha512 \
 	kernel-module-sierra \
 	kernel-module-sierra-net \
 	kernel-module-sit \
