@@ -1,0 +1,63 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          ni-safemode-firewall
+# Required-Start:
+# Required-Stop:
+# Default-Start:     S
+# Default-Stop:
+# Short-Description: ni-safemode-firewall
+# Description:       Load the static default-deny nftables firewall used
+#                    while a target is in safe mode.
+### END INIT INFO
+#
+# Copyright (c) 2026 National Instruments.
+# All rights reserved.
+#
+# NI Linux Real-Time safemode static firewall.
+#
+# Loads a default-deny nftables ruleset that permits only the minimal set
+# of services expected while a target is in safemode. Uses the nft
+# userspace tool only (no daemon), so it is safe for the size-constrained
+# safemode initramfs.
+
+RULESET=/etc/nftables/safemode.nft
+TABLE="inet safemode_firewall"
+
+case "$1" in
+	start)
+		printf "Enabling firewall: "
+		if nft -f "$RULESET"; then
+			echo "OK"
+		else
+			echo "FAILED"
+			exit 1
+		fi
+		;;
+	stop)
+		printf "Disabling firewall: "
+		if nft list table $TABLE >/dev/null 2>&1; then
+			nft delete table $TABLE && echo "OK" || { echo "FAILED"; exit 1; }
+		else
+			echo "OK"
+		fi
+		;;
+	restart)
+		"$0" stop
+		"$0" start
+		;;
+	reload|force-reload)
+		"$0" start
+		;;
+	status)
+		if nft list table $TABLE >/dev/null 2>&1; then
+			echo "firewall: active"
+		else
+			echo "firewall: inactive"
+			exit 3
+		fi
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart|reload|force-reload|status}" >&2
+		exit 1
+		;;
+esac
