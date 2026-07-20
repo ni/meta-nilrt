@@ -20,6 +20,10 @@ RDEPENDS:${PN} = " \
 	ni-systemimage \
 "
 
+# The safemode nftables firewall is x64-only for now; it has not yet been
+# validated on arm targets.
+RDEPENDS:${PN}:append:x64 = " ni-safemode-firewall"
+
 # GPU firmware, included as split packages to conserve space
 #
 # Intel Valleyview family, no i915 firmware in use

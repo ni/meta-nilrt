@@ -1,0 +1,65 @@
+#!/usr/sbin/nft -f
+#
+# Copyright (c) 2026 National Instruments.
+# All rights reserved.
+#
+# NI Linux Real-Time safemode static firewall ruleset.
+#
+# Default-deny (drop) for inbound traffic. Only the minimal set of
+# services expected while a controller is in safemode is permitted:
+#   - SSH (remote management / recovery)
+#   - NI System Web Server (MAX and web UI, HTTP 80 + HTTPS 443)
+#   - NI Service Locator (3580)
+#   - mDNS device discovery (5353)
+#   - DHCP client replies (IPv4 68, IPv6 546)
+#
+# Outbound traffic is allowed, so client connections such as opkg feed
+# access work; their replies return via the established connection state.
+
+# Replace only our own table, leaving any other nftables state intact.
+# The empty table declaration ensures the delete succeeds on first load.
+table inet safemode_firewall
+delete table inet safemode_firewall
+
+table inet safemode_firewall {
+	chain input {
+		type filter hook input priority filter; policy drop;
+
+		# Loopback and already-accepted connections.
+		iif "lo" accept
+		ct state established,related accept
+		ct state invalid drop
+
+		# ICMPv6 is required for core IPv6 operation (neighbor
+		# discovery, path MTU); allow all types. Allow ICMPv4 too
+		# (ping, unreachable, etc.).
+		meta l4proto ipv6-icmp accept
+		ip protocol icmp accept
+
+		# DHCP client replies, restricted to the server source port.
+		udp sport 67 udp dport 68 accept
+		udp sport 547 udp dport 546 accept
+
+		# SSH - remote management / recovery.
+		tcp dport 22 accept
+
+		# NI System Web Server (MAX, web UI).
+		tcp dport { 80, 443 } accept
+
+		# NI Service Locator.
+		tcp dport 3580 accept
+
+		# mDNS - link-local multicast device discovery. Restrict to the
+		# mDNS multicast groups rather than accepting any destination.
+		ip daddr 224.0.0.251 udp dport 5353 accept
+		ip6 daddr ff02::fb udp dport 5353 accept
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy drop;
+	}
+
+	chain output {
+		type filter hook output priority filter; policy accept;
+	}
+}
