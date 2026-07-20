@@ -1,6 +1,6 @@
 DESCRIPTION = "NILRT linux kernel full dynamic ticks (NO_HZ_FULL) build"
 NI_RELEASE_VERSION = "master"
-LINUX_VERSION = "6.12"
+LINUX_VERSION = "6.18"
 LINUX_KERNEL_TYPE = "nohz"
 
 require linux-nilrt-alternate.inc
