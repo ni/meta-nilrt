@@ -1,0 +1,5 @@
+# Daily AIDE file-integrity check. Logs a one-line summary to syslog and writes
+# the full per-run report under /var/log/aide/.
+SHELL=/bin/sh
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+0 0 * * * root /usr/sbin/aide-check

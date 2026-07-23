@@ -1,0 +1,16 @@
+# Rotate the persistent AIDE report logs so they cannot grow without bound:
+#  - aide.log      : written/appended by AIDE itself (report_url in /etc/aide.conf)
+#  - aide-init.log : stdout/stderr captured by aide-init on each baseline (re)build
+# (Per-run timestamped reports under /var/log/aide are pruned by aide-check.)
+# These logs contain scanned file paths and hashes, so recreate rotated files
+# root-only (create 0600) and run rotation as root regardless of umask.
+/var/log/aide/aide.log /var/log/aide/aide-init.log {
+	su root root
+	create 0600 root root
+	weekly
+	rotate 4
+	missingok
+	notifempty
+	compress
+	maxsize 1M
+}
