@@ -1,0 +1,132 @@
+#!/bin/sh
+# Periodic AIDE file-integrity check. A one-line summary of each run is sent to
+# syslog (syslog-ng via /dev/log) for alerting; the full per-run report is
+# written under /var/log/aide/ for detail.
+#
+# Exit status:
+#   0      no differences
+#   1|2|4  aide(1) difference bitmask (new|removed|changed); e.g. 7 = all three
+#   8      baseline could not be verified (checksum missing or mismatch); no scan run
+#   9      IO/setup error (cannot create or secure the log dir/report); no scan run
+#   >=14   aide(1) error (e.g. 18 = IO error) - details are in the per-run report
+
+# Set an explicit PATH so aide, sha256sum, mktemp, grep, tail, etc.
+# resolve for manual invocations too, not just the cron entry which sets PATH.
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+
+DB=/var/lib/aide/aide.db.gz
+LOGDIR=/var/log/aide
+TAG=aide-check
+INITLOCK=/run/aide-init.lock
+CHECKLOCK=/run/aide-check.lock
+
+# Reports can contain file paths and hashes -> keep them root-only. Fail closed
+# if the log directory cannot be created or secured, so we never run a scan we
+# cannot record.
+umask 077
+if ! mkdir -p "$LOGDIR" || ! chmod 700 "$LOGDIR"; then
+	logger -t "$TAG" -p daemon.err "cannot create or secure $LOGDIR; skipping check (IO error)"
+	exit 9
+fi
+
+# Prevent concurrent aide-check runs (e.g. a manual run during the daily cron
+# job). flock holds the advisory lock via fd 9 for the lifetime of this process;
+# the kernel releases it automatically on process death, so no PID-based
+# stale recovery is needed.
+if ! exec 9>"$CHECKLOCK" 2>/dev/null; then
+	logger -t "$TAG" -p daemon.err "cannot open lock file $CHECKLOCK; skipping check (IO error)"
+	exit 9
+fi
+flock -n 9; _rc=$?
+if [ "$_rc" -eq 1 ]; then
+	logger -t "$TAG" -p daemon.info "another aide-check is running; skipping"
+	exit 0
+elif [ "$_rc" -ne 0 ]; then
+	logger -t "$TAG" -p daemon.err "flock failed on $CHECKLOCK (rc=$_rc); skipping check (IO error)"
+	exit 9
+fi
+
+# No baseline database present. Distinguish three cases:
+#  - aide-init is mid-build (its lock is held): the checksum is written before
+#    the DB is promoted, so "checksum present, DB missing" is expected -> skip.
+#  - checksum exists with no build running: the DB was removed after
+#    provisioning (deletion/tampering) -> fail closed.
+#  - neither DB nor checksum: benign first boot before the baseline exists.
+if [ ! -f "$DB" ]; then
+	# flock -n fails when aide-init's background scan holds the lock (build in
+	# progress) and succeeds when nobody holds it. Stale locks are impossible:
+	# the kernel releases flock automatically when the holding process dies.
+	flock -n "$INITLOCK" true 2>/dev/null; _rc=$?
+	if [ "$_rc" -eq 1 ]; then
+		logger -t "$TAG" -p daemon.info "baseline build in progress; skipping integrity check"
+		exit 0
+	elif [ "$_rc" -ne 0 ]; then
+		logger -t "$TAG" -p daemon.err "cannot probe baseline-build lock $INITLOCK (rc=$_rc); skipping check (IO error)"
+		exit 9
+	fi
+	if [ -f "$DB.sha256" ]; then
+		logger -t "$TAG" -p daemon.crit "baseline database $DB missing but checksum present - possible deletion/tampering; refusing to run (run: /etc/init.d/aide-init reinit)"
+		exit 8
+	fi
+	logger -t "$TAG" -p daemon.info "no baseline database yet; skipping integrity check"
+	exit 0
+fi
+
+# Verify the baseline database itself has not been tampered with before we trust
+# it (the runmode rootfs is writable, so the DB is a target too). Fail closed: if
+# the baseline cannot be trusted, do NOT emit a (potentially false) "OK" - alert
+# and stop so an operator re-initialises the baseline (aide-init).
+if [ ! -f "$DB.sha256" ]; then
+	logger -t "$TAG" -p daemon.warning "baseline checksum missing; cannot verify baseline integrity - skipping check (run: /etc/init.d/aide-init reinit)"
+	exit 8
+fi
+want=$(cat "$DB.sha256" 2>/dev/null)
+have=$(sha256sum "$DB" 2>/dev/null)
+have=${have%% *}
+if [ -z "$want" ] || [ -z "$have" ]; then
+	# Could not read the checksum or hash the DB -> IO error, not tampering.
+	logger -t "$TAG" -p daemon.err "cannot read baseline checksum or hash the database (IO error); skipping check"
+	exit 9
+fi
+if [ "$want" != "$have" ]; then
+	logger -t "$TAG" -p daemon.crit "BASELINE DATABASE CHECKSUM MISMATCH - possible tampering; refusing to run check; investigate then run: /etc/init.d/aide-init reinit (want=$want have=$have)"
+	exit 8
+fi
+
+# Create a unique per-run report. mktemp guarantees uniqueness (so two runs in
+# the same second cannot overwrite each other's report) and fails closed: if the
+# log volume is full or read-only we skip rather than run a scan whose output
+# cannot be recorded, which would make the exit status meaningless. Keep XXXXXX
+# at the very end of the template (BusyBox mktemp requires it there), then rename
+# to add the .log suffix.
+tmp=$(mktemp "$LOGDIR/aide-check.$(date +%Y%m%d-%H%M%S).XXXXXX" 2>/dev/null) || {
+	logger -t "$TAG" -p daemon.err "cannot create report file in $LOGDIR; skipping check (IO error)"
+	exit 9
+}
+report="$tmp.log"
+if ! mv "$tmp" "$report" 2>/dev/null; then
+	logger -t "$TAG" -p daemon.err "cannot rename report file ($tmp -> $report); skipping check (IO error)"
+	rm -f "$tmp" 2>/dev/null
+	exit 9
+fi
+
+aide --check >> "$report" 2>&1
+rc=$?
+
+if [ "$rc" -eq 0 ]; then
+	logger -t "$TAG" -p daemon.info "integrity check OK: no differences"
+elif [ "$rc" -ge 1 ] && [ "$rc" -le 7 ]; then
+	# aide(1) difference bitmask (new|removed|changed).
+	summary=$(grep -E "(Added|Removed|Changed) entries:[[:space:]]+[0-9]+" "$report" | tr -s ' ' | tr '\n' ' ')
+	logger -t "$TAG" -p daemon.warning "integrity check FOUND DIFFERENCES (rc=$rc): ${summary:-see report} [report: $report]"
+else
+	# aide(1) error status (>=14) - not a difference result.
+	logger -t "$TAG" -p daemon.err "aide --check ERROR (rc=$rc); see $report"
+fi
+
+# Bound retained per-run reports so /var/log/aide cannot grow without limit.
+ls -1t "$LOGDIR"/aide-check.*.log 2>/dev/null | tail -n +31 | while read -r old; do
+	rm -f "$old"
+done
+
+exit "$rc"

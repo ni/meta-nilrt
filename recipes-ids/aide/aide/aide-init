@@ -1,0 +1,149 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          aide-init
+# Required-Start:    $local_fs $remote_fs $syslog
+# Required-Stop:
+# Default-Start:     2 3 4 5
+# Default-Stop:
+# Short-Description: Initialize the AIDE baseline database on first boot
+# Description:       On the first boot after provisioning (when no baseline
+#                    database exists yet), build the AIDE file-integrity
+#                    baseline and promote it to the active database. Runs once;
+#                    subsequent boots are a no-op while the baseline exists.
+#                    Use the 'reinit' action to force a rebuild after a
+#                    legitimate change or a failed/tampered baseline.
+### END INIT INFO
+
+# The init environment does not guarantee a usable PATH; set one explicitly so
+# aide and sha256sum resolve during first-boot baseline creation.
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+
+DBDIR=/var/lib/aide
+DB=$DBDIR/aide.db.gz
+NEWDB=$DBDIR/aide.db.new.gz
+LOGDIR=/var/log/aide
+LOCK=/run/aide-init.lock
+
+# The baseline, its checksum and the init log can expose scanned paths/hashes ->
+# keep everything created here root-only.
+umask 077
+
+build_baseline() {
+	# $1 = "reinit" -> clear any existing baseline before rebuilding.
+	# flock holds the advisory lock via fd 9 for the lifetime of the background
+	# build process; the kernel releases it on process death, so no PID-based
+	# stale recovery is needed. /run is tmpfs -> no stale file post-reboot.
+	if ! exec 9>"$LOCK" 2>/dev/null; then
+		logger -t aide-init -p daemon.err "cannot open lock file $LOCK; baseline init skipped"
+		return 0
+	fi
+	flock -n 9; _rc=$?
+	if [ "$_rc" -eq 1 ]; then
+		logger -t aide-init -p daemon.info "baseline build already in progress; skipping"
+		exec 9>&-
+		return 0
+	elif [ "$_rc" -ne 0 ]; then
+		logger -t aide-init -p daemon.err "flock failed on $LOCK (rc=$_rc); baseline init skipped"
+		exec 9>&-
+		return 0
+	fi
+	# Ensure the working directories exist AND are root-only (reports/baseline
+	# metadata can expose scanned paths/hashes). chmod enforces the mode even if
+	# a directory pre-existed with broader permissions. On failure, release the
+	# lock and bail so a filesystem problem cannot wedge baseline init this boot.
+	if ! mkdir -p "$DBDIR" "$LOGDIR" 2>/dev/null || ! chmod 700 "$DBDIR" "$LOGDIR" 2>/dev/null; then
+		logger -t aide-init -p daemon.err "cannot create or secure $DBDIR or $LOGDIR; baseline init skipped"
+		exec 9>&-
+		return 0
+	fi
+	# Remove the current baseline only after the lock is held, so we never delete
+	# it without immediately starting the rebuild below.
+	if [ "$1" = "reinit" ]; then
+		command -v chattr >/dev/null 2>&1 && chattr -i "$DB" "$DB.sha256" 2>/dev/null
+		rm -f "$DB" "$DB.sha256"
+	fi
+	# Clear an orphan checksum (DB deleted/tampered while the immutable
+	# aide.db.gz.sha256 survived): left in place it would block the rebuild
+	# below, since the immutable checksum cannot be overwritten, and the build
+	# would fail on every boot with no recovery path. Drop it so start can
+	# self-heal into a fresh baseline.
+	if [ ! -f "$DB" ] && [ -f "$DB.sha256" ]; then
+		command -v chattr >/dev/null 2>&1 && chattr -i "$DB.sha256" 2>/dev/null
+		rm -f "$DB.sha256"
+	fi
+	rm -f "$NEWDB"
+	logger -t aide-init -p daemon.info "building AIDE baseline database in background"
+	# Run in the background so a fresh scan does not block system boot.
+	(
+		# fd 9 is inherited; release it when the build finishes (or the process
+		# dies) so the lock is freed and aide-check can proceed.
+		trap 'exec 9>&-' EXIT
+		initlog="$LOGDIR/aide-init.log"
+		aide --init > "$initlog" 2>&1
+		rc=$?
+		if [ "$rc" -ne 0 ]; then
+			logger -t aide-init -p daemon.err "AIDE --init failed (exit $rc); see $initlog"
+		elif [ ! -f "$NEWDB" ]; then
+			logger -t aide-init -p daemon.err "AIDE --init reported success but produced no database ($NEWDB missing); see $initlog"
+		else
+			# Protect the baseline (runmode rootfs is writable):
+			#  - record a sha256 so tampering with the DB is detectable
+			#  - emit the hash to syslog as an off-box audit record
+			#  - make BOTH the DB and its checksum immutable, so neither can be
+			#    silently rewritten together to defeat the tamper check
+			# Compute the checksum from the staged DB and write it into place
+			# BEFORE moving the DB, so the active DB is never present without its
+			# checksum. Every step is checked: a failure must not log a false
+			# "baseline created" or leave a stray checksum without an active DB.
+			sum=$(sha256sum "$NEWDB" 2>/dev/null)
+			sum=${sum%% *}
+			if [ -z "$sum" ]; then
+				logger -t aide-init -p daemon.err "failed to compute baseline checksum for $NEWDB; aborting"
+				rm -f "$NEWDB"
+			elif ! printf '%s\n' "$sum" > "$DB.sha256"; then
+				logger -t aide-init -p daemon.err "failed to write $DB.sha256; aborting"
+				rm -f "$DB.sha256" "$NEWDB"
+			elif ! mv -f "$NEWDB" "$DB"; then
+				logger -t aide-init -p daemon.err "failed to promote baseline DB ($NEWDB -> $DB); aborting"
+				rm -f "$DB.sha256" "$NEWDB"
+			else
+				chmod 600 "$DB" "$DB.sha256"
+				logger -t aide-init -p daemon.notice "AIDE baseline created: $DB sha256=$sum"
+				if command -v chattr >/dev/null 2>&1; then
+					if ! chattr +i "$DB" "$DB.sha256" 2>/dev/null; then
+						logger -t aide-init -p daemon.warning "failed to make baseline DB/checksum immutable (chattr +i); baseline protection is reduced"
+					fi
+				fi
+			fi
+		fi
+	) &
+	# Parent closes fd 9 so only the background child holds the lock.
+	exec 9>&-
+}
+
+case "$1" in
+	start)
+		# Already initialized: nothing to do - but if the DB exists without its
+		# checksum, the baseline cannot be verified (aide-check will refuse) ->
+		# surface it at boot so the tamper/misconfiguration is visible.
+		if [ -f "$DB" ]; then
+			[ -f "$DB.sha256" ] || logger -t aide-init -p daemon.warning "baseline DB present but checksum $DB.sha256 missing; aide-check will refuse - run '/etc/init.d/aide-init reinit'"
+			exit 0
+		fi
+		build_baseline
+		;;
+	reinit|force-reinit)
+		# Rebuild the baseline from the current filesystem state (after a
+		# legitimate update, or to recover from a failed/tampered baseline). The
+		# old baseline is cleared inside build_baseline, only once the lock is
+		# held, so a concurrent build is never left half-removed.
+		build_baseline reinit
+		;;
+	stop|restart|force-reload|status)
+		;;
+	*)
+		echo "Usage: $0 {start|reinit|force-reinit|stop|restart|force-reload|status}" >&2
+		exit 1
+		;;
+esac
+exit 0
