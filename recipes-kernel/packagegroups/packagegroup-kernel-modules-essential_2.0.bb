@@ -1,9 +1,11 @@
 SUMMARY = "Packages for building essential/core kernel modules"
 LICENSE = "MIT"
 
-inherit packagegroup
+PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-RDEPENDS:${PN} = "\
+inherit packagegroup kernelsrc
+
+KERNEL_MODULE_NAMES = "\
 	kernel-module-8021q \
 	kernel-module-aacraid \
 	kernel-module-act-skbedit \
@@ -523,3 +525,23 @@ RDEPENDS:${PN} = "\
 	kernel-module-zstd \
 	kernel-module-zstd-compress \
 	"
+
+RDEPENDS:${PN} = ""
+
+do_package[depends] += "virtual/kernel:do_shared_workdir"
+
+python do_package:prepend() {
+    kern_ver = d.getVar('KERNEL_VERSION')
+    if not kern_ver:
+        bb.fatal("KERNEL_VERSION is not set — cannot generate versioned kernel module RDEPENDS")
+
+    pn = d.getVar('PN')
+    modules = (d.getVar('KERNEL_MODULE_NAMES') or '').split()
+
+    rdeps = ' '.join(
+        '{}-{}'.format(mod, kern_ver)
+        for mod in modules
+    )
+
+    d.appendVar('RDEPENDS:{}'.format(pn), ' ' + rdeps)
+}
