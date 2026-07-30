@@ -5,6 +5,10 @@ LCONF_VERSION = "5"
 BBPATH = "${TOPDIR}"
 BBFILES ?= ""
 
+# meta-security and meta-secure-core both provide tpm2 and ima-evm-utils recipes.
+# Prefer the meta-security versions (via layer priority), and avoid bringing in
+# the meta-secure-core variants by not adding meta-secure-core/meta-tpm2 or
+# meta-secure-core/meta-integrity to BBLAYERS.
 BBLAYERS ?= " \
 	${GIT_REPODIR}/meta-cloud-services \
 	${GIT_REPODIR}/meta-cloud-services/meta-openstack \
@@ -27,6 +31,9 @@ BBLAYERS ?= " \
 	${GIT_REPODIR}/meta-sdr \
 	${GIT_REPODIR}/meta-security \
 	${GIT_REPODIR}/meta-security/meta-tpm \
+	${GIT_REPODIR}/meta-secure-core/meta-efi-secure-boot \
+	${GIT_REPODIR}/meta-secure-core/meta-secure-core-common \
+	${GIT_REPODIR}/meta-secure-core/meta-signing-key \
 	${GIT_REPODIR}/meta-selinux \
 	${GIT_REPODIR}/meta-virtualization \
 	${GIT_REPODIR}/openembedded-core/meta \
