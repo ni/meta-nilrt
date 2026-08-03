@@ -1,11 +1,13 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
 
 SRC_URI += "\
+	file://0001-pam_unix_passwd-allow-blank-passwords.patch \
 	file://security/faillock.conf \
 "
 
 do_install:append() {
 	install -m 644 ${WORKDIR}/security/faillock.conf ${D}${sysconfdir}/security/faillock.conf
+	sed -i 's/pam_unix\.so sha512/pam_unix.so sha512 nullok/' ${D}${sysconfdir}/pam.d/common-password
 }
 
 pkg_postinst:pam-plugin-faillock:append() {
