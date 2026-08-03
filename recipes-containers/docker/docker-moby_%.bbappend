@@ -9,3 +9,14 @@ RDEPENDS:${PN}:append = " ni-cgroups"
 
 # Skip TEXTREL QA checks for docker-buildx
 INSANE_SKIP:docker-buildx-plugin += "textrel"
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
+
+SRC_URI += "file://daemon.json"
+
+do_install:append() {
+    install -d ${D}${sysconfdir}/docker
+    install -m 0644 ${UNPACKDIR}/daemon.json \
+        ${D}${sysconfdir}/docker/daemon.json
+}
+
+CONFFILES:${PN} += "${sysconfdir}/docker/daemon.json"
