@@ -220,6 +220,19 @@ mount_grub_partition()
 	MOUNT_ERROR=`mount -L $PART1_LABEL $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
 }
 
+# Signed EFI binaries installed by packagegroup-efi-secure-boot. The unsigned
+# oe-core images under /boot/EFI/BOOT are only usable without Secure Boot.
+SECURE_BOOT_EFI_DIR=/boot/efi/EFI/BOOT
+SECURE_BOOT_CHAIN="bootx64.efi SELoaderx64.efi mmx64.efi grubx64.efi"
+
+secure_boot_chain_available()
+{
+	for STAGE in $SECURE_BOOT_CHAIN ; do
+		[ -f "$SECURE_BOOT_EFI_DIR/$STAGE" ] || return 1
+	done
+	return 0
+}
+
 install_grub()
 {
 	mount_grub_partition
@@ -228,13 +241,25 @@ install_grub()
 	GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/efi/boot
 	mkdir -p $GRUB_TARGET_DIR
 	GRUB_TARGET=$(uname -m)
-	cp /boot/EFI/BOOT/bootx64.efi $GRUB_TARGET_DIR
+
+	if secure_boot_chain_available ; then
+		# bootx64.efi is shim here; it loads its next stage from its own
+		# directory, so the whole chain has to be installed together.
+		for STAGE in $SECURE_BOOT_CHAIN ; do
+			cp "$SECURE_BOOT_EFI_DIR/$STAGE" $GRUB_TARGET_DIR
+		done
+	else
+		cp /boot/EFI/BOOT/bootx64.efi $GRUB_TARGET_DIR
+	fi
 
 	set_efiboot_entry
 
 	print_info "Installing grub.cfg..."
 
 	cp $SOURCE_DIR/grub.cfg $GRUB_TARGET_DIR/grub.cfg
+	if [ -f "$SOURCE_DIR/grub.cfg.p7b" ] ; then
+		cp $SOURCE_DIR/grub.cfg.p7b $GRUB_TARGET_DIR/grub.cfg.p7b
+	fi
 	mkdir -p $GRUB_TARGET_DIR/fonts
 	cp $SOURCE_DIR/fonts/unicode.pf2 $GRUB_TARGET_DIR/fonts/
 	print_done
@@ -257,7 +282,11 @@ install_safemode()
 	cp "$SOURCE_DIR"/*Image		"$BOOTFS_MOUNTPOINT/.safe/"
 	cp "$SOURCE_DIR"/ramdisk.*	"$BOOTFS_MOUNTPOINT/.safe/"
 	cp "$SOURCE_DIR"/bootimage.*  "$BOOTFS_MOUNTPOINT/.safe/"
-
+	# Detached kernel signature; the ramdisk and bootimage globs above
+	# already pick theirs up.
+	if [ -f "$SOURCE_DIR/bzImage.p7b" ] ; then
+		cp "$SOURCE_DIR"/*Image.p7b "$BOOTFS_MOUNTPOINT/.safe/"
+	fi
 	print_done
 }
 

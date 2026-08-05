@@ -6,6 +6,8 @@ SECTION = "base"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/grub:"
 
+require ${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'nilrt-grub-safemode-secure-boot.inc', '', d)}
+
 SRC_URI += " \
     file://grubenv \
     file://grub-safemode.cfg \

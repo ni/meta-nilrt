@@ -7,6 +7,9 @@ IMAGE_NAME_SUFFIX = ""
 
 DEPENDS += "${PREFERRED_PROVIDER_virtual/kernel}"
 
+# UEFI_SB is only defined for recipes inheriting user-key-store, which this is not.
+SECURE_BOOT_ENABLED = "${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', '1', '0', d)}"
+
 PV = "${DISTRO_VERSION}"
 
 SRC_URI += "\
@@ -21,13 +24,23 @@ IMAGE_INSTALL = "\
 IMAGE_INSTALL:append:x64 = "\
 	kernel-image-bzimage \
 	nilrt-grub-safemode \
+	${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'packagegroup-efi-secure-boot', '', d)} \
 "
 
 RAMDISK_IMAGE = "nilrt-safemode-initramfs"
 do_rootfs[depends] += "${RAMDISK_IMAGE}:do_image_complete"
+do_rootfs[depends] += "${@' ${RAMDISK_IMAGE}:do_sign_secure_boot' if d.getVar('SECURE_BOOT_ENABLED') == '1' else ''}"
 
 bootimg_fixup() {
+	install -d "${IMAGE_ROOTFS}/boot"
+
 	install -m 0644 "${DEPLOY_DIR_IMAGE}/${RAMDISK_IMAGE}-${MACHINE}.cpio.xz" "${IMAGE_ROOTFS}/boot/ramdisk.xz"
+
+	if [ "${SECURE_BOOT_ENABLED}" = "1" ] && [ -n "${SB_FILE_EXT}" ]; then
+		if [ -f "${DEPLOY_DIR_IMAGE}/${RAMDISK_IMAGE}-${MACHINE}.cpio.xz${SB_FILE_EXT}" ]; then
+			install -m 0644 "${DEPLOY_DIR_IMAGE}/${RAMDISK_IMAGE}-${MACHINE}.cpio.xz${SB_FILE_EXT}" "${IMAGE_ROOTFS}/boot/ramdisk.xz${SB_FILE_EXT}"
+		fi
+	fi
 
 	install -m 0755 "${THISDIR}/files/${BPN}.preinst" "${IMAGE_ROOTFS}/boot/preinst"
 
@@ -46,6 +59,24 @@ bootimg_fixup() {
 	mv "$(realpath ${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/bzImage)" "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/bzImage.real"
 	rm -f "${IMAGE_ROOTFS}/boot/bzImage"
 	mv "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/bzImage.real" "${IMAGE_ROOTFS}/boot/bzImage"
+	if [ "${SECURE_BOOT_ENABLED}" = "1" ] && [ -n "${SB_FILE_EXT}" ]; then
+		if [ -e "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/bzImage${SB_FILE_EXT}" ]; then
+			kernel_sig_src="${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/bzImage${SB_FILE_EXT}"
+			if [ -L "${kernel_sig_src}" ]; then
+				# Preserve signature contents rather than a potentially dangling symlink.
+				install -m 0644 "$(realpath "${kernel_sig_src}")" "${IMAGE_ROOTFS}/boot/bzImage${SB_FILE_EXT}"
+			else
+				mv "${kernel_sig_src}" "${IMAGE_ROOTFS}/boot/bzImage${SB_FILE_EXT}"
+			fi
+		else
+			# Some package managers may not preserve the stable signature symlink.
+			# Fall back to a versioned kernel sidecar and normalize its final name.
+			versioned_sig="$(ls -1 "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/bzImage-"*"${SB_FILE_EXT}" 2>/dev/null | sort | tail -n 1)"
+			if [ -n "${versioned_sig}" ] && [ -e "${versioned_sig}" ]; then
+				install -m 0644 "${versioned_sig}" "${IMAGE_ROOTFS}/boot/bzImage${SB_FILE_EXT}"
+			fi
+		fi
+	fi
 	rm -rf "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}"
 
 	install -m 0644 "${THISDIR}/files/bootimage.ini" "${IMAGE_ROOTFS}/boot/bootimage.ini"
@@ -85,6 +116,20 @@ ensure_expected_files() {
 	done
 }
 
-IMAGE_PREPROCESS_COMMAND += " bootimg_fixup; ensure_expected_files; "
+ensure_secure_boot_files() {
+	if [ "${SECURE_BOOT_ENABLED}" != "1" ] || [ -z "${SB_FILE_EXT}" ]; then
+		return
+	fi
+
+	for f in "bzImage${SB_FILE_EXT}" "ramdisk.xz${SB_FILE_EXT}"; do
+		if [ -e "${IMAGE_ROOTFS}/boot/${f}" ] || [ -e "${IMAGE_ROOTFS}/${f}" ]; then
+			continue
+		fi
+
+		bbfatal "${f} is required in secure-boot safemode image. Checked ${IMAGE_ROOTFS}/boot/${f} and ${IMAGE_ROOTFS}/${f}."
+	done
+}
+
+IMAGE_PREPROCESS_COMMAND += " bootimg_fixup; ensure_expected_files; ensure_secure_boot_files; "
 
 inherit image
