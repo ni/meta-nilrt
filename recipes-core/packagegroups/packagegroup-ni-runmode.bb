@@ -130,6 +130,7 @@ RDEPENDS:${PN}:append:x64 = "\
 	kernel-module-radeon \
 	linux-firmware-radeon \
 	ni-firewalld-servicedefs \
+	ni-firewall-dropins \
 "
 
 # Required components for Veristand.
