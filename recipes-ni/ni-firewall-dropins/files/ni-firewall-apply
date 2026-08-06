@@ -1,0 +1,187 @@
+#!/bin/sh
+# ni-firewall-apply - reconcile declarative NI firewall drop-ins with firewalld.
+#
+# Contract:
+#   A package that needs a firewalld service opened in the default zone ships:
+#     1. the service definition  <service>.xml  in the firewalld services dir
+#        (e.g. ${libdir}/firewalld/services or /etc/firewalld/services), and
+#     2. a drop-in marker file   /etc/ni/firewall/open.d/<name>
+#   The marker names one or more firewalld services to open, one per line;
+#   blank lines and lines starting with '#' are ignored. A marker with no
+#   service lines defaults to a single service named after the marker file with
+#   any leading "NN-" ordering prefix and trailing ".conf" suffix removed.
+#
+# On each run this hook:
+#   * opens every service named by a current marker (idempotent), and
+#   * closes every service it opened on a previous run whose marker (or service
+#     line) has since been removed.
+# It reuses the ni-firewall-open / ni-firewall-close helper, so all offline/live
+# and permanent/runtime handling is shared. It only ever closes services it
+# recorded in its own state file, so services opened outside this mechanism
+# (such as the core NI services opened by the ni-firewalld-servicedefs postinst)
+# are never disturbed.
+
+set -u
+# Service names are literals; disable globbing so unquoted list expansions
+# (for svc in $desired, in_list ... $desired) can't match stray filenames.
+set -f
+
+OPEN_D=${NI_FIREWALL_OPEN_D:-/etc/ni/firewall/open.d}
+STATE_DIR=${NI_FIREWALL_STATE_DIR:-/var/lib/ni/firewall}
+STATE_FILE=$STATE_DIR/applied
+LOCK_FILE=$STATE_DIR/apply.lock
+
+prog=${0##*/}
+
+if ! mkdir -p "$STATE_DIR"; then
+	echo "$prog: cannot create state directory '$STATE_DIR'" >&2
+	exit 1
+fi
+
+# Serialize concurrent runs (boot plus a later package operation). Non-blocking:
+# if another run already holds the lock it will do the reconciliation, so just
+# exit cleanly rather than stacking a second pass. flock is required (RDEPENDS);
+# a missing flock or an unopenable lock file is a hard error, distinct from the
+# lock being held by another run.
+if ! command -v flock >/dev/null 2>&1; then
+	echo "$prog: flock not found; refusing to run without locking" >&2
+	exit 1
+fi
+if ! touch "$LOCK_FILE" 2>/dev/null; then
+	echo "$prog: cannot create lock file '$LOCK_FILE'" >&2
+	exit 1
+fi
+exec 9>"$LOCK_FILE"
+if ! flock -n 9; then
+	echo "$prog: another apply run is in progress; skipping" >&2
+	exit 0
+fi
+
+# in_list <item> [list...] - return 0 if <item> is present in the argument list.
+in_list() {
+	item=$1
+	shift
+	for e in "$@"; do
+		[ "$e" = "$item" ] && return 0
+	done
+	return 1
+}
+
+# Build the desired service set from the current markers.
+desired=""
+if [ -d "$OPEN_D" ]; then
+	# Enable globbing only to list the marker files, then disable it again.
+	set +f
+	set -- "$OPEN_D"/*
+	set -f
+	for marker in "$@"; do
+		[ -f "$marker" ] || continue
+		got_line=0
+		while IFS= read -r line || [ -n "$line" ]; do
+			# Drop inline/whole-line comments, then all whitespace.
+			svc=$(printf '%s' "${line%%#*}" | tr -d '[:space:]')
+			[ -n "$svc" ] || continue
+			got_line=1
+			in_list "$svc" $desired || desired="$desired $svc"
+		done < "$marker"
+		# Empty marker: derive the service from the file name.
+		if [ "$got_line" = 0 ]; then
+			svc=${marker##*/}
+			svc=${svc%.conf}
+			svc=${svc#[0-9][0-9]-}
+			in_list "$svc" $desired || desired="$desired $svc"
+		fi
+	done
+fi
+
+# Services opened by the previous run.
+previous=""
+if [ -f "$STATE_FILE" ]; then
+	while IFS= read -r svc || [ -n "$svc" ]; do
+		[ -n "$svc" ] || continue
+		previous="$previous $svc"
+	done < "$STATE_FILE"
+fi
+
+# Detect once whether firewalld is running (live) or not (offline) and the
+# default zone, mirroring ni-firewall-open, so we can tell whether a service was
+# already enabled before this mechanism opened it.
+if firewall-cmd --state >/dev/null 2>&1; then
+	fw_live=1
+	fw_zone=$(firewall-cmd --get-default-zone 2>/dev/null)
+else
+	fw_live=0
+	fw_zone=$(firewall-offline-cmd --get-default-zone 2>/dev/null)
+fi
+if [ -z "$fw_zone" ]; then
+	echo "$prog: could not determine the default firewalld zone" >&2
+	exit 1
+fi
+
+# svc_enabled_perm <svc> - return 0 if <svc> is enabled in the permanent/default
+# zone. Returns non-zero if the zone is unknown or the service is not enabled.
+svc_enabled_perm() {
+	[ -n "$fw_zone" ] || return 1
+	if [ "$fw_live" = 1 ]; then
+		firewall-cmd --permanent --zone="$fw_zone" --query-service="$1" >/dev/null 2>&1
+	else
+		firewall-offline-cmd --zone="$fw_zone" --query-service="$1" >/dev/null 2>&1
+	fi
+}
+
+rc=0
+applied=""
+
+# Open every desired service (idempotent). Record a service as "ours" only if we
+# opened it on a previous run, or if this run actually transitioned it from
+# disabled to enabled. This ensures we never later close a service that was
+# already enabled by something else (e.g. the core NI services).
+for svc in $desired; do
+	if in_list "$svc" $previous; then
+		ni-firewall-open "$svc" || rc=1
+		in_list "$svc" $applied || applied="$applied $svc"
+		continue
+	fi
+	pre=0
+	svc_enabled_perm "$svc" && pre=1
+	ni-firewall-open "$svc" || rc=1
+	post=0
+	svc_enabled_perm "$svc" && post=1
+	if [ "$pre" = 0 ] && [ "$post" = 1 ]; then
+		in_list "$svc" $applied || applied="$applied $svc"
+	fi
+done
+
+# Close services we opened before whose marker is now gone. Keep ownership if a
+# close fails so the next reconcile retries it instead of leaking the rule.
+for svc in $previous; do
+	in_list "$svc" $desired && continue
+	if ni-firewall-close "$svc"; then
+		continue
+	fi
+	rc=1
+	in_list "$svc" $applied || applied="$applied $svc"
+done
+
+# Persist the set we opened (one service per line) via a temp file + rename so
+# the state is never left half-written if the hook is interrupted. Treat write
+# failures as errors so a silently-lost state can't corrupt later reconciles.
+tmp=$STATE_FILE.tmp
+if ! ( : > "$tmp" ) 2>/dev/null; then
+	echo "$prog: cannot write state file '$tmp'" >&2
+	rc=1
+else
+	write_ok=1
+	for svc in $applied; do
+		echo "$svc" >> "$tmp" || write_ok=0
+	done
+	if [ "$write_ok" = 1 ]; then
+		mv "$tmp" "$STATE_FILE" || rc=1
+	else
+		echo "$prog: failed to write state; keeping previous state" >&2
+		rm -f "$tmp"
+		rc=1
+	fi
+fi
+
+exit $rc
