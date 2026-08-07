@@ -36,9 +36,19 @@ check_hash_equality()
 hash_sanity_check()
 {
     SHADOW_HASH="$1"
-    
-    if [ -z "$SHADOW_HASH" ] || [ "$SHADOW_HASH" = "*" ] || [ "$SHADOW_HASH" = "!" ]; then
+
+    # Empty (blank root) or bare '!' (deliberate passwd -l of a passwordless
+    # root) are both valid to restore as-is. '!'-prefixed hashes are handled below.
+    if [ -z "$SHADOW_HASH" ] || [ "$SHADOW_HASH" = "!" ]; then
         return 0
+    fi
+
+    # '*' is the zap_empty_root_password artifact for a never-set root, not a
+    # deliberate lock; skip it so a stale '*' on the config partition can't lock
+    # root out.
+    if [ "$SHADOW_HASH" = "*" ]; then
+        log "Shared root hash is '*' (zap artifact); skipping sync to avoid locking root out."
+        return 1
     fi
     
     if [ -f "/etc/login.defs" ]; then
@@ -55,7 +65,8 @@ hash_sanity_check()
     case "$ENCRYPT_METHOD" in
         SHA512)
             log "Checking sanity of SHA512 hash..."
-            if [[ "$SHADOW_HASH" =~ ^\$6\$[A-Za-z0-9./]{1,16}\$[A-Za-z0-9./]{86}$ ]]; then
+            # Optional leading '!' allows a deliberate 'passwd -l' lock (!$6$...) to sync.
+            if [[ "$SHADOW_HASH" =~ ^!?\$6\$[A-Za-z0-9./]{1,16}\$[A-Za-z0-9./]{86}$ ]]; then
                 log "Sanity check passed. Continue to sync."
                 return 0
             else
