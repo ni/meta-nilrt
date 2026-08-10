@@ -7,7 +7,7 @@ IMAGE_NAME_SUFFIX = ""
 
 DEPENDS += "${PREFERRED_PROVIDER_virtual/kernel}"
 
-# UEFI_SB is only defined for recipes inheriting user-key-store, which this is not.
+# Derive the image secure-boot state from DISTRO_FEATURES.
 SECURE_BOOT_ENABLED = "${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', '1', '0', d)}"
 
 PV = "${DISTRO_VERSION}"
@@ -33,7 +33,13 @@ do_rootfs[depends] += "${@' ${RAMDISK_IMAGE}:do_sign_secure_boot' if d.getVar('S
 
 bootimg_fixup() {
 	install -d "${IMAGE_ROOTFS}/boot"
-
+	if [ "${SECURE_BOOT_ENABLED}" = "1" ]; then
+		install -d "${IMAGE_ROOTFS}/boot/lib" "${IMAGE_ROOTFS}/boot/usr/lib"
+		cp -a "${IMAGE_ROOTFS}/lib/." "${IMAGE_ROOTFS}/boot/lib/"
+		cp -a "${IMAGE_ROOTFS}/usr/lib/." "${IMAGE_ROOTFS}/boot/usr/lib/"
+		install -d "${IMAGE_ROOTFS}/boot/etc/ld.so.conf.d"
+		cp -a "${IMAGE_ROOTFS}/etc/ld.so.conf.d/." "${IMAGE_ROOTFS}/boot/etc/ld.so.conf.d/" 2>/dev/null || true
+	fi
 	install -m 0644 "${DEPLOY_DIR_IMAGE}/${RAMDISK_IMAGE}-${MACHINE}.cpio.xz" "${IMAGE_ROOTFS}/boot/ramdisk.xz"
 
 	if [ "${SECURE_BOOT_ENABLED}" = "1" ] && [ -n "${SB_FILE_EXT}" ]; then
