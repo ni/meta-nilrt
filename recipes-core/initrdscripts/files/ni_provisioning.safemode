@@ -20,7 +20,6 @@ prune_efi_crash_vars
 install_grub
 
 install_safemode
-install_bootmode_file
 install_grubenv
 set_versions
 
