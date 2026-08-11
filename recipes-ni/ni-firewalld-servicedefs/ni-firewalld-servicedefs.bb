@@ -30,9 +30,16 @@ SRC_URI = "\
 	file://services/ni-visa-server.xml \
 	file://services/ni-xnet-bus-monitor.xml \
 	file://services/opcua.xml \
+	file://ni-firewall-open \
 "
 
 FILES:${PN} += "/"
+
+# Always-on NI services opened by this package on install and closed on removal.
+# http/https are firewalld built-ins for the NI System Web Server (ports 80/443),
+# which hosts Web-Based Configuration and the nisysapi/System Configuration channel
+# used by NI MAX and Hardware Manager; they must stay reachable by default.
+CORE_NI_SERVICES = "ni-service-locator ni-mxs ni-rpc-server ni-logos-xt ni-sync-remote http https"
 
 do_install () {
 	for f in ${SRC_URI}; do
@@ -41,6 +48,27 @@ do_install () {
 			-m 0644 "${UNPACKDIR}/${f##file://}" ;;
 		esac
 	done
+
+	# Shared open/close helper; ni-firewall-close is a symlink to ni-firewall-open.
+	install -D -m 0755 ${UNPACKDIR}/ni-firewall-open ${D}${bindir}/ni-firewall-open
+	ln -sf ni-firewall-open ${D}${bindir}/ni-firewall-close
 }
 
-RDEPENDS:${PN} += "firewalld"
+RDEPENDS:${PN} += "firewalld firewalld-offline-cmd"
+
+# Open the always-on NI services once the package is on the target. Deferred to
+# first boot (never runs against $D) so firewalld's tools operate natively.
+pkg_postinst_ontarget:${PN} () {
+	# Best effort: never let a firewall hiccup block package configuration.
+	ni-firewall-open ${CORE_NI_SERVICES} || true
+}
+
+# Close them again on package removal, leaving no stale rules. Skip during any
+# offline (image-build) removal.
+pkg_prerm:${PN} () {
+	if [ -n "$D" ]; then
+		exit 0
+	fi
+	# Best effort: never let a firewall hiccup block package removal.
+	ni-firewall-close ${CORE_NI_SERVICES} || true
+}

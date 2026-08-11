@@ -1,0 +1,147 @@
+#!/bin/sh
+# ni-firewall-open / ni-firewall-close
+#
+# Open or close a firewalld service in the default zone. The same script backs
+# both commands; the action is chosen from the name it is invoked as
+# (ni-firewall-close is a symlink to ni-firewall-open).
+#
+# It works in two situations:
+#   * offline - firewalld is not running (e.g. early first boot). Changes are
+#     written with firewall-offline-cmd and take effect when firewalld starts.
+#   * live    - firewalld is running. Changes are applied to the running config
+#     (immediate) and the permanent config (persisted), without a full
+#     'firewall-cmd --reload', so other runtime rules are left undisturbed.
+#
+# Usage: ni-firewall-open  <service> [<service> ...]
+#        ni-firewall-close <service> [<service> ...]
+#
+# Re-running is idempotent. An unknown service name causes a non-zero exit.
+
+set -u
+
+# Strip the directory prefix with shell parameter expansion instead of spawning
+# basename; keeps the helper self-contained in minimal/early-boot environments.
+prog=${0##*/}
+case "$prog" in
+	ni-firewall-open)  action=add;    state=open   ;;
+	ni-firewall-close) action=remove; state=closed ;;
+	*)
+		echo "$prog: must be invoked as ni-firewall-open or ni-firewall-close" >&2
+		exit 2
+		;;
+esac
+
+if [ $# -lt 1 ]; then
+	echo "Usage: $prog <service> [<service> ...]" >&2
+	exit 2
+fi
+
+# Ask firewalld itself which service definitions exist instead of scanning a
+# hard-coded path: XMLs may live under /etc/firewalld/services or the platform
+# ${libdir} (/usr/lib or /usr/lib64), alongside firewalld's own built-ins. The
+# permanent/offline views read straight from disk, so a freshly installed
+# service file is visible without a daemon reload.
+service_exists() {
+	for s in ${available_services:-}; do
+		[ "$s" = "$1" ] && return 0
+	done
+	return 1
+}
+
+# Decide once whether firewalld is running (live) or not (offline).
+#
+# The default zone is a single global setting (DefaultZone in firewalld.conf),
+# not a per-view one: firewalld has no '--permanent --get-default-zone', and
+# --set-default-zone always updates runtime and permanent together. So the
+# runtime default zone reported here is also the permanent default zone, and it
+# is safe to target for the permanent changes below.
+if firewall-cmd --state >/dev/null 2>&1; then
+	live=1
+	zone=$(firewall-cmd --get-default-zone 2>/dev/null)
+	available_services=$(firewall-cmd --permanent --get-services 2>/dev/null) || available_services=
+else
+	live=0
+	zone=$(firewall-offline-cmd --get-default-zone 2>/dev/null)
+	available_services=$(firewall-offline-cmd --get-services 2>/dev/null) || available_services=
+fi
+
+if [ -z "${zone:-}" ]; then
+	echo "$prog: could not determine the default firewalld zone" >&2
+	exit 1
+fi
+
+# firewalld always ships built-in service definitions, so an empty list means the
+# query failed (tool missing, D-Bus error, ...). Fail clearly rather than letting
+# every service fall through and be misreported as "unknown".
+if [ -z "${available_services:-}" ]; then
+	echo "$prog: could not retrieve the list of available firewalld services" >&2
+	exit 1
+fi
+
+# Run a permanent/offline query or change with the right tool for the mode.
+fw_perm() {
+	if [ "$live" = 1 ]; then
+		firewall-cmd --permanent --zone="$zone" "$@"
+	else
+		firewall-offline-cmd --zone="$zone" "$@"
+	fi
+}
+
+rc=0
+for svc in "$@"; do
+	if ! service_exists "$svc"; then
+		echo "$prog: unknown firewalld service '$svc'" >&2
+		rc=1
+		continue
+	fi
+
+	enabled=0
+	fw_perm --query-service="$svc" >/dev/null 2>&1 && enabled=1
+
+	if [ "$action" = add ] && [ "$enabled" = 0 ]; then
+		if ! fw_perm --add-service="$svc" >/dev/null 2>&1; then
+			echo "$prog: failed to open service '$svc' in zone '$zone'" >&2
+			rc=1
+			continue
+		fi
+	elif [ "$action" = remove ] && [ "$enabled" = 1 ]; then
+		if ! fw_perm --remove-service="$svc" >/dev/null 2>&1; then
+			echo "$prog: failed to close service '$svc' in zone '$zone'" >&2
+			rc=1
+			continue
+		fi
+	fi
+
+	# On a live system also reflect the change in the running config so it
+	# takes effect immediately, without a full reload (which would drop other
+	# runtime-only rules). Only touch the running config when it is not already
+	# in the desired state. The permanent config was already updated above, so if
+	# this runtime step fails the running and permanent configs can stay out of
+	# sync until the next firewalld reload/restart; surface that as a non-zero
+	# exit rather than hiding it.
+	if [ "$live" = 1 ]; then
+		runtime_enabled=0
+		firewall-cmd --zone="$zone" --query-service="$svc" >/dev/null 2>&1 &&
+			runtime_enabled=1
+
+		if [ "$action" = add ] && [ "$runtime_enabled" = 0 ]; then
+			if ! firewall-cmd --zone="$zone" --add-service="$svc" >/dev/null 2>&1; then
+				echo "$prog: '$svc' was saved to the permanent config but could not be applied to the running zone '$zone'" >&2
+				rc=1
+				continue
+			fi
+		elif [ "$action" = remove ] && [ "$runtime_enabled" = 1 ]; then
+			if ! firewall-cmd --zone="$zone" --remove-service="$svc" >/dev/null 2>&1; then
+				echo "$prog: '$svc' was removed from the permanent config but could not be removed from the running zone '$zone'" >&2
+				rc=1
+				continue
+			fi
+		fi
+	fi
+
+	# The desired state is now ensured whether or not a change was needed, so
+	# word the message as a state rather than an action.
+	echo "$prog: service '$svc' is $state in zone '$zone'"
+done
+
+exit $rc
