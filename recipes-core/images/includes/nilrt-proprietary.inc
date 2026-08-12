@@ -19,7 +19,6 @@ NI_PROPRIETARY_COMMON_PACKAGES = "\
         ni-ssl-webserver-support \
         ni-sysapi \
         ni-sysapi-remote \
-        ni-sysapi-webservice \
         ni-sysmgmt-auth-utils \
         ni-system-webserver \
         ni-traceengine \
