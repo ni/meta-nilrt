@@ -16,17 +16,19 @@ ROOTFS_RO_UNNEEDED = "\
 # /etc/opkg/ni-arch.conf at first boot via run-postinsts.
 IMAGE_INSTALL_NODEPS += "ni-arch-gen"
 
-# ni-sysapi-webservice provides the /nisysapi/server endpoint needed
-# for NI MAX connectivity.
 # ni-auth is required by SystemWebServer (segfaults without niauth_daemon).
 # ni-system-webserver provides the web server for deployment and discovery
 # by NI MAX and VeriStand.
 # ni-webdav-system-webserver-support provides mod_nidav.so for WebDAV file
 # deployment (how VeriStand deploys .rtexe to /c).
-IMAGE_INSTALL_NODEPS += "ni-sysapi-webservice ni-auth ni-system-webserver ni-webdav-system-webserver-support"
+IMAGE_INSTALL_NODEPS += "ni-auth ni-system-webserver ni-webdav-system-webserver-support"
 
 # nirtmdnsd provides NI RT mDNS service for target discovery.
 IMAGE_INSTALL_NODEPS += "nirtmdnsd"
+
+# ni-sysapi-sshcli is required by both container variants; install it
+# explicitly since NODEPS skips dependency resolution.
+IMAGE_INSTALL_NODEPS += "ni-sysapi-sshcli"
 
 # Necessary whenever building a container.
 # Though this appears to do nothing, given how our kernel recipes are constructed.
