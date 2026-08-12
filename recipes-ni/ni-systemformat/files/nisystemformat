@@ -19,9 +19,12 @@ arch=`uname -m`
 
 NETCFG_MODE=bypass
 RESET_OVERLAY=no
+PRESERVE_PASSWORD=no
 
 NETCFG_TMP=/tmp/netconfig.$$
 declare -r BASENAME=${0##*/}
+
+ACCTINFO_TMP=/tmp/acctinfo.$$
 
 NINETCFGUTIL=/usr/local/natinst/bin/ninetcfgutil
 
@@ -242,7 +245,7 @@ usage()
 		EOF
 	elif [ "$OSMODE" != runmode ]; then
 		cat >&2 <<-EOF
-		Usage: $BASENAME [-f -t <type> [-c][-r][-n <mode>][-e]|-s [-c]|-l] [-B <fslabel>] [-P <pcrset>] [-L keep|disable]
+		Usage: $BASENAME [-f -t <type> [-c][-r][-n <mode>][-e][-p]|-s [-c]|-l] [-B <fslabel>] [-P <pcrset>] [-L keep|disable]
 
 		-f	Format the volume
 		-h	Print this help
@@ -252,6 +255,7 @@ usage()
 		-t	Filesystem type
 		-c	Format the config volume (otherwise rootfs + kernel)
 		-r	Relaunch the system webserver after format
+		-p	Preserve the system passwords
 		-n	Preserve network config according to <mode>:
 		        all		Preserve all settings
 		        primary		Preserve primary, reset secondary
@@ -359,6 +363,18 @@ format_rootfs_or_userfs_nosvc()
 {
 	netconfig_pre || return $?
 
+	# Backup shared account information to the tmp dir.
+	if [ "$PRESERVE_PASSWORD" = yes ] &&
+			[ -f "$CONFIG_MOUNT_POINT/.shadow" -o -e "$CONFIG_MOUNT_POINT/niauth" ]; then
+		trap 'rm -rf "$ACCTINFO_TMP"' EXIT HUP INT TERM
+		mkdir -p "$ACCTINFO_TMP" &&
+			{ [ ! -f "$CONFIG_MOUNT_POINT/.shadow" ] ||
+				cp "$CONFIG_MOUNT_POINT/.shadow" "$ACCTINFO_TMP"; } &&
+			{ [ ! -e "$CONFIG_MOUNT_POINT/niauth" ] ||
+				cp -a "$CONFIG_MOUNT_POINT/niauth" "$ACCTINFO_TMP"; } ||
+			return $?
+	fi
+
 	# Backup the restore files to the tmp dir. Do this even if we're only
 	# reformatting the configfs, because under some configurations,
 	# reformatting the configfs may also trigger reformatting the userfs.
@@ -386,6 +402,18 @@ format_rootfs_or_userfs_nosvc()
 		mkdir -p "$ROOTFS_MOUNT_POINT/.restore" &&
 			mv /tmp/restore/* "$ROOTFS_MOUNT_POINT/.restore" &&
 			rmdir /tmp/restore || (( ret )) || ret=$?
+	fi
+
+	# Move shared account information back to the configfs.
+	if [ "$PRESERVE_PASSWORD" = yes ] && mountpoint -q "$CONFIG_MOUNT_POINT"; then
+		if [ -f "$ACCTINFO_TMP/.shadow" -a ! -e "$CONFIG_MOUNT_POINT/.shadow" ]; then
+			mv "$ACCTINFO_TMP/.shadow" "$CONFIG_MOUNT_POINT" ||
+				(( ret )) || ret=$?
+		fi
+		if [ -e "$ACCTINFO_TMP/niauth" -a ! -e "$CONFIG_MOUNT_POINT/niauth" ]; then
+			mv "$ACCTINFO_TMP/niauth" "$CONFIG_MOUNT_POINT" ||
+				(( ret )) || ret=$?
+		fi
 	fi
 
 	netconfig_post || (( ret )) || ret=$?
@@ -490,7 +518,7 @@ if [ $# -eq "0" ]; then
 	die_with_usage INVALID_ARGUMENT "No command-line arguments specified."
 fi
 
-while getopts "fhsl4n:t:coreB:P:L:" Option
+while getopts "fhsl4n:t:pcoreB:P:L:" Option
 do
 	case $Option in
 		h)	usage; exit 0 ;;
@@ -502,6 +530,7 @@ do
 		c)	VOL=config;;
 		o)	RESET_OVERLAY=yes;;
 		r)	RELAUNCH=yes;;
+		p)	PRESERVE_PASSWORD=yes;;
 		n)	NETCFG_MODE="$OPTARG";;
 		*)	usage;;
 	esac
