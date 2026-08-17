@@ -27,8 +27,7 @@ do_install:append () {
 	# customize sshd_config
 	sed -e 's|^[#[:space:]]*Banner .*|Banner /etc/issue.net|' \
 		-e 's|^[#[:space:]]*UseDNS .*|UseDNS no|' \
-		-e 's|^[#[:space:]]*KbdInteractiveAuthentication .*|KbdInteractiveAuthentication yes|' \
-		-e 's|^[#[:space:]]*PasswordAuthentication .*|PasswordAuthentication no|' \
+		-e 's|^[#[:space:]]*PasswordAuthentication .*|PasswordAuthentication yes|' \
 		-e 's|^[#[:space:]]*PermitEmptyPasswords .*|PermitEmptyPasswords yes|' \
 		-e 's|^[#[:space:]]*PermitRootLogin .*|PermitRootLogin yes|' \
 		-e 's|^[#[:space:]]*ChallengeResponseAuthentication .*|ChallengeResponseAuthentication no|' \
