@@ -3,6 +3,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
 RDEPENDS:${PN} += "ni-acctsync pam-plugin-exec"
 
 SRC_URI += "\
+	file://0001-pam_unix_passwd-allow-blank-passwords.patch \
 	file://security/faillock.conf \
 	file://scripts/ni-acctsync-pam \
 "

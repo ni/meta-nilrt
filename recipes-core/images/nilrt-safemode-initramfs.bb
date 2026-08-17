@@ -21,6 +21,8 @@ IMAGE_INSTALL += "\
 	packagegroup-ni-safemode \
 "
 
+IMAGE_FEATURES += "allow-setting-blank-passwords"
+
 IMAGE_INSTALL:append:x64 = " packagegroup-ni-wifi "
 
 IMAGE_INSTALL_NODEPS += "\

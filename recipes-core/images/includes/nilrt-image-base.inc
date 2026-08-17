@@ -65,4 +65,5 @@ ROOTFS_POSTPROCESS_COMMAND += "\
     install_additional_feeds; \
 "
 
+require nilrt-allow-setting-blank-passwords.inc
 require nilrt-core-image.inc
