@@ -3,6 +3,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
 RDEPENDS:${PN} += "ni-acctsync pam-plugin-exec"
 
 SRC_URI += "\
+	file://0001-pam_unix_passwd-allow-blank-passwords.patch \
 	file://security/faillock.conf \
 	file://scripts/ni-acctsync-pam \
 "
@@ -10,6 +11,8 @@ SRC_URI += "\
 do_install:append() {
 	install -m 644 ${UNPACKDIR}/security/faillock.conf ${D}${sysconfdir}/security/faillock.conf
 	install -m 700 ${UNPACKDIR}/scripts/ni-acctsync-pam ${D}${sbindir}/ni-acctsync-pam
+	grep -qE 'pam_unix\.so.*[[:space:]]nullok([[:space:]]|$)' "${D}${sysconfdir}/pam.d/common-password" || \
+		sed -i -E '/pam_unix\.so/ s/(pam_unix\.so)([[:space:]]+)/\1\2nullok /' "${D}${sysconfdir}/pam.d/common-password"
 	sed -E -i '/^password[[:space:]]+requisite[[:space:]]+pam_deny\.so$/a password\toptional\t\t\tpam_exec.so /usr/sbin/ni-acctsync-pam' "${D}${sysconfdir}/pam.d/common-password"
 }
 
