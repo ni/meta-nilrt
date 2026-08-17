@@ -33,6 +33,7 @@ IMAGE_INSTALL_NODEPS += "\
 	${NI_PROPRIETARY_RUNMODE_PACKAGES} \
 "
 
+IMAGE_FEATURES += "allow-setting-blank-passwords"
 
 # ==============================================================================
 # IMAGE HERITAGE
