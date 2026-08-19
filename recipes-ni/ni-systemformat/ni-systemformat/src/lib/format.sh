@@ -295,12 +295,20 @@ function format_rootfs_or_userfs_nomount()
 # restores system configuration, if necessary.
 function format_rootfs_or_userfs_nosvc()
 {
-	# Backup the shared .shadow file to the tmp dir.
-	if [ -f "$CONFIG_MOUNT_POINT/.shadow" ]; then
-		mkdir -p "$ACCTINFO_TMP" &&
-			cp "$CONFIG_MOUNT_POINT/.shadow" "$ACCTINFO_TMP" ||
-			return $?
-	fi
+	# Backup the shared .shadow file when preserving network configuration.
+	local expire_root_password=no
+	case "$NETCFG_MODE" in
+		all|primary|bypass)
+			if [ -f "$CONFIG_MOUNT_POINT/.shadow" ]; then
+				mkdir -p "$ACCTINFO_TMP" &&
+					cp "$CONFIG_MOUNT_POINT/.shadow" "$ACCTINFO_TMP" ||
+					return $?
+			fi
+			;;
+		none)
+			expire_root_password=yes
+			;;
+	esac
 
 	# Backup the restore files to the tmp dir. Do this even if we're only
 	# reformatting the configfs, because under some configurations,
@@ -338,6 +346,18 @@ function format_rootfs_or_userfs_nosvc()
 		mv -f "$ACCTINFO_TMP/.shadow" "$CONFIG_MOUNT_POINT" &&
 			rmdir "$ACCTINFO_TMP"	|| { local rc=$?; (( ret )) || ret=$rc; }
 	fi
+
+	# Expire the root password without invoking PAM or ni-acctsync, then remove
+	# the shared shadow file so it is not recreated on reboot.
+	if [ "$expire_root_password" = yes ]; then
+		chage --lastday 0 root ||
+			{ local rc=$?; (( ret )) || ret=$rc; }
+		if mountpoint -q "$CONFIG_MOUNT_POINT"; then
+			rm -f "$CONFIG_MOUNT_POINT/.shadow" ||
+				{ local rc=$?; (( ret )) || ret=$rc; }
+		fi
+	fi
+
 	return $ret
 }
 

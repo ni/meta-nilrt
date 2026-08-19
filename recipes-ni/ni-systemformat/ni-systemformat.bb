@@ -70,6 +70,7 @@ RDEPENDS:${PN} += "\
 	pkgconfig \
 	ni-netcfgutil \
 	niacctbase \
+	shadow \
 	util-linux-lsblk \
 	util-linux-logger \
 "
