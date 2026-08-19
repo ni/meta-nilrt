@@ -18,6 +18,7 @@ RDEPENDS:${PN} = " \
 	ni-netcfgutil \
 	ni-shutdown-guard-safemode \
 	ni-systemimage \
+	sysconfig-settings-ssh \
 "
 
 # GPU firmware, included as split packages to conserve space
