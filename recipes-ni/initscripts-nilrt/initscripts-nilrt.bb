@@ -74,9 +74,9 @@ do_install () {
 }
 
 do_install:append:xilinx-zynq () {
-	install -m 0755 ${WORKDIR}/mountutils            ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/nisetbootcount        ${D}${sysconfdir}/init.d
-	install -m 0750 ${WORKDIR}/niusbgadget           ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/mountutils            ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/nisetbootcount        ${D}${sysconfdir}/init.d
+	install -m 0750 ${UNPACKDIR}/niusbgadget           ${D}${sysconfdir}/init.d
 
 	update-rc.d -r ${D} nisetbootcount        start 40 S .
 	update-rc.d -r ${D} niusbgadget           start 0  5 . stop 81 0 6 .
