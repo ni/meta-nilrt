@@ -17,6 +17,18 @@ get_root_line() {
     grep "^root:" "$1"
 }
 
+check_expired()
+{
+    ROOT_LINE=$(get_root_line "$1")
+    LAST_CHANGED=$(echo "$ROOT_LINE" | cut -d':' -f3)
+
+    if [ "$LAST_CHANGED" = "0" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 check_hash_equality()
 {
     SHARED_HASH_PATH="$1"
@@ -96,6 +108,11 @@ insert_root_hash()
             chown --reference="$DEST" "$TMP_SHADOW"
             awk -F: -v OFS=":" -v shadow_hash="$SHADOW_HASH" '$1 == "root" { $2 = shadow_hash } { print }' "$DEST" > "$TMP_SHADOW"
             mv "$TMP_SHADOW" "$DEST"
+            chage --lastday "$(date +%F)" root
+        fi
+    else
+        if check_expired "$DEST"; then
+            chage --lastday "$(date +%F)" root
         fi
     fi
 }
@@ -130,14 +147,18 @@ case "$1" in
         ;;
 
     stop)
-        log "Syncing root info to shared shadow file..."
+        if ! check_expired "$SYS_SHADOW"; then
+            log "Syncing root info to shared shadow file..."
 
-        if [ ! -f "$SHARED_SHADOW" ]; then
-            log "Creating shared shadow file..."
-            touch "$SHARED_SHADOW"
-            chmod 400 "$SHARED_SHADOW"
+            if [ ! -f "$SHARED_SHADOW" ]; then
+                log "Creating shared shadow file..."
+                touch "$SHARED_SHADOW"
+                chmod 400 "$SHARED_SHADOW"
+            fi
+            extract_root_hash "$SYS_SHADOW" "$SHARED_SHADOW"
+        else
+            log "Password is expired. Stopping sync."
         fi
-        extract_root_hash "$SYS_SHADOW" "$SHARED_SHADOW"
         ;;
 
     restart|force-reload)
