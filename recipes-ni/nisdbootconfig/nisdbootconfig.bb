@@ -14,12 +14,12 @@ SRC_URI = "file://nisdbootconfig \
 INITSCRIPT_NAME = "nisdbootconfig"
 INITSCRIPT_PARAMS = "start 00 S ."
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 do_install () {
 	install -d ${D}${sysconfdir}/init.d/
 
 	# from artemis onwards, using sd card as main disk for arm target is introduced
 	# install nisdbootconfig to configure sd card booting requirement
-	install -m 0755 ${WORKDIR}/nisdbootconfig ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/nisdbootconfig ${D}${sysconfdir}/init.d
 }
