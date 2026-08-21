@@ -46,11 +46,11 @@ index 1aa1e36137b..5d7fc165e6c 100644
  hostprogs-y += mkenvimage
  mkenvimage-objs := mkenvimage.o os_support.o generated/lib/crc32.o
  
--hostprogs-y += dumpimage mkimage
-+hostprogs-y += dumpimage mkimage fdtview
- hostprogs-$(CONFIG_TOOLS_LIBCRYPTO) += fit_info fit_check_sign
+-hostprogs-y += dumpimage mkimage fit_info
++hostprogs-y += dumpimage mkimage fit_info fdtview
+ hostprogs-$(CONFIG_FIT_SIGNATURE) += fit_check_sign
  hostprogs-$(CONFIG_TOOLS_LIBCRYPTO) += fdt_add_pubkey
- 
+ hostprogs-$(CONFIG_TOOLS_LIBCRYPTO) += preload_check_sign
 @@ -151,6 +151,7 @@ dumpimage-mkimage-objs := aisimage.o \
  
  dumpimage-objs := $(dumpimage-mkimage-objs) dumpimage.o
@@ -168,7 +168,7 @@ index 00000000000..5d6a9a62e23
 +		while (j < len) {
 +			if (j > 0)
 +				printf("\", \"");
-+			printf(data);
++			printf("%s", data);
 +			j    += strlen(data) + 1;
 +			data += strlen(data) + 1;
 +		}
@@ -321,7 +321,7 @@ index 00000000000..5d6a9a62e23
 +	struct stat sbuf;
 +	unsigned char *working_fdt;
 +	int retval = 0;
-+	struct mtd_info_user mtd;
++	struct mtd_info_user mtd = { 0 };
 +	off_t file_size = 0;
 +	int mmap_failed = 0;
 +
@@ -420,7 +420,7 @@ index 00000000000..5d6a9a62e23
 +		exit(EXIT_FAILURE);
 +	}
 +	if((sbuf.st_rdev & 0xFF00) == 0x5A00) {
-+		if (ioctl (ifd, MEMGETINFO, mtd) < 0) {
++		if (ioctl (ifd, MEMGETINFO, &mtd) < 0) {
 +			fprintf(stderr, "%s: Can't query mem info for %s: %s\n",
 +				params.cmdname, params.imagefile,
 +				strerror(errno));
@@ -508,7 +508,7 @@ index 00000000000..5d6a9a62e23
 +			int propLength = 0;
 +			const unsigned char* propData = (const uint8_t*)fdt_getprop(working_fdt, offset, params.propname, &propLength);
 +			if (propLength >= 0) {
-+				printf("%ld %d\n", propData - working_fdt, propLength);
++				printf("%ld %d\n", (long)(propData - working_fdt), propLength);
 +			}
 +		} else {
 +			retval = offset;
