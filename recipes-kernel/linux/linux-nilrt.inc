@@ -13,7 +13,7 @@ KBUILD_FRAGMENTS_LOCATION ?= "nilrt"
 
 LINUX_VERSION_EXTENSION = "$([ "${LINUX_KERNEL_TYPE}" != "standard" ] && echo '-${LINUX_KERNEL_TYPE}')"
 
-# Kbuild intenionally clobbers CFLAGS/LDFLAGS for some binaries we ship in nilrt,
+# Kbuild intentionally clobbers CFLAGS/LDFLAGS for some binaries we ship in nilrt,
 # particularly in the tools/ dir (fixdep, genksyms etc), and OE has this insanity check
 # to see if binaries were built using the OE-supplied *FLAGS, so skip this sanity check to
 # avoid this OE<>Kernel clash (linux-yocto recipe doesn't have this problem because it does
