@@ -1,5 +1,7 @@
 # This image is bootable to a console with package management support
 
+inherit extrausers
+
 # useradd and groupadd need to be on sysroot
 do_rootfs[depends] += "shadow-native:do_populate_sysroot"
 
@@ -13,6 +15,8 @@ IMAGE_INSTALL += "\
 	packagegroup-ni-base \
 	packagegroup-ni-tzdata \
 "
+
+EXTRA_USERS_PARAMS += "passwd-expire root;"
 
 addtask image_build_test before do_rootfs
 
