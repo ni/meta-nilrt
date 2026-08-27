@@ -62,6 +62,7 @@ RDEPENDS:${PN} += "\
 	modutils-initscripts \
 	netbase \
 	ni-acctsync \
+	ni-factory-reset \
 	ni-hw-scripts \
 	ni-rtfeatures \
 	ni-safemode-utils \
