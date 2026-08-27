@@ -1,0 +1,51 @@
+#!/bin/bash
+
+set -euo pipefail
+
+quiet=false
+
+while getopts ":q" opt; do
+    case "$opt" in
+        q) quiet=true ;;
+        \?)
+            echo "Usage: ${0##*/} [-q]" >&2
+            exit 2
+            ;;
+    esac
+done
+
+shift $((OPTIND - 1))
+if (( $# != 0 )); then
+    echo "Usage: ${0##*/} [-q]" >&2
+    exit 2
+fi
+
+if [[ "$EUID" -ne 0 ]]; then
+    echo "This utility must be run as root." >&2
+    exit 1
+fi
+
+if [[ "$quiet" == false ]]; then
+    echo "This will reset the root password to its out-of-box state. You will be required to set a new root password the next time you connect to this machine."
+
+    if ! read -r -p "Do you wish to continue? [y/N] " response; then
+        echo
+        response=""
+    fi
+
+    case "$response" in
+        [yY]|[yY][eE][sS]) ;;
+        *)
+            echo "Password reset canceled."
+            exit 0
+            ;;
+    esac
+fi
+
+passwd -d root >/dev/null
+passwd -e root >/dev/null
+rm -f /etc/natinst/share/.shadow
+
+if [[ "$quiet" == false ]]; then
+    echo "The root password was successfully reset."
+fi
