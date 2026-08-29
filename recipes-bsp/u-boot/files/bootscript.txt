@@ -10,15 +10,15 @@ if fdt addr ${loadaddr} && fdt get value rd_desc /images/ramdisk-1 description; 
   # usb host or device mode switching
   if test -n ${otg_usb_en} && test ${otg_usb_en} -eq 1; then
     fdt addr ${loadaddr} && fdt get value fdtname /configurations/conf-ni-${DeviceCode}.dtb fdt && fdt get addr fdtaddr /images/${fdtname} data && fdt addr ${fdtaddr} && if itest.l ${usb_otgsc_id:-ffffffff} == 0; then
-      fdt set /amba@0/usb@${otg_usb_base_addr} dr_mode host;
+      fdt set /axi/usb@${otg_usb_base_addr} dr_mode host;
     elif itest.l ${usb_otgsc_id:-ffffffff} == 100; then
-      fdt set /amba@0/usb@${otg_usb_base_addr} dr_mode peripheral;
+      fdt set /axi/usb@${otg_usb_base_addr} dr_mode peripheral;
     fi;
   fi
 
   # wireless region switching
   if test -n ${wirelessRegionFactory} && test -n ${wireless_board_id} && test -n ${wlan_sdio_base_addr}; then
-    fdt addr ${loadaddr} && fdt get value fdtname /configurations/conf-ni-${DeviceCode}.dtb fdt && fdt get addr fdtaddr /images/${fdtname} data && fdt addr ${fdtaddr} && fdt set /amba@0/sdhci@${wlan_sdio_base_addr}/wlan@0 atheros,board-id ${wireless_board_id} && fdt set /amba@0/sdhci@${wlan_sdio_base_addr}/wlan@0 atheros,region-code ${wirelessRegionFactory};
+    fdt addr ${loadaddr} && fdt get value fdtname /configurations/conf-ni-${DeviceCode}.dtb fdt && fdt get addr fdtaddr /images/${fdtname} data && fdt addr ${fdtaddr} && fdt set /axi/mmc@${wlan_sdio_base_addr}/wlan@0 atheros,board-id ${wireless_board_id} && fdt set /axi/mmc@${wlan_sdio_base_addr}/wlan@0 atheros,region-code ${wirelessRegionFactory};
   fi
 
   # cRIO-9068 doesn't have USB gadget, so skip it on that device
@@ -54,15 +54,15 @@ else
   # usb host or device mode switching
   if test -n ${otg_usb_en} && test ${otg_usb_en} -eq 1; then
     fdt addr ${loadaddr} && fdt get value fdtname /configurations/conf-ni-${DeviceCode}.dtb fdt && fdt get addr fdtaddr /images/${fdtname} data && fdt addr ${fdtaddr} && if itest.l ${usb_otgsc_id:-ffffffff} == 0; then
-      fdt set /amba@0/usb@${otg_usb_base_addr} dr_mode host;
+      fdt set /axi/usb@${otg_usb_base_addr} dr_mode host;
     elif itest.l ${usb_otgsc_id:-ffffffff} == 100; then
-      fdt set /amba@0/usb@${otg_usb_base_addr} dr_mode peripheral;
+      fdt set /axi/usb@${otg_usb_base_addr} dr_mode peripheral;
     fi;
   fi
 
   # wireless region switching
   if test -n ${wirelessRegionFactory} && test -n ${wireless_board_id} && test -n ${wlan_sdio_base_addr}; then
-    fdt addr ${loadaddr} && fdt get value fdtname /configurations/conf-ni-${DeviceCode}.dtb fdt && fdt get addr fdtaddr /images/${fdtname} data && fdt addr ${fdtaddr} && fdt set /amba@0/sdhci@${wlan_sdio_base_addr}/wlan@0 atheros,board-id ${wireless_board_id} && fdt set /amba@0/sdhci@${wlan_sdio_base_addr}/wlan@0 atheros,region-code ${wirelessRegionFactory};
+    fdt addr ${loadaddr} && fdt get value fdtname /configurations/conf-ni-${DeviceCode}.dtb fdt && fdt get addr fdtaddr /images/${fdtname} data && fdt addr ${fdtaddr} && fdt set /axi/mmc@${wlan_sdio_base_addr}/wlan@0 atheros,board-id ${wireless_board_id} && fdt set /axi/mmc@${wlan_sdio_base_addr}/wlan@0 atheros,region-code ${wirelessRegionFactory};
   fi
 
   # cRIO-9068 doesn't have USB gadget, so skip it on that device
