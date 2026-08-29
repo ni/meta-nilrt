@@ -10,14 +10,13 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} = "\
-	crda \
 	iw \
 	libnl \
 	ni-wireless-ath6kl-fw \
 	openssl \
 	rfkill \
 	wpa-supplicant \
-	wireless-regdb \
+	wireless-regdb-static \
 "
 
 RDEPENDS:${PN}:append:xilinx-zynq = " \
