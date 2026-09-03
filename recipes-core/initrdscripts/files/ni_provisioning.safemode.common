@@ -164,13 +164,24 @@ set_serial_port()
 
 partitioning_disk()
 {
+	DISK_SIZE_BYTES=$(lsblk -bnd -o SIZE "$TARGET_DISK")
+	DISK_SIZE_GB=$((DISK_SIZE_BYTES / 1024 / 1024 / 1024))
+	if [ "$DISK_SIZE_GB" -ge 32 ]; then
+    	PART1_END=100
+		PART2_END=284
+		PART3_END=348
+	else
+    	PART1_END=16
+    	PART2_END=200
+    	PART3_END=216
+	fi
 	umount "$TARGET_DISK"? 2>/dev/null || true
 	print_info "Partitioning TARGET_DISK=$TARGET_DISK (PART_STYLE=$PART_STYLE)..."
 	PARTED_ERROR=`parted -s $TARGET_DISK mklabel $PART_STYLE 2>&1` || die "$PARTED_ERROR"
-	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART1_NAME 1MB 16MB 2>&1` || die "$PARTED_ERROR"
-	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART2_NAME 16MB 200MB 2>&1` || die "$PARTED_ERROR"
-	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART3_NAME 200MB 216MB 2>&1` || die "$PARTED_ERROR"
-	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART4_NAME 216MB 100% 2>&1` || die "$PARTED_ERROR"
+	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART1_NAME 1MB ${PART1_END}MB 2>&1` || die "$PARTED_ERROR"
+	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART2_NAME ${PART1_END}MB ${PART2_END}MB 2>&1` || die "$PARTED_ERROR"
+	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART3_NAME ${PART2_END}MB ${PART3_END}MB 2>&1` || die "$PARTED_ERROR"
+	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART4_NAME ${PART3_END}MB 100% 2>&1` || die "$PARTED_ERROR"
 	print_done
 
 	print_info "Assigning EFI System Partition..."
