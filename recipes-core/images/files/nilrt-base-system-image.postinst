@@ -77,11 +77,22 @@ if [ "$arch" = "armv7l" ]; then
 	rmdir "$mount_point/runmode" 2>/dev/null || true
 elif [ "$arch" = "x86_64" ]; then
 	kernel="/mnt/userfs/boot/tmp/runmode"
+	kernel_sig_ext=""
+	for ext in .p7b .sig; do
+		if [ -e "${kernel}/bzImage${ext}" ]; then
+			kernel_sig_ext="${ext}"
+			break
+		fi
+	done
 	# install the kernel
 	rm -rf /boot/runmode
 	if mv "$kernel" "$mount_point"; then
 		# Remove the tmp path from the rootfs
 		rmdir "`dirname "$kernel"`"
+		if [ -n "${kernel_sig_ext}" ] && [ ! -e "${mount_point}/runmode/bzImage${kernel_sig_ext}" ]; then
+			echo "ERROR: runmode kernel signature sidecar was not preserved." 1>&2
+			exit 1
+		fi
 	else
 		exit 1
 	fi

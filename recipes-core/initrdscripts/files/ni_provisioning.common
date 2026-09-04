@@ -426,9 +426,20 @@ elif [ "$ARCH" = "x86_64" ]; then
 				die "Failed to find an image file in bundle"
 			fi
 
-			# Move boot loader image to auto-discoverable /efi/boot/
-			mkdir /mnt/efi-auto/niboota/efi/boot
-			mv /mnt/efi-auto/niboota/efi/nilrt/bootx64.efi /mnt/efi-auto/niboota/efi/boot/bootx64.efi
+			local nilrt_efi_dir=/mnt/efi-auto/niboota/efi/nilrt
+			local auto_efi_dir=/mnt/efi-auto/niboota/efi/boot
+			mkdir -p "$auto_efi_dir"
+
+			if [ -e "$nilrt_efi_dir/grubx64.efi" ]; then
+				local secure_boot_stage
+				for secure_boot_stage in bootx64.efi SELoaderx64.efi mmx64.efi grubx64.efi; do
+					[ -f "$nilrt_efi_dir/$secure_boot_stage" ] || die "Secure Boot bundle is missing $secure_boot_stage"
+				done
+				cp -a "$nilrt_efi_dir"/. "$auto_efi_dir"/
+			else
+				[ -f "$nilrt_efi_dir/bootx64.efi" ] || die "Bundle is missing bootx64.efi"
+				cp "$nilrt_efi_dir/bootx64.efi" "$auto_efi_dir/bootx64.efi"
+			fi
 
 			umount /mnt/efi-auto/niboota
 			umount /mnt/efi-auto/bundle

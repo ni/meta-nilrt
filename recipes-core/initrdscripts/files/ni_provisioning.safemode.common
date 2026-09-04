@@ -220,6 +220,22 @@ mount_grub_partition()
 	MOUNT_ERROR=`mount -L $PART1_LABEL $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
 }
 
+# Signed EFI binaries installed by packagegroup-efi-secure-boot. The unsigned
+# oe-core images under /boot/EFI/BOOT are only usable without Secure Boot.
+# SELoaderx64.efi is renamed to bootx64.efi when MOK signing is disabled.
+SECURE_BOOT_REQUIRED_FILES="bootx64.efi mmx64.efi grubx64.efi"
+SECURE_BOOT_OPTIONAL_FILES="SELoaderx64.efi"
+SECURE_BOOT_CHAIN="$SECURE_BOOT_REQUIRED_FILES $SECURE_BOOT_OPTIONAL_FILES"
+SECURE_BOOT_EFI_FILES="$SECURE_BOOT_CHAIN Hash2DxeCrypto.efi Pkcs7VerifyDxe.efi LockDown.efi"
+
+secure_boot_chain_available()
+{
+	for STAGE in $SECURE_BOOT_REQUIRED_FILES ; do
+		[ -f "$SECURE_BOOT_EFI_DIR/$STAGE" ] || return 1
+	done
+	return 0
+}
+
 install_grub()
 {
 	mount_grub_partition
@@ -228,15 +244,46 @@ install_grub()
 	GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/efi/boot
 	mkdir -p $GRUB_TARGET_DIR
 	GRUB_TARGET=$(uname -m)
-	cp /boot/EFI/BOOT/bootx64.efi $GRUB_TARGET_DIR
+
+	if secure_boot_chain_available ; then
+		# bootx64.efi is shim here; it loads its next stage from its own
+		# directory, so the whole chain has to be installed together.
+		for STAGE in $SECURE_BOOT_EFI_FILES ; do
+			if [ -f "$SECURE_BOOT_EFI_DIR/$STAGE" ] ; then
+				cp "$SECURE_BOOT_EFI_DIR/$STAGE" $GRUB_TARGET_DIR
+			fi
+		done
+	else
+		cp "$SOURCE_DIR/efi/EFI/BOOT/bootx64.efi" $GRUB_TARGET_DIR
+	fi
 
 	set_efiboot_entry
 
 	print_info "Installing grub.cfg..."
 
-	cp $SOURCE_DIR/grub.cfg $GRUB_TARGET_DIR/grub.cfg
-	mkdir -p $GRUB_TARGET_DIR/fonts
-	cp $SOURCE_DIR/fonts/unicode.pf2 $GRUB_TARGET_DIR/fonts/
+	if [ -f "$GRUB_TARGET_DIR/grub.cfg" ] ; then
+		print_info "Preserving existing grub.cfg on ESP..."
+	else
+		cp $SOURCE_DIR/grub.cfg $GRUB_TARGET_DIR/grub.cfg
+	fi
+	if [ -f "$SOURCE_DIR/grub.cfg.p7b" ] ; then
+		if [ -f "$GRUB_TARGET_DIR/grub.cfg.p7b" ] ; then
+			print_info "Preserving existing grub.cfg.p7b on ESP..."
+		else
+			cp $SOURCE_DIR/grub.cfg.p7b $GRUB_TARGET_DIR/grub.cfg.p7b
+		fi
+	fi
+
+	# In Secure Boot mode, the font is embedded in the signed grubx64.efi and
+	# an external unicode.pf2 is not trusted. Skip copying the unsigned font so
+	# GRUB does not try to load an unrelated mismatched file.
+	if secure_boot_chain_available ; then
+		# Ensure no stale external font is left behind from an older install.
+		rm -rf "$GRUB_TARGET_DIR/fonts"
+	else
+		mkdir -p $GRUB_TARGET_DIR/fonts
+		cp $SOURCE_DIR/fonts/unicode.pf2 $GRUB_TARGET_DIR/fonts/
+	fi
 	print_done
 }
 
@@ -257,15 +304,11 @@ install_safemode()
 	cp "$SOURCE_DIR"/*Image		"$BOOTFS_MOUNTPOINT/.safe/"
 	cp "$SOURCE_DIR"/ramdisk.*	"$BOOTFS_MOUNTPOINT/.safe/"
 	cp "$SOURCE_DIR"/bootimage.*  "$BOOTFS_MOUNTPOINT/.safe/"
-
-	print_done
-}
-
-install_bootmode_file()
-{
-	# write initial bootmode file
-	print_info "Installing bootmode file..."
-	echo "set BOOT_MODE=safemode" >$BOOTFS_MOUNTPOINT/bootmode
+	# Detached kernel signature; the ramdisk and bootimage globs above
+	# already pick theirs up.
+	if [ -f "$SOURCE_DIR/bzImage.p7b" ] ; then
+		cp "$SOURCE_DIR"/*Image.p7b "$BOOTFS_MOUNTPOINT/.safe/"
+	fi
 	print_done
 }
 
@@ -300,6 +343,7 @@ install_grubenv()
 
 	grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "BIOSBootMode=efi"
 	grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "NITarget=$NI_TARGET"
+	grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "BOOT_MODE=safemode"
 
 	# Mark aforementioned grub vars read-only
 	for varname in "BIOSBootMode" "NITarget" ; do
@@ -447,3 +491,4 @@ sanity_check()
 }
 
 SOURCE_DIR=/payload
+SECURE_BOOT_EFI_DIR=$SOURCE_DIR/efi/EFI/BOOT
