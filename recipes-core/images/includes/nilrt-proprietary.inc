@@ -37,6 +37,7 @@ NI_PROPRIETARY_COMMON_PACKAGES:append:x64 = "\
 
 NI_PROPRIETARY_RUNMODE_PACKAGES = "\
         ni-arch-gen \
+        ni-niauth-root-user \
 "
 
 # SystemLink dependencies
