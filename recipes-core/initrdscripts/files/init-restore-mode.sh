@@ -53,6 +53,13 @@ disable_x64_cstates() {
 	done
 }
 
+load_x64_network_modules() {
+	# Include common physical and virtual NIC drivers used in recovery scenarios.
+	for mod in e1000 e1000e i40e igb igc ixgbe tg3 virtio_pci virtio_net; do
+		modprobe "$mod" 2> /dev/null
+	done
+}
+
 show_console() {
 	while true; do
 		echo ""
@@ -101,6 +108,7 @@ if [[ $ARCH == "x86_64" ]]; then
 	# support VMWare image keyboard
 	modprobe atkbd 2> /dev/null
 	modprobe i8042 2> /dev/null
+	load_x64_network_modules
 	modprobe hv_vmbus 2> /dev/null
 	modprobe hv_balloon 2> /dev/null
 	modprobe hv_storvsc 2> /dev/null
