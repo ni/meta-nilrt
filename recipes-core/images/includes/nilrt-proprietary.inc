@@ -27,12 +27,12 @@ NI_PROPRIETARY_COMMON_PACKAGES = "\
         nicurl \
         nirtcfg \
         nirtmdnsd \
+        ni-sysapi-sshcli \
 "
 
 NI_PROPRIETARY_COMMON_PACKAGES:append:x64 = "\
         ni-sdmon \
         ni-wifibledd \
-        ni-sysapi-sshcli \
 "
 
 NI_PROPRIETARY_RUNMODE_PACKAGES = "\
