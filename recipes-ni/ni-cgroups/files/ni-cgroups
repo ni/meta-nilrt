@@ -10,14 +10,11 @@
 
 identify_lvrt_cgroup_version()
 {
-	# We only support cgroups v1 on ARM for now
-	local cpu_arch
-	cpu_arch="$(uname -m)"
-	case "$cpu_arch" in
-		arm*|aarch64)
-			echo 1
-			return
-			;;
+	# Linux 4.14 requires cgroups v1
+	local kernel_version
+	kernel_version="$(uname -r)"
+	case "$kernel_version" in
+		4.14.*) echo 1; return ;;
 	esac
 
 	local lvrt_installed
