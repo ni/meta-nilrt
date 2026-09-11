@@ -32,7 +32,6 @@ NI_PROPRIETARY_COMMON_PACKAGES = "\
 
 NI_PROPRIETARY_COMMON_PACKAGES:append:x64 = "\
         ni-sdmon \
-        ni-wifibledd \
 "
 
 NI_PROPRIETARY_RUNMODE_PACKAGES = "\
