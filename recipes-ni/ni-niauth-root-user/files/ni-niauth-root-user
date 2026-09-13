@@ -1,0 +1,85 @@
+#! /bin/sh
+#
+# Seed a 'root' user into the NIAuth database on first boot.
+#
+# The NI System Web Server authenticates WebDAV/SIWS requests via mod_niauth
+# against the NIAuth DB (registry.bin), keyed by the NIAuth *user name*. The DB
+# ships with only the built-in 'admin' user, so web-service calls presenting the
+# name 'root' cannot authenticate. This adds a 'root' NIAuth account (blank
+# password, administrators group) once; it does not touch the local /etc/shadow
+# root account.
+
+log() { logger -p auth.info "[niauth-root-seed] $1"; }
+
+find_util() {
+    for c in niauthutil /usr/local/natinst/bin/niauthutil /usr/bin/niauthutil; do
+        if command -v "$c" >/dev/null 2>&1; then
+            echo "$c"
+            return 0
+        fi
+    done
+    return 1
+}
+
+seed_root() {
+    UTIL="$(find_util)" || { log "niauthutil not found; skipping"; return 0; }
+
+    # No wait loop: init order is S05 niauth -> S25 systemWebServer -> S99 (this),
+    # so the daemon is long up and admin's permissions are already seeded by the
+    # time we run. If the daemon somehow isn't answering, skip and let the next
+    # boot reconcile, rather than adding boot latency.
+    if ! "$UTIL" list-users >/dev/null 2>&1; then
+        log "niauth daemon not responding; will reconcile next boot"
+        return 0
+    fi
+
+    # Create the account once. We never recreate/repassword an existing 'root'
+    # (avoids clobbering a password an operator may set later). list-users prints
+    # names space-separated.
+    if ! "$UTIL" list-users 2>/dev/null | tr ' ' '\n' | grep -qx "root"; then
+        if ! "$UTIL" create-user -i -u root; then
+            log "create-user root failed"
+            return 0
+        fi
+        # Blank password: non-interactive stdin is read as a single line.
+        echo "" | "$UTIL" set-password-for-user -u root || log "set blank password failed"
+        log "root NIAuth user seeded"
+    fi
+
+    "$UTIL" add-user-to-group -i -u root -g administrators || log "add root to administrators failed"
+
+    # admin's permission set is assembled by the NI web server from many services
+    # (granted directly to the 'admin' name), so we can't enumerate it ourselves;
+    # we mirror whatever admin currently holds. Compare counts as a cheap gate:
+    # equal -> already in sync, or admin not seeded yet (both zero) -> do nothing;
+    # unequal -> grant admin's permissions that root is missing. Effect: copies
+    # once on the first boot after admin is seeded, then no-ops unless the set
+    # changes. Grants persist in the DB (/etc/natinst/share/niauth), so no
+    # per-boot refresh and no timing dependency on service start order.
+    admin_perms="$("$UTIL" list-permissions-for-user -u admin 2>/dev/null)"
+    root_perms="$("$UTIL" list-permissions-for-user -u root 2>/dev/null)"
+    if [ "$(printf '%s' "$admin_perms" | wc -w)" -ne "$(printf '%s' "$root_perms" | wc -w)" ]; then
+        rp=" $root_perms "
+        # Flags: -u <user>, -p <permission>.
+        for p in $admin_perms; do
+            case "$rp" in
+                *" $p "*) ;;
+                *) "$UTIL" grant-permission-to-user -u root -p "$p" || log "grant $p to root failed" ;;
+            esac
+        done
+    fi
+}
+
+case "$1" in
+    start)
+        seed_root
+        ;;
+    stop | restart | force-reload)
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|force-reload}"
+        exit 1
+        ;;
+esac
+
+exit 0
