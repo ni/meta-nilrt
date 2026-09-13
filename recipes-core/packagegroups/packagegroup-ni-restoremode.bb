@@ -8,6 +8,7 @@ inherit packagegroup
 RDEPENDS:${PN} += "\
 	base-passwd \
 	bash \
+	busybox \
 	bzip2 \
 	coreutils \
 	dosfstools \
@@ -22,6 +23,8 @@ RDEPENDS:${PN} += "\
 	init-restore-mode \
 	kmod \
 	ni-systemreplication \
+	openssh-keygen \
+	openssh-sshd \
 	parted \
 	procps \
 	sed \
@@ -49,6 +52,15 @@ RDEPENDS:${PN}:append:xilinx-zynq = "\
 	"
 
 RRECOMMENDS:${PN}:x64 = "\
+	kernel-module-e1000 \
+	kernel-module-e1000e \
+	kernel-module-i40e \
+	kernel-module-igb \
+	kernel-module-igc \
+	kernel-module-ixgbe \
+	kernel-module-tg3 \
+	kernel-module-virtio-net \
+	kernel-module-virtio-pci \
 	kernel-module-atkbd \
 	kernel-module-hyperv-keyboard \
 	kernel-module-hv-storvsc \

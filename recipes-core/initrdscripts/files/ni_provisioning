@@ -24,6 +24,9 @@ early_setup "$@"
 # Source default answer file to prompt user for all questions
 source_default_answer_file
 
+# Enable recovery networking and SSH access for all provisioning flows.
+setup_recovery_network_and_ssh
+
 if in_recovery_mode; then
 	echo "Automatic provision and reboot in recovery mode"
 	PROVISION_REPARTITION_TARGET="y"
