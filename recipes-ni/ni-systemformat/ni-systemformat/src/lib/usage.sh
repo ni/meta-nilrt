@@ -4,6 +4,7 @@
 
 source ${BASH_SOURCE%/*}/util.sh || exit 8
 
+ARCH=${ARCH:=$(uname -m)}
 
 # ==============================================================================
 # OPTIONS
@@ -46,7 +47,12 @@ function parse_args() {
 	do
 		case $option in
 			c)  VOL=config;;
-			e)  OPT_ENCRYPT=yes;;
+			e)  if [ "$ARCH" = "x86_64" ]; then
+					OPT_ENCRYPT=yes
+				else
+					die_with_usage INVALID_ARGUMENT "Encryption is only supported on x86_64 architecture."
+				fi
+				;;
 			f)  set_mode format;;
 			h)
 				usage
