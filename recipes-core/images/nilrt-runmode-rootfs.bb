@@ -56,7 +56,7 @@ install_bootimage () {
 		"s/%component_version%/${BUILDNAME}/" \
 		"${IMAGE_ROOTFS}/boot/runmode/bootimage.ini"
 }
-ROOTFS_POSTPROCESS_COMMAND += " install_bootimage; "
+ROOTFS_POSTPROCESS_COMMAND:append:x64 = " install_bootimage; "
 
 
 # FIXUP KERNEL #
