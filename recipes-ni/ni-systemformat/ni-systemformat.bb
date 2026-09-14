@@ -75,7 +75,7 @@ RDEPENDS:${PN} += "\
 	util-linux-logger \
 "
 # LUKS encryption support
-RDEPENDS:${PN} += "\
+RDEPENDS:${PN}:x64 += "\
 	coreutils-shred \
 	cryptsetup \
 	ni-device-encryption \
