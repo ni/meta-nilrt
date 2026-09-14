@@ -4,7 +4,7 @@ PROVIDES:xilinx-zynq += "fw-printenv"
 RPROVIDES:${PN}-fw-utils:xilinx-zynq = "fw-printenv"
 RCONFLICTS:${PN}-fw-utils = "libubootenv-bin"
 DEPENDS += "niacctbase"
-RDEPENDS:${PN}-fw-utils = "u-boot-env"
+RDEPENDS:${PN}-fw-utils:class-target = "u-boot-env"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 SRC_URI += "file://0001-tools-Add-fdtview-a-tool-to-validate-FIT-images.patch"
