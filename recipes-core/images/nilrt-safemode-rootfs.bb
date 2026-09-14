@@ -85,6 +85,6 @@ ensure_expected_files() {
 	done
 }
 
-IMAGE_PREPROCESS_COMMAND += " bootimg_fixup; ensure_expected_files; "
+IMAGE_PREPROCESS_COMMAND:append:x64 = " bootimg_fixup; ensure_expected_files; "
 
 inherit image
