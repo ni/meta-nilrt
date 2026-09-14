@@ -12,6 +12,11 @@ require includes/nilrt-proprietary.inc
 PV = "${DISTRO_VERSION}"
 
 
+# ARM safemode kernel does not come from virtual/kernel. So the
+# KERNELDEPMODDEPEND definition provided by the OE image class needs to be
+# overridden here to refer to our safemode-specific kernel provider.
+KERNELDEPMODDEPEND:xilinx-zynq = "linux-nilrt-arm-safemode:do_packagedata"
+
 IMAGE_INSTALL += "\
 	packagegroup-ni-safemode \
 "
