@@ -85,5 +85,12 @@ addtask image_build_test before do_rootfs
 
 IMAGE_FSTYPES = "cpio.xz"
 IMAGE_NAME_SUFFIX = ""
+# Use level 9 as the default for x64.
 XZ_COMPRESSION_LEVEL = "-e -9"
+# NOTE: xz compression level 9 requires a 64 MB dictionary size in RAM during
+# decompression. On ARM targets with 256 MB RAM, level 9 has been confirmed to
+# trigger OOM panics during early boot. Level 6 only requires an 8 MB
+# dictionary, which seems like a good trade-off between compression and RAM
+# usage on ARM.
+XZ_COMPRESSION_LEVEL:xilinx-zynq = "-e -6"
 XZ_INTEGRITY_CHECK = "crc32"
