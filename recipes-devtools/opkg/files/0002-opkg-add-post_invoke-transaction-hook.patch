@@ -1,0 +1,295 @@
+From f7d123b77ee4acc11630db255b9005774a8f5129 Mon Sep 17 00:00:00 2001
+From: vairamani muthusamy <vairamani.muthusamy@emerson.com>
+Date: Thu, 27 Aug 2026 14:33:02 +0530
+Subject: opkg: add post_invoke transaction hook
+
+Add a "post_invoke" configuration option which names a hook to run after
+a successful, state-changing opkg transaction (install, upgrade, remove,
+configure or flag).
+
+The value may be a single executable, or a directory of executables that
+are run in lexical, run-parts-like order (a "drop-in" directory). This
+lets integrators react to package changes -- for example to rebuild an
+intrusion-detection baseline or refresh a cache -- without having to wrap
+every opkg invocation.
+
+The hook fires once per invocation, from the command-line frontend only,
+and is gated on opkg_state_changed so it is not run for "opkg update", for
+no-op transactions, for --noaction (dry-run) runs, or when the transaction
+fails. libopkg API consumers are unaffected.
+
+Directory entries are selected with scandir()/alphasort(); dotfiles and
+non-executable entries are skipped, mirroring standard drop-in directory
+semantics. A hook that fails is logged but does not change opkg's exit
+status, since the transaction itself has already completed.
+
+Document the new option in opkg.conf.5 and add a core test covering
+ordering, executable filtering, and the dry-run/no-op gating.
+
+AI-Generated: Claude Opus 4.8
+Upstream-Status: Submitted [https://lists.yoctoproject.org/g/opkg]
+Signed-off-by: vairamani muthusamy <vairamani.muthusamy@emerson.com>
+---
+ libopkg/opkg_conf.c          |  1 +
+ libopkg/opkg_conf.h          |  1 +
+ man/opkg.conf.5.in           |  3 ++
+ src/opkg.c                   | 70 +++++++++++++++++++++++++++
+ tests/Makefile               |  1 +
+ tests/core/46_post_invoke.py | 94 ++++++++++++++++++++++++++++++++++++
+ 6 files changed, 170 insertions(+)
+ create mode 100644 tests/core/46_post_invoke.py
+
+diff --git a/libopkg/opkg_conf.c b/libopkg/opkg_conf.c
+index 5622245..baeca36 100644
+--- a/libopkg/opkg_conf.c
++++ b/libopkg/opkg_conf.c
+@@ -49,6 +49,7 @@ opkg_conf_t *opkg_config = &_conf;
+ static opkg_option_t options[] = {
+     {"cache_dir", OPKG_OPT_TYPE_STRING, &_conf.cache_dir},
+     {"intercepts_dir", OPKG_OPT_TYPE_STRING, &_conf.intercepts_dir},
++    {"post_invoke", OPKG_OPT_TYPE_STRING, &_conf.post_invoke},
+     {"lists_dir", OPKG_OPT_TYPE_STRING, &_conf.lists_dir},
+     {"lock_file", OPKG_OPT_TYPE_STRING, &_conf.lock_file},
+     {"info_dir", OPKG_OPT_TYPE_STRING, &_conf.info_dir},
+diff --git a/libopkg/opkg_conf.h b/libopkg/opkg_conf.h
+index 650b59c..785b6f7 100644
+--- a/libopkg/opkg_conf.h
++++ b/libopkg/opkg_conf.h
+@@ -74,6 +74,7 @@ typedef struct opkg_conf {
+ 
+     char *tmp_dir;
+     char *intercepts_dir; /* set to "/dev/null" to disable intercepts */
++    char *post_invoke;    /* hook run after a successful transaction */
+     char *lists_dir;
+     char *cache_dir;
+     char *lock_file;
+diff --git a/man/opkg.conf.5.in b/man/opkg.conf.5.in
+index 94296e7..ff7806d 100644
+--- a/man/opkg.conf.5.in
++++ b/man/opkg.conf.5.in
+@@ -187,6 +187,9 @@ Specifices the root overlay.
+ \fBoverwrite_no_owner\fP
+ Allow overwrite of files not owned by a package (default is 0).
+ .TP
++\fBpost_invoke\fP
++Specifies a hook to run after a successful, state-changing package transaction (install, upgrade, remove, configure or flag). The value may be a single executable, or a directory of executables which are run in lexical order (a "drop-in" directory). The hook is not run for \fBupdate\fP, for transactions that make no changes, for \fB--noaction\fP (dry-run) transactions, or when the transaction fails.
++.TP
+ \fBproxy_passwd\fP
+ Password to use with proxy authentication.
+ .TP
+diff --git a/src/opkg.c b/src/opkg.c
+index 6cb8d52..05e3cda 100644
+--- a/src/opkg.c
++++ b/src/opkg.c
+@@ -28,12 +28,18 @@
+ #include <getopt.h>
+ #include <stdlib.h>
+ #include <locale.h>
++#include <string.h>
++#include <unistd.h>
++#include <dirent.h>
++#include <sys/stat.h>
+ 
+ #include "opkg_conf.h"
+ #include "opkg_cmd.h"
+ #include "file_util.h"
+ #include "opkg_message.h"
+ #include "opkg_download.h"
++#include "sprintf_alloc.h"
++#include "xsystem.h"
+ #include "xfuncs.h"
+ 
+ enum {
+@@ -455,6 +461,65 @@ static void usage()
+     exit(1);
+ }
+ 
++/*
++ * Run the post_invoke hook after a successful, state-changing transaction.
++ *
++ * opkg_config->post_invoke may name either a single executable or a directory
++ * of executables (a "drop-in" directory).  Directory entries are run in
++ * lexical order.  A hook that fails is logged but does not change opkg's exit
++ * status, since the transaction itself has already succeeded.
++ */
++static void run_post_invoke(void)
++{
++    const char *hook = opkg_config->post_invoke;
++    struct stat st;
++
++    if (!hook || !hook[0])
++        return;
++
++    if (stat(hook, &st) != 0) {
++        opkg_msg(NOTICE, "post_invoke hook %s not found; skipping.\n", hook);
++        return;
++    }
++
++    if (S_ISDIR(st.st_mode)) {
++        struct dirent **names;
++        int n, i;
++
++        n = scandir(hook, &names, NULL, alphasort);
++        if (n < 0) {
++            opkg_perror(ERROR, "Failed to scan post_invoke dir %s", hook);
++            return;
++        }
++        for (i = 0; i < n; i++) {
++            char *path;
++            struct stat est;
++
++            if (names[i]->d_name[0] == '.') {
++                free(names[i]);
++                continue;
++            }
++            sprintf_alloc(&path, "%s/%s", hook, names[i]->d_name);
++            if (stat(path, &est) == 0 && S_ISREG(est.st_mode)
++                    && access(path, X_OK) == 0) {
++                const char *argv[] = { path, NULL };
++                opkg_msg(INFO, "Running post_invoke hook %s\n", path);
++                xsystem(argv);
++            }
++            free(path);
++            free(names[i]);
++        }
++        free(names);
++    } else if (S_ISREG(st.st_mode) && access(hook, X_OK) == 0) {
++        const char *argv[] = { hook, NULL };
++        opkg_msg(INFO, "Running post_invoke hook %s\n", hook);
++        xsystem(argv);
++    } else {
++        opkg_msg(NOTICE, "post_invoke hook %s is not executable; skipping.\n",
++                 hook);
++    }
++}
++
+ int main(int argc, char *argv[])
+ {
+     int opts, err = -1;
+@@ -542,6 +607,11 @@ int main(int argc, char *argv[])
+ 
+     err = opkg_cmd_exec(cmd, argc - opts, (const char **)(argv + opts));
+ 
++    /* Fire the post_invoke hook only once per invocation, and only when the
++     * transaction actually changed state and was not a dry-run. */
++    if (err == 0 && opkg_state_changed && !opkg_config->noaction)
++        run_post_invoke();
++
+     opkg_download_cleanup();
+  err1:
+     opkg_conf_deinit();
+diff --git a/tests/Makefile b/tests/Makefile
+index 15d58fb..f6908a5 100644
+--- a/tests/Makefile
++++ b/tests/Makefile
+@@ -45,6 +45,7 @@ REGRESSION_TESTS := core/01_install.py \
+ 		    core/43_add_ignore_recommends.py \
+ 		    core/44_search.py \
+ 		    core/45_install_preexisting.py \
++		    core/46_post_invoke.py \
+ 		    regress/issue26.py \
+ 		    regress/issue31.py \
+ 		    regress/issue32.py \
+diff --git a/tests/core/46_post_invoke.py b/tests/core/46_post_invoke.py
+new file mode 100644
+index 0000000..3306404
+--- /dev/null
++++ b/tests/core/46_post_invoke.py
+@@ -0,0 +1,94 @@
++#! /usr/bin/env python3
++# SPDX-License-Identifier: GPL-2.0-only
++#
++# Verifies the post_invoke hook:
++#   - runs after a successful, state-changing transaction,
++#   - runs drop-in scripts in lexical order,
++#   - ignores non-executable drop-ins,
++#   - does not run for a --noaction (dry-run) transaction,
++#   - does not run for a no-op transaction.
++#
++
++import os
++import opk, cfg, opkgcl
++
++opk.regress_init()
++
++TEST_LOG = os.path.join(cfg.offline_root, "post_invoke_test.log")
++HOOK_DIR = os.path.join(cfg.offline_root, "post_invoke.d")
++
++
++def readFile(path):
++    try:
++        with open(path, 'r') as f:
++            return f.read()
++    except IOError:
++        return ''
++
++
++def rmFile(path):
++    try:
++        os.remove(path)
++    except OSError:
++        pass
++
++
++# Create a drop-in hook directory with two ordered scripts. The scripts are
++# named out of lexical order to prove opkg sorts them before running.
++os.makedirs(HOOK_DIR)
++for name, tag in (('20-second', 'second'), ('10-first', 'first')):
++    path = os.path.join(HOOK_DIR, name)
++    with open(path, 'w') as f:
++        os.fchmod(f.fileno(), 0o755)
++        f.write('\n'.join([
++            '#!/bin/sh',
++            "echo %s >> '%s'" % (tag, TEST_LOG),
++            '',
++        ]))
++
++# A non-executable drop-in must be ignored.
++with open(os.path.join(HOOK_DIR, '30-skip'), 'w') as f:
++    f.write("#!/bin/sh\necho skip >> '%s'\n" % TEST_LOG)
++
++sysconfdir = os.environ['SYSCONFDIR']
++testconfdir = cfg.offline_root + sysconfdir
++with open('%s/opkg/opkg.conf' % testconfdir, 'a') as f:
++    f.write('option post_invoke %s\n' % HOOK_DIR)
++
++o = opk.OpkGroup()
++o.add(Package="a")
++o.write_opk()
++o.write_list()
++opkgcl.update()
++
++# 1. A dry-run install must not fire the hook.
++rmFile(TEST_LOG)
++opkgcl.install("a", flags="--noaction")
++if opkgcl.is_installed("a"):
++    opk.fail("Package 'a' installed during a --noaction transaction.")
++if readFile(TEST_LOG) != '':
++    opk.fail("post_invoke hook ran during a --noaction transaction.")
++
++# 2. A real install fires the hook once, running drop-ins in lexical order.
++rmFile(TEST_LOG)
++opkgcl.install("a")
++if not opkgcl.is_installed("a"):
++    opk.fail("Package 'a' installed but reports as not installed.")
++if readFile(TEST_LOG) != 'first\nsecond\n':
++    opk.fail("post_invoke hook did not run drop-ins in order: %r"
++             % readFile(TEST_LOG))
++
++# 3. A no-op transaction (nothing to do) must not fire the hook.
++rmFile(TEST_LOG)
++opkgcl.install("a")
++if readFile(TEST_LOG) != '':
++    opk.fail("post_invoke hook ran for a no-op transaction.")
++
++# 4. A real remove fires the hook again.
++rmFile(TEST_LOG)
++opkgcl.remove("a")
++if opkgcl.is_installed("a"):
++    opk.fail("Package 'a' removed but still reports as installed.")
++if readFile(TEST_LOG) != 'first\nsecond\n':
++    opk.fail("post_invoke hook did not run after remove: %r"
++             % readFile(TEST_LOG))
+-- 
+2.43.0
+

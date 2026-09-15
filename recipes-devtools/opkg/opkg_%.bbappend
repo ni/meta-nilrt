@@ -5,6 +5,7 @@ SRC_URI += " \
 	file://opkg-signing.conf \
 	file://gpg.conf \
 	file://0001-opkg-gpg-only-enumerate-local-keys.patch \
+	file://0002-opkg-add-post_invoke-transaction-hook.patch \
 	file://run-ptest \
 "
 
@@ -22,6 +23,7 @@ do_install:append () {
 	install -m 0644 ${UNPACKDIR}/opkg-signing.conf ${D}${sysconfdir}/opkg/
 	install -d -m 0700 ${D}${sysconfdir}/opkg/gpg
 	install -m 0644 ${UNPACKDIR}/gpg.conf ${D}${sysconfdir}/opkg/gpg/
+	install -d ${D}${sysconfdir}/opkg/post_invoke.d
 }
 
 RDEPENDS:${PN}-ptest += "bash"
