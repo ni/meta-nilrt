@@ -138,3 +138,7 @@ RDEPENDS:${PN}:append:x64 = "\
 RDEPENDS:${PN}:append:x64 = "\
 	libfmi-dev \
 "
+
+RDEPENDS:${PN}:append:xilinx-zynq = "\
+	linux-nilrt-fitimage \
+"
