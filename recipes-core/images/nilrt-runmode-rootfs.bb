@@ -5,7 +5,7 @@ DESCRIPTION = "NI Linux RT runmode rootfs archive"
 # RECIPE VARIABLES
 # ==============================================================================
 
-DEPENDS += "nilrt-runmode-initramfs"
+DEPENDS:append:x64 = " nilrt-runmode-initramfs"
 
 PV = "${DISTRO_VERSION}"
 
