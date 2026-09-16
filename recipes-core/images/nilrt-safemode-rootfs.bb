@@ -15,6 +15,7 @@ PV = "${DISTRO_VERSION}"
 SRC_URI += "\
 	file://bootimage.ini \
 	file://${BPN}.preinst \
+	file://update-safemode-efi.sh \
 "
 
 IMAGE_INSTALL = "\
@@ -49,6 +50,10 @@ bootimg_fixup() {
 	fi
 
 	install -m 0755 "${THISDIR}/files/${BPN}.preinst" "${IMAGE_ROOTFS}/boot/preinst"
+
+	if [ "${MACHINE}" = "x64" ] && [ "${SECURE_BOOT_ENABLED}" = "1" ]; then
+		install -m 0755 "${THISDIR}/files/update-safemode-efi.sh" "${IMAGE_ROOTFS}/boot/update-safemode-efi.sh"
+	fi
 
 	# Promote EFI_NI_vars and SMBIOS_NI_vars to /boot
 	install -m 0644 "${IMAGE_ROOTFS}/${datadir}/fw_printenv/EFI_NI_vars" "${IMAGE_ROOTFS}/boot/EFI_NI_vars"
