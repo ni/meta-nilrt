@@ -218,7 +218,18 @@ replacement_patterns = [
         [r'eth\d:', 'ethX:'],
         [r'renamed from eth\d', 'renamed from ethX'],
         [r'mounted filesystem [0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}', 'mounted filesystem xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'],
-        [r'clocksource: tsc: mask: 0x[0-9a-fA-F]+ max_cycles: 0x[0-9a-fA-F]+, max_idle_ns: \d+ ns', 'clocksource: tsc: mask: 0x max_cycles: 0x, max_idle_ns: ns']
+        [r'clocksource: tsc: mask: 0x[0-9a-fA-F]+ max_cycles: 0x[0-9a-fA-F]+, max_idle_ns: \d+ ns', 'clocksource: tsc: mask: 0x max_cycles: 0x, max_idle_ns: ns'],
+        [r'Quota mode: (?:none|disabled)\.', 'Quota mode: X.'],
+        [r'^(?:<\d+>\[.+?\]\s*)?\d\d:\d\d: ttyS\d+ at I/O 0x[0-9a-fA-F]+ \(irq = \d+, base_baud = \d+\) is a 16550A', 'XX:XX: ttySX at I/O 0xXXXX (irq = X, base_baud = X) is a 16550A'],
+        [r'(mmcblk\d+rpmb: .* chardev \()\d+:\d+(\))', r'\1X:X\2'],
+        [r'\b(pnp|system) \d\d:\d\d:', r'\1 XX:XX:'],
+        [r'UBIFS \(ubi\d+:\d+\): media format: w\d+/r\d+ \(latest is w\d+/r\d+\), UUID [0-9A-Fa-f-]+, small LPT model', 'UBIFS (ubiX:X): media format: wX/rX (latest is wX/rX), UUID xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx, small LPT model'],
+        [r'ubi\d+: max/mean erase counter: \d+/\d+, WL threshold: \d+, image sequence number: \d+', 'ubiX: max/mean erase counter: X/X, WL threshold: X, image sequence number: X'],
+        [r'Performance Events: .*Intel PMU driver\.', 'Performance Events: Intel PMU driver.'],
+        [r'RAPL PMU: API unit is 2\^-\d+ Joules, \d+ fixed counters, \d+ ms ovfl timer', 'RAPL PMU: API unit is 2^-X Joules, X fixed counters, X ms ovfl timer'],
+        [r'(ata\d+: SATA max UDMA/\d+ abar m\d+@0x[0-9a-fA-F]+ port 0x[0-9a-fA-F]+ irq )\d+( lpm-pol \d+)', r'\1X\2'],
+        [r'caller pci_map_rom\+0x[0-9a-fA-F]+/0x[0-9a-fA-F]+ mapping multiple BARs', 'caller pci_map_rom+0xX/0xX mapping multiple BARs'],
+        [r'pnp: PnP ACPI: found \d+ devices', 'pnp: PnP ACPI: found X devices']
 ]
 
 def apply_replacement_patterns(log):
