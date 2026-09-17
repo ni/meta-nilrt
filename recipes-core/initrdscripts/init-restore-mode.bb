@@ -10,6 +10,7 @@ PV = "1.0"
 SRC_URI = "\
 	file://init-restore-mode.sh \
 	file://00-init-restore-mode.sh \
+	file://ni-restore-provisioning.init \
 	file://mmc_storage_device_codes.allow \
 	file://ni_provisioning \
 	file://ni_provisioning.common \
@@ -38,6 +39,9 @@ do_install() {
 	install -m 0644 ${UNPACKDIR}/ni_provisioning.common ${D}/
 	install -m 0644 ${UNPACKDIR}/ni_provisioning.answers.default ${D}/
 
+	install -d ${D}${sysconfdir}/init.d
+	install -m 0755 ${UNPACKDIR}/ni-restore-provisioning.init ${D}${sysconfdir}/init.d/ni-restore-provisioning
+
 	install -d ${D}/${sysconfdir}/profile.d
 	install -m 0644 ${UNPACKDIR}/00-init-restore-mode.sh ${D}/${sysconfdir}/profile.d/
 }
@@ -55,5 +59,5 @@ do_install:append:xilinx-zynqhf() {
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-FILES:${PN} += " /init /ni_provisioning* /disk_config /etc/profile.d/00-init-restore-mode.sh"
+FILES:${PN} += " /init /ni_provisioning* /disk_config /etc/init.d/ni-restore-provisioning /etc/profile.d/00-init-restore-mode.sh"
 FILES:${PN}:append:x64 = " /grub.cfg "
