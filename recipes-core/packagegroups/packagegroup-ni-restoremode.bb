@@ -8,6 +8,7 @@ inherit packagegroup
 RDEPENDS:${PN} += "\
 	base-passwd \
 	bash \
+	busybox \
 	bzip2 \
 	coreutils \
 	dosfstools \
@@ -19,9 +20,16 @@ RDEPENDS:${PN} += "\
 	gawk \
 	gptfdisk \
 	grep \
+	initscripts \
+	init-ifupdown \
 	init-restore-mode \
+	iproute2 \
 	kmod \
+	ni-hw-scripts \
+	ni-utils \
 	ni-systemreplication \
+	openssh-keygen \
+	openssh-sshd \
 	parted \
 	procps \
 	sed \
@@ -37,10 +45,14 @@ RDEPENDS:${PN}:append:x64 = "\
 	efibootmgr          \
 	efivar              \
 	eudev               \
+	busybox-ifplugd     \
+	busybox-zcip        \
 	grub                \
 	grub-editenv        \
 	grub-efi            \
+	packagegroup-kernel-modules-essential \
 	ni-smbios-helper    \
+	udev-extraconf      \
 	"
 
 RDEPENDS:${PN}:append:xilinx-zynq = "\
@@ -48,12 +60,3 @@ RDEPENDS:${PN}:append:xilinx-zynq = "\
 	mtd-utils-ubifs     \
 	"
 
-RRECOMMENDS:${PN}:x64 = "\
-	kernel-module-atkbd \
-	kernel-module-hyperv-keyboard \
-	kernel-module-hv-storvsc \
-	kernel-module-hv-vmbus \
-	kernel-module-hv-utils \
-	kernel-module-hv-balloon \
-	kernel-module-i8042 \
-"

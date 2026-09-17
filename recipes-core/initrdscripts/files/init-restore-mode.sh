@@ -110,7 +110,13 @@ if [[ $ARCH == "x86_64" ]]; then
 fi
 
 if [[ $ARCH =~ ^(x86_64|armv7l)$ ]]; then
-	/ni_provisioning
+	if [ -x /etc/init.d/ni-restore-provisioning ]; then
+		/etc/init.d/ni-restore-provisioning start
+		sync
+		show_console
+	fi
+	echo ""
+	echo "ERROR: /etc/init.d/ni-restore-provisioning not found or not executable."
 else
 	echo ""
 	echo "ERROR: ARCH=$ARCH is not supported by provisioning tool."

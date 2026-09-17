@@ -1,0 +1,48 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          ni-restore-provisioning
+# Required-Start:    $local_fs $remote_fs
+# Default-Start:     S
+# Default-Stop:
+# Short-Description: Run NI recovery provisioning flow during boot
+### END INIT INFO
+
+case "$1" in
+	start)
+		[ -x /ni_provisioning ] || exit 0
+
+		echo "Starting NI recovery provisioning"
+
+		if [ -x /etc/init.d/udev ]; then
+			echo "Starting recovery udev service"
+			/etc/init.d/udev start || true
+		fi
+
+		if [ -x /etc/init.d/ni-rename-ifaces ]; then
+			echo "Starting recovery interface rename service"
+			/etc/init.d/ni-rename-ifaces start || true
+		fi
+
+		if [ -x /etc/init.d/networking ]; then
+			echo "Starting recovery networking service"
+			/etc/init.d/networking start || true
+		fi
+
+		if [ -x /etc/init.d/sshd ]; then
+			echo "Starting recovery sshd service"
+			/etc/init.d/sshd start || true
+		fi
+
+		# Provisioning prompts must use the recovery console.
+		exec </dev/console >/dev/console 2>&1
+		/ni_provisioning
+		;;
+	stop)
+		;;
+	*)
+		echo "Usage: $0 {start|stop}"
+		exit 1
+		;;
+esac
+
+exit 0
