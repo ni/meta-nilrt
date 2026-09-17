@@ -1,6 +1,11 @@
 require grub-nilrt.inc
 require ${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'grub-efi-nilrt-secure-boot.inc', '', d)}
 
+# Shadows meta-secure-core/meta-efi-secure-boot's grub-efi/ files of the same
+# name: NILRT's memdisk-skip/buffer-verify patch tweaks and its grub-efi.cfg
+# (which sources the NILRT-maintained menu instead of secure-core's boot-menu.inc).
+FILESEXTRAPATHS:prepend := "${THISDIR}/grub-efi:"
+
 # UEFI_SELOADER is set by the meta-signing-key layer.conf whether or not
 # efi-secure-boot is enabled, so the mok2verify patches are only actually in
 # SRC_URI when both conditions hold.
