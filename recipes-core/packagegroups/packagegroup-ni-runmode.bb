@@ -125,10 +125,13 @@ RDEPENDS:${PN} = "\
 "
 
 RDEPENDS:${PN}:append:x64 = "\
-	firewalld \
 	linux-firmware-i915 \
 	kernel-module-radeon \
 	linux-firmware-radeon \
+"
+
+RDEPENDS:${PN} += "\
+	firewalld \
 	ni-firewalld-servicedefs \
 	ni-firewall-dropins \
 "
