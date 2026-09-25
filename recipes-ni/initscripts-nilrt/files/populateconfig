@@ -65,7 +65,7 @@ then
 	chmod 700 "/etc/natinst/share/certstore/open_csrs"
 
 	chown webserv:niwscerts "/etc/natinst/share/certstore/server_certs"
-	chmod 750 "/etc/natinst/share/certstore/server_certs"
+	chmod 2750 "/etc/natinst/share/certstore/server_certs"
 
 	chown webserv:root "/etc/natinst/share/certstore/temp"
 	chmod 700 "/etc/natinst/share/certstore/temp"
