@@ -1,5 +1,7 @@
 DESCRIPTION = "NI Linux RT runmode rootfs archive"
 
+SECURE_BOOT_ENABLED = "${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', '1', '0', d)}"
+
 SRC_URI += "\
 	file://bootimage.ini \
 "
@@ -12,6 +14,7 @@ IMAGE_INSTALL = "\
 
 IMAGE_INSTALL:append:x64 = "\
 	nilrt-grub-runmode \
+	${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'packagegroup-efi-secure-boot', '', d)} \
 	"
 
 require includes/nilrt-image-base.inc
@@ -39,6 +42,22 @@ bootimg_fixup_x64() {
 	mv "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}" "${IMAGE_ROOTFS}/${CUSTOM_KERNEL_PATH}"
 }
 
+ensure_secure_boot_kernel_sidecar_x64() {
+	if [ "${SECURE_BOOT_ENABLED}" != "1" ]; then
+		return
+	fi
+
+	if [ -z "${SB_FILE_EXT}" ]; then
+		echo "ERROR: SB_FILE_EXT is not set while secure boot is enabled." 1>&2
+		exit 1
+	fi
+
+	if [ ! -e "${IMAGE_ROOTFS}/${CUSTOM_KERNEL_PATH}/bzImage${SB_FILE_EXT}" ]; then
+		echo "ERROR: ${CUSTOM_KERNEL_PATH}/bzImage${SB_FILE_EXT} is required in secure-boot runmode rootfs image." 1>&2
+		exit 1
+	fi
+}
+
 bootimg_fixup_arm() {
 	# Stage the ITB under boot/runmode/ rather than directly in boot/.
 	# This prevents u-boot from attempting to boot a partially-extracted
@@ -52,7 +71,7 @@ bootimg_fixup_arm() {
         -exec rm -f {} +
 }
 
-IMAGE_PREPROCESS_COMMAND:append:x64 = " bootimg_fixup_x64; "
+IMAGE_PREPROCESS_COMMAND:append:x64 = " bootimg_fixup_x64; ensure_secure_boot_kernel_sidecar_x64; "
 IMAGE_PREPROCESS_COMMAND:append:xilinx-zynq = " bootimg_fixup_arm; "
 
 IMAGE_FSTYPES += "squashfs ${NILRT_BSI_FSTYPE}"
