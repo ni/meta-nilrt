@@ -1,4 +1,4 @@
-From f7d123b77ee4acc11630db255b9005774a8f5129 Mon Sep 17 00:00:00 2001
+From 32cd9ce037ac9d0786c9fe1e85ef954c2ef5eef6 Mon Sep 17 00:00:00 2001
 From: vairamani muthusamy <vairamani.muthusamy@emerson.com>
 Date: Thu, 27 Aug 2026 14:33:02 +0530
 Subject: opkg: add post_invoke transaction hook
@@ -20,75 +20,104 @@ fails. libopkg API consumers are unaffected.
 
 Directory entries are selected with scandir()/alphasort(); dotfiles and
 non-executable entries are skipped, mirroring standard drop-in directory
-semantics. A hook that fails is logged but does not change opkg's exit
-status, since the transaction itself has already completed.
+semantics.
 
-Document the new option in opkg.conf.5 and add a core test covering
-ordering, executable filtering, and the dry-run/no-op gating.
+Because hooks run with opkg's (root) privileges, a hook -- and the drop-in
+directory containing it -- is run only if it is owned by the user opkg runs
+as and is not writable by group or other; otherwise it is skipped with a log
+message. This prevents a less-privileged user from substituting the code
+opkg executes.
+
+Each hook runs under a time limit (post_invoke_timeout, default 300 s) in
+its own process group; a hook that exceeds it is terminated (SIGTERM, then
+SIGKILL) so a hung hook cannot block package management indefinitely.
+
+Hooks are best-effort: opkg logs each invocation and any non-zero exit or
+timeout at a visible level, but a failing hook does not change opkg's exit
+status and is not retried, since the transaction itself has already
+completed.
+
+Document the new options in opkg.conf.5 and add core tests covering ordering,
+executable/trust filtering, dry-run/no-op gating, best-effort failure
+handling, and the timeout.
+
+Upstream-Status: Submitted [https://lists.yoctoproject.org/g/opkg]
 
 AI-Generated: Claude Opus 4.8
-Upstream-Status: Submitted [https://lists.yoctoproject.org/g/opkg]
 Signed-off-by: vairamani muthusamy <vairamani.muthusamy@emerson.com>
 ---
- libopkg/opkg_conf.c          |  1 +
- libopkg/opkg_conf.h          |  1 +
- man/opkg.conf.5.in           |  3 ++
- src/opkg.c                   | 70 +++++++++++++++++++++++++++
- tests/Makefile               |  1 +
- tests/core/46_post_invoke.py | 94 ++++++++++++++++++++++++++++++++++++
- 6 files changed, 170 insertions(+)
+ libopkg/opkg_conf.c                   |   2 +
+ libopkg/opkg_conf.h                   |   2 +
+ man/opkg.conf.5.in                    |   6 +
+ src/opkg.c                            | 208 ++++++++++++++++++++++++++
+ tests/Makefile                        |   3 +
+ tests/core/46_post_invoke.py          |  94 ++++++++++++
+ tests/core/47_post_invoke_security.py |  78 ++++++++++
+ tests/core/48_post_invoke_timeout.py  |  70 +++++++++
+ 8 files changed, 463 insertions(+)
  create mode 100644 tests/core/46_post_invoke.py
+ create mode 100644 tests/core/47_post_invoke_security.py
+ create mode 100644 tests/core/48_post_invoke_timeout.py
 
 diff --git a/libopkg/opkg_conf.c b/libopkg/opkg_conf.c
-index 5622245..baeca36 100644
+index 5622245..03a8ae0 100644
 --- a/libopkg/opkg_conf.c
 +++ b/libopkg/opkg_conf.c
-@@ -49,6 +49,7 @@ opkg_conf_t *opkg_config = &_conf;
+@@ -49,6 +49,8 @@ opkg_conf_t *opkg_config = &_conf;
  static opkg_option_t options[] = {
      {"cache_dir", OPKG_OPT_TYPE_STRING, &_conf.cache_dir},
      {"intercepts_dir", OPKG_OPT_TYPE_STRING, &_conf.intercepts_dir},
 +    {"post_invoke", OPKG_OPT_TYPE_STRING, &_conf.post_invoke},
++    {"post_invoke_timeout", OPKG_OPT_TYPE_INT, &_conf.post_invoke_timeout},
      {"lists_dir", OPKG_OPT_TYPE_STRING, &_conf.lists_dir},
      {"lock_file", OPKG_OPT_TYPE_STRING, &_conf.lock_file},
      {"info_dir", OPKG_OPT_TYPE_STRING, &_conf.info_dir},
 diff --git a/libopkg/opkg_conf.h b/libopkg/opkg_conf.h
-index 650b59c..785b6f7 100644
+index 650b59c..6f56563 100644
 --- a/libopkg/opkg_conf.h
 +++ b/libopkg/opkg_conf.h
-@@ -74,6 +74,7 @@ typedef struct opkg_conf {
+@@ -74,6 +74,8 @@ typedef struct opkg_conf {
  
      char *tmp_dir;
      char *intercepts_dir; /* set to "/dev/null" to disable intercepts */
 +    char *post_invoke;    /* hook run after a successful transaction */
++    int post_invoke_timeout; /* seconds before a post_invoke hook is killed */
      char *lists_dir;
      char *cache_dir;
      char *lock_file;
 diff --git a/man/opkg.conf.5.in b/man/opkg.conf.5.in
-index 94296e7..ff7806d 100644
+index 94296e7..0599228 100644
 --- a/man/opkg.conf.5.in
 +++ b/man/opkg.conf.5.in
-@@ -187,6 +187,9 @@ Specifices the root overlay.
+@@ -187,6 +187,12 @@ Specifices the root overlay.
  \fBoverwrite_no_owner\fP
  Allow overwrite of files not owned by a package (default is 0).
  .TP
 +\fBpost_invoke\fP
-+Specifies a hook to run after a successful, state-changing package transaction (install, upgrade, remove, configure or flag). The value may be a single executable, or a directory of executables which are run in lexical order (a "drop-in" directory). The hook is not run for \fBupdate\fP, for transactions that make no changes, for \fB--noaction\fP (dry-run) transactions, or when the transaction fails.
++Specifies a hook to run after a successful, state-changing package transaction (install, upgrade, remove, configure or flag). The value may be a single executable, or a directory of executables which are run in lexical order (a "drop-in" directory). The hook is not run for \fBupdate\fP, for transactions that make no changes, for \fB--noaction\fP (dry-run) transactions, or when the transaction fails. For security, each hook, and the drop-in directory, must be owned by the user opkg runs as and must not be writable by group or other, otherwise it is skipped. A hook that exits non-zero is logged but does not change opkg's exit status.
++.TP
++\fBpost_invoke_timeout\fP
++Maximum number of seconds a single \fBpost_invoke\fP hook may run before opkg terminates it (\fBSIGTERM\fP, then \fBSIGKILL\fP after a short grace period). The default is 300. A hook killed for exceeding this limit is logged and, like any other hook failure, does not change opkg's exit status.
 +.TP
  \fBproxy_passwd\fP
  Password to use with proxy authentication.
  .TP
 diff --git a/src/opkg.c b/src/opkg.c
-index 6cb8d52..05e3cda 100644
+index 6cb8d52..cb35056 100644
 --- a/src/opkg.c
 +++ b/src/opkg.c
-@@ -28,12 +28,18 @@
+@@ -28,12 +28,21 @@
  #include <getopt.h>
  #include <stdlib.h>
  #include <locale.h>
 +#include <string.h>
++#include <errno.h>
 +#include <unistd.h>
 +#include <dirent.h>
++#include <signal.h>
++#include <time.h>
 +#include <sys/stat.h>
++#include <sys/wait.h>
  
  #include "opkg_conf.h"
  #include "opkg_cmd.h"
@@ -96,11 +125,10 @@ index 6cb8d52..05e3cda 100644
  #include "opkg_message.h"
  #include "opkg_download.h"
 +#include "sprintf_alloc.h"
-+#include "xsystem.h"
  #include "xfuncs.h"
  
  enum {
-@@ -455,6 +461,65 @@ static void usage()
+@@ -455,6 +464,200 @@ static void usage()
      exit(1);
  }
  
@@ -112,6 +140,124 @@ index 6cb8d52..05e3cda 100644
 + * lexical order.  A hook that fails is logged but does not change opkg's exit
 + * status, since the transaction itself has already succeeded.
 + */
++/*
++ * A post_invoke hook runs as the (root) opkg process, so opkg must not execute
++ * anything a less-privileged user could substitute. A hook file, and the
++ * directory containing it, are trusted only if they are owned by the user opkg
++ * runs as and are not writable by group or other.
++ */
++static int post_invoke_trusted(const char *path, const struct stat *st)
++{
++    if (st->st_uid != geteuid()) {
++        opkg_msg(NOTICE, "post_invoke: %s is not owned by uid %d; skipping.\n",
++                 path, (int)geteuid());
++        return 0;
++    }
++    if (st->st_mode & (S_IWGRP | S_IWOTH)) {
++        opkg_msg(NOTICE,
++                 "post_invoke: %s is group- or world-writable; skipping.\n",
++                 path);
++        return 0;
++    }
++    return 1;
++}
++
++/*
++ * Run one hook, best-effort: log the invocation and any non-zero exit, but do
++ * not change opkg's exit status or retry -- the transaction already succeeded.
++ */
++/* Default seconds a post_invoke hook may run before opkg terminates it;
++ * overridable via the post_invoke_timeout config option. */
++#define POST_INVOKE_DEFAULT_TIMEOUT 300
++/* Internal sentinel from run_hook_timed(): the hook was killed for exceeding
++ * the time limit (distinct from any real exit status). */
++#define POST_INVOKE_TIMED_OUT (-2)
++
++/*
++ * Run one hook with a time limit, in its own process group so that a timeout
++ * also reaps any children it spawned. Returns the hook's exit status, -1 on a
++ * fork/wait error, or POST_INVOKE_TIMED_OUT if the hook had to be killed.
++ */
++static int run_hook_timed(const char *path, unsigned int limit_s)
++{
++    pid_t pid;
++    int status, killed = 0;
++    unsigned int run_ms = 0, grace_ms = 0;
++
++    pid = fork();
++    if (pid < 0) {
++        opkg_perror(ERROR, "post_invoke: cannot fork for %s", path);
++        return -1;
++    }
++    if (pid == 0) {
++        setpgid(0, 0);
++        execl(path, path, (char *)NULL);
++        _exit(127);
++    }
++    setpgid(pid, pid);          /* set in the parent too, to avoid a race */
++
++    for (;;) {
++        struct timespec ts = { 0, 100000000L };     /* 100 ms */
++        pid_t r = waitpid(pid, &status, WNOHANG);
++
++        if (r == pid)
++            break;
++        if (r < 0) {
++            if (errno == EINTR)
++                continue;
++            opkg_perror(ERROR, "post_invoke: waitpid for %s", path);
++            return -1;
++        }
++
++        if (!killed && run_ms >= limit_s * 1000u) {
++            opkg_msg(NOTICE,
++                     "post_invoke hook %s exceeded %u s; sending SIGTERM.\n",
++                     path, limit_s);
++            kill(-pid, SIGTERM);
++            killed = 1;
++        } else if (killed == 1 && grace_ms >= 5000u) {
++            kill(-pid, SIGKILL);
++            killed = 2;
++        }
++
++        nanosleep(&ts, NULL);
++        if (killed)
++            grace_ms += 100;
++        else
++            run_ms += 100;
++    }
++
++    if (killed)
++        return POST_INVOKE_TIMED_OUT;
++    if (WIFEXITED(status))
++        return WEXITSTATUS(status);
++    return -1;
++}
++
++/*
++ * Run one hook, best-effort: log the invocation and any non-zero exit (or a
++ * timeout), but do not change opkg's exit status or retry -- the transaction
++ * has already succeeded.
++ */
++static void run_post_invoke_hook(const char *path)
++{
++    int limit = opkg_config->post_invoke_timeout;
++    int rc;
++
++    if (limit <= 0)
++        limit = POST_INVOKE_DEFAULT_TIMEOUT;
++
++    opkg_msg(NOTICE, "Running post_invoke hook %s\n", path);
++    rc = run_hook_timed(path, (unsigned int)limit);
++    if (rc == POST_INVOKE_TIMED_OUT)
++        opkg_msg(NOTICE,
++                 "post_invoke hook %s timed out after %d s (exit code 124).\n",
++                 path, limit);
++    else if (rc != 0)
++        opkg_msg(NOTICE, "post_invoke hook %s exited with status %d.\n",
++                 path, rc);
++}
++
 +static void run_post_invoke(void)
 +{
 +    const char *hook = opkg_config->post_invoke;
@@ -129,6 +275,11 @@ index 6cb8d52..05e3cda 100644
 +        struct dirent **names;
 +        int n, i;
 +
++        /* The drop-in directory must be trusted: if a less-privileged user can
++         * write to it, they can add or replace the executables opkg runs. */
++        if (!post_invoke_trusted(hook, &st))
++            return;
++
 +        n = scandir(hook, &names, NULL, alphasort);
 +        if (n < 0) {
 +            opkg_perror(ERROR, "Failed to scan post_invoke dir %s", hook);
@@ -144,19 +295,31 @@ index 6cb8d52..05e3cda 100644
 +            }
 +            sprintf_alloc(&path, "%s/%s", hook, names[i]->d_name);
 +            if (stat(path, &est) == 0 && S_ISREG(est.st_mode)
-+                    && access(path, X_OK) == 0) {
-+                const char *argv[] = { path, NULL };
-+                opkg_msg(INFO, "Running post_invoke hook %s\n", path);
-+                xsystem(argv);
-+            }
++                    && access(path, X_OK) == 0
++                    && post_invoke_trusted(path, &est))
++                run_post_invoke_hook(path);
 +            free(path);
 +            free(names[i]);
 +        }
 +        free(names);
 +    } else if (S_ISREG(st.st_mode) && access(hook, X_OK) == 0) {
-+        const char *argv[] = { hook, NULL };
-+        opkg_msg(INFO, "Running post_invoke hook %s\n", hook);
-+        xsystem(argv);
++        /* Single-file hook: both the file and its directory must be trusted. */
++        char *dir, *slash;
++        struct stat dst;
++
++        dir = xstrdup(hook);
++        slash = strrchr(dir, '/');
++        if (!slash)
++            strcpy(dir, ".");
++        else if (slash == dir)
++            dir[1] = '\0';      /* hook is "/name" -> dir "/" */
++        else
++            *slash = '\0';
++
++        if (stat(dir, &dst) == 0 && post_invoke_trusted(dir, &dst)
++                && post_invoke_trusted(hook, &st))
++            run_post_invoke_hook(hook);
++        free(dir);
 +    } else {
 +        opkg_msg(NOTICE, "post_invoke hook %s is not executable; skipping.\n",
 +                 hook);
@@ -166,7 +329,7 @@ index 6cb8d52..05e3cda 100644
  int main(int argc, char *argv[])
  {
      int opts, err = -1;
-@@ -542,6 +607,11 @@ int main(int argc, char *argv[])
+@@ -542,6 +745,11 @@ int main(int argc, char *argv[])
  
      err = opkg_cmd_exec(cmd, argc - opts, (const char **)(argv + opts));
  
@@ -179,14 +342,16 @@ index 6cb8d52..05e3cda 100644
   err1:
      opkg_conf_deinit();
 diff --git a/tests/Makefile b/tests/Makefile
-index 15d58fb..f6908a5 100644
+index 15d58fb..961e772 100644
 --- a/tests/Makefile
 +++ b/tests/Makefile
-@@ -45,6 +45,7 @@ REGRESSION_TESTS := core/01_install.py \
+@@ -45,6 +45,9 @@ REGRESSION_TESTS := core/01_install.py \
  		    core/43_add_ignore_recommends.py \
  		    core/44_search.py \
  		    core/45_install_preexisting.py \
 +		    core/46_post_invoke.py \
++		    core/47_post_invoke_security.py \
++		    core/48_post_invoke_timeout.py \
  		    regress/issue26.py \
  		    regress/issue31.py \
  		    regress/issue32.py \
@@ -290,6 +455,166 @@ index 0000000..3306404
 +if readFile(TEST_LOG) != 'first\nsecond\n':
 +    opk.fail("post_invoke hook did not run after remove: %r"
 +             % readFile(TEST_LOG))
+diff --git a/tests/core/47_post_invoke_security.py b/tests/core/47_post_invoke_security.py
+new file mode 100644
+index 0000000..63f1b42
+--- /dev/null
++++ b/tests/core/47_post_invoke_security.py
+@@ -0,0 +1,78 @@
++#! /usr/bin/env python3
++# SPDX-License-Identifier: GPL-2.0-only
++#
++# Verifies post_invoke security/robustness behaviour:
++#   - a group/world-writable hook is skipped (not executed),
++#   - a hook that exits non-zero is still run but does not fail opkg,
++#   - a later hook still runs after an earlier hook fails.
++#
++
++import os
++import opk, cfg, opkgcl
++
++opk.regress_init()
++
++TEST_LOG = os.path.join(cfg.offline_root, "post_invoke_sec.log")
++HOOK_DIR = os.path.join(cfg.offline_root, "post_invoke.d")
++
++
++def readFile(path):
++    try:
++        with open(path, 'r') as f:
++            return f.read()
++    except IOError:
++        return ''
++
++
++def rmFile(path):
++    try:
++        os.remove(path)
++    except OSError:
++        pass
++
++
++def write_hook(name, body, mode):
++    path = os.path.join(HOOK_DIR, name)
++    with open(path, 'w') as f:
++        f.write(body)
++    os.chmod(path, mode)
++
++
++# The drop-in dir must itself be trusted (owned by us, not group/world-writable).
++os.makedirs(HOOK_DIR)
++os.chmod(HOOK_DIR, 0o755)
++
++# 10-ok: normal, trusted hook -> must run.
++write_hook('10-ok', "#!/bin/sh\necho ok >> '%s'\n" % TEST_LOG, 0o755)
++# 20-writable: world-writable -> must be SKIPPED even though executable.
++write_hook('20-writable', "#!/bin/sh\necho evil >> '%s'\n" % TEST_LOG, 0o757)
++# 30-fail: trusted but exits non-zero -> must run (and be logged), must NOT
++# fail opkg, and must NOT prevent later hooks.
++write_hook('30-fail', "#!/bin/sh\necho fail >> '%s'\nexit 1\n" % TEST_LOG, 0o755)
++# 40-after: proves execution continues past a failed hook.
++write_hook('40-after', "#!/bin/sh\necho after >> '%s'\n" % TEST_LOG, 0o755)
++
++sysconfdir = os.environ['SYSCONFDIR']
++with open('%s/opkg/opkg.conf' % (cfg.offline_root + sysconfdir), 'a') as f:
++    f.write('option post_invoke %s\n' % HOOK_DIR)
++
++o = opk.OpkGroup()
++o.add(Package="a")
++o.write_opk()
++o.write_list()
++opkgcl.update()
++
++rmFile(TEST_LOG)
++rc = opkgcl.install("a")
++if rc != 0:
++    opk.fail("opkg install returned %d; a hook failure must not fail opkg" % rc)
++if not opkgcl.is_installed("a"):
++    opk.fail("Package 'a' installed but reports as not installed.")
++
++log = readFile(TEST_LOG)
++if 'evil' in log:
++    opk.fail("group/world-writable hook was executed (should be skipped): %r"
++             % log)
++if log != 'ok\nfail\nafter\n':
++    opk.fail("unexpected hook execution/order: %r (expected 'ok\\nfail\\nafter\\n')"
++             % log)
+diff --git a/tests/core/48_post_invoke_timeout.py b/tests/core/48_post_invoke_timeout.py
+new file mode 100644
+index 0000000..42ed446
+--- /dev/null
++++ b/tests/core/48_post_invoke_timeout.py
+@@ -0,0 +1,70 @@
++#! /usr/bin/env python3
++# SPDX-License-Identifier: GPL-2.0-only
++#
++# Verifies post_invoke_timeout: a hook that runs longer than the configured
++# limit is terminated, does not fail opkg (best-effort), and does not prevent
++# a later hook from running.
++#
++
++import os
++import time
++import opk, cfg, opkgcl
++
++opk.regress_init()
++
++TEST_LOG = os.path.join(cfg.offline_root, "post_invoke_timeout.log")
++HOOK_DIR = os.path.join(cfg.offline_root, "post_invoke.d")
++
++
++def readFile(path):
++    try:
++        with open(path, 'r') as f:
++            return f.read()
++    except IOError:
++        return ''
++
++
++def write_hook(name, body):
++    path = os.path.join(HOOK_DIR, name)
++    with open(path, 'w') as f:
++        f.write(body)
++    os.chmod(path, 0o755)
++
++
++os.makedirs(HOOK_DIR)
++os.chmod(HOOK_DIR, 0o755)
++
++# 10-hang: sleeps far past the 1 s limit -> opkg must terminate it. The trailing
++# "end" line proves the hook did NOT run to completion.
++write_hook('10-hang',
++           "#!/bin/sh\necho start >> '%s'\nsleep 30\necho end >> '%s'\n"
++           % (TEST_LOG, TEST_LOG))
++# 20-after: proves execution continues after a timed-out hook.
++write_hook('20-after', "#!/bin/sh\necho after >> '%s'\n" % TEST_LOG)
++
++sysconfdir = os.environ['SYSCONFDIR']
++with open('%s/opkg/opkg.conf' % (cfg.offline_root + sysconfdir), 'a') as f:
++    f.write('option post_invoke %s\n' % HOOK_DIR)
++    f.write('option post_invoke_timeout 1\n')
++
++o = opk.OpkGroup()
++o.add(Package="a")
++o.write_opk()
++o.write_list()
++opkgcl.update()
++
++start = time.time()
++rc = opkgcl.install("a")
++elapsed = time.time() - start
++
++if rc != 0:
++    opk.fail("opkg install returned %d; a timed-out hook must not fail opkg" % rc)
++if elapsed > 20:
++    opk.fail("hook was not terminated by post_invoke_timeout (took %.1fs)"
++             % elapsed)
++
++log = readFile(TEST_LOG)
++if 'end' in log:
++    opk.fail("hung hook ran to completion (not timed out): %r" % log)
++if 'after' not in log:
++    opk.fail("later hook did not run after a timed-out hook: %r" % log)
 -- 
 2.43.0
 
