@@ -1,6 +1,6 @@
-From 32cd9ce037ac9d0786c9fe1e85ef954c2ef5eef6 Mon Sep 17 00:00:00 2001
+From 4872f9cdaf7ccf84138341f18d3a6aacaf3ebb73 Mon Sep 17 00:00:00 2001
 From: vairamani muthusamy <vairamani.muthusamy@emerson.com>
-Date: Thu, 27 Aug 2026 14:33:02 +0530
+Date: Mon, 28 Sep 2026 23:34:53 +0530
 Subject: opkg: add post_invoke transaction hook
 
 Add a "post_invoke" configuration option which names a hook to run after
@@ -29,8 +29,9 @@ message. This prevents a less-privileged user from substituting the code
 opkg executes.
 
 Each hook runs under a time limit (post_invoke_timeout, default 300 s) in
-its own process group; a hook that exceeds it is terminated (SIGTERM, then
-SIGKILL) so a hung hook cannot block package management indefinitely.
+its own process group. On timeout opkg sends SIGTERM; after a five-second
+grace it sends SIGKILL to any remaining processes in that group, including
+children if the hook leader exits first. A timeout is logged distinctly.
 
 Hooks are best-effort: opkg logs each invocation and any non-zero exit or
 timeout at a visible level, but a failing hook does not change opkg's exit
@@ -39,7 +40,7 @@ completed.
 
 Document the new options in opkg.conf.5 and add core tests covering ordering,
 executable/trust filtering, dry-run/no-op gating, best-effort failure
-handling, and the timeout.
+handling, and timeout cleanup.
 
 Upstream-Status: Submitted [https://lists.yoctoproject.org/g/opkg]
 
@@ -49,12 +50,12 @@ Signed-off-by: vairamani muthusamy <vairamani.muthusamy@emerson.com>
  libopkg/opkg_conf.c                   |   2 +
  libopkg/opkg_conf.h                   |   2 +
  man/opkg.conf.5.in                    |   6 +
- src/opkg.c                            | 208 ++++++++++++++++++++++++++
+ src/opkg.c                            | 230 ++++++++++++++++++++++++++
  tests/Makefile                        |   3 +
- tests/core/46_post_invoke.py          |  94 ++++++++++++
- tests/core/47_post_invoke_security.py |  78 ++++++++++
- tests/core/48_post_invoke_timeout.py  |  70 +++++++++
- 8 files changed, 463 insertions(+)
+ tests/core/46_post_invoke.py          |  94 +++++++++++
+ tests/core/47_post_invoke_security.py |  78 +++++++++
+ tests/core/48_post_invoke_timeout.py  |  79 +++++++++
+ 8 files changed, 494 insertions(+)
  create mode 100644 tests/core/46_post_invoke.py
  create mode 100644 tests/core/47_post_invoke_security.py
  create mode 100644 tests/core/48_post_invoke_timeout.py
@@ -103,7 +104,7 @@ index 94296e7..0599228 100644
  Password to use with proxy authentication.
  .TP
 diff --git a/src/opkg.c b/src/opkg.c
-index 6cb8d52..cb35056 100644
+index 6cb8d52..f5b1350 100644
 --- a/src/opkg.c
 +++ b/src/opkg.c
 @@ -28,12 +28,21 @@
@@ -128,7 +129,7 @@ index 6cb8d52..cb35056 100644
  #include "xfuncs.h"
  
  enum {
-@@ -455,6 +464,200 @@ static void usage()
+@@ -455,6 +464,222 @@ static void usage()
      exit(1);
  }
  
@@ -181,7 +182,7 @@ index 6cb8d52..cb35056 100644
 +static int run_hook_timed(const char *path, unsigned int limit_s)
 +{
 +    pid_t pid;
-+    int status, killed = 0;
++    int status = 0, leader_done = 0, timed_out = 0;
 +    unsigned int run_ms = 0, grace_ms = 0;
 +
 +    pid = fork();
@@ -198,38 +199,60 @@ index 6cb8d52..cb35056 100644
 +
 +    for (;;) {
 +        struct timespec ts = { 0, 100000000L };     /* 100 ms */
-+        pid_t r = waitpid(pid, &status, WNOHANG);
++        pid_t r = 0;
 +
-+        if (r == pid)
-+            break;
-+        if (r < 0) {
-+            if (errno == EINTR)
-+                continue;
-+            opkg_perror(ERROR, "post_invoke: waitpid for %s", path);
-+            return -1;
++        if (!leader_done) {
++            r = waitpid(pid, &status, WNOHANG);
++            if (r == pid)
++                leader_done = 1;
++            else if (r < 0 && errno != EINTR) {
++                opkg_perror(ERROR, "post_invoke: waitpid for %s", path);
++                return -1;
++            }
 +        }
 +
-+        if (!killed && run_ms >= limit_s * 1000u) {
++        if (!timed_out && leader_done)
++            return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
++
++        if (!timed_out && run_ms >= limit_s * 1000u) {
 +            opkg_msg(NOTICE,
 +                     "post_invoke hook %s exceeded %u s; sending SIGTERM.\n",
 +                     path, limit_s);
 +            kill(-pid, SIGTERM);
-+            killed = 1;
-+        } else if (killed == 1 && grace_ms >= 5000u) {
-+            kill(-pid, SIGKILL);
-+            killed = 2;
++            timed_out = 1;
++        } else if (timed_out) {
++            int group_exists = kill(-pid, 0) == 0 || errno == EPERM;
++
++            if (!group_exists)
++                break;
++            if (grace_ms >= 5000u) {
++                opkg_msg(NOTICE,
++                         "post_invoke hook %s exceeded termination grace; sending SIGKILL.\n",
++                         path);
++                kill(-pid, SIGKILL);
++                if (!leader_done) {
++                    while (waitpid(pid, &status, 0) < 0 && errno == EINTR)
++                        ;
++                }
++                return POST_INVOKE_TIMED_OUT;
++            }
 +        }
 +
 +        nanosleep(&ts, NULL);
-+        if (killed)
++        if (timed_out)
 +            grace_ms += 100;
 +        else
 +            run_ms += 100;
 +    }
 +
-+    if (killed)
++    if (timed_out) {
++        if (!leader_done) {
++            while (waitpid(pid, &status, 0) < 0 && errno == EINTR)
++                ;
++        }
 +        return POST_INVOKE_TIMED_OUT;
-+    if (WIFEXITED(status))
++    }
++    if (leader_done && WIFEXITED(status))
 +        return WEXITSTATUS(status);
 +    return -1;
 +}
@@ -329,7 +352,7 @@ index 6cb8d52..cb35056 100644
  int main(int argc, char *argv[])
  {
      int opts, err = -1;
-@@ -542,6 +745,11 @@ int main(int argc, char *argv[])
+@@ -542,6 +767,11 @@ int main(int argc, char *argv[])
  
      err = opkg_cmd_exec(cmd, argc - opts, (const char **)(argv + opts));
  
@@ -541,10 +564,10 @@ index 0000000..63f1b42
 +             % log)
 diff --git a/tests/core/48_post_invoke_timeout.py b/tests/core/48_post_invoke_timeout.py
 new file mode 100644
-index 0000000..42ed446
+index 0000000..ec54c8a
 --- /dev/null
 +++ b/tests/core/48_post_invoke_timeout.py
-@@ -0,0 +1,70 @@
+@@ -0,0 +1,79 @@
 +#! /usr/bin/env python3
 +# SPDX-License-Identifier: GPL-2.0-only
 +#
@@ -581,13 +604,22 @@ index 0000000..42ed446
 +os.makedirs(HOOK_DIR)
 +os.chmod(HOOK_DIR, 0o755)
 +
-+# 10-hang: sleeps far past the 1 s limit -> opkg must terminate it. The trailing
-+# "end" line proves the hook did NOT run to completion.
++# The hook leader exits on SIGTERM, but its child ignores SIGTERM and keeps
++# writing. The timeout implementation must still SIGKILL the whole group.
 +write_hook('10-hang',
-+           "#!/bin/sh\necho start >> '%s'\nsleep 30\necho end >> '%s'\n"
-+           % (TEST_LOG, TEST_LOG))
-+# 20-after: proves execution continues after a timed-out hook.
-+write_hook('20-after', "#!/bin/sh\necho after >> '%s'\n" % TEST_LOG)
++           "#!/bin/sh\n"
++           "(trap '' TERM; while :; do echo child >> '%s'; sleep 0.1; done) &\n"
++           "trap 'exit 0' TERM\n"
++           "while :; do sleep 1; done\n" % TEST_LOG)
++# 20-after proves execution continues and detects a surviving child.
++write_hook('20-after',
++           "#!/bin/sh\n"
++           "before=$(grep -c '^child$' '%s' || true)\n"
++           "sleep 0.5\n"
++           "after=$(grep -c '^child$' '%s' || true)\n"
++           "[ \"$before\" = \"$after\" ] || echo child-survived >> '%s'\n"
++           "echo after >> '%s'\n"
++           % (TEST_LOG, TEST_LOG, TEST_LOG, TEST_LOG))
 +
 +sysconfdir = os.environ['SYSCONFDIR']
 +with open('%s/opkg/opkg.conf' % (cfg.offline_root + sysconfdir), 'a') as f:
@@ -611,8 +643,8 @@ index 0000000..42ed446
 +             % elapsed)
 +
 +log = readFile(TEST_LOG)
-+if 'end' in log:
-+    opk.fail("hung hook ran to completion (not timed out): %r" % log)
++if 'child-survived' in log:
++    opk.fail("timed-out hook left a child running: %r" % log)
 +if 'after' not in log:
 +    opk.fail("later hook did not run after a timed-out hook: %r" % log)
 -- 
