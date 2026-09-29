@@ -62,3 +62,4 @@ FILES:${PN} += "\
 	${sysconfdir}/cron.d/aide-check \
 	${sysconfdir}/logrotate.d/aide \
 	${sysconfdir}/opkg/post_invoke.d/10-aide-reinit \
+"

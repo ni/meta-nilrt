@@ -4,8 +4,10 @@
 # the next check.
 #
 # aide-init's "reinit" action is non-blocking: it takes a non-blocking flock,
-# backgrounds the database rebuild, and logs progress to syslog. opkg is
-# therefore not delayed, and concurrent invocations coalesce on the lock.
+# backgrounds the database rebuild, and logs progress to syslog. A reinit that
+# arrives while a rebuild is running is queued and rescanned afterwards.
+# The background rebuild would otherwise inherit opkg's stdio and keep a
+# caller that pipes opkg's output waiting until the scan finishes.
 [ -x /etc/init.d/aide-init ] || exit 0
-/etc/init.d/aide-init reinit || true
+/etc/init.d/aide-init reinit </dev/null >/dev/null 2>&1 || true
 exit 0
