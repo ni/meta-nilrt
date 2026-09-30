@@ -1,5 +1,7 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/grub:"
 
+require ${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'grub-bootconf-nilrt-secure-boot.inc', '', d)}
+
 SRC_URI += " \
     file://grub.cfg \
     file://grubenv \

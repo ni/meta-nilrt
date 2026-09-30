@@ -141,6 +141,6 @@ ensure_secure_boot_files() {
 	done
 }
 
-IMAGE_PREPROCESS_COMMAND += " bootimg_fixup; ensure_expected_files; ensure_secure_boot_files; "
+IMAGE_PREPROCESS_COMMAND += " bootimg_fixup ensure_expected_files ensure_secure_boot_files"
 
 inherit image

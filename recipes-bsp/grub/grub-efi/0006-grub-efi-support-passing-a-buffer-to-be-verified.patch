@@ -39,7 +39,7 @@ index 2e5285c..1841de7 100644
  				     const grub_efi_char16_t *path);
 
  typedef grub_efi_status_t
-@@ -112,6 +113,112 @@ grub_is_locked (void)
+@@ -112,6 +113,116 @@ grub_is_locked (void)
 
  #pragma GCC diagnostic ignored "-Wvla"
 
@@ -54,9 +54,13 @@ index 2e5285c..1841de7 100644
 +  void *sigdata = NULL;
 +  char *sigpath = NULL;
 +
++  if (grub_is_secured () != 1)
++    return GRUB_ERR_NONE;
++
 +  grub_dprintf ("linux", "Verifying file %s\n", path);
 +
-+  file = grub_file_open (path, GRUB_FILE_TYPE_LINUX_KERNEL);
++  /* TO_HASH bypasses shim_lock's PE-only check; the p7b signs the raw on-disk bytes. */
++  file = grub_file_open (path, GRUB_FILE_TYPE_TO_HASH | GRUB_FILE_TYPE_NO_DECOMPRESS);
 +  if (!file)
 +    return grub_errno;
 +
@@ -77,10 +81,10 @@ index 2e5285c..1841de7 100644
 +  /*By now only supported p7b file veryfing*/
 +  sigpath = grub_xasprintf("%s.p7b", path);
 +  sigfile = grub_file_open (sigpath, GRUB_FILE_TYPE_SIGNATURE);
-+  if (!file) {
++  if (!sigfile) {
 +    grub_error (GRUB_ERR_BAD_OS, N_("Cannot find the signature file %s"),
 +                    sigpath);
-+    return grub_errno;
++    goto fail;
 +  }
 +
 +  sigdata_size = grub_file_size (sigfile);

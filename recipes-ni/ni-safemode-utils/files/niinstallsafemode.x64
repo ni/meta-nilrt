@@ -77,11 +77,24 @@ target_device_code=`/sbin/fw_printenv -n DeviceCode`
 [ -s $tmp_dir/$kernel ]
 [ -s $tmp_dir/$ramdisk ]
 
+# Secure-boot archives carry signed EFI and boot payload files.
+if [ -d $tmp_dir/efi ] || [ -s $tmp_dir/$kernel.p7b ]; then
+	[ -s $tmp_dir/$kernel.p7b ]
+	[ -s $tmp_dir/ramdisk.xz.p7b ]
+	[ -s $tmp_dir/$grub_bootimage_cfg.p7b ]
+	[ -s $tmp_dir/grub.cfg.p7b ]
+fi
+
 # Return a different error code if there is a failure while touching the safemode files
 chmod u+w $mount_point/.safe || exit 5
 chmod u+w $mount_point/.safe/* || exit 5
-cp -f $tmp_dir/* $mount_point/.safe/ || exit 5
-chmod u-w $mount_point/.safe/* || exit 5
+cp -a $tmp_dir/. $mount_point/.safe/ || exit 5
+find $mount_point/.safe -type f -exec chmod u-w {} + || exit 5
+chmod u-w $mount_point/.safe || exit 5
+
+if [ -x $mount_point/.safe/update-safemode-efi.sh ]; then
+	$mount_point/.safe/update-safemode-efi.sh || exit 5
+fi
 chmod u-w $mount_point/.safe || exit 5
 
 if [ -x $tmp_dir/postinst ]; then

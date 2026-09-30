@@ -50,13 +50,20 @@ ensure_secure_boot_payload() {
 	fi
 
 	payload="${IMAGE_ROOTFS}/data.${NILRT_BSI_FSTYPE}"
-	required_file="boot/tmp/runmode/bzImage${SB_FILE_EXT}"
+	required_files="\
+		boot/tmp/runmode/bzImage${SB_FILE_EXT} \
+		boot/tmp/runmode/bootimage.cfg${SB_FILE_EXT} \
+		boot/efi/EFI/BOOT/grub.cfg${SB_FILE_EXT} \
+		boot/efi/nilrt/grub.cfg${SB_FILE_EXT} \
+	"
 
-	if ! tar -tf "${payload}" | grep -Fxq "${required_file}" && \
-	   ! tar -tf "${payload}" | grep -Fxq "./${required_file}"; then
-		echo "ERROR: ${required_file} is required in secure-boot base-system-image payload." 1>&2
-		exit 1
-	fi
+	for required_file in ${required_files}; do
+		if ! tar -tf "${payload}" | grep -Fxq "${required_file}" && \
+		   ! tar -tf "${payload}" | grep -Fxq "./${required_file}"; then
+			echo "ERROR: ${required_file} is required in secure-boot base-system-image payload." 1>&2
+			exit 1
+		fi
+	done
 }
 
 create_cdf() {
@@ -70,7 +77,7 @@ create_cdf() {
 	sed -i "s/%guid%/$GUID/g; s/%version%/$SHORTVER/g; s/%osvalue%/${OSVALUE}/g; s/%osversion%/${OSVERSION}/g; s/%filename%/$TARFILE/g;" $CDFOUT
 }
 
-IMAGE_PREPROCESS_COMMAND += "bootimg_fixup; ensure_secure_boot_payload;"
-IMAGE_POSTPROCESS_COMMAND += "create_cdf;"
+IMAGE_PREPROCESS_COMMAND += "bootimg_fixup ensure_secure_boot_payload"
+IMAGE_POSTPROCESS_COMMAND += "create_cdf"
 
 inherit image
