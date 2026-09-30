@@ -28,6 +28,9 @@ FIT_DESC = "zynq_safemode - ${BUILDNAME}"
 FIT_VERSION = "${@d.getVar('BUILDNAME').split('-', 1)[0]}"
 FIT_DEVICECODE = "0x${@d.getVar('NILRT_ARM_DEVICE_CODES').split()[0]}"
 FIT_DEVICECODES = "${@' '.join('0x' + x for x in (d.getVar('NILRT_ARM_DEVICE_CODES')).split())}"
+FIT_ROOT_NODE_EXTRA_PROPERTIES[version] = "${FIT_VERSION}"
+FIT_ROOT_NODE_EXTRA_PROPERTIES[DeviceCode] = "${FIT_DEVICECODE}"
+FIT_ROOT_NODE_EXTRA_PROPERTIES[DeviceCodes] = "${FIT_DEVICECODES}"
 
 DEPENDS += "u-boot"
 
