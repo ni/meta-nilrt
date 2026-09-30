@@ -12,6 +12,8 @@ SRC_URI += " \
 
 PV = "${DISTRO_VERSION}"
 
+SECURE_BOOT_ENABLED = "${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', '1', '0', d)}"
+
 CDFGUID:x64 = "4C0005F7-54D1-492B-A7E7-C1E58BD9B972"
 CDFGUID:xilinx-zynq = "8E3EACD0-B36E-462B-A500-88AE644AB3B0"
 
@@ -37,6 +39,26 @@ bootimg_fixup() {
 		-delete
 }
 
+ensure_secure_boot_payload() {
+	if [ "${SECURE_BOOT_ENABLED}" != "1" ] || [ "${TARGET_ARCH}" != "x86_64" ]; then
+		return
+	fi
+
+	if [ -z "${SB_FILE_EXT}" ]; then
+		echo "ERROR: SB_FILE_EXT is not set while secure boot is enabled." 1>&2
+		exit 1
+	fi
+
+	payload="${IMAGE_ROOTFS}/data.${NILRT_BSI_FSTYPE}"
+	required_file="boot/tmp/runmode/bzImage${SB_FILE_EXT}"
+
+	if ! tar -tf "${payload}" | grep -Fxq "${required_file}" && \
+	   ! tar -tf "${payload}" | grep -Fxq "./${required_file}"; then
+		echo "ERROR: ${required_file} is required in secure-boot base-system-image payload." 1>&2
+		exit 1
+	fi
+}
+
 create_cdf() {
 	CDFOUT="${DEPLOY_DIR_IMAGE}/${IMAGE_BASENAME}-${MACHINE}${IMAGE_NAME_SUFFIX}.cdf"
 	install -m 0644 "${THISDIR}/files/${BPN}.cdf" $CDFOUT
@@ -48,7 +70,7 @@ create_cdf() {
 	sed -i "s/%guid%/$GUID/g; s/%version%/$SHORTVER/g; s/%osvalue%/${OSVALUE}/g; s/%osversion%/${OSVERSION}/g; s/%filename%/$TARFILE/g;" $CDFOUT
 }
 
-IMAGE_PREPROCESS_COMMAND += "bootimg_fixup;"
+IMAGE_PREPROCESS_COMMAND += "bootimg_fixup; ensure_secure_boot_payload;"
 IMAGE_POSTPROCESS_COMMAND += "create_cdf;"
 
 inherit image

@@ -1,0 +1,52 @@
+From e732b64ff86f06dd7bec1611912973c917ad921a Mon Sep 17 00:00:00 2001
+From: Jussi Keranen <jussi.keranen@vincit.com>
+Date: Tue, 25 Jul 2023 16:03:57 +0800
+Subject: [PATCH] Verify all buffiles
+
+Verify buffiles, e.g. fonts and images
+
+Upstream-Status: Inappropriate [embedded specific]
+
+Signed-off-by: Jussi Keranen <jussi.keranen@vincit.com>
+---
+ grub-core/io/bufio.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/grub-core/io/bufio.c b/grub-core/io/bufio.c
+index a458c3a..dad8b5a 100644
+--- a/grub-core/io/bufio.c
++++ b/grub-core/io/bufio.c
+@@ -24,6 +24,9 @@
+ #include <grub/fs.h>
+ #include <grub/bufio.h>
+ #include <grub/dl.h>
++#ifdef GRUB_MACHINE_EFI
++#include <grub/efi/mok2verify.h>
++#endif
+
+ GRUB_MOD_LICENSE ("GPLv3+");
+
+@@ -91,7 +94,20 @@ grub_file_t
+ grub_buffile_open (const char *name, enum grub_file_type type, grub_size_t size)
+ {
+   grub_file_t io, file;
++#ifdef GRUB_MACHINE_EFI
++  grub_err_t err;
+
++  if (grub_strncmp (name, "(memdisk)", sizeof ("(memdisk)") - 1) != 0)
++    {
++      err = grub_verify_file (name);
++      if (err != GRUB_ERR_NONE)
++        {
++          grub_error (err, "Security Violation: %s failed to load", name);
++          grub_print_error ();
++          grub_halt();
++        }
++    }
++#endif
+   io = grub_file_open (name, type);
+   if (! io)
+     return 0;
+--
+2.25.1
+
