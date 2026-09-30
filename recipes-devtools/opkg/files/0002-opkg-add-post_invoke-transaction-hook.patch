@@ -1,4 +1,4 @@
-From 7769505515ad26b8cb3f3038aac83a0585c6b248 Mon Sep 17 00:00:00 2001
+From 6bf1ad3c868f376784da8e67259d387f376b43c0 Mon Sep 17 00:00:00 2001
 From: vairamani muthusamy <vairamani.muthusamy@emerson.com>
 Date: Wed, 30 Sep 2026 04:26:17 +0530
 Subject: opkg: add post_invoke transaction hook
@@ -10,47 +10,60 @@ configure or flag).
 The value may be a single executable, or a directory of executables that
 are run in lexical, run-parts-like order (a "drop-in" directory). This
 lets integrators react to package changes -- for example to rebuild an
-intrusion-detection baseline or refresh a cache -- without having to wrap
-every opkg invocation.
+intrusion-detection baseline or refresh a cache -- without having to
+wrap every opkg invocation.
 
 The hook fires once per invocation, from the command-line frontend only,
-and is gated on opkg_state_changed so it is not run for "opkg update", for
-no-op transactions, for --noaction (dry-run) runs, or when the transaction
-fails. libopkg API consumers are unaffected.
+and is gated on opkg_state_changed so it is not run for "opkg update",
+for no-op transactions, for --noaction (dry-run) runs, or when the
+transaction fails. libopkg API consumers are unaffected. Hooks are also
+skipped when opkg operates on an offline root other than "/" (-o,
+offline_root or OFFLINE_ROOT): they act on the running system, and
+running them for another root would execute that root's files on the
+host.
 
 Dotfiles and non-executable directory entries are skipped, mirroring
 standard drop-in directory semantics.
 
-Because hooks run with opkg's (root) privileges, a hook -- and the drop-in
-directory containing it -- is run only if it is owned by the user opkg runs
-as and is not writable by group or other; otherwise it is skipped with a log
-message. This prevents a less-privileged user from substituting the code
-opkg executes.
+Because hooks run with opkg's (root) privileges, a hook -- and the
+drop-in directory containing it -- is run only if it is owned by the
+user opkg runs as and is not writable by group or other; otherwise it is
+skipped with a log message. This prevents a less-privileged user from
+substituting the code opkg executes.
 
 To keep that check from being bypassed by swapping a pathname between
-validation and execution, the configured path is opened one component at a
-time with openat(O_NOFOLLOW) from "/": symlinks are refused, and every
+validation and execution, the configured path is opened one component at
+a time with openat(O_NOFOLLOW) from "/": symlinks are refused, and every
 directory on the way must be owned by root or the invoking user and must
 not let another user rename its entries (not group/world-writable, or
 sticky with the entry owned by root or that user). Each hook is opened
-relative to the held directory descriptor, verified with fstat(), and the
-same descriptor is executed with fexecve().
+relative to the held directory descriptor, verified with fstat(), and
+the same descriptor is executed with fexecve().
 
-Each hook runs under a time limit (post_invoke_timeout, default 300 s) in
-its own process group. On timeout opkg sends SIGTERM; after a five-second
-grace it sends SIGKILL to any remaining processes in that group, including
-children if the hook leader exits first. A timeout is logged distinctly.
+Each hook runs under a time limit (post_invoke_timeout, default 300 s)
+in its own process group, measured against CLOCK_MONOTONIC in 64-bit
+milliseconds so any configured value is honoured. On timeout opkg sends
+SIGTERM; after a five-second grace it sends SIGKILL to any remaining
+processes in that group, including children if the hook leader exits
+first. A timeout is logged distinctly.
 
-Hooks are best-effort: opkg logs each invocation and any non-zero exit or
-timeout at a visible level, but a failing hook does not change opkg's exit
-status and is not retried, since the transaction itself has already
+Hooks are best-effort: opkg logs each invocation and any non-zero exit
+or timeout at a visible level, but a failing hook does not change opkg's
+exit status and is not retried, since the transaction itself has already
 completed.
 
-Document the new options in opkg.conf.5 and add core tests covering ordering,
-executable/trust filtering, symlink and writable-ancestor rejection,
-dry-run/no-op gating, best-effort failure handling, and timeout cleanup.
+Document the new options in opkg.conf.5 and add core tests covering
+ordering, executable/trust filtering, symlink and writable-ancestor
+rejection, dry-run/no-op/offline-root gating, best-effort failure
+handling, and timeout cleanup, including a timeout too large for 32-bit
+milliseconds. Since hooks do not run for offline roots, the post_invoke
+tests drive opkg without -o and confine all of its paths to the test
+root.
 
 Upstream-Status: Submitted [https://lists.yoctoproject.org/g/opkg/message/221]
+Differs from the submitted v3: also skips hooks for offline roots (-o)
+and uses a 64-bit monotonic timeout deadline, from downstream review;
+both will be in the next upstream revision.
 
 AI-Generated: Claude Opus 4.8
 Signed-off-by: vairamani muthusamy <vairamani.muthusamy@emerson.com>
@@ -58,13 +71,14 @@ Signed-off-by: vairamani muthusamy <vairamani.muthusamy@emerson.com>
  libopkg/opkg_conf.c                   |   2 +
  libopkg/opkg_conf.h                   |   2 +
  man/opkg.conf.5.in                    |   6 +
- src/opkg.c                            | 362 ++++++++++++++++++++++++++
+ src/opkg.c                            | 387 ++++++++++++++++++++++++++
  tests/Makefile                        |   4 +
- tests/core/46_post_invoke.py          |  94 +++++++
- tests/core/47_post_invoke_security.py |  78 ++++++
- tests/core/48_post_invoke_timeout.py  |  79 ++++++
- tests/core/49_post_invoke_path.py     | 116 +++++++++
- 9 files changed, 743 insertions(+)
+ tests/core/46_post_invoke.py          | 108 +++++++
+ tests/core/47_post_invoke_security.py |  80 ++++++
+ tests/core/48_post_invoke_timeout.py  | 100 +++++++
+ tests/core/49_post_invoke_path.py     | 118 ++++++++
+ tests/opkgcl.py                       |  38 ++-
+ 10 files changed, 844 insertions(+), 1 deletion(-)
  create mode 100644 tests/core/46_post_invoke.py
  create mode 100644 tests/core/47_post_invoke_security.py
  create mode 100644 tests/core/48_post_invoke_timeout.py
@@ -97,7 +111,7 @@ index 650b59c..6f56563 100644
      char *cache_dir;
      char *lock_file;
 diff --git a/man/opkg.conf.5.in b/man/opkg.conf.5.in
-index 94296e7..36c69e4 100644
+index 94296e7..c0a0891 100644
 --- a/man/opkg.conf.5.in
 +++ b/man/opkg.conf.5.in
 @@ -187,6 +187,12 @@ Specifices the root overlay.
@@ -105,7 +119,7 @@ index 94296e7..36c69e4 100644
  Allow overwrite of files not owned by a package (default is 0).
  .TP
 +\fBpost_invoke\fP
-+Specifies a hook to run after a successful, state-changing package transaction (install, upgrade, remove, configure or flag). The value may be a single executable, or a directory of executables which are run in lexical order (a "drop-in" directory). The hook is not run for \fBupdate\fP, for transactions that make no changes, for \fB--noaction\fP (dry-run) transactions, or when the transaction fails. For security, each hook, and the drop-in directory, must be owned by the user opkg runs as and must not be writable by group or other, otherwise it is skipped. The configured path must be absolute and must not contain symbolic links, and every directory above it must be owned by root or the user opkg runs as and must not be writable by group or other (a sticky directory is accepted when the entry below it is owned by root or that user); otherwise the hook is skipped. opkg executes the exact file it validated. A hook that exits non-zero is logged but does not change opkg's exit status.
++Specifies a hook to run after a successful, state-changing package transaction (install, upgrade, remove, configure or flag). The value may be a single executable, or a directory of executables which are run in lexical order (a "drop-in" directory). The hook is not run for \fBupdate\fP, for transactions that make no changes, for \fB--noaction\fP (dry-run) transactions, or when the transaction fails. It is also not run when opkg operates on an offline root (\fB-o\fP, \fBoffline_root\fP or \fBOFFLINE_ROOT\fP) other than \fB/\fP, since hooks act on the running system. For security, each hook, and the drop-in directory, must be owned by the user opkg runs as and must not be writable by group or other, otherwise it is skipped. The configured path must be absolute and must not contain symbolic links, and every directory above it must be owned by root or the user opkg runs as and must not be writable by group or other (a sticky directory is accepted when the entry below it is owned by root or that user); otherwise the hook is skipped. opkg executes the exact file it validated. A hook that exits non-zero is logged but does not change opkg's exit status.
 +.TP
 +\fBpost_invoke_timeout\fP
 +Maximum number of seconds a single \fBpost_invoke\fP hook may run before opkg terminates it (\fBSIGTERM\fP, then \fBSIGKILL\fP after a short grace period). The default is 300. A hook killed for exceeding this limit is logged and, like any other hook failure, does not change opkg's exit status.
@@ -114,10 +128,10 @@ index 94296e7..36c69e4 100644
  Password to use with proxy authentication.
  .TP
 diff --git a/src/opkg.c b/src/opkg.c
-index 6cb8d52..5bd7dc5 100644
+index 6cb8d52..a387e86 100644
 --- a/src/opkg.c
 +++ b/src/opkg.c
-@@ -28,12 +28,22 @@
+@@ -28,12 +28,23 @@
  #include <getopt.h>
  #include <stdlib.h>
  #include <locale.h>
@@ -127,6 +141,7 @@ index 6cb8d52..5bd7dc5 100644
 +#include <dirent.h>
 +#include <fcntl.h>
 +#include <signal.h>
++#include <stdint.h>
 +#include <time.h>
 +#include <sys/stat.h>
 +#include <sys/wait.h>
@@ -140,7 +155,7 @@ index 6cb8d52..5bd7dc5 100644
  #include "xfuncs.h"
  
  enum {
-@@ -455,6 +465,353 @@ static void usage()
+@@ -455,6 +466,377 @@ static void usage()
      exit(1);
  }
  
@@ -186,6 +201,15 @@ index 6cb8d52..5bd7dc5 100644
 +/* Internal sentinel from run_hook_timed(): the hook was killed for exceeding
 + * the time limit (distinct from any real exit status). */
 +#define POST_INVOKE_TIMED_OUT (-2)
++#define POST_INVOKE_GRACE_MS 5000u
++
++static uint64_t post_invoke_now_ms(void)
++{
++    struct timespec ts;
++
++    clock_gettime(CLOCK_MONOTONIC, &ts);
++    return (uint64_t)ts.tv_sec * 1000u + (uint64_t)ts.tv_nsec / 1000000u;
++}
 +
 +/*
 + * Run one hook with a time limit, in its own process group so that a timeout
@@ -196,7 +220,7 @@ index 6cb8d52..5bd7dc5 100644
 +{
 +    pid_t pid;
 +    int status = 0, leader_done = 0, timed_out = 0;
-+    unsigned int run_ms = 0, grace_ms = 0;
++    uint64_t deadline, grace_end = 0;
 +
 +    pid = fork();
 +    if (pid < 0) {
@@ -213,9 +237,11 @@ index 6cb8d52..5bd7dc5 100644
 +        _exit(127);
 +    }
 +    setpgid(pid, pid);          /* set in the parent too, to avoid a race */
++    deadline = post_invoke_now_ms() + (uint64_t)limit_s * 1000u;
 +
 +    for (;;) {
 +        struct timespec ts = { 0, 100000000L };     /* 100 ms */
++        uint64_t now;
 +        pid_t r;
 +
 +        if (!leader_done) {
@@ -231,18 +257,20 @@ index 6cb8d52..5bd7dc5 100644
 +        if (!timed_out && leader_done)
 +            return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
 +
-+        if (!timed_out && run_ms >= limit_s * 1000u) {
++        now = post_invoke_now_ms();
++        if (!timed_out && now >= deadline) {
 +            opkg_msg(NOTICE,
 +                     "post_invoke hook %s exceeded %u s; sending SIGTERM.\n",
 +                     path, limit_s);
 +            kill(-pid, SIGTERM);
 +            timed_out = 1;
++            grace_end = now + POST_INVOKE_GRACE_MS;
 +        } else if (timed_out) {
 +            int group_exists = kill(-pid, 0) == 0 || errno == EPERM;
 +
 +            if (!group_exists)
 +                break;
-+            if (grace_ms >= 5000u) {
++            if (now >= grace_end) {
 +                opkg_msg(NOTICE,
 +                         "post_invoke hook %s exceeded termination grace; sending SIGKILL.\n",
 +                         path);
@@ -256,10 +284,6 @@ index 6cb8d52..5bd7dc5 100644
 +        }
 +
 +        nanosleep(&ts, NULL);
-+        if (timed_out)
-+            grace_ms += 100;
-+        else
-+            run_ms += 100;
 +    }
 +
 +    if (timed_out) {
@@ -457,11 +481,26 @@ index 6cb8d52..5bd7dc5 100644
 +static void run_post_invoke(void)
 +{
 +    const char *hook = opkg_config->post_invoke;
++    const char *root = opkg_config->offline_root;
 +    struct stat st, pst;
 +    int fd;
 +
 +    if (!hook || !hook[0])
 +        return;
++
++    /* Hooks act on the running system, and running them from another root
++     * would execute that root's files on this host, so skip them. */
++    if (root && root[0]) {
++        char *real = realpath(root, NULL);
++        int is_host_root = real && strcmp(real, "/") == 0;
++
++        free(real);
++        if (!is_host_root) {
++            opkg_msg(NOTICE,
++                     "post_invoke: skipping hooks for offline root %s.\n", root);
++            return;
++        }
++    }
 +
 +    fd = post_invoke_open(hook, &st, &pst);
 +    if (fd < 0)
@@ -494,7 +533,7 @@ index 6cb8d52..5bd7dc5 100644
  int main(int argc, char *argv[])
  {
      int opts, err = -1;
-@@ -542,6 +899,11 @@ int main(int argc, char *argv[])
+@@ -542,6 +924,11 @@ int main(int argc, char *argv[])
  
      err = opkg_cmd_exec(cmd, argc - opts, (const char **)(argv + opts));
  
@@ -523,10 +562,10 @@ index 15d58fb..cf04b1f 100644
  		    regress/issue32.py \
 diff --git a/tests/core/46_post_invoke.py b/tests/core/46_post_invoke.py
 new file mode 100644
-index 0000000..3306404
+index 0000000..ba587fb
 --- /dev/null
 +++ b/tests/core/46_post_invoke.py
-@@ -0,0 +1,94 @@
+@@ -0,0 +1,108 @@
 +#! /usr/bin/env python3
 +# SPDX-License-Identifier: GPL-2.0-only
 +#
@@ -535,13 +574,16 @@ index 0000000..3306404
 +#   - runs drop-in scripts in lexical order,
 +#   - ignores non-executable drop-ins,
 +#   - does not run for a --noaction (dry-run) transaction,
-+#   - does not run for a no-op transaction.
++#   - does not run for a no-op transaction,
++#   - does not run for a transaction on an offline root (-o).
 +#
 +
 +import os
 +import opk, cfg, opkgcl
 +
 +opk.regress_init()
++# post_invoke hooks are skipped for offline roots, so drive opkg online.
++opkgcl.use_online_root()
 +
 +TEST_LOG = os.path.join(cfg.offline_root, "post_invoke_test.log")
 +HOOK_DIR = os.path.join(cfg.offline_root, "post_invoke.d")
@@ -621,12 +663,23 @@ index 0000000..3306404
 +if readFile(TEST_LOG) != 'first\nsecond\n':
 +    opk.fail("post_invoke hook did not run after remove: %r"
 +             % readFile(TEST_LOG))
++
++# 5. A transaction on an offline root must not fire the running system's hook.
++rmFile(TEST_LOG)
++out = opkgcl.offline_root_cmd("install a")
++if not opkgcl.is_installed("a"):
++    opk.fail("Package 'a' failed to install into the offline root.")
++if readFile(TEST_LOG) != '':
++    opk.fail("post_invoke hook ran for an offline-root transaction: %r"
++             % readFile(TEST_LOG))
++if 'skipping hooks for offline root' not in out:
++    opk.fail("offline-root skip was not reported: %r" % out)
 diff --git a/tests/core/47_post_invoke_security.py b/tests/core/47_post_invoke_security.py
 new file mode 100644
-index 0000000..63f1b42
+index 0000000..6d09969
 --- /dev/null
 +++ b/tests/core/47_post_invoke_security.py
-@@ -0,0 +1,78 @@
+@@ -0,0 +1,80 @@
 +#! /usr/bin/env python3
 +# SPDX-License-Identifier: GPL-2.0-only
 +#
@@ -640,6 +693,8 @@ index 0000000..63f1b42
 +import opk, cfg, opkgcl
 +
 +opk.regress_init()
++# post_invoke hooks are skipped for offline roots, so drive opkg online.
++opkgcl.use_online_root()
 +
 +TEST_LOG = os.path.join(cfg.offline_root, "post_invoke_sec.log")
 +HOOK_DIR = os.path.join(cfg.offline_root, "post_invoke.d")
@@ -707,10 +762,10 @@ index 0000000..63f1b42
 +             % log)
 diff --git a/tests/core/48_post_invoke_timeout.py b/tests/core/48_post_invoke_timeout.py
 new file mode 100644
-index 0000000..ec54c8a
+index 0000000..3e99316
 --- /dev/null
 +++ b/tests/core/48_post_invoke_timeout.py
-@@ -0,0 +1,79 @@
+@@ -0,0 +1,100 @@
 +#! /usr/bin/env python3
 +# SPDX-License-Identifier: GPL-2.0-only
 +#
@@ -724,6 +779,8 @@ index 0000000..ec54c8a
 +import opk, cfg, opkgcl
 +
 +opk.regress_init()
++# post_invoke hooks are skipped for offline roots, so drive opkg online.
++opkgcl.use_online_root()
 +
 +TEST_LOG = os.path.join(cfg.offline_root, "post_invoke_timeout.log")
 +HOOK_DIR = os.path.join(cfg.offline_root, "post_invoke.d")
@@ -790,12 +847,31 @@ index 0000000..ec54c8a
 +    opk.fail("timed-out hook left a child running: %r" % log)
 +if 'after' not in log:
 +    opk.fail("later hook did not run after a timed-out hook: %r" % log)
++
++# A timeout whose millisecond value exceeds 32 bits must not wrap into a tiny
++# limit: a hook that runs for two seconds has to finish normally.
++for name in ('10-hang', '20-after'):
++    os.remove(os.path.join(HOOK_DIR, name))
++write_hook('30-slow', "#!/bin/sh\nsleep 2\necho slow-done >> '%s'\n" % TEST_LOG)
++conf = '%s/opkg/opkg.conf' % (cfg.offline_root + sysconfdir)
++with open(conf) as f:
++    text = f.read().replace('option post_invoke_timeout 1\n',
++                            'option post_invoke_timeout 4294968\n')
++with open(conf, 'w') as f:
++    f.write(text)
++open(TEST_LOG, 'w').close()
++rc = opkgcl.remove("a")
++if rc != 0:
++    opk.fail("opkg remove returned %d" % rc)
++if readFile(TEST_LOG) != 'slow-done\n':
++    opk.fail("hook was cut short with a large post_invoke_timeout: %r"
++             % readFile(TEST_LOG))
 diff --git a/tests/core/49_post_invoke_path.py b/tests/core/49_post_invoke_path.py
 new file mode 100644
-index 0000000..3f23f19
+index 0000000..b1851c5
 --- /dev/null
 +++ b/tests/core/49_post_invoke_path.py
-@@ -0,0 +1,116 @@
+@@ -0,0 +1,118 @@
 +#! /usr/bin/env python3
 +# SPDX-License-Identifier: GPL-2.0-only
 +#
@@ -812,6 +888,8 @@ index 0000000..3f23f19
 +import opk, cfg, opkgcl
 +
 +opk.regress_init()
++# post_invoke hooks are skipped for offline roots, so drive opkg online.
++opkgcl.use_online_root()
 +
 +TEST_LOG = os.path.join(cfg.offline_root, "post_invoke_path.log")
 +CONF = '%s/opkg/opkg.conf' % (cfg.offline_root + os.environ['SYSCONFDIR'])
@@ -912,6 +990,58 @@ index 0000000..3f23f19
 +log = cycle()
 +if log != '':
 +    opk.fail("symlinked single-file hook was executed: %r" % log)
+diff --git a/tests/opkgcl.py b/tests/opkgcl.py
+index cb71da8..d5764b0 100755
+--- a/tests/opkgcl.py
++++ b/tests/opkgcl.py
+@@ -7,10 +7,46 @@ import cfg
+ 
+ debug_opkg_cmds = bool(os.environ.get('DEBUG_OPKG_CMDS') or False)
+ vardir = os.environ['VARDIR']
++online = False
++_ONLINE_PATHS = (('lists_dir', '/lib/opkg/lists'), ('cache_dir', '/cache/opkg'),
++                 ('lock_file', '/run/opkg.lock'))
++
++
++def use_online_root():
++    """Run opkg without -o (post_invoke hooks are skipped for offline roots),
++    keeping every path it uses inside cfg.offline_root via its config."""
++    global online
++    for opt, sub in _ONLINE_PATHS:
++        path = cfg.offline_root + vardir + sub
++        os.makedirs(os.path.dirname(path) if opt == 'lock_file' else path,
++                    exist_ok=True)
++    online = True
++
++
++def _online_conf():
++    # Regenerated per call so tests can keep editing the regular opkg.conf.
++    conf = ('{}' + os.environ['SYSCONFDIR'] + '/opkg/opkg.conf').format(cfg.offline_root)
++    path = os.path.join(cfg.offline_root, 'opkg-online.conf')
++    with open(conf) as src, open(path, 'w') as f:
++        f.write(src.read())
++        f.write('dest root {}\n'.format(cfg.offline_root))
++        for opt, sub in _ONLINE_PATHS:
++            f.write('option {} {}{}{}\n'.format(opt, cfg.offline_root, vardir, sub))
++    return path
++
++
++def offline_root_cmd(opkg_args):
++    """Run opkg with -o even after use_online_root(); returns its output."""
++    cmd = '{} -o {} {}'.format(cfg.opkgcl, cfg.offline_root, opkg_args)
++    return subprocess.run(cmd, shell=True, stdout=subprocess.PIPE,
++                          stderr=subprocess.STDOUT).stdout.decode('utf-8')
+ 
+ 
+ def opkgcl(opkg_args):
+-    cmd = '{} -o {} {}'.format(cfg.opkgcl, cfg.offline_root, opkg_args)
++    if online:
++        cmd = '{} -f {} {}'.format(cfg.opkgcl, _online_conf(), opkg_args)
++    else:
++        cmd = '{} -o {} {}'.format(cfg.opkgcl, cfg.offline_root, opkg_args)
+     if debug_opkg_cmds:
+         print('DEBUG cmd: {}'.format(cmd))
+     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
 -- 
 2.43.0
 

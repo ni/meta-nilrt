@@ -1,4 +1,4 @@
-From c07e762c2ee7572a7efd43856aab373f20df55a5 Mon Sep 17 00:00:00 2001
+From f633228987ccad62b96ac06ce8324804968c134e Mon Sep 17 00:00:00 2001
 From: vairamani muthusamy <vairamani.muthusamy@emerson.com>
 Date: Wed, 30 Sep 2026 04:26:17 +0530
 Subject: opkg_cmd: count flag changes only when the flag
@@ -16,14 +16,16 @@ Add a core test checking that the hook fires for a real flag or status
 change and not when the same flag or status is applied again.
 
 Upstream-Status: Submitted [https://lists.yoctoproject.org/g/opkg/message/222]
+Differs from the submitted v3 only in the test, which runs opkg without
+-o to match the offline-root change in 0002.
 
 AI-Generated: Claude Opus 4.8
 Signed-off-by: vairamani muthusamy <vairamani.muthusamy@emerson.com>
 ---
  libopkg/opkg_cmd.c                | 19 ++++++--
  tests/Makefile                    |  1 +
- tests/core/50_post_invoke_flag.py | 77 +++++++++++++++++++++++++++++++
- 3 files changed, 94 insertions(+), 3 deletions(-)
+ tests/core/50_post_invoke_flag.py | 79 +++++++++++++++++++++++++++++++
+ 3 files changed, 96 insertions(+), 3 deletions(-)
  create mode 100644 tests/core/50_post_invoke_flag.py
 
 diff --git a/libopkg/opkg_cmd.c b/libopkg/opkg_cmd.c
@@ -86,10 +88,10 @@ index cf04b1f..fd887d8 100644
  		    regress/issue32.py \
 diff --git a/tests/core/50_post_invoke_flag.py b/tests/core/50_post_invoke_flag.py
 new file mode 100644
-index 0000000..032e9af
+index 0000000..4bdde53
 --- /dev/null
 +++ b/tests/core/50_post_invoke_flag.py
-@@ -0,0 +1,77 @@
+@@ -0,0 +1,79 @@
 +#! /usr/bin/env python3
 +# SPDX-License-Identifier: GPL-2.0-only
 +#
@@ -101,6 +103,8 @@ index 0000000..032e9af
 +import opk, cfg, opkgcl
 +
 +opk.regress_init()
++# post_invoke hooks are skipped for offline roots, so drive opkg online.
++opkgcl.use_online_root()
 +
 +TEST_LOG = os.path.join(cfg.offline_root, "post_invoke_flag.log")
 +HOOK_DIR = os.path.join(cfg.offline_root, "post_invoke.d")
