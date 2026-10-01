@@ -1,0 +1,1047 @@
+From 6bf1ad3c868f376784da8e67259d387f376b43c0 Mon Sep 17 00:00:00 2001
+From: vairamani muthusamy <vairamani.muthusamy@emerson.com>
+Date: Wed, 30 Sep 2026 04:26:17 +0530
+Subject: opkg: add post_invoke transaction hook
+
+Add a "post_invoke" configuration option which names a hook to run after
+a successful, state-changing opkg transaction (install, upgrade, remove,
+configure or flag).
+
+The value may be a single executable, or a directory of executables that
+are run in lexical, run-parts-like order (a "drop-in" directory). This
+lets integrators react to package changes -- for example to rebuild an
+intrusion-detection baseline or refresh a cache -- without having to
+wrap every opkg invocation.
+
+The hook fires once per invocation, from the command-line frontend only,
+and is gated on opkg_state_changed so it is not run for "opkg update",
+for no-op transactions, for --noaction (dry-run) runs, or when the
+transaction fails. libopkg API consumers are unaffected. Hooks are also
+skipped when opkg operates on an offline root other than "/" (-o,
+offline_root or OFFLINE_ROOT): they act on the running system, and
+running them for another root would execute that root's files on the
+host.
+
+Dotfiles and non-executable directory entries are skipped, mirroring
+standard drop-in directory semantics.
+
+Because hooks run with opkg's (root) privileges, a hook -- and the
+drop-in directory containing it -- is run only if it is owned by the
+user opkg runs as and is not writable by group or other; otherwise it is
+skipped with a log message. This prevents a less-privileged user from
+substituting the code opkg executes.
+
+To keep that check from being bypassed by swapping a pathname between
+validation and execution, the configured path is opened one component at
+a time with openat(O_NOFOLLOW) from "/": symlinks are refused, and every
+directory on the way must be owned by root or the invoking user and must
+not let another user rename its entries (not group/world-writable, or
+sticky with the entry owned by root or that user). Each hook is opened
+relative to the held directory descriptor, verified with fstat(), and
+the same descriptor is executed with fexecve().
+
+Each hook runs under a time limit (post_invoke_timeout, default 300 s)
+in its own process group, measured against CLOCK_MONOTONIC in 64-bit
+milliseconds so any configured value is honoured. On timeout opkg sends
+SIGTERM; after a five-second grace it sends SIGKILL to any remaining
+processes in that group, including children if the hook leader exits
+first. A timeout is logged distinctly.
+
+Hooks are best-effort: opkg logs each invocation and any non-zero exit
+or timeout at a visible level, but a failing hook does not change opkg's
+exit status and is not retried, since the transaction itself has already
+completed.
+
+Document the new options in opkg.conf.5 and add core tests covering
+ordering, executable/trust filtering, symlink and writable-ancestor
+rejection, dry-run/no-op/offline-root gating, best-effort failure
+handling, and timeout cleanup, including a timeout too large for 32-bit
+milliseconds. Since hooks do not run for offline roots, the post_invoke
+tests drive opkg without -o and confine all of its paths to the test
+root.
+
+Upstream-Status: Submitted [https://lists.yoctoproject.org/g/opkg/message/221]
+Differs from the submitted v3: also skips hooks for offline roots (-o)
+and uses a 64-bit monotonic timeout deadline, from downstream review;
+both will be in the next upstream revision.
+
+AI-Generated: Claude Opus 4.8
+Signed-off-by: vairamani muthusamy <vairamani.muthusamy@emerson.com>
+---
+ libopkg/opkg_conf.c                   |   2 +
+ libopkg/opkg_conf.h                   |   2 +
+ man/opkg.conf.5.in                    |   6 +
+ src/opkg.c                            | 387 ++++++++++++++++++++++++++
+ tests/Makefile                        |   4 +
+ tests/core/46_post_invoke.py          | 108 +++++++
+ tests/core/47_post_invoke_security.py |  80 ++++++
+ tests/core/48_post_invoke_timeout.py  | 100 +++++++
+ tests/core/49_post_invoke_path.py     | 118 ++++++++
+ tests/opkgcl.py                       |  38 ++-
+ 10 files changed, 844 insertions(+), 1 deletion(-)
+ create mode 100644 tests/core/46_post_invoke.py
+ create mode 100644 tests/core/47_post_invoke_security.py
+ create mode 100644 tests/core/48_post_invoke_timeout.py
+ create mode 100644 tests/core/49_post_invoke_path.py
+
+diff --git a/libopkg/opkg_conf.c b/libopkg/opkg_conf.c
+index 5622245..03a8ae0 100644
+--- a/libopkg/opkg_conf.c
++++ b/libopkg/opkg_conf.c
+@@ -49,6 +49,8 @@ opkg_conf_t *opkg_config = &_conf;
+ static opkg_option_t options[] = {
+     {"cache_dir", OPKG_OPT_TYPE_STRING, &_conf.cache_dir},
+     {"intercepts_dir", OPKG_OPT_TYPE_STRING, &_conf.intercepts_dir},
++    {"post_invoke", OPKG_OPT_TYPE_STRING, &_conf.post_invoke},
++    {"post_invoke_timeout", OPKG_OPT_TYPE_INT, &_conf.post_invoke_timeout},
+     {"lists_dir", OPKG_OPT_TYPE_STRING, &_conf.lists_dir},
+     {"lock_file", OPKG_OPT_TYPE_STRING, &_conf.lock_file},
+     {"info_dir", OPKG_OPT_TYPE_STRING, &_conf.info_dir},
+diff --git a/libopkg/opkg_conf.h b/libopkg/opkg_conf.h
+index 650b59c..6f56563 100644
+--- a/libopkg/opkg_conf.h
++++ b/libopkg/opkg_conf.h
+@@ -74,6 +74,8 @@ typedef struct opkg_conf {
+ 
+     char *tmp_dir;
+     char *intercepts_dir; /* set to "/dev/null" to disable intercepts */
++    char *post_invoke;    /* hook run after a successful transaction */
++    int post_invoke_timeout; /* seconds before a post_invoke hook is killed */
+     char *lists_dir;
+     char *cache_dir;
+     char *lock_file;
+diff --git a/man/opkg.conf.5.in b/man/opkg.conf.5.in
+index 94296e7..c0a0891 100644
+--- a/man/opkg.conf.5.in
++++ b/man/opkg.conf.5.in
+@@ -187,6 +187,12 @@ Specifices the root overlay.
+ \fBoverwrite_no_owner\fP
+ Allow overwrite of files not owned by a package (default is 0).
+ .TP
++\fBpost_invoke\fP
++Specifies a hook to run after a successful, state-changing package transaction (install, upgrade, remove, configure or flag). The value may be a single executable, or a directory of executables which are run in lexical order (a "drop-in" directory). The hook is not run for \fBupdate\fP, for transactions that make no changes, for \fB--noaction\fP (dry-run) transactions, or when the transaction fails. It is also not run when opkg operates on an offline root (\fB-o\fP, \fBoffline_root\fP or \fBOFFLINE_ROOT\fP) other than \fB/\fP, since hooks act on the running system. For security, each hook, and the drop-in directory, must be owned by the user opkg runs as and must not be writable by group or other, otherwise it is skipped. The configured path must be absolute and must not contain symbolic links, and every directory above it must be owned by root or the user opkg runs as and must not be writable by group or other (a sticky directory is accepted when the entry below it is owned by root or that user); otherwise the hook is skipped. opkg executes the exact file it validated. A hook that exits non-zero is logged but does not change opkg's exit status.
++.TP
++\fBpost_invoke_timeout\fP
++Maximum number of seconds a single \fBpost_invoke\fP hook may run before opkg terminates it (\fBSIGTERM\fP, then \fBSIGKILL\fP after a short grace period). The default is 300. A hook killed for exceeding this limit is logged and, like any other hook failure, does not change opkg's exit status.
++.TP
+ \fBproxy_passwd\fP
+ Password to use with proxy authentication.
+ .TP
+diff --git a/src/opkg.c b/src/opkg.c
+index 6cb8d52..a387e86 100644
+--- a/src/opkg.c
++++ b/src/opkg.c
+@@ -28,12 +28,23 @@
+ #include <getopt.h>
+ #include <stdlib.h>
+ #include <locale.h>
++#include <string.h>
++#include <errno.h>
++#include <unistd.h>
++#include <dirent.h>
++#include <fcntl.h>
++#include <signal.h>
++#include <stdint.h>
++#include <time.h>
++#include <sys/stat.h>
++#include <sys/wait.h>
+ 
+ #include "opkg_conf.h"
+ #include "opkg_cmd.h"
+ #include "file_util.h"
+ #include "opkg_message.h"
+ #include "opkg_download.h"
++#include "sprintf_alloc.h"
+ #include "xfuncs.h"
+ 
+ enum {
+@@ -455,6 +466,377 @@ static void usage()
+     exit(1);
+ }
+ 
++/*
++ * Run the post_invoke hook after a successful, state-changing transaction.
++ *
++ * opkg_config->post_invoke may name either a single executable or a directory
++ * of executables (a "drop-in" directory).  Directory entries are run in
++ * lexical order.  A hook that fails is logged but does not change opkg's exit
++ * status, since the transaction itself has already succeeded.
++ */
++/*
++ * A post_invoke hook runs as the (root) opkg process, so opkg must not execute
++ * anything a less-privileged user could substitute. A hook file, and the
++ * directory containing it, are trusted only if they are owned by the user opkg
++ * runs as and are not writable by group or other.
++ */
++extern char **environ;
++
++static int post_invoke_trusted(const char *path, const struct stat *st)
++{
++    if (st->st_uid != geteuid()) {
++        opkg_msg(NOTICE, "post_invoke: %s is not owned by uid %d; skipping.\n",
++                 path, (int)geteuid());
++        return 0;
++    }
++    if (st->st_mode & (S_IWGRP | S_IWOTH)) {
++        opkg_msg(NOTICE,
++                 "post_invoke: %s is group- or world-writable; skipping.\n",
++                 path);
++        return 0;
++    }
++    return 1;
++}
++
++/*
++ * Run one hook, best-effort: log the invocation and any non-zero exit, but do
++ * not change opkg's exit status or retry -- the transaction already succeeded.
++ */
++/* Default seconds a post_invoke hook may run before opkg terminates it;
++ * overridable via the post_invoke_timeout config option. */
++#define POST_INVOKE_DEFAULT_TIMEOUT 300
++/* Internal sentinel from run_hook_timed(): the hook was killed for exceeding
++ * the time limit (distinct from any real exit status). */
++#define POST_INVOKE_TIMED_OUT (-2)
++#define POST_INVOKE_GRACE_MS 5000u
++
++static uint64_t post_invoke_now_ms(void)
++{
++    struct timespec ts;
++
++    clock_gettime(CLOCK_MONOTONIC, &ts);
++    return (uint64_t)ts.tv_sec * 1000u + (uint64_t)ts.tv_nsec / 1000000u;
++}
++
++/*
++ * Run one hook with a time limit, in its own process group so that a timeout
++ * also reaps any children it spawned. Returns the hook's exit status, -1 on a
++ * fork/wait error, or POST_INVOKE_TIMED_OUT if the hook had to be killed.
++ */
++static int run_hook_timed(int fd, const char *path, unsigned int limit_s)
++{
++    pid_t pid;
++    int status = 0, leader_done = 0, timed_out = 0;
++    uint64_t deadline, grace_end = 0;
++
++    pid = fork();
++    if (pid < 0) {
++        opkg_perror(ERROR, "post_invoke: cannot fork for %s", path);
++        return -1;
++    }
++    if (pid == 0) {
++        char *argv[] = { (char *)path, NULL };
++
++        setpgid(0, 0);
++        /* A #! interpreter reopens the script via /dev/fd, so keep fd open. */
++        fcntl(fd, F_SETFD, 0);
++        fexecve(fd, argv, environ);
++        _exit(127);
++    }
++    setpgid(pid, pid);          /* set in the parent too, to avoid a race */
++    deadline = post_invoke_now_ms() + (uint64_t)limit_s * 1000u;
++
++    for (;;) {
++        struct timespec ts = { 0, 100000000L };     /* 100 ms */
++        uint64_t now;
++        pid_t r;
++
++        if (!leader_done) {
++            r = waitpid(pid, &status, WNOHANG);
++            if (r == pid)
++                leader_done = 1;
++            else if (r < 0 && errno != EINTR) {
++                opkg_perror(ERROR, "post_invoke: waitpid for %s", path);
++                return -1;
++            }
++        }
++
++        if (!timed_out && leader_done)
++            return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
++
++        now = post_invoke_now_ms();
++        if (!timed_out && now >= deadline) {
++            opkg_msg(NOTICE,
++                     "post_invoke hook %s exceeded %u s; sending SIGTERM.\n",
++                     path, limit_s);
++            kill(-pid, SIGTERM);
++            timed_out = 1;
++            grace_end = now + POST_INVOKE_GRACE_MS;
++        } else if (timed_out) {
++            int group_exists = kill(-pid, 0) == 0 || errno == EPERM;
++
++            if (!group_exists)
++                break;
++            if (now >= grace_end) {
++                opkg_msg(NOTICE,
++                         "post_invoke hook %s exceeded termination grace; sending SIGKILL.\n",
++                         path);
++                kill(-pid, SIGKILL);
++                if (!leader_done) {
++                    while (waitpid(pid, &status, 0) < 0 && errno == EINTR)
++                        ;
++                }
++                return POST_INVOKE_TIMED_OUT;
++            }
++        }
++
++        nanosleep(&ts, NULL);
++    }
++
++    if (timed_out) {
++        if (!leader_done) {
++            while (waitpid(pid, &status, 0) < 0 && errno == EINTR)
++                ;
++        }
++        return POST_INVOKE_TIMED_OUT;
++    }
++    if (leader_done && WIFEXITED(status))
++        return WEXITSTATUS(status);
++    return -1;
++}
++
++/*
++ * Run one hook, best-effort: log the invocation and any non-zero exit (or a
++ * timeout), but do not change opkg's exit status or retry -- the transaction
++ * has already succeeded.
++ */
++static void run_post_invoke_hook(int fd, const char *path)
++{
++    int limit = opkg_config->post_invoke_timeout;
++    int rc;
++
++    if (limit <= 0)
++        limit = POST_INVOKE_DEFAULT_TIMEOUT;
++
++    opkg_msg(NOTICE, "Running post_invoke hook %s\n", path);
++    rc = run_hook_timed(fd, path, (unsigned int)limit);
++    if (rc == POST_INVOKE_TIMED_OUT)
++        opkg_msg(NOTICE,
++                 "post_invoke hook %s timed out after %d s (exit code 124).\n",
++                 path, limit);
++    else if (rc != 0)
++        opkg_msg(NOTICE, "post_invoke hook %s exited with status %d.\n",
++                 path, rc);
++}
++
++/*
++ * A directory on the hook's path is safe if no less-privileged user can
++ * rename the entry below it: it is owned by root or us and is either not
++ * group/world-writable, or is sticky and the entry is owned by root or us.
++ */
++static int post_invoke_ancestor_ok(const struct stat *dst,
++                                   const struct stat *cst)
++{
++    uid_t euid = geteuid();
++
++    if (dst->st_uid != 0 && dst->st_uid != euid)
++        return 0;
++    if (!(dst->st_mode & (S_IWGRP | S_IWOTH)))
++        return 1;
++    return (dst->st_mode & S_ISVTX)
++            && (cst->st_uid == 0 || cst->st_uid == euid);
++}
++
++/*
++ * Open an absolute path one component at a time relative to the previous
++ * directory fd, never following symlinks and checking each directory before
++ * descending, so no component can be swapped once it has been validated.
++ * Returns an fd for the final component with its stat in *st and its parent
++ * directory's stat in *pst, or -1.
++ */
++static int post_invoke_open(const char *path, struct stat *st,
++                            struct stat *pst)
++{
++    char *copy, *comp, *next, *save = NULL;
++    int fd, nfd;
++    struct stat cst;
++
++    if (path[0] != '/') {
++        opkg_msg(NOTICE,
++                 "post_invoke: %s is not an absolute path; skipping.\n", path);
++        return -1;
++    }
++
++    fd = open("/", O_RDONLY | O_DIRECTORY | O_CLOEXEC);
++    if (fd < 0 || fstat(fd, st) != 0) {
++        opkg_perror(ERROR, "post_invoke: cannot open /");
++        if (fd >= 0)
++            close(fd);
++        return -1;
++    }
++    if ((st->st_uid != 0 && st->st_uid != geteuid())
++            || (st->st_mode & (S_IWGRP | S_IWOTH))) {
++        opkg_msg(NOTICE, "post_invoke: / is not trusted; skipping %s.\n",
++                 path);
++        close(fd);
++        return -1;
++    }
++    *pst = *st;
++
++    copy = xstrdup(path);
++    for (comp = strtok_r(copy, "/", &save); comp; comp = next) {
++        next = strtok_r(NULL, "/", &save);
++        if (strcmp(comp, ".") == 0)
++            continue;
++        if (strcmp(comp, "..") == 0) {
++            opkg_msg(NOTICE, "post_invoke: %s contains '..'; skipping.\n",
++                     path);
++            goto fail;
++        }
++        /* O_NONBLOCK keeps a FIFO planted as a hook from stalling opkg. */
++        nfd = openat(fd, comp, O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC
++                     | (next ? O_DIRECTORY : 0));
++        if (nfd < 0) {
++            if (errno == ENOENT)
++                opkg_msg(NOTICE, "post_invoke hook %s not found; skipping.\n",
++                         path);
++            else
++                opkg_msg(NOTICE,
++                         "post_invoke: cannot open %s: %s (symlinks are not followed); skipping.\n",
++                         path, strerror(errno));
++            goto fail;
++        }
++        if (fstat(nfd, &cst) != 0 || !post_invoke_ancestor_ok(st, &cst)) {
++            opkg_msg(NOTICE,
++                     "post_invoke: a directory on the path to %s is writable by another user; skipping.\n",
++                     path);
++            close(nfd);
++            goto fail;
++        }
++        close(fd);
++        fd = nfd;
++        *pst = *st;
++        *st = cst;
++    }
++    free(copy);
++    return fd;
++
++ fail:
++    close(fd);
++    free(copy);
++    return -1;
++}
++
++static int post_invoke_name_cmp(const void *a, const void *b)
++{
++    return strcoll(*(char *const *)a, *(char *const *)b);
++}
++
++static void run_post_invoke_dir(int dfd, const char *hook)
++{
++    DIR *d;
++    const struct dirent *de;
++    char **names = NULL;
++    size_t n = 0, i;
++    int lfd;
++
++    lfd = dup(dfd);
++    d = lfd < 0 ? NULL : fdopendir(lfd);
++    if (!d) {
++        opkg_perror(ERROR, "Failed to scan post_invoke dir %s", hook);
++        if (lfd >= 0)
++            close(lfd);
++        return;
++    }
++    while ((de = readdir(d)) != NULL) {
++        if (de->d_name[0] == '.')
++            continue;
++        names = xrealloc(names, (n + 1) * sizeof(*names));
++        names[n++] = xstrdup(de->d_name);
++    }
++    closedir(d);
++    if (n == 0)
++        return;
++    qsort(names, n, sizeof(*names), post_invoke_name_cmp);
++
++    for (i = 0; i < n; i++) {
++        char *path;
++        struct stat est;
++        int hfd;
++
++        sprintf_alloc(&path, "%s/%s", hook, names[i]);
++        hfd = openat(dfd, names[i],
++                     O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC);
++        if (hfd < 0) {
++            if (errno == ELOOP)
++                opkg_msg(NOTICE,
++                         "post_invoke: %s is a symbolic link; skipping.\n",
++                         path);
++        } else {
++            if (fstat(hfd, &est) == 0 && S_ISREG(est.st_mode)
++                    && (est.st_mode & S_IXUSR)
++                    && post_invoke_trusted(path, &est))
++                run_post_invoke_hook(hfd, path);
++            close(hfd);
++        }
++        free(path);
++        free(names[i]);
++    }
++    free(names);
++}
++
++static void run_post_invoke(void)
++{
++    const char *hook = opkg_config->post_invoke;
++    const char *root = opkg_config->offline_root;
++    struct stat st, pst;
++    int fd;
++
++    if (!hook || !hook[0])
++        return;
++
++    /* Hooks act on the running system, and running them from another root
++     * would execute that root's files on this host, so skip them. */
++    if (root && root[0]) {
++        char *real = realpath(root, NULL);
++        int is_host_root = real && strcmp(real, "/") == 0;
++
++        free(real);
++        if (!is_host_root) {
++            opkg_msg(NOTICE,
++                     "post_invoke: skipping hooks for offline root %s.\n", root);
++            return;
++        }
++    }
++
++    fd = post_invoke_open(hook, &st, &pst);
++    if (fd < 0)
++        return;
++
++    if (S_ISDIR(st.st_mode)) {
++        /* The drop-in directory must be trusted: if a less-privileged user can
++         * write to it, they can add or replace the executables opkg runs. */
++        if (post_invoke_trusted(hook, &st))
++            run_post_invoke_dir(fd, hook);
++    } else if (S_ISREG(st.st_mode) && (st.st_mode & S_IXUSR)) {
++        /* Single-file hook: both the file and its directory must be trusted. */
++        char *dir = xstrdup(hook);
++        char *slash = strrchr(dir, '/');
++
++        if (slash == dir)
++            dir[1] = '\0';
++        else
++            *slash = '\0';
++        if (post_invoke_trusted(dir, &pst) && post_invoke_trusted(hook, &st))
++            run_post_invoke_hook(fd, hook);
++        free(dir);
++    } else {
++        opkg_msg(NOTICE, "post_invoke hook %s is not executable; skipping.\n",
++                 hook);
++    }
++    close(fd);
++}
++
+ int main(int argc, char *argv[])
+ {
+     int opts, err = -1;
+@@ -542,6 +924,11 @@ int main(int argc, char *argv[])
+ 
+     err = opkg_cmd_exec(cmd, argc - opts, (const char **)(argv + opts));
+ 
++    /* Fire the post_invoke hook only once per invocation, and only when the
++     * transaction actually changed state and was not a dry-run. */
++    if (err == 0 && opkg_state_changed && !opkg_config->noaction)
++        run_post_invoke();
++
+     opkg_download_cleanup();
+  err1:
+     opkg_conf_deinit();
+diff --git a/tests/Makefile b/tests/Makefile
+index 15d58fb..cf04b1f 100644
+--- a/tests/Makefile
++++ b/tests/Makefile
+@@ -45,6 +45,10 @@ REGRESSION_TESTS := core/01_install.py \
+ 		    core/43_add_ignore_recommends.py \
+ 		    core/44_search.py \
+ 		    core/45_install_preexisting.py \
++		    core/46_post_invoke.py \
++		    core/47_post_invoke_security.py \
++		    core/48_post_invoke_timeout.py \
++		    core/49_post_invoke_path.py \
+ 		    regress/issue26.py \
+ 		    regress/issue31.py \
+ 		    regress/issue32.py \
+diff --git a/tests/core/46_post_invoke.py b/tests/core/46_post_invoke.py
+new file mode 100644
+index 0000000..ba587fb
+--- /dev/null
++++ b/tests/core/46_post_invoke.py
+@@ -0,0 +1,108 @@
++#! /usr/bin/env python3
++# SPDX-License-Identifier: GPL-2.0-only
++#
++# Verifies the post_invoke hook:
++#   - runs after a successful, state-changing transaction,
++#   - runs drop-in scripts in lexical order,
++#   - ignores non-executable drop-ins,
++#   - does not run for a --noaction (dry-run) transaction,
++#   - does not run for a no-op transaction,
++#   - does not run for a transaction on an offline root (-o).
++#
++
++import os
++import opk, cfg, opkgcl
++
++opk.regress_init()
++# post_invoke hooks are skipped for offline roots, so drive opkg online.
++opkgcl.use_online_root()
++
++TEST_LOG = os.path.join(cfg.offline_root, "post_invoke_test.log")
++HOOK_DIR = os.path.join(cfg.offline_root, "post_invoke.d")
++
++
++def readFile(path):
++    try:
++        with open(path, 'r') as f:
++            return f.read()
++    except IOError:
++        return ''
++
++
++def rmFile(path):
++    try:
++        os.remove(path)
++    except OSError:
++        pass
++
++
++# Create a drop-in hook directory with two ordered scripts. The scripts are
++# named out of lexical order to prove opkg sorts them before running.
++os.makedirs(HOOK_DIR)
++for name, tag in (('20-second', 'second'), ('10-first', 'first')):
++    path = os.path.join(HOOK_DIR, name)
++    with open(path, 'w') as f:
++        os.fchmod(f.fileno(), 0o755)
++        f.write('\n'.join([
++            '#!/bin/sh',
++            "echo %s >> '%s'" % (tag, TEST_LOG),
++            '',
++        ]))
++
++# A non-executable drop-in must be ignored.
++with open(os.path.join(HOOK_DIR, '30-skip'), 'w') as f:
++    f.write("#!/bin/sh\necho skip >> '%s'\n" % TEST_LOG)
++
++sysconfdir = os.environ['SYSCONFDIR']
++testconfdir = cfg.offline_root + sysconfdir
++with open('%s/opkg/opkg.conf' % testconfdir, 'a') as f:
++    f.write('option post_invoke %s\n' % HOOK_DIR)
++
++o = opk.OpkGroup()
++o.add(Package="a")
++o.write_opk()
++o.write_list()
++opkgcl.update()
++
++# 1. A dry-run install must not fire the hook.
++rmFile(TEST_LOG)
++opkgcl.install("a", flags="--noaction")
++if opkgcl.is_installed("a"):
++    opk.fail("Package 'a' installed during a --noaction transaction.")
++if readFile(TEST_LOG) != '':
++    opk.fail("post_invoke hook ran during a --noaction transaction.")
++
++# 2. A real install fires the hook once, running drop-ins in lexical order.
++rmFile(TEST_LOG)
++opkgcl.install("a")
++if not opkgcl.is_installed("a"):
++    opk.fail("Package 'a' installed but reports as not installed.")
++if readFile(TEST_LOG) != 'first\nsecond\n':
++    opk.fail("post_invoke hook did not run drop-ins in order: %r"
++             % readFile(TEST_LOG))
++
++# 3. A no-op transaction (nothing to do) must not fire the hook.
++rmFile(TEST_LOG)
++opkgcl.install("a")
++if readFile(TEST_LOG) != '':
++    opk.fail("post_invoke hook ran for a no-op transaction.")
++
++# 4. A real remove fires the hook again.
++rmFile(TEST_LOG)
++opkgcl.remove("a")
++if opkgcl.is_installed("a"):
++    opk.fail("Package 'a' removed but still reports as installed.")
++if readFile(TEST_LOG) != 'first\nsecond\n':
++    opk.fail("post_invoke hook did not run after remove: %r"
++             % readFile(TEST_LOG))
++
++# 5. A transaction on an offline root must not fire the running system's hook.
++rmFile(TEST_LOG)
++out = opkgcl.offline_root_cmd("install a")
++if not opkgcl.is_installed("a"):
++    opk.fail("Package 'a' failed to install into the offline root.")
++if readFile(TEST_LOG) != '':
++    opk.fail("post_invoke hook ran for an offline-root transaction: %r"
++             % readFile(TEST_LOG))
++if 'skipping hooks for offline root' not in out:
++    opk.fail("offline-root skip was not reported: %r" % out)
+diff --git a/tests/core/47_post_invoke_security.py b/tests/core/47_post_invoke_security.py
+new file mode 100644
+index 0000000..6d09969
+--- /dev/null
++++ b/tests/core/47_post_invoke_security.py
+@@ -0,0 +1,80 @@
++#! /usr/bin/env python3
++# SPDX-License-Identifier: GPL-2.0-only
++#
++# Verifies post_invoke security/robustness behaviour:
++#   - a group/world-writable hook is skipped (not executed),
++#   - a hook that exits non-zero is still run but does not fail opkg,
++#   - a later hook still runs after an earlier hook fails.
++#
++
++import os
++import opk, cfg, opkgcl
++
++opk.regress_init()
++# post_invoke hooks are skipped for offline roots, so drive opkg online.
++opkgcl.use_online_root()
++
++TEST_LOG = os.path.join(cfg.offline_root, "post_invoke_sec.log")
++HOOK_DIR = os.path.join(cfg.offline_root, "post_invoke.d")
++
++
++def readFile(path):
++    try:
++        with open(path, 'r') as f:
++            return f.read()
++    except IOError:
++        return ''
++
++
++def rmFile(path):
++    try:
++        os.remove(path)
++    except OSError:
++        pass
++
++
++def write_hook(name, body, mode):
++    path = os.path.join(HOOK_DIR, name)
++    with open(path, 'w') as f:
++        f.write(body)
++    os.chmod(path, mode)
++
++
++# The drop-in dir must itself be trusted (owned by us, not group/world-writable).
++os.makedirs(HOOK_DIR)
++os.chmod(HOOK_DIR, 0o755)
++
++# 10-ok: normal, trusted hook -> must run.
++write_hook('10-ok', "#!/bin/sh\necho ok >> '%s'\n" % TEST_LOG, 0o755)
++# 20-writable: world-writable -> must be SKIPPED even though executable.
++write_hook('20-writable', "#!/bin/sh\necho evil >> '%s'\n" % TEST_LOG, 0o757)
++# 30-fail: trusted but exits non-zero -> must run (and be logged), must NOT
++# fail opkg, and must NOT prevent later hooks.
++write_hook('30-fail', "#!/bin/sh\necho fail >> '%s'\nexit 1\n" % TEST_LOG, 0o755)
++# 40-after: proves execution continues past a failed hook.
++write_hook('40-after', "#!/bin/sh\necho after >> '%s'\n" % TEST_LOG, 0o755)
++
++sysconfdir = os.environ['SYSCONFDIR']
++with open('%s/opkg/opkg.conf' % (cfg.offline_root + sysconfdir), 'a') as f:
++    f.write('option post_invoke %s\n' % HOOK_DIR)
++
++o = opk.OpkGroup()
++o.add(Package="a")
++o.write_opk()
++o.write_list()
++opkgcl.update()
++
++rmFile(TEST_LOG)
++rc = opkgcl.install("a")
++if rc != 0:
++    opk.fail("opkg install returned %d; a hook failure must not fail opkg" % rc)
++if not opkgcl.is_installed("a"):
++    opk.fail("Package 'a' installed but reports as not installed.")
++
++log = readFile(TEST_LOG)
++if 'evil' in log:
++    opk.fail("group/world-writable hook was executed (should be skipped): %r"
++             % log)
++if log != 'ok\nfail\nafter\n':
++    opk.fail("unexpected hook execution/order: %r (expected 'ok\\nfail\\nafter\\n')"
++             % log)
+diff --git a/tests/core/48_post_invoke_timeout.py b/tests/core/48_post_invoke_timeout.py
+new file mode 100644
+index 0000000..3e99316
+--- /dev/null
++++ b/tests/core/48_post_invoke_timeout.py
+@@ -0,0 +1,100 @@
++#! /usr/bin/env python3
++# SPDX-License-Identifier: GPL-2.0-only
++#
++# Verifies post_invoke_timeout: a hook that runs longer than the configured
++# limit is terminated, does not fail opkg (best-effort), and does not prevent
++# a later hook from running.
++#
++
++import os
++import time
++import opk, cfg, opkgcl
++
++opk.regress_init()
++# post_invoke hooks are skipped for offline roots, so drive opkg online.
++opkgcl.use_online_root()
++
++TEST_LOG = os.path.join(cfg.offline_root, "post_invoke_timeout.log")
++HOOK_DIR = os.path.join(cfg.offline_root, "post_invoke.d")
++
++
++def readFile(path):
++    try:
++        with open(path, 'r') as f:
++            return f.read()
++    except IOError:
++        return ''
++
++
++def write_hook(name, body):
++    path = os.path.join(HOOK_DIR, name)
++    with open(path, 'w') as f:
++        f.write(body)
++    os.chmod(path, 0o755)
++
++
++os.makedirs(HOOK_DIR)
++os.chmod(HOOK_DIR, 0o755)
++
++# The hook leader exits on SIGTERM, but its child ignores SIGTERM and keeps
++# writing. The timeout implementation must still SIGKILL the whole group.
++write_hook('10-hang',
++           "#!/bin/sh\n"
++           "(trap '' TERM; while :; do echo child >> '%s'; sleep 0.1; done) &\n"
++           "trap 'exit 0' TERM\n"
++           "while :; do sleep 1; done\n" % TEST_LOG)
++# 20-after proves execution continues and detects a surviving child.
++write_hook('20-after',
++           "#!/bin/sh\n"
++           "before=$(grep -c '^child$' '%s' || true)\n"
++           "sleep 0.5\n"
++           "after=$(grep -c '^child$' '%s' || true)\n"
++           "[ \"$before\" = \"$after\" ] || echo child-survived >> '%s'\n"
++           "echo after >> '%s'\n"
++           % (TEST_LOG, TEST_LOG, TEST_LOG, TEST_LOG))
++
++sysconfdir = os.environ['SYSCONFDIR']
++with open('%s/opkg/opkg.conf' % (cfg.offline_root + sysconfdir), 'a') as f:
++    f.write('option post_invoke %s\n' % HOOK_DIR)
++    f.write('option post_invoke_timeout 1\n')
++
++o = opk.OpkGroup()
++o.add(Package="a")
++o.write_opk()
++o.write_list()
++opkgcl.update()
++
++start = time.time()
++rc = opkgcl.install("a")
++elapsed = time.time() - start
++
++if rc != 0:
++    opk.fail("opkg install returned %d; a timed-out hook must not fail opkg" % rc)
++if elapsed > 20:
++    opk.fail("hook was not terminated by post_invoke_timeout (took %.1fs)"
++             % elapsed)
++
++log = readFile(TEST_LOG)
++if 'child-survived' in log:
++    opk.fail("timed-out hook left a child running: %r" % log)
++if 'after' not in log:
++    opk.fail("later hook did not run after a timed-out hook: %r" % log)
++
++# A timeout whose millisecond value exceeds 32 bits must not wrap into a tiny
++# limit: a hook that runs for two seconds has to finish normally.
++for name in ('10-hang', '20-after'):
++    os.remove(os.path.join(HOOK_DIR, name))
++write_hook('30-slow', "#!/bin/sh\nsleep 2\necho slow-done >> '%s'\n" % TEST_LOG)
++conf = '%s/opkg/opkg.conf' % (cfg.offline_root + sysconfdir)
++with open(conf) as f:
++    text = f.read().replace('option post_invoke_timeout 1\n',
++                            'option post_invoke_timeout 4294968\n')
++with open(conf, 'w') as f:
++    f.write(text)
++open(TEST_LOG, 'w').close()
++rc = opkgcl.remove("a")
++if rc != 0:
++    opk.fail("opkg remove returned %d" % rc)
++if readFile(TEST_LOG) != 'slow-done\n':
++    opk.fail("hook was cut short with a large post_invoke_timeout: %r"
++             % readFile(TEST_LOG))
+diff --git a/tests/core/49_post_invoke_path.py b/tests/core/49_post_invoke_path.py
+new file mode 100644
+index 0000000..b1851c5
+--- /dev/null
++++ b/tests/core/49_post_invoke_path.py
+@@ -0,0 +1,118 @@
++#! /usr/bin/env python3
++# SPDX-License-Identifier: GPL-2.0-only
++#
++# Verifies post_invoke path hardening against symlink and pathname
++# replacement attacks:
++#   - a drop-in that is a symlink is skipped, even to a trusted executable,
++#   - a hook directory configured through a symlink is not used,
++#   - a hook directory below a directory another user can write to (and that
++#     is not sticky) is not used, since that user could swap it,
++#   - a trusted hook directory still runs its hooks.
++#
++
++import os
++import opk, cfg, opkgcl
++
++opk.regress_init()
++# post_invoke hooks are skipped for offline roots, so drive opkg online.
++opkgcl.use_online_root()
++
++TEST_LOG = os.path.join(cfg.offline_root, "post_invoke_path.log")
++CONF = '%s/opkg/opkg.conf' % (cfg.offline_root + os.environ['SYSCONFDIR'])
++with open(CONF) as f:
++    BASE_CONF = f.read()
++
++
++def readFile(path):
++    try:
++        with open(path, 'r') as f:
++            return f.read()
++    except IOError:
++        return ''
++
++
++def rmFile(path):
++    try:
++        os.remove(path)
++    except OSError:
++        pass
++
++
++def make_hook_dir(path, mode=0o755):
++    os.makedirs(path)
++    os.chmod(path, mode)
++
++
++def write_hook(path, tag):
++    with open(path, 'w') as f:
++        f.write("#!/bin/sh\necho %s >> '%s'\n" % (tag, TEST_LOG))
++    os.chmod(path, 0o755)
++
++
++def use_hook(path):
++    with open(CONF, 'w') as f:
++        f.write(BASE_CONF)
++        f.write('option post_invoke %s\n' % path)
++
++
++def cycle():
++    """Install then remove 'a'; return what the hooks logged."""
++    rmFile(TEST_LOG)
++    opkgcl.install("a")
++    if not opkgcl.is_installed("a"):
++        opk.fail("Package 'a' failed to install.")
++    opkgcl.remove("a")
++    if opkgcl.is_installed("a"):
++        opk.fail("Package 'a' failed to remove.")
++    return readFile(TEST_LOG)
++
++
++o = opk.OpkGroup()
++o.add(Package="a")
++o.write_opk()
++o.write_list()
++opkgcl.update()
++
++# A trusted executable outside the hook directory, reachable only via symlink.
++REAL = os.path.join(cfg.offline_root, "real")
++make_hook_dir(REAL)
++write_hook(os.path.join(REAL, "hook"), "via-symlink")
++
++# 1. Symlinked drop-in is skipped; the regular drop-in beside it still runs.
++HOOK_DIR = os.path.join(cfg.offline_root, "post_invoke.d")
++make_hook_dir(HOOK_DIR)
++write_hook(os.path.join(HOOK_DIR, "10-ok"), "ok")
++os.symlink(os.path.join(REAL, "hook"), os.path.join(HOOK_DIR, "20-link"))
++use_hook(HOOK_DIR)
++log = cycle()
++if 'via-symlink' in log:
++    opk.fail("symlinked drop-in was executed: %r" % log)
++if log != 'ok\nok\n':
++    opk.fail("trusted drop-in did not run once per transaction: %r" % log)
++
++# 2. A hook directory reached through a symlink is not used.
++LINK_DIR = os.path.join(cfg.offline_root, "linked.d")
++os.symlink(HOOK_DIR, LINK_DIR)
++use_hook(LINK_DIR)
++log = cycle()
++if log != '':
++    opk.fail("hook directory reached via symlink was used: %r" % log)
++
++# 3. A hook directory whose parent another user can write to is not used.
++OPEN_PARENT = os.path.join(cfg.offline_root, "open")
++make_hook_dir(OPEN_PARENT)
++os.chmod(OPEN_PARENT, 0o777)
++UNDER_OPEN = os.path.join(OPEN_PARENT, "post_invoke.d")
++make_hook_dir(UNDER_OPEN)
++write_hook(os.path.join(UNDER_OPEN, "10-swapped"), "swapped")
++use_hook(UNDER_OPEN)
++log = cycle()
++if log != '':
++    opk.fail("hook directory below a world-writable parent was used: %r"
++             % log)
++
++# 4. A single-file hook that is itself a symlink is not run.
++use_hook(os.path.join(HOOK_DIR, "20-link"))
++log = cycle()
++if log != '':
++    opk.fail("symlinked single-file hook was executed: %r" % log)
+diff --git a/tests/opkgcl.py b/tests/opkgcl.py
+index cb71da8..d5764b0 100755
+--- a/tests/opkgcl.py
++++ b/tests/opkgcl.py
+@@ -7,10 +7,46 @@ import cfg
+ 
+ debug_opkg_cmds = bool(os.environ.get('DEBUG_OPKG_CMDS') or False)
+ vardir = os.environ['VARDIR']
++online = False
++_ONLINE_PATHS = (('lists_dir', '/lib/opkg/lists'), ('cache_dir', '/cache/opkg'),
++                 ('lock_file', '/run/opkg.lock'))
++
++
++def use_online_root():
++    """Run opkg without -o (post_invoke hooks are skipped for offline roots),
++    keeping every path it uses inside cfg.offline_root via its config."""
++    global online
++    for opt, sub in _ONLINE_PATHS:
++        path = cfg.offline_root + vardir + sub
++        os.makedirs(os.path.dirname(path) if opt == 'lock_file' else path,
++                    exist_ok=True)
++    online = True
++
++
++def _online_conf():
++    # Regenerated per call so tests can keep editing the regular opkg.conf.
++    conf = ('{}' + os.environ['SYSCONFDIR'] + '/opkg/opkg.conf').format(cfg.offline_root)
++    path = os.path.join(cfg.offline_root, 'opkg-online.conf')
++    with open(conf) as src, open(path, 'w') as f:
++        f.write(src.read())
++        f.write('dest root {}\n'.format(cfg.offline_root))
++        for opt, sub in _ONLINE_PATHS:
++            f.write('option {} {}{}{}\n'.format(opt, cfg.offline_root, vardir, sub))
++    return path
++
++
++def offline_root_cmd(opkg_args):
++    """Run opkg with -o even after use_online_root(); returns its output."""
++    cmd = '{} -o {} {}'.format(cfg.opkgcl, cfg.offline_root, opkg_args)
++    return subprocess.run(cmd, shell=True, stdout=subprocess.PIPE,
++                          stderr=subprocess.STDOUT).stdout.decode('utf-8')
+ 
+ 
+ def opkgcl(opkg_args):
+-    cmd = '{} -o {} {}'.format(cfg.opkgcl, cfg.offline_root, opkg_args)
++    if online:
++        cmd = '{} -f {} {}'.format(cfg.opkgcl, _online_conf(), opkg_args)
++    else:
++        cmd = '{} -o {} {}'.format(cfg.opkgcl, cfg.offline_root, opkg_args)
+     if debug_opkg_cmds:
+         print('DEBUG cmd: {}'.format(cmd))
+     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
+-- 
+2.43.0
+

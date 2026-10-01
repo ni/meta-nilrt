@@ -1,0 +1,176 @@
+From f633228987ccad62b96ac06ce8324804968c134e Mon Sep 17 00:00:00 2001
+From: vairamani muthusamy <vairamani.muthusamy@emerson.com>
+Date: Wed, 30 Sep 2026 04:26:17 +0530
+Subject: opkg_cmd: count flag changes only when the flag
+ differs
+
+opkg_flag_cmd() incremented opkg_state_changed for every package it was
+given, even when the requested flag or status was already set. That made
+a no-op "opkg flag" look like a state change: the status file was
+rewritten and the post_invoke hook fired although nothing changed.
+
+Compare the requested state flag or status with the package's current
+value and only count the package as changed when it differs.
+
+Add a core test checking that the hook fires for a real flag or status
+change and not when the same flag or status is applied again.
+
+Upstream-Status: Submitted [https://lists.yoctoproject.org/g/opkg/message/222]
+Differs from the submitted v3 only in the test, which runs opkg without
+-o to match the offline-root change in 0002.
+
+AI-Generated: Claude Opus 4.8
+Signed-off-by: vairamani muthusamy <vairamani.muthusamy@emerson.com>
+---
+ libopkg/opkg_cmd.c                | 19 ++++++--
+ tests/Makefile                    |  1 +
+ tests/core/50_post_invoke_flag.py | 79 +++++++++++++++++++++++++++++++
+ 3 files changed, 96 insertions(+), 3 deletions(-)
+ create mode 100644 tests/core/50_post_invoke_flag.py
+
+diff --git a/libopkg/opkg_cmd.c b/libopkg/opkg_cmd.c
+index c6089f1..b2bacd3 100644
+--- a/libopkg/opkg_cmd.c
++++ b/libopkg/opkg_cmd.c
+@@ -830,6 +830,8 @@ static int opkg_flag_cmd(int argc, char **argv)
+     signal(SIGINT, sigint_handler);
+ 
+     for (i = 1; i < argc; i++) {
++        int changed = 0;
++
+         if (opkg_config->restrict_to_default_dest) {
+             pkg = pkg_hash_fetch_installed_by_name_dest(argv[i],
+                     opkg_config->default_dest);
+@@ -843,7 +845,12 @@ static int opkg_flag_cmd(int argc, char **argv)
+         }
+ 
+         if (is_state_flag) {
+-            pkg->state_flag = pkg_state_flag_from_str(flags);
++            pkg_state_flag_t flag = pkg_state_flag_from_str(flags);
++
++            if (pkg->state_flag != flag) {
++                pkg->state_flag = flag;
++                changed = 1;
++            }
+         }
+ 
+         /*
+@@ -851,10 +858,16 @@ static int opkg_flag_cmd(int argc, char **argv)
+          * should be configured by opkg configure at a later date.
+          */
+         if (is_state_status_flag) {
+-            pkg->state_status = pkg_state_status_from_str(flags);
++            pkg_state_status_t status = pkg_state_status_from_str(flags);
++
++            if (pkg->state_status != status) {
++                pkg->state_status = status;
++                changed = 1;
++            }
+         }
+ 
+-        opkg_state_changed++;
++        if (changed)
++            opkg_state_changed++;
+         opkg_msg(NOTICE, "Setting flags for package %s to %s.\n", pkg->name,
+                  flags);
+     }
+diff --git a/tests/Makefile b/tests/Makefile
+index cf04b1f..fd887d8 100644
+--- a/tests/Makefile
++++ b/tests/Makefile
+@@ -49,6 +49,7 @@ REGRESSION_TESTS := core/01_install.py \
+ 		    core/47_post_invoke_security.py \
+ 		    core/48_post_invoke_timeout.py \
+ 		    core/49_post_invoke_path.py \
++		    core/50_post_invoke_flag.py \
+ 		    regress/issue26.py \
+ 		    regress/issue31.py \
+ 		    regress/issue32.py \
+diff --git a/tests/core/50_post_invoke_flag.py b/tests/core/50_post_invoke_flag.py
+new file mode 100644
+index 0000000..4bdde53
+--- /dev/null
++++ b/tests/core/50_post_invoke_flag.py
+@@ -0,0 +1,79 @@
++#! /usr/bin/env python3
++# SPDX-License-Identifier: GPL-2.0-only
++#
++# Verifies that `opkg flag` fires the post_invoke hook only when it actually
++# changes a package's flag or status, not when it re-applies the current one.
++#
++
++import os
++import opk, cfg, opkgcl
++
++opk.regress_init()
++# post_invoke hooks are skipped for offline roots, so drive opkg online.
++opkgcl.use_online_root()
++
++TEST_LOG = os.path.join(cfg.offline_root, "post_invoke_flag.log")
++HOOK_DIR = os.path.join(cfg.offline_root, "post_invoke.d")
++
++
++def readFile(path):
++    try:
++        with open(path, 'r') as f:
++            return f.read()
++    except IOError:
++        return ''
++
++
++def rmFile(path):
++    try:
++        os.remove(path)
++    except OSError:
++        pass
++
++
++os.makedirs(HOOK_DIR)
++os.chmod(HOOK_DIR, 0o755)
++hook = os.path.join(HOOK_DIR, "10-log")
++with open(hook, 'w') as f:
++    f.write("#!/bin/sh\necho ran >> '%s'\n" % TEST_LOG)
++os.chmod(hook, 0o755)
++
++sysconfdir = os.environ['SYSCONFDIR']
++with open('%s/opkg/opkg.conf' % (cfg.offline_root + sysconfdir), 'a') as f:
++    f.write('option post_invoke %s\n' % HOOK_DIR)
++
++o = opk.OpkGroup()
++o.add(Package="a")
++o.write_opk()
++o.write_list()
++opkgcl.update()
++opkgcl.install("a")
++if not opkgcl.is_installed("a"):
++    opk.fail("Package 'a' failed to install.")
++
++# 1. Setting a new flag is a state change and fires the hook.
++rmFile(TEST_LOG)
++opkgcl.opkgcl("flag hold a")
++if readFile(TEST_LOG) != 'ran\n':
++    opk.fail("hook did not run when 'flag hold' changed the flag: %r"
++             % readFile(TEST_LOG))
++
++# 2. Re-applying the same flag is a no-op and must not fire the hook.
++rmFile(TEST_LOG)
++opkgcl.opkgcl("flag hold a")
++if readFile(TEST_LOG) != '':
++    opk.fail("hook ran for a no-op 'flag hold': %r" % readFile(TEST_LOG))
++
++# 3. Same for status flags: re-applying 'installed' is a no-op.
++rmFile(TEST_LOG)
++opkgcl.opkgcl("flag installed a")
++if readFile(TEST_LOG) != '':
++    opk.fail("hook ran for a no-op 'flag installed': %r"
++             % readFile(TEST_LOG))
++
++# 4. Changing the status flag is a state change and fires the hook.
++rmFile(TEST_LOG)
++opkgcl.opkgcl("flag unpacked a")
++if readFile(TEST_LOG) != 'ran\n':
++    opk.fail("hook did not run when 'flag unpacked' changed the status: %r"
++             % readFile(TEST_LOG))
+-- 
+2.43.0
+
