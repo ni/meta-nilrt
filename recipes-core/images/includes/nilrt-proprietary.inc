@@ -10,7 +10,6 @@ NI_PROPRIETARY_COMMON_PACKAGES = "\
         ni-auth-webservice \
         ni-avahi-client \
         ni-ca-certs \
-        ni-rt-exec-webservice \
         ni-service-locator \
         ni-software-action-services \
         ni-software-installation-websvc \
