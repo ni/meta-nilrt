@@ -17,8 +17,10 @@ PATH=/usr/sbin:/usr/bin:/sbin:/bin
 DB=/var/lib/aide/aide.db.gz
 LOGDIR=/var/log/aide
 TAG=aide-check
-INITLOCK=/run/aide-init.lock
 CHECKLOCK=/run/aide-check.lock
+# Rebuild requested, or started and not finished (see aide-init).
+PENDING=/var/lib/aide/rebuild.pending
+RUNNING=/var/lib/aide/rebuild.running
 
 # Reports can contain file paths and hashes -> keep them root-only. Fail closed
 # if the log directory cannot be created or secured, so we never run a scan we
@@ -39,31 +41,29 @@ if ! exec 9>"$CHECKLOCK" 2>/dev/null; then
 fi
 flock -n 9; _rc=$?
 if [ "$_rc" -eq 1 ]; then
-	logger -t "$TAG" -p daemon.info "another aide-check is running; skipping"
+	# aide-init also holds this lock while it rebuilds the baseline.
+	logger -t "$TAG" -p daemon.info "another aide-check or a baseline rebuild is running; skipping"
 	exit 0
 elif [ "$_rc" -ne 0 ]; then
 	logger -t "$TAG" -p daemon.err "flock failed on $CHECKLOCK (rc=$_rc); skipping check (IO error)"
 	exit 9
 fi
 
-# No baseline database present. Distinguish three cases:
-#  - aide-init is mid-build (its lock is held): the checksum is written before
-#    the DB is promoted, so "checksum present, DB missing" is expected -> skip.
-#  - checksum exists with no build running: the DB was removed after
-#    provisioning (deletion/tampering) -> fail closed.
+# Skip while a rebuild is requested: the active baseline predates the change
+# being rebaselined, so a scan now would report it as a difference. A running
+# build holds this check's lock, so RUNNING seen here was left by a build that
+# died. Request the rebuild again, so neither case is left unserved.
+if [ -f "$PENDING" ] || [ -f "$RUNNING" ]; then
+	logger -t "$TAG" -p daemon.info "baseline rebuild pending; skipping integrity check"
+	/etc/init.d/aide-init reinit </dev/null >/dev/null 2>&1 9>&-
+	exit 0
+fi
+
+# No baseline database present. Distinguish two cases:
+#  - checksum exists: the DB was removed after provisioning (deletion/tampering)
+#    -> fail closed.
 #  - neither DB nor checksum: benign first boot before the baseline exists.
 if [ ! -f "$DB" ]; then
-	# flock -n fails when aide-init's background scan holds the lock (build in
-	# progress) and succeeds when nobody holds it. Stale locks are impossible:
-	# the kernel releases flock automatically when the holding process dies.
-	flock -n "$INITLOCK" true 2>/dev/null; _rc=$?
-	if [ "$_rc" -eq 1 ]; then
-		logger -t "$TAG" -p daemon.info "baseline build in progress; skipping integrity check"
-		exit 0
-	elif [ "$_rc" -ne 0 ]; then
-		logger -t "$TAG" -p daemon.err "cannot probe baseline-build lock $INITLOCK (rc=$_rc); skipping check (IO error)"
-		exit 9
-	fi
 	if [ -f "$DB.sha256" ]; then
 		logger -t "$TAG" -p daemon.crit "baseline database $DB missing but checksum present - possible deletion/tampering; refusing to run (run: /etc/init.d/aide-init reinit)"
 		exit 8
