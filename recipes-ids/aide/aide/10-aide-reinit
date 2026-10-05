@@ -1,0 +1,13 @@
+#!/bin/sh
+# opkg post_invoke hook: rebaseline AIDE after a package transaction so that
+# files added or removed by opkg are not reported as integrity violations on
+# the next check.
+#
+# aide-init's "reinit" action is non-blocking: it records the request and
+# rebuilds in the background (or leaves the request to a rebuild already
+# running), reporting first what changed since the previous baseline.
+# The background rebuild would otherwise inherit opkg's stdio and keep a
+# caller that pipes opkg's output waiting until the scan finishes.
+[ -x /etc/init.d/aide-init ] || exit 0
+/etc/init.d/aide-init reinit </dev/null >/dev/null 2>&1 || true
+exit 0

@@ -20,6 +20,10 @@ INITSCRIPT_PARAMS = "defaults 99"
 # Scheduled integrity checks via cron -> syslog.
 SRC_URI += "file://aide-check file://aide-check.cron file://aide.logrotate"
 
+# Auto-rebaseline after opkg package operations, via the opkg post_invoke hook
+# (drop-in run by opkg after each successful, state-changing transaction).
+SRC_URI += "file://10-aide-reinit"
+
 # Runtime deps for the shipped scripts:
 #  - cronie schedules aide-check
 #  - logrotate rotates the persistent report log (ships /etc/logrotate.d/aide)
@@ -46,6 +50,8 @@ do_install:append () {
 	install -m 0644 ${UNPACKDIR}/aide-check.cron ${D}${sysconfdir}/cron.d/aide-check
 	install -d ${D}${sysconfdir}/logrotate.d
 	install -m 0644 ${UNPACKDIR}/aide.logrotate ${D}${sysconfdir}/logrotate.d/aide
+	install -d ${D}${sysconfdir}/opkg/post_invoke.d
+	install -m 0755 ${UNPACKDIR}/10-aide-reinit ${D}${sysconfdir}/opkg/post_invoke.d/10-aide-reinit
 }
 
 FILES:${PN} += "\
@@ -55,4 +61,5 @@ FILES:${PN} += "\
 	${sbindir}/aide-check \
 	${sysconfdir}/cron.d/aide-check \
 	${sysconfdir}/logrotate.d/aide \
+	${sysconfdir}/opkg/post_invoke.d/10-aide-reinit \
 "
