@@ -45,7 +45,6 @@ RDEPENDS:${PN} = "\
 	python3-avahi \
 	python3-certifi \
 	python3-cffi \
-	python3-chardet \
 	python3-codecs \
 	python3-compile \
 	python3-compression \
