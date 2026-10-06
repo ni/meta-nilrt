@@ -30,7 +30,7 @@ IMAGE_INSTALL_NODEPS += "\
 	${NI_PROPRIETARY_SAFEMODE_PACKAGES} \
 "
 
-BAD_RECOMMENDATIONS:append:pn-${PN} = " shared-mime-info *-lic"
+BAD_RECOMMENDATIONS:append:pn-${PN} = " shared-mime-info *-lic util-linux-lastlog2 util-linux-lslogins"
 
 IMAGE_LINGUAS:remove = "ja-jp.windows-31j zh-cn.cp936"
 
