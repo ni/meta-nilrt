@@ -42,6 +42,7 @@ IMAGE_FEATURES += "allow-setting-blank-passwords"
 require includes/nilrt-image-base.inc
 require includes/nilrt-xfce.inc
 require includes/nilrt-proprietary.inc
+inherit nilrt-lto-image-qa
 
 
 # ==============================================================================
