@@ -16,6 +16,11 @@ IMAGE_INSTALL += "\
 	packagegroup-ni-tzdata \
 "
 
+# dpkg-start-stop (the only dpkg subpackage we install) does not use
+# translations, so stop it from triggering installation of dpkg's
+# locale subpackages via the complementary-locale mechanism.
+PACKAGE_EXCLUDE_COMPLEMENTARY += "dpkg-start-stop"
+
 # Keep this line commented out until dist-next tests can handle expired passwords
 # EXTRA_USERS_PARAMS += "passwd-expire root;"
 
