@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>NI-RIO Server</short>
+  <description>The NI-RIO Server permits remote access to RIO devices. 11296 is the default RpcServerPort in nirio.ini; a non-default port must be opened separately.</description>
+  <port protocol="tcp" port="11296"/>
+</service>

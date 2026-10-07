@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>LabVIEW Remote Front Panels</short>
+  <description>The LabVIEW Web Server permits viewing and controlling VI front panels remotely.</description>
+  <port protocol="tcp" port="8000"/>
+</service>
