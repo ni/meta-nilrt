@@ -9,8 +9,8 @@
 #   * offline - firewalld is not running (e.g. early first boot). Changes are
 #     written with firewall-offline-cmd and take effect when firewalld starts.
 #   * live    - firewalld is running. Changes are applied to the running config
-#     (immediate) and the permanent config (persisted), without a full
-#     'firewall-cmd --reload', so other runtime rules are left undisturbed.
+#     (immediate) and the permanent config (persisted). firewalld is reloaded
+#     only when opening a service whose definition it has not loaded yet.
 #
 # Usage: ni-firewall-open  <service> [<service> ...]
 #        ni-firewall-close <service> [<service> ...]
@@ -40,12 +40,21 @@ fi
 
 # Ask firewalld itself which service definitions exist instead of scanning a
 # hard-coded path: XMLs may live under /etc/firewalld/services or the platform
-# ${libdir} (/usr/lib or /usr/lib64), alongside firewalld's own built-ins. The
-# permanent/offline views read straight from disk, so a freshly installed
-# service file is visible without a daemon reload.
+# ${libdir} (/usr/lib or /usr/lib64), alongside firewalld's own built-ins.
+# firewall-offline-cmd reads them straight from disk (also while the daemon
+# runs), so a freshly installed service file is always visible.
 service_exists() {
 	for s in ${available_services:-}; do
 		[ "$s" = "$1" ] && return 0
+	done
+	return 1
+}
+
+in_list() {
+	svc_name=$1
+	shift
+	for s in "$@"; do
+		[ "$s" = "$svc_name" ] && return 0
 	done
 	return 1
 }
@@ -60,7 +69,7 @@ service_exists() {
 if firewall-cmd --state >/dev/null 2>&1; then
 	live=1
 	zone=$(firewall-cmd --get-default-zone 2>/dev/null)
-	available_services=$(firewall-cmd --permanent --get-services 2>/dev/null) || available_services=
+	available_services=$(firewall-offline-cmd --get-services 2>/dev/null) || available_services=
 else
 	live=0
 	zone=$(firewall-offline-cmd --get-default-zone 2>/dev/null)
@@ -97,6 +106,22 @@ fw_perm_remove() {
 		firewall-offline-cmd --zone="$zone" --remove-service-from-zone="$1"
 	fi
 }
+# The running daemon only loads service files at start/reload, so one installed
+# while it runs is unknown to it. Reload once before opening such a service; the
+# helper keeps runtime and permanent in step, so nothing it manages is lost.
+if [ "$live" = 1 ] && [ "$action" = add ]; then
+	loaded_services=$(firewall-cmd --get-services 2>/dev/null) || loaded_services=
+	for svc in "$@"; do
+		if service_exists "$svc" && ! in_list "$svc" $loaded_services; then
+			echo "$prog: reloading firewalld to load new service definitions"
+			if ! firewall-cmd --reload >/dev/null 2>&1; then
+				echo "$prog: firewalld reload failed" >&2
+				exit 1
+			fi
+			break
+		fi
+	done
+fi
 
 rc=0
 for svc in "$@"; do
@@ -124,12 +149,11 @@ for svc in "$@"; do
 	fi
 
 	# On a live system also reflect the change in the running config so it
-	# takes effect immediately, without a full reload (which would drop other
-	# runtime-only rules). Only touch the running config when it is not already
-	# in the desired state. The permanent config was already updated above, so if
-	# this runtime step fails the running and permanent configs can stay out of
-	# sync until the next firewalld reload/restart; surface that as a non-zero
-	# exit rather than hiding it.
+	# takes effect immediately. Only touch the running config when it is not
+	# already in the desired state. The permanent config was already updated
+	# above, so if this runtime step fails the running and permanent configs can
+	# stay out of sync until the next firewalld reload/restart; surface that as a
+	# non-zero exit rather than hiding it.
 	if [ "$live" = 1 ]; then
 		runtime_enabled=0
 		firewall-cmd --zone="$zone" --query-service="$svc" >/dev/null 2>&1 &&
