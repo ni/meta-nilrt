@@ -15,7 +15,9 @@
 # Usage: ni-firewall-open  <service> [<service> ...]
 #        ni-firewall-close <service> [<service> ...]
 #
-# Re-running is idempotent. An unknown service name causes a non-zero exit.
+# Re-running is idempotent. Opening an unknown service causes a non-zero exit.
+# Closing does not require the service definition to exist, so a service whose
+# package (and XML) was removed can still be taken out of the zone.
 
 set -u
 
@@ -83,13 +85,21 @@ fw_perm() {
 	if [ "$live" = 1 ]; then
 		firewall-cmd --permanent --zone="$zone" "$@"
 	else
+		case $1 in
+		--remove-service=*)
+			# firewall-offline-cmd treats a bare --remove-service as a lokkit option.
+			fw_opt=$1
+			shift
+			set -- "--remove-service-from-zone=${fw_opt#--remove-service=}" "$@"
+			;;
+		esac
 		firewall-offline-cmd --zone="$zone" "$@"
 	fi
 }
 
 rc=0
 for svc in "$@"; do
-	if ! service_exists "$svc"; then
+	if [ "$action" = add ] && ! service_exists "$svc"; then
 		echo "$prog: unknown firewalld service '$svc'" >&2
 		rc=1
 		continue
