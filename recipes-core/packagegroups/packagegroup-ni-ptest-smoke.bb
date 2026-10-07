@@ -49,6 +49,8 @@ RDEPENDS:${PN}:append = "\
 	run-postinsts-ptest \
 	sed-ptest \
 	util-linux-ptest \
-	xorg-fonts-100dpi-ptest \
 	zeromq-ptest \
 "
+
+# xorg-fonts-100dpi-ptest requires the x11 DISTRO_FEATURE.
+RDEPENDS:${PN}:append = " ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'xorg-fonts-100dpi-ptest', '', d)}"
