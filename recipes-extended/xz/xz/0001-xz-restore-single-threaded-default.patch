@@ -1,0 +1,28 @@
+Subject: [PATCH] xz: restore the single-threaded default
+
+XZ 5.6 switched the default to automatic threading. The additional decoder
+buffers can exhaust the virtual-memory commit limit on memory-constrained
+NILRT targets during system image installation.
+
+Restore the default used by XZ 5.4.x and older so callers such as tar do not
+need to supply thread options. Explicit --threads options still override
+the default.
+
+Upstream-Status: Inappropriate [NILRT memory policy]
+
+Assisted-by: Copilot:GPT-6.1-Sol
+Signed-off-by: Chaitanya Vadrevu <chaitanya.vadrevu@emerson.com>
+
+diff --git a/src/xz/hardware.c b/src/xz/hardware.c
+--- a/src/xz/hardware.c
++++ b/src/xz/hardware.c
+@@ -407,7 +407,6 @@ hardware_init(void)
+ 
+-	// Enable threaded mode by default. xz 5.4.x and older
+-	// used single-threaded mode by default.
+-	hardware_threads_set(0);
++	// Use the single-threaded default from xz 5.4.x and older.
++	hardware_threads_set(1);
+ 
+ 	return;
+ }
