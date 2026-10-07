@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>LabVIEW Web Services</short>
+  <description>The NI Application Web Server hosts LabVIEW Web Services deployed to the target.</description>
+  <port protocol="tcp" port="8080"/>
+</service>

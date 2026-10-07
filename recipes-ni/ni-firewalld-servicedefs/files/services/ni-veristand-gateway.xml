@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>NI VeriStand Gateway</short>
+  <description>The NI VeriStand Gateway relays communication between VeriStand clients and the VeriStand Engine.</description>
+  <port protocol="tcp" port="2039"/>
+  <port protocol="tcp" port="2041"/>
+  <port protocol="tcp" port="2042"/>
+</service>

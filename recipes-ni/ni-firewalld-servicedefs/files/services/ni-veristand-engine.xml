@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>NI VeriStand Engine</short>
+  <description>The NI VeriStand Engine permits a VeriStand host to deploy to and communicate with a real-time target.</description>
+  <port protocol="tcp" port="2040"/>
+  <port protocol="tcp" port="2050"/>
+</service>
