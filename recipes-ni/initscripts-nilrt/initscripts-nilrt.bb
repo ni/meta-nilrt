@@ -110,11 +110,9 @@ do_install_ptest () {
 	cp ${S}/test-safemode-runlevel-init ${D}${PTEST_PATH}/
 }
 
-# /etc/init.d/populateconfig invokes wpa-supplicant.ipk scripts.
 RDEPENDS:${PN} += "\
 	bash \
 	niacctbase \
 	update-rc.d \
-	wpa-supplicant \
 "
 RDEPENDS:${PN}-ptest += "bash"
