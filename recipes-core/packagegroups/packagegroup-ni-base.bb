@@ -47,7 +47,6 @@ RDEPENDS:${PN} += "\
 	initscripts \
 	initscripts-nilrt \
 	iproute2 \
-	iptables \
 	kmod \
 	libavahi-client \
 	libavahi-common \

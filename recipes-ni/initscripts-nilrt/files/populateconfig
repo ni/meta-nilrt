@@ -91,8 +91,8 @@ then
 	chown webserv:root "/etc/natinst/share/certstore/wireless/client"
 	chmod 700 "/etc/natinst/share/certstore/wireless/client"
 
-	#default wireless configuration
-	/etc/network/wpa_supplicant_conf
+	#default wireless configuration (absent when wifi is excluded, e.g. safemode)
+	[ -x /etc/network/wpa_supplicant_conf ] && /etc/network/wpa_supplicant_conf
 
 	# ws_core
 	touch /etc/natinst/share/certstore/wsapi.key

@@ -67,7 +67,6 @@ RDEPENDS:${PN} += "\
 	bash \
 	coreutils \
 	e2fsprogs-mke2fs \
-	pkgconfig \
 	ni-netcfgutil \
 	niacctbase \
 	shadow \
