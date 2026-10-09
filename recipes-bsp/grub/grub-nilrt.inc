@@ -1,13 +1,19 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/grub:"
 
+# The meta-efi-secure-boot mok2verify patches rewrite the same GRUB banner and
+# menu message sites, so a variant of the NI branding patch is needed there. It
+# is added via :append so that it is always applied after the secure-boot ones.
+GRUB_NILRT_ADVERTISE_PATCH ?= "file://grub-advertise-NI-NILRT-over-GNU-GRUB.patch"
+
 SRC_URI += "\
-	file://cmd-test-Add-bitwise-AND-document-the-feature.patch \
-	file://grub-advertise-NI-NILRT-over-GNU-GRUB.patch \
-	file://add-inbit-command-to-io-module.patch \
-	file://grub.cfg \
-	file://cfg \
-	file://grub.d \
+        file://cmd-test-Add-bitwise-AND-document-the-feature.patch \
+        file://add-inbit-command-to-io-module.patch \
+        file://grub.cfg \
+        file://cfg \
+        file://grub.d \
 "
+
+SRC_URI:append = " ${GRUB_NILRT_ADVERTISE_PATCH}"
 
 # Grub always try to force soft float in recent grub versions, even on x64, and this
 # conflicts with how the x64 OE toolchain is set up. The only solution is to cache

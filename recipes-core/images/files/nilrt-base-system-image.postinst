@@ -77,14 +77,85 @@ if [ "$arch" = "armv7l" ]; then
 	rmdir "$mount_point/runmode" 2>/dev/null || true
 elif [ "$arch" = "x86_64" ]; then
 	kernel="/mnt/userfs/boot/tmp/runmode"
+	kernel_sig_ext=""
+	for ext in .p7b .sig; do
+		if [ -e "${kernel}/bzImage${ext}" ]; then
+			kernel_sig_ext="${ext}"
+			break
+		fi
+	done
+	if [ -z "${kernel_sig_ext}" ]; then
+		versioned_kernel_sig=$(ls -1 "${kernel}"/bzImage-*.* 2>/dev/null | grep -E '\.(p7b|sig)$' | sort | tail -n 1)
+		if [ -n "${versioned_kernel_sig}" ]; then
+			kernel_sig_ext=".${versioned_kernel_sig##*.}"
+			cp "${versioned_kernel_sig}" "${kernel}/bzImage${kernel_sig_ext}"
+		fi
+	fi
 	# install the kernel
 	rm -rf /boot/runmode
 	if mv "$kernel" "$mount_point"; then
 		# Remove the tmp path from the rootfs
 		rmdir "`dirname "$kernel"`"
+		if [ -n "${kernel_sig_ext}" ] && [ ! -e "${mount_point}/runmode/bzImage${kernel_sig_ext}" ]; then
+			echo "ERROR: runmode kernel signature sidecar was not preserved." 1>&2
+			exit 1
+		fi
 	else
 		exit 1
 	fi
+fi
+
+install_secure_boot_efi()
+{
+	local source_dir=/mnt/userfs/boot/efi
+	local esp_mount=/var/volatile/nigrub
+	local boot_dir=$source_dir/EFI/BOOT
+	local nilrt_dir=$source_dir/nilrt
+	local runmode_dir=/boot/runmode
+	local file
+
+	if [ ! -f "$boot_dir/SELoaderx64.efi" ] || [ ! -f "$boot_dir/grub.cfg.p7b" ]; then
+		return 0
+	fi
+
+	for file in bootx64.efi SELoaderx64.efi mmx64.efi grubx64.efi; do
+		[ -f "$boot_dir/$file" ] || {
+			echo "ERROR: secure-boot EFI file is missing: $boot_dir/$file" 1>&2
+			return 1
+		}
+	done
+	for file in grub.cfg grub.cfg.p7b; do
+		[ -f "$nilrt_dir/$file" ] || {
+			echo "ERROR: secure-boot runmode file is missing: $nilrt_dir/$file" 1>&2
+			return 1
+		}
+	done
+	for file in bzImage bzImage.p7b bootimage.cfg bootimage.cfg.p7b; do
+		[ -f "$runmode_dir/$file" ] || {
+			echo "ERROR: secure-boot runmode file is missing: $runmode_dir/$file" 1>&2
+			return 1
+		}
+	done
+
+	mkdir -p "$esp_mount"
+	mount -L nigrub "$esp_mount"
+	trap 'umount "$esp_mount"' RETURN
+	mkdir -p "$esp_mount/efi/boot" "$esp_mount/efi/nilrt"
+
+	# efi/boot/grub.cfg is the safemode-owned boot menu; leave it in place.
+	for file in bootx64.efi SELoaderx64.efi mmx64.efi grubx64.efi \
+		Hash2DxeCrypto.efi Pkcs7VerifyDxe.efi LockDown.efi; do
+		if [ -f "$boot_dir/$file" ]; then
+			cp -a "$boot_dir/$file" "$esp_mount/efi/boot/"
+		fi
+	done
+	cp -a "$nilrt_dir/grub.cfg" "$nilrt_dir/grub.cfg.p7b" "$esp_mount/efi/nilrt/"
+	rm -rf "$esp_mount/efi/boot/fonts"
+	sync
+}
+
+if [ "$arch" = "x86_64" ]; then
+	install_secure_boot_efi
 fi
 
 # Use persistent names on PXI, not on any other targets
