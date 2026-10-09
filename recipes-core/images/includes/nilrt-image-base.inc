@@ -16,8 +16,7 @@ IMAGE_INSTALL += "\
 	packagegroup-ni-tzdata \
 "
 
-# Keep this line commented out until dist-next tests can handle expired passwords
-# EXTRA_USERS_PARAMS += "passwd-expire root;"
+EXTRA_USERS_PARAMS += "passwd-expire root;"
 
 addtask image_build_test before do_rootfs
 
