@@ -12,6 +12,7 @@ SRC_URI = "\
 	file://${NIINSTALLSAFEMODE} \
 	file://nisafemodeversion \
 "
+S = "${UNPACKDIR}"
 
 natinstbin = "/usr/local/natinst/bin"
 
