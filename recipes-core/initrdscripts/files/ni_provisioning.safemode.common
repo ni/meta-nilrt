@@ -261,17 +261,34 @@ install_grub()
 
 	print_info "Installing grub.cfg..."
 
-	if [ -f "$GRUB_TARGET_DIR/grub.cfg" ] ; then
-		print_info "Preserving existing grub.cfg on ESP..."
+	if secure_boot_chain_available ; then
+		grub_sig_ext=""
+		for sig_ext in .p7b .sig ; do
+			if [ -f "$SOURCE_DIR/grub.cfg$sig_ext" ] ; then
+				grub_sig_ext=$sig_ext
+				break
+			fi
+		done
+		[ -n "$grub_sig_ext" ] || die "Secure Boot grub.cfg signature is missing"
+		rm -f "$GRUB_TARGET_DIR/grub.cfg.p7b" "$GRUB_TARGET_DIR/grub.cfg.sig"
+		cp "$SOURCE_DIR/grub.cfg" "$GRUB_TARGET_DIR/grub.cfg"
+		cp "$SOURCE_DIR/grub.cfg$grub_sig_ext" "$GRUB_TARGET_DIR/grub.cfg$grub_sig_ext"
 	else
-		cp $SOURCE_DIR/grub.cfg $GRUB_TARGET_DIR/grub.cfg
-	fi
-	if [ -f "$SOURCE_DIR/grub.cfg.p7b" ] ; then
-		if [ -f "$GRUB_TARGET_DIR/grub.cfg.p7b" ] ; then
-			print_info "Preserving existing grub.cfg.p7b on ESP..."
+		if [ -f "$GRUB_TARGET_DIR/grub.cfg" ] ; then
+			print_info "Preserving existing grub.cfg on ESP..."
 		else
-			cp $SOURCE_DIR/grub.cfg.p7b $GRUB_TARGET_DIR/grub.cfg.p7b
+			cp "$SOURCE_DIR/grub.cfg" "$GRUB_TARGET_DIR/grub.cfg"
 		fi
+		for sig_ext in .p7b .sig ; do
+			if [ -f "$SOURCE_DIR/grub.cfg$sig_ext" ] ; then
+				if [ -f "$GRUB_TARGET_DIR/grub.cfg$sig_ext" ] ; then
+					print_info "Preserving existing grub.cfg$sig_ext on ESP..."
+				else
+					cp "$SOURCE_DIR/grub.cfg$sig_ext" "$GRUB_TARGET_DIR/grub.cfg$sig_ext"
+				fi
+				break
+			fi
+		done
 	fi
 
 	# In Secure Boot mode, the font is embedded in the signed grubx64.efi and
@@ -304,6 +321,25 @@ install_safemode()
 	cp "$SOURCE_DIR"/*Image		"$BOOTFS_MOUNTPOINT/.safe/"
 	cp "$SOURCE_DIR"/ramdisk.*	"$BOOTFS_MOUNTPOINT/.safe/"
 	cp "$SOURCE_DIR"/bootimage.*  "$BOOTFS_MOUNTPOINT/.safe/"
+	if [ -f "$SOURCE_DIR/update-safemode-efi.sh" ] ; then
+		config_sig_ext=""
+		for sig_ext in .p7b .sig ; do
+			if [ -f "$SOURCE_DIR/bootimage.cfg$sig_ext" ] ; then
+				config_sig_ext=$sig_ext
+				break
+			fi
+		done
+		[ -n "$config_sig_ext" ] || die "Secure Boot bootimage.cfg signature is missing"
+		[ -f "$SOURCE_DIR/grub.cfg$config_sig_ext" ] || die "Matching Secure Boot grub.cfg signature is missing"
+		rm -f "$BOOTFS_MOUNTPOINT/.safe/bootimage.cfg.p7b" \
+			"$BOOTFS_MOUNTPOINT/.safe/bootimage.cfg.sig" \
+			"$BOOTFS_MOUNTPOINT/.safe/grub.cfg.p7b" \
+			"$BOOTFS_MOUNTPOINT/.safe/grub.cfg.sig"
+		cp -a "$SOURCE_DIR/bootimage.cfg" "$SOURCE_DIR/bootimage.cfg$config_sig_ext" "$BOOTFS_MOUNTPOINT/.safe/"
+		cp -a "$SOURCE_DIR/grub.cfg" "$SOURCE_DIR/grub.cfg$config_sig_ext" "$BOOTFS_MOUNTPOINT/.safe/"
+		cp -a "$SOURCE_DIR/update-safemode-efi.sh" "$BOOTFS_MOUNTPOINT/.safe/"
+		cp -a "$SOURCE_DIR/efi" "$BOOTFS_MOUNTPOINT/.safe/"
+	fi
 	# Detached kernel signature; the ramdisk and bootimage globs above
 	# already pick theirs up.
 	if [ -f "$SOURCE_DIR/bzImage.p7b" ] ; then

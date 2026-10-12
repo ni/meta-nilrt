@@ -89,7 +89,9 @@ secure_boot_esp_fixup() {
 	fi
 
 	for f in bootx64.efi mmx64.efi SELoaderx64.efi; do
-		if [ ! -e "${IMAGE_ROOTFS}/efi/EFI/BOOT/$f" ]; then
+		if [ "$f" = "SELoaderx64.efi" ] && [ ! -e "${IMAGE_ROOTFS}/efi/EFI/BOOT/$f" ]; then
+ 			continue
+ 		fi
 			bbfatal "$f is required in the secure-boot ESP image but was not installed."
 		fi
 		mv "${IMAGE_ROOTFS}/efi/EFI/BOOT/$f" "${IMAGE_ROOTFS}/efi/nilrt/$f"
@@ -100,6 +102,7 @@ secure_boot_esp_fixup() {
 
 python secure_boot_esp_sign() {
     import glob
+    import os
 
     if d.getVar('SECURE_BOOT_ENABLED') != '1':
         return

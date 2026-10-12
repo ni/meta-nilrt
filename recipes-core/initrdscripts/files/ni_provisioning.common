@@ -432,7 +432,7 @@ elif [ "$ARCH" = "x86_64" ]; then
 
 			if [ -e "$nilrt_efi_dir/grubx64.efi" ]; then
 				local secure_boot_stage
-				for secure_boot_stage in bootx64.efi SELoaderx64.efi mmx64.efi grubx64.efi; do
+				for secure_boot_stage in bootx64.efi mmx64.efi grubx64.efi; do
 					[ -f "$nilrt_efi_dir/$secure_boot_stage" ] || die "Secure Boot bundle is missing $secure_boot_stage"
 				done
 				cp -a "$nilrt_efi_dir"/. "$auto_efi_dir"/

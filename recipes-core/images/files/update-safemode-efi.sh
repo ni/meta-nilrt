@@ -31,10 +31,22 @@ if [ -n "$ARCHIVE" ]; then
     tar xf "$ARCHIVE" -C "$SAFE_DIR"
 fi
 
-# bootimage.cfg's detached signature must exist in /boot/.safe; if missing,
-# the safemode archive was not built with a matching Secure Boot signature.
+# The config sidecar extension follows SB_FILE_EXT (.p7b or .sig). Use the
+# bootimage sidecar to select it, then require the matching GRUB sidecar too.
 test -s "$SAFE_DIR/bootimage.cfg"
-test -s "$SAFE_DIR/bootimage.cfg.p7b"
+test -s "$SAFE_DIR/grub.cfg"
+signature_ext=""
+for ext in .p7b .sig; do
+    if [ -s "$SAFE_DIR/bootimage.cfg$ext" ]; then
+        signature_ext="$ext"
+        break
+    fi
+done
+if [ -z "$signature_ext" ]; then
+    echo "No bootimage.cfg signature (.p7b or .sig) found in $SAFE_DIR." >&2
+    exit 1
+fi
+test -s "$SAFE_DIR/grub.cfg$signature_ext"
 
 already_mounted=0
 if mountpoint -q "$ESP_MOUNT"; then
@@ -45,7 +57,7 @@ else
 fi
 
 mkdir -p "$ESP_MOUNT/efi/boot"
-for file in $BOOT_FILES grub.cfg grub.cfg.p7b; do
+for file in $BOOT_FILES grub.cfg grub.cfg.p7b grub.cfg.sig; do
     rm -f "$ESP_MOUNT/efi/boot/$file"
 done
 rm -f "$ESP_MOUNT/efi/boot/fonts/unicode.pf2" "$ESP_MOUNT/efi/boot/fonts/unicode.pf2.p7b"
@@ -57,11 +69,11 @@ for file in $BOOT_FILES; do
 done
 
 cp -a "$SAFE_DIR/grub.cfg" "$ESP_MOUNT/efi/boot/"
-cp -a "$SAFE_DIR/grub.cfg.p7b" "$ESP_MOUNT/efi/boot/"
+cp -a "$SAFE_DIR/grub.cfg$signature_ext" "$ESP_MOUNT/efi/boot/"
 
 # Both cmp commands must produce no output.
 cmp "$SAFE_DIR/grub.cfg" "$ESP_MOUNT/efi/boot/grub.cfg"
-cmp "$SAFE_DIR/grub.cfg.p7b" "$ESP_MOUNT/efi/boot/grub.cfg.p7b"
+cmp "$SAFE_DIR/grub.cfg$signature_ext" "$ESP_MOUNT/efi/boot/grub.cfg$signature_ext"
 
 sync
 if [ "$already_mounted" -eq 0 ]; then

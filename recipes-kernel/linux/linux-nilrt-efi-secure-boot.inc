@@ -50,19 +50,18 @@ fakeroot python do_sign() {
                     continue
                 resolved_image = max(candidates, key=lambda p: (os.path.getmtime(p), p))
 
-        # Keep an unsigned copy for manual verification/debugging and for
-        # SELoader sidecar signing.
+        # Keep an unsigned copy for manual verification/debugging and deploy.
         unsigned_image = os.path.join(d.expand('${B}'), image_type + '.unsigned')
         shutil.copyfile(resolved_image, unsigned_image)
 
         if d.expand('${GRUB_SIGN_VERIFY}') == '1':
             sb_sign(resolved_image, resolved_image, d)
 
-        # SELoader signature is always based on the unsigned kernel image,
-        # disallowing chainloader to kernel efi-stub.
-        uks_bl_sign(unsigned_image, d)
+        # Sign the installed bytes so the detached sidecar matches the image
+        # GRUB/SELoader will verify and load.
+        uks_bl_sign(resolved_image, d)
 
-        resolved_sig = unsigned_image + sig_ext
+        resolved_sig = resolved_image + sig_ext
         image_sig = image_path + sig_ext
 
         if os.path.exists(resolved_sig):
