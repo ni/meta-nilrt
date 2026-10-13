@@ -3,7 +3,11 @@ From: Joe Hershberger <joe.hershberger@ni.com>
 Date: Fri, 31 Oct 2025 18:37:17 +0000
 Subject: [PATCH] xorg.conf: Make sure the glamor module is loaded
 
+Upstream-Status: Inappropriate [NILRT-specific Xorg configuration]
+
 Signed-off-by: Joe Hershberger <joe.hershberger@ni.com>
+[Shreejit: Add Upstream-Status to the patch description]
+Signed-off-by: Shreejit C <shreejit.c@emerson.com>
 ---
  xrdpdev/xorg.conf | 1 +
  1 file changed, 1 insertion(+)
