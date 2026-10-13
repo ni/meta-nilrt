@@ -7,6 +7,8 @@ openvpn:x:499:
 niwscerts:x:498:
 datacomm:x:497:
 # free space
+epmd:x:407:
+sssd:x:406:
 clevis:x:405:
 krill:x:404:
 xrdp:x:403:
