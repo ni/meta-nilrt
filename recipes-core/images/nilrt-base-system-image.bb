@@ -77,7 +77,7 @@ create_cdf() {
 	sed -i "s/%guid%/$GUID/g; s/%version%/$SHORTVER/g; s/%osvalue%/${OSVALUE}/g; s/%osversion%/${OSVERSION}/g; s/%filename%/$TARFILE/g;" $CDFOUT
 }
 
-IMAGE_PREPROCESS_COMMAND += "bootimg_fixup ensure_secure_boot_payload"
+IMAGE_PREPROCESS_COMMAND += " bootimg_fixup; ensure_secure_boot_payload; "
 IMAGE_POSTPROCESS_COMMAND += "create_cdf"
 
 inherit image

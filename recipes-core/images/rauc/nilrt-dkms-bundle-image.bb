@@ -13,6 +13,7 @@ DEPENDS = "grub-efi grub-bootconf ${PREFERRED_PROVIDER_virtual/kernel}"
 IMAGE_INSTALL = " \
 	grub-efi-nilrt \
 	grub-bootconf-nilrt \
+	nilrt-grub-runmode \
 	kernel-image-bzimage \
 "
 
@@ -53,8 +54,17 @@ bootimg_fixup() {
 
 	# Move /boot/runmode/bzImage to /boot/bzImage
 	mv "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/$(readlink "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/bzImage")" "${IMAGE_ROOTFS}/boot/bzImage"
-	# Remove /boot/runmode
-	rm -rf "${IMAGE_ROOTFS}/boot/runmode"
+
+	# Keep the runmode config layout expected by grub.cfg, but point it to the
+	# kernel at the bundle root.
+	sed -i "s|set kernel_path='/runmode/bzImage'|set kernel_path='/bzImage'|" \
+		"${IMAGE_ROOTFS}/boot/runmode/bootimage.cfg"
+	install -d "${IMAGE_ROOTFS}/boot/runmode/bootimage.cfg.d"
+	if [ -d "${IMAGE_ROOTFS}/boot/bootimage.cfg.d" ]; then
+		cp -a "${IMAGE_ROOTFS}/boot/bootimage.cfg.d/." \
+			"${IMAGE_ROOTFS}/boot/runmode/bootimage.cfg.d/"
+		rm -rf "${IMAGE_ROOTFS}/boot/bootimage.cfg.d"
+	fi
 
 	# Bitbake insists on installing glibc which is not needed on
 	#  EFI system partition. Cleanup all non-boot related files.
@@ -62,6 +72,8 @@ bootimg_fixup() {
 		-not -path "${IMAGE_ROOTFS}/boot" \
 		-a -not -path "${IMAGE_ROOTFS}/boot/*" \
 		-a -not -path "${IMAGE_ROOTFS}/boot/efi" \
+		-a -not -path "${IMAGE_ROOTFS}/boot/efi/EFI" \
+		-a -not -path "${IMAGE_ROOTFS}/boot/efi/EFI/*" \
 		-a -not -path "${IMAGE_ROOTFS}/boot/efi/nilrt" \
 		-a -not -path "${IMAGE_ROOTFS}/boot/efi/nilrt/*" \
 		-a -not -path "${IMAGE_ROOTFS}/boot/bootimage.cfg.d" \
@@ -88,11 +100,16 @@ secure_boot_esp_fixup() {
 		return
 	fi
 
-	for f in bootx64.efi mmx64.efi SELoaderx64.efi; do
-		if [ "$f" = "SELoaderx64.efi" ] && [ ! -e "${IMAGE_ROOTFS}/efi/EFI/BOOT/$f" ]; then
- 			continue
- 		fi
-			bbfatal "$f is required in the secure-boot ESP image but was not installed."
+	for f in bootx64.efi mmx64.efi SELoaderx64.efi Hash2DxeCrypto.efi Pkcs7VerifyDxe.efi LockDown.efi; do
+		if [ ! -e "${IMAGE_ROOTFS}/efi/EFI/BOOT/$f" ]; then
+			case "$f" in
+				SELoaderx64.efi|Hash2DxeCrypto.efi|Pkcs7VerifyDxe.efi|LockDown.efi)
+					continue
+					;;
+				*)
+					bbfatal "$f is required in the secure-boot ESP image but was not installed."
+					;;
+			esac
 		fi
 		mv "${IMAGE_ROOTFS}/efi/EFI/BOOT/$f" "${IMAGE_ROOTFS}/efi/nilrt/$f"
 	done
@@ -110,8 +127,10 @@ python secure_boot_esp_sign() {
     rootfs = d.getVar('IMAGE_ROOTFS')
     targets = [rootfs + '/efi/nilrt/grub.cfg',
                rootfs + '/bzImage',
-               rootfs + '/initrd.cpio.gz']
-    targets += sorted(glob.glob(rootfs + '/bootimage.cfg.d/*.cfg'))
+               rootfs + '/initrd.cpio.gz',
+               rootfs + '/runmode/bootimage.cfg',
+               rootfs + '/runmode/cpu-mitigations.cfg']
+    targets += sorted(glob.glob(rootfs + '/runmode/bootimage.cfg.d/*.cfg'))
 
     for target in targets:
         if not os.path.exists(target):

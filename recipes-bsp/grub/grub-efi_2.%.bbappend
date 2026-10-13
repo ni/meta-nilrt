@@ -6,6 +6,10 @@ require ${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'grub-efi-nil
 # (which sources the NILRT-maintained menu instead of secure-core's boot-menu.inc).
 FILESEXTRAPATHS:prepend := "${THISDIR}/grub-efi:"
 
+# NILRT's buffer-verification patch passes the required path as UTF-16;
+# secure-core's 0009 removes that protocol parameter and no longer applies.
+SRC_URI:remove = "file://0009-mok2verify-remove-unused-parameter-from-grub_efi_mok.patch"
+
 # UEFI_SELOADER is set by the meta-signing-key layer.conf whether or not
 # efi-secure-boot is enabled, so the mok2verify patches are only actually in
 # SRC_URI when both conditions hold.

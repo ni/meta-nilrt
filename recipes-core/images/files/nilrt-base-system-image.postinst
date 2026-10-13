@@ -155,7 +155,7 @@ install_secure_boot_efi()
 }
 
 if [ "$arch" = "x86_64" ]; then
-	install_secure_boot_efi
+	install_secure_boot_efi || exit $?
 fi
 
 # Use persistent names on PXI, not on any other targets

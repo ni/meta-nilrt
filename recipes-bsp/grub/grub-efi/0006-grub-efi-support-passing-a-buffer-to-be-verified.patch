@@ -39,7 +39,7 @@ index 2e5285c..1841de7 100644
  				     const grub_efi_char16_t *path);
 
  typedef grub_efi_status_t
-@@ -112,6 +113,116 @@ grub_is_locked (void)
+@@ -112,6 +113,147 @@ grub_is_locked (void)
 
  #pragma GCC diagnostic ignored "-Wvla"
 
@@ -128,6 +128,11 @@ index 2e5285c..1841de7 100644
 +{
 +  efi_mok2_verify_protocol_t *mok2;
 +  grub_efi_status_t status;
++  grub_efi_char16_t *p;
++  grub_size_t len = grub_strlen (path);
++  grub_efi_char16_t file_path[(len + 1) * GRUB_MAX_UTF16_PER_UTF8];
++  const char *root;
++  const char *real_path;
 +
 +  mok2 = grub_efi_locate_protocol (&grub_efi_mok2_verify_protoco_guid, 0);
 +  if (!mok2)
@@ -138,7 +143,33 @@ index 2e5285c..1841de7 100644
 +
 +  grub_dprintf ("mok2verify", "attempting to verify the file %s ...\n", path);
 +
-+  status = mok2->verify_file_buffer(mok2, data, data_size, sigdata, sigdata_size, path);
++  real_path = path;
++  root = grub_env_get ("root");
++  if (root)
++    {
++      char *pattern;
++
++      pattern = grub_xasprintf ("(%s)", root);
++      if (!pattern)
++        return grub_errno;
++
++      if (grub_strstr (path, pattern) == path)
++        {
++          real_path = path + grub_strlen (pattern);
++          len -= grub_strlen (pattern);
++        }
++
++      grub_free (pattern);
++    }
++
++  len = grub_utf8_to_utf16 (file_path, len * GRUB_MAX_UTF16_PER_UTF8,
++                            (const grub_uint8_t *) real_path, len, 0);
++  file_path[len] = 0;
++  for (p = file_path; p < file_path + len; ++p)
++    if (*p == '/')
++      *p = '\\';
++
++  status = mok2->verify_file_buffer(mok2, data, data_size, sigdata, sigdata_size, file_path);
 +  if (status != GRUB_EFI_SUCCESS)
 +    {
 +        grub_printf ("failed to verify file %s (err: 0x%lx)\n",

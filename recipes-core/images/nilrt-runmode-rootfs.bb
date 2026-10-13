@@ -103,7 +103,7 @@ bootimg_fixup_arm() {
         -exec rm -f {} +
 }
 
-IMAGE_PREPROCESS_COMMAND:append:x64 = " bootimg_fixup_x64 ensure_secure_boot_kernel_sidecar_x64 secure_boot_runmode_sign"
-IMAGE_PREPROCESS_COMMAND:append:xilinx-zynq = " bootimg_fixup_arm"
+IMAGE_PREPROCESS_COMMAND:append:x64 = " bootimg_fixup_x64; ensure_secure_boot_kernel_sidecar_x64; secure_boot_runmode_sign; "
+IMAGE_PREPROCESS_COMMAND:append:xilinx-zynq = " bootimg_fixup_arm; "
 
 IMAGE_FSTYPES += "squashfs ${NILRT_BSI_FSTYPE}"
