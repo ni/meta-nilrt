@@ -4,7 +4,7 @@ SRC_URI += "file://clamav-scan"
 
 do_install:append() {
     # Install clamav-scan wrapper script for memory-constrained NILRT systems
-    install -m 0755 ${WORKDIR}/clamav-scan ${D}${bindir}/clamav-scan
+    install -m 0755 ${UNPACKDIR}/clamav-scan ${D}${bindir}/clamav-scan
 }
 
 FILES:${PN} += "${bindir}/clamav-scan"

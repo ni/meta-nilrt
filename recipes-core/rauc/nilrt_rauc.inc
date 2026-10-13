@@ -21,7 +21,7 @@ INITSCRIPT_PARAMS:${PN}-mark-good = "start 30 S ."
 do_install:append () {
 
     install -d ${D}${sysconfdir}/init.d/
-    install -m 0755 ${WORKDIR}/rauc-mark-good ${D}${sysconfdir}/init.d/
+    install -m 0755 ${UNPACKDIR}/rauc-mark-good ${D}${sysconfdir}/init.d/
 
     # status directory
     install -d ${D}/var/lib/rauc/
