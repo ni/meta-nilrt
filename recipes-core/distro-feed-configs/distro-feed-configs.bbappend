@@ -12,7 +12,7 @@ RDEPENDS:${PN}-ptest += " bash "
 
 do_install_ptest() {
     install -d ${D}${PTEST_PATH}
-    install -m 755 ${WORKDIR}/test_feed_listings.sh ${D}${PTEST_PATH}
-    install -m 644 ${WORKDIR}/ptest-format.sh ${D}${PTEST_PATH}
-    install -m 755 ${WORKDIR}/run-ptest ${D}${PTEST_PATH}
+    install -m 755 ${UNPACKDIR}/test_feed_listings.sh ${D}${PTEST_PATH}
+    install -m 644 ${UNPACKDIR}/ptest-format.sh ${D}${PTEST_PATH}
+    install -m 755 ${UNPACKDIR}/run-ptest ${D}${PTEST_PATH}
 }
