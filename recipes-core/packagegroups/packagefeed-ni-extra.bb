@@ -138,7 +138,6 @@ RDEPENDS:${PN} += "\
 	at \
 	augeas \
 	bc \
-	blktool \
 	byacc \
 	cups \
 	ghostscript \
@@ -159,7 +158,6 @@ RDEPENDS:${PN} += "\
 	shadow \
 	slang \
 	sysklogd \
-	tcp-wrappers \
 	time \
 "
 
@@ -284,13 +282,12 @@ RDEPENDS:${PN} += "\
 	tclap \
 	uw-imap \
 	yajl \
-	yasm \
+	nasm \
 "
 
 # meta-openembedded/meta-oe/recipes-devtools
 RDEPENDS:${PN}:append:x64 = "\
 	concurrencykit \
-	msr-tools \
 "
 
 # meta-openembedded/meta-oe/recipes-extended
@@ -407,7 +404,6 @@ RDEPENDS:${PN} += "\
 	nano \
 	nmon \
 	onig \
-	openct \
 	opencv \
 	openldap \
 	opensc \
@@ -433,7 +429,6 @@ RDEPENDS:${PN} += "\
 	soci \
 	spitools \
 	strongswan \
-	system-config-keyboard \
 	libtalloc \
 	tree \
 	usb-modeswitch \
@@ -514,7 +509,6 @@ RDEPENDS:${PN} += "\
 	ndisc6 \
 	netcat \
 	netcat-openbsd \
-	netcf \
 	ypbind-mt \
 	yp-tools \
 	nuttcp \
@@ -677,7 +671,6 @@ RDEPENDS:${PN} += "\
 	python3-subunit \
 	python3-sysv-ipc \
 	python3-taskflow \
-	python3-tempita \
 	python3-termcolor \
 	python3-testrepository \
 	python3-testresources \
@@ -749,7 +742,6 @@ RDEPENDS:${PN} += "\
 RDEPENDS:${PN} += "\
 	clamav \
 	ecryptfs-utils \
-	libhtp \
 	samhain-server \
 "
 
