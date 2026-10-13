@@ -18,7 +18,7 @@ if command -v setcap >/dev/null 2>&1; then
         setcap cap_sys_time+ep /sbin/hwclock.util-linux || true
     fi
     if [ -x /usr/local/natinst/share/NIWebServer/SystemWebServer ]; then
-        setcap cap_net_bind_service,cap_net_admin,cap_ipc_lock,cap_sys_rawio,cap_sys_boot,cap_sys_nice,cap_sys_time,cap_syslog+ep \
+        setcap cap_net_bind_service,cap_net_admin,cap_ipc_lock,cap_sys_boot,cap_sys_nice,cap_sys_time,cap_syslog+ep \
             /usr/local/natinst/share/NIWebServer/SystemWebServer || true
     fi
 fi
