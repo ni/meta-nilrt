@@ -25,8 +25,8 @@ do_install[depends] = " \
 do_install:x64() {
     install -d ${D}/usr/share/nilrt
     install -d ${D}/usr/share/licenses/${PN}
-    install -m 0755 ${WORKDIR}/${PN}-install  ${D}/usr/share/nilrt/nilrt-install
-    install -m 0755 ${WORKDIR}/MIT ${D}/usr/share/licenses/${PN}/MIT
+    install -m 0755 ${UNPACKDIR}/${PN}-install  ${D}/usr/share/nilrt/nilrt-install
+    install -m 0755 ${UNPACKDIR}/MIT ${D}/usr/share/licenses/${PN}/MIT
 }
 
 FILES:${PN} = "\

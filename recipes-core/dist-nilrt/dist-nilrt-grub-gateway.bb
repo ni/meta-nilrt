@@ -21,8 +21,8 @@ do_install[depends] = "safemode-restore-image:do_image_complete"
 do_install:x64() {
     install -d ${D}/usr/share/nilrt
     install -d ${D}/usr/share/licenses/${PN}
-    install -m 0755 ${WORKDIR}/nilrt-gateway-install ${D}/usr/share/nilrt/nilrt-install
-    install -m 0755 ${WORKDIR}/MIT ${D}/usr/share/licenses/${PN}/MIT
+    install -m 0755 ${UNPACKDIR}/nilrt-gateway-install ${D}/usr/share/nilrt/nilrt-install
+    install -m 0755 ${UNPACKDIR}/MIT ${D}/usr/share/licenses/${PN}/MIT
     install -m 0755 ${DEPLOY_DIR_IMAGE}/safemode-restore-image-${MACHINE}.wic ${D}/usr/share/nilrt/safemode-restore-image-${MACHINE}.iso
 }
 
