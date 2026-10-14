@@ -270,9 +270,12 @@ install_grub()
 			fi
 		done
 		[ -n "$grub_sig_ext" ] || die "Secure Boot grub.cfg signature is missing"
-		rm -f "$GRUB_TARGET_DIR/grub.cfg.p7b" "$GRUB_TARGET_DIR/grub.cfg.sig"
-		cp "$SOURCE_DIR/grub.cfg" "$GRUB_TARGET_DIR/grub.cfg"
-		cp "$SOURCE_DIR/grub.cfg$grub_sig_ext" "$GRUB_TARGET_DIR/grub.cfg$grub_sig_ext"
+		for GRUB_MENU_DIR in "$GRUB_TARGET_DIR" "$GRUB_MOUNTPOINT/efi/nilrt" ; do
+			mkdir -p "$GRUB_MENU_DIR"
+			rm -f "$GRUB_MENU_DIR/grub.cfg.p7b" "$GRUB_MENU_DIR/grub.cfg.sig"
+			cp "$SOURCE_DIR/grub.cfg" "$GRUB_MENU_DIR/grub.cfg"
+			cp "$SOURCE_DIR/grub.cfg$grub_sig_ext" "$GRUB_MENU_DIR/grub.cfg$grub_sig_ext"
+		done
 	else
 		if [ -f "$GRUB_TARGET_DIR/grub.cfg" ] ; then
 			print_info "Preserving existing grub.cfg on ESP..."

@@ -48,6 +48,13 @@ if [ -z "$signature_ext" ]; then
 fi
 test -s "$SAFE_DIR/grub.cfg$signature_ext"
 
+for file in bootx64.efi mmx64.efi grubx64.efi; do
+    if [ ! -s "$SAFE_DIR/efi/EFI/BOOT/$file" ]; then
+        echo "Required EFI stage is missing or empty: $SAFE_DIR/efi/EFI/BOOT/$file" >&2
+        exit 1
+    fi
+done
+
 already_mounted=0
 if mountpoint -q "$ESP_MOUNT"; then
     already_mounted=1
@@ -68,12 +75,15 @@ for file in $BOOT_FILES; do
     fi
 done
 
-cp -a "$SAFE_DIR/grub.cfg" "$ESP_MOUNT/efi/boot/"
-cp -a "$SAFE_DIR/grub.cfg$signature_ext" "$ESP_MOUNT/efi/boot/"
-
 # Both cmp commands must produce no output.
-cmp "$SAFE_DIR/grub.cfg" "$ESP_MOUNT/efi/boot/grub.cfg"
-cmp "$SAFE_DIR/grub.cfg$signature_ext" "$ESP_MOUNT/efi/boot/grub.cfg$signature_ext"
+for menu_dir in "$ESP_MOUNT/efi/boot" "$ESP_MOUNT/efi/nilrt"; do
+    mkdir -p "$menu_dir"
+    rm -f "$menu_dir/grub.cfg.p7b" "$menu_dir/grub.cfg.sig"
+    cp -a "$SAFE_DIR/grub.cfg" "$menu_dir/"
+    cp -a "$SAFE_DIR/grub.cfg$signature_ext" "$menu_dir/"
+    cmp "$SAFE_DIR/grub.cfg" "$menu_dir/grub.cfg"
+    cmp "$SAFE_DIR/grub.cfg$signature_ext" "$menu_dir/grub.cfg$signature_ext"
+done
 
 sync
 if [ "$already_mounted" -eq 0 ]; then

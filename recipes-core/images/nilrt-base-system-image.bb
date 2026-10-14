@@ -31,6 +31,11 @@ do_rootfs[depends] += "${ROOTFS_IMAGE}:do_image_complete"
 bootimg_fixup() {
 	install -m 0644 "${DEPLOY_DIR_IMAGE}/${ROOTFS_IMAGE}-${MACHINE}.rootfs.${NILRT_BSI_FSTYPE}" "${IMAGE_ROOTFS}/data.${NILRT_BSI_FSTYPE}"
 	install -m 0755 "${THISDIR}/files/${BPN}.postinst" "${IMAGE_ROOTFS}/postinst"
+	sed -i \
+		-e 's/@SECURE_BOOT_ENABLED@/${SECURE_BOOT_ENABLED}/g' \
+		-e 's/@SB_FILE_EXT@/${SB_FILE_EXT}/g' \
+		-e 's/@UEFI_SELOADER@/${UEFI_SELOADER}/g' \
+		"${IMAGE_ROOTFS}/postinst"
 
 	# Remove everything that is not data.tar.* nor the postinst
 	find "${IMAGE_ROOTFS}" -mindepth 1 \
@@ -77,7 +82,7 @@ create_cdf() {
 	sed -i "s/%guid%/$GUID/g; s/%version%/$SHORTVER/g; s/%osvalue%/${OSVALUE}/g; s/%osversion%/${OSVERSION}/g; s/%filename%/$TARFILE/g;" $CDFOUT
 }
 
-IMAGE_PREPROCESS_COMMAND += " bootimg_fixup; ensure_secure_boot_payload; "
+IMAGE_PREPROCESS_COMMAND += " bootimg_fixup ensure_secure_boot_payload "
 IMAGE_POSTPROCESS_COMMAND += "create_cdf"
 
 inherit image

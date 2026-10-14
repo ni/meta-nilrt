@@ -110,24 +110,31 @@ install_secure_boot_efi()
 	local source_dir=/mnt/userfs/boot/efi
 	local esp_mount=/var/volatile/nigrub
 	local boot_dir=$source_dir/EFI/BOOT
-	local nilrt_dir=$source_dir/nilrt
 	local runmode_dir=/boot/runmode
-	local signature_ext=$kernel_sig_ext
+	local secure_boot_enabled="@SECURE_BOOT_ENABLED@"
+	local signature_ext="@SB_FILE_EXT@"
+	local use_seloader="@UEFI_SELOADER@"
+	local required_efi_files="bootx64.efi mmx64.efi grubx64.efi"
 	local file
 
-	if [ -z "$signature_ext" ] || [ ! -f "$boot_dir/SELoaderx64.efi" ] || [ ! -f "$boot_dir/grub.cfg$signature_ext" ]; then
+	if [ "$secure_boot_enabled" != "1" ]; then
 		return 0
 	fi
 
-	for file in bootx64.efi SELoaderx64.efi mmx64.efi grubx64.efi; do
+	case "$signature_ext" in
+		.p7b|.sig) ;;
+		*)
+			echo "ERROR: unsupported secure-boot signature extension: $signature_ext" 1>&2
+			return 1
+			;;
+	esac
+	if [ "$use_seloader" = "1" ]; then
+		required_efi_files="$required_efi_files SELoaderx64.efi"
+	fi
+
+	for file in $required_efi_files grub.cfg "grub.cfg$signature_ext"; do
 		[ -f "$boot_dir/$file" ] || {
 			echo "ERROR: secure-boot EFI file is missing: $boot_dir/$file" 1>&2
-			return 1
-		}
-	done
-	for file in grub.cfg "grub.cfg$signature_ext"; do
-		[ -f "$nilrt_dir/$file" ] || {
-			echo "ERROR: secure-boot runmode file is missing: $nilrt_dir/$file" 1>&2
 			return 1
 		}
 	done
@@ -141,16 +148,15 @@ install_secure_boot_efi()
 	mkdir -p "$esp_mount"
 	mount -L nigrub "$esp_mount"
 	trap 'umount "$esp_mount"' RETURN
-	mkdir -p "$esp_mount/efi/boot" "$esp_mount/efi/nilrt"
+	mkdir -p "$esp_mount/efi/boot"
 
-	# efi/boot/grub.cfg is the safemode-owned boot menu; leave it in place.
+	# Both ESP grub.cfg menus are safemode-owned; leave them in place.
 	for file in bootx64.efi SELoaderx64.efi mmx64.efi grubx64.efi \
 		Hash2DxeCrypto.efi Pkcs7VerifyDxe.efi LockDown.efi; do
 		if [ -f "$boot_dir/$file" ]; then
 			cp -a "$boot_dir/$file" "$esp_mount/efi/boot/"
 		fi
 	done
-	cp -a "$nilrt_dir/grub.cfg" "$nilrt_dir/grub.cfg$signature_ext" "$esp_mount/efi/nilrt/"
 	rm -rf "$esp_mount/efi/boot/fonts"
 	sync
 }
