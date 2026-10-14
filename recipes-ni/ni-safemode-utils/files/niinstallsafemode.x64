@@ -78,11 +78,19 @@ target_device_code=`/sbin/fw_printenv -n DeviceCode`
 [ -s $tmp_dir/$ramdisk ]
 
 # Secure-boot archives carry signed EFI and boot payload files.
-if [ -d $tmp_dir/efi ] || [ -s $tmp_dir/$kernel.p7b ]; then
-	[ -s $tmp_dir/$kernel.p7b ]
-	[ -s $tmp_dir/ramdisk.xz.p7b ]
-	[ -s $tmp_dir/$grub_bootimage_cfg.p7b ]
-	[ -s $tmp_dir/grub.cfg.p7b ]
+signature_ext=""
+for sig_ext in .p7b .sig; do
+	if [ -s "$tmp_dir/$kernel$sig_ext" ]; then
+		signature_ext=$sig_ext
+		break
+	fi
+done
+if [ -d "$tmp_dir/efi" ] || [ -n "$signature_ext" ]; then
+	[ -n "$signature_ext" ]
+	[ -s "$tmp_dir/$kernel$signature_ext" ]
+	[ -s "$tmp_dir/ramdisk.xz$signature_ext" ]
+	[ -s "$tmp_dir/$grub_bootimage_cfg$signature_ext" ]
+	[ -s "$tmp_dir/grub.cfg$signature_ext" ]
 fi
 
 # Return a different error code if there is a failure while touching the safemode files

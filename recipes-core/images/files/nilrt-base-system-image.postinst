@@ -112,9 +112,10 @@ install_secure_boot_efi()
 	local boot_dir=$source_dir/EFI/BOOT
 	local nilrt_dir=$source_dir/nilrt
 	local runmode_dir=/boot/runmode
+	local signature_ext=$kernel_sig_ext
 	local file
 
-	if [ ! -f "$boot_dir/SELoaderx64.efi" ] || [ ! -f "$boot_dir/grub.cfg.p7b" ]; then
+	if [ -z "$signature_ext" ] || [ ! -f "$boot_dir/SELoaderx64.efi" ] || [ ! -f "$boot_dir/grub.cfg$signature_ext" ]; then
 		return 0
 	fi
 
@@ -124,13 +125,13 @@ install_secure_boot_efi()
 			return 1
 		}
 	done
-	for file in grub.cfg grub.cfg.p7b; do
+	for file in grub.cfg "grub.cfg$signature_ext"; do
 		[ -f "$nilrt_dir/$file" ] || {
 			echo "ERROR: secure-boot runmode file is missing: $nilrt_dir/$file" 1>&2
 			return 1
 		}
 	done
-	for file in bzImage bzImage.p7b bootimage.cfg bootimage.cfg.p7b; do
+	for file in bzImage "bzImage$signature_ext" bootimage.cfg "bootimage.cfg$signature_ext"; do
 		[ -f "$runmode_dir/$file" ] || {
 			echo "ERROR: secure-boot runmode file is missing: $runmode_dir/$file" 1>&2
 			return 1
@@ -149,7 +150,7 @@ install_secure_boot_efi()
 			cp -a "$boot_dir/$file" "$esp_mount/efi/boot/"
 		fi
 	done
-	cp -a "$nilrt_dir/grub.cfg" "$nilrt_dir/grub.cfg.p7b" "$esp_mount/efi/nilrt/"
+	cp -a "$nilrt_dir/grub.cfg" "$nilrt_dir/grub.cfg$signature_ext" "$esp_mount/efi/nilrt/"
 	rm -rf "$esp_mount/efi/boot/fonts"
 	sync
 }

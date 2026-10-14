@@ -128,8 +128,12 @@ ensure_expected_files() {
 }
 
 ensure_secure_boot_files() {
-	if [ "${SECURE_BOOT_ENABLED}" != "1" ] || [ -z "${SB_FILE_EXT}" ]; then
+	if [ "${SECURE_BOOT_ENABLED}" != "1" ]; then
 		return
+	fi
+
+	if [ -z "${SB_FILE_EXT}" ]; then
+		bbfatal "SB_FILE_EXT is not set while secure boot is enabled."
 	fi
 
 	for f in "bzImage${SB_FILE_EXT}" "ramdisk.xz${SB_FILE_EXT}"; do

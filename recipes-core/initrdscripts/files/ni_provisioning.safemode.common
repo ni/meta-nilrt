@@ -254,7 +254,7 @@ install_grub()
 			fi
 		done
 	else
-		cp "$SOURCE_DIR/efi/EFI/BOOT/bootx64.efi" $GRUB_TARGET_DIR
+		cp /boot/EFI/BOOT/bootx64.efi $GRUB_TARGET_DIR
 	fi
 
 	set_efiboot_entry
@@ -342,9 +342,12 @@ install_safemode()
 	fi
 	# Detached kernel signature; the ramdisk and bootimage globs above
 	# already pick theirs up.
-	if [ -f "$SOURCE_DIR/bzImage.p7b" ] ; then
-		cp "$SOURCE_DIR"/*Image.p7b "$BOOTFS_MOUNTPOINT/.safe/"
-	fi
+	for sig_ext in .p7b .sig ; do
+		if [ -f "$SOURCE_DIR/bzImage$sig_ext" ] ; then
+			cp "$SOURCE_DIR"/*Image"$sig_ext" "$BOOTFS_MOUNTPOINT/.safe/"
+			break
+		fi
+	done
 	print_done
 }
 
