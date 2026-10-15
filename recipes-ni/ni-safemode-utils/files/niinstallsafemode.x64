@@ -95,7 +95,7 @@ fi
 
 # Return a different error code if there is a failure while touching the safemode files
 chmod u+w $mount_point/.safe || exit 5
-chmod u+w $mount_point/.safe/* || exit 5
+find $mount_point/.safe -type f -exec chmod u+w {} + || exit 5
 cp -a $tmp_dir/. $mount_point/.safe/ || exit 5
 find $mount_point/.safe -type f -exec chmod u-w {} + || exit 5
 chmod u-w $mount_point/.safe || exit 5
