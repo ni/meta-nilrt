@@ -12,6 +12,8 @@ SRC_URI += " \
 
 PV = "${DISTRO_VERSION}"
 
+SECURE_BOOT_ENABLED = "${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', '1', '0', d)}"
+
 CDFGUID:x64 = "4C0005F7-54D1-492B-A7E7-C1E58BD9B972"
 CDFGUID:xilinx-zynq = "8E3EACD0-B36E-462B-A500-88AE644AB3B0"
 
@@ -29,12 +31,44 @@ do_rootfs[depends] += "${ROOTFS_IMAGE}:do_image_complete"
 bootimg_fixup() {
 	install -m 0644 "${DEPLOY_DIR_IMAGE}/${ROOTFS_IMAGE}-${MACHINE}.rootfs.${NILRT_BSI_FSTYPE}" "${IMAGE_ROOTFS}/data.${NILRT_BSI_FSTYPE}"
 	install -m 0755 "${THISDIR}/files/${BPN}.postinst" "${IMAGE_ROOTFS}/postinst"
+	sed -i \
+		-e 's/@SECURE_BOOT_ENABLED@/${SECURE_BOOT_ENABLED}/g' \
+		-e 's/@SB_FILE_EXT@/${SB_FILE_EXT}/g' \
+		-e 's/@UEFI_SELOADER@/${UEFI_SELOADER}/g' \
+		"${IMAGE_ROOTFS}/postinst"
 
 	# Remove everything that is not data.tar.* nor the postinst
 	find "${IMAGE_ROOTFS}" -mindepth 1 \
 		-not -path "${IMAGE_ROOTFS}/data.${NILRT_BSI_FSTYPE}" \
 		-a -not -path "${IMAGE_ROOTFS}/postinst" \
 		-delete
+}
+
+ensure_secure_boot_payload() {
+	if [ "${SECURE_BOOT_ENABLED}" != "1" ] || [ "${TARGET_ARCH}" != "x86_64" ]; then
+		return
+	fi
+
+	if [ -z "${SB_FILE_EXT}" ]; then
+		echo "ERROR: SB_FILE_EXT is not set while secure boot is enabled." 1>&2
+		exit 1
+	fi
+
+	payload="${IMAGE_ROOTFS}/data.${NILRT_BSI_FSTYPE}"
+	required_files="\
+		boot/tmp/runmode/bzImage${SB_FILE_EXT} \
+		boot/tmp/runmode/bootimage.cfg${SB_FILE_EXT} \
+		boot/efi/EFI/BOOT/grub.cfg${SB_FILE_EXT} \
+		boot/efi/nilrt/grub.cfg${SB_FILE_EXT} \
+	"
+
+	for required_file in ${required_files}; do
+		if ! tar -tf "${payload}" | grep -Fxq "${required_file}" && \
+		   ! tar -tf "${payload}" | grep -Fxq "./${required_file}"; then
+			echo "ERROR: ${required_file} is required in secure-boot base-system-image payload." 1>&2
+			exit 1
+		fi
+	done
 }
 
 create_cdf() {
@@ -48,7 +82,7 @@ create_cdf() {
 	sed -i "s/%guid%/$GUID/g; s/%version%/$SHORTVER/g; s/%osvalue%/${OSVALUE}/g; s/%osversion%/${OSVERSION}/g; s/%filename%/$TARFILE/g;" $CDFOUT
 }
 
-IMAGE_PREPROCESS_COMMAND += "bootimg_fixup;"
-IMAGE_POSTPROCESS_COMMAND += "create_cdf;"
+IMAGE_PREPROCESS_COMMAND += " bootimg_fixup ensure_secure_boot_payload "
+IMAGE_POSTPROCESS_COMMAND += "create_cdf"
 
 inherit image
