@@ -15,7 +15,7 @@ do_install[depends] = "restore-mode-image:do_image_complete"
 do_install:append:x64() {
 
     install -d ${D}/usr/share/nilrt
-    install -m 0755 ${WORKDIR}/nilrt-gateway-install ${D}/usr/share/nilrt/nilrt-install
+    install -m 0755 ${UNPACKDIR}/nilrt-gateway-install ${D}/usr/share/nilrt/nilrt-install
     install -m 0755 ${DEPLOY_DIR_IMAGE}/restore-mode-image-${MACHINE}.wic ${D}/usr/share/nilrt/restore-mode-image-${MACHINE}.iso
 }
 

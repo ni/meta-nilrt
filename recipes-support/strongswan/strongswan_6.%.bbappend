@@ -60,6 +60,6 @@ INITSCRIPT_PARAMS = "defaults 42"
 do_install:append() {
     if ${@bb.utils.contains('DISTRO_FEATURES', 'sysvinit', 'true', 'false', d)}; then
         install -d ${D}${sysconfdir}/init.d
-        install -m 0755 ${WORKDIR}/ipsec.init ${D}${sysconfdir}/init.d/ipsec
+        install -m 0755 ${UNPACKDIR}/ipsec.init ${D}${sysconfdir}/init.d/ipsec
     fi
 }
