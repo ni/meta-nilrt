@@ -27,6 +27,7 @@ NI_PROPRIETARY_COMMON_PACKAGES = "\
         nicurl \
         nirtcfg \
         nirtmdnsd \
+        ni-swinst-sshcli \
         ni-sysapi-sshcli \
 "
 

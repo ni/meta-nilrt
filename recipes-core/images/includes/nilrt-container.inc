@@ -28,7 +28,7 @@ IMAGE_INSTALL_NODEPS += "nirtmdnsd"
 
 # ni-sysapi-sshcli is required by both container variants; install it
 # explicitly since NODEPS skips dependency resolution.
-IMAGE_INSTALL_NODEPS += "ni-sysapi-sshcli"
+IMAGE_INSTALL_NODEPS += "ni-sysapi-sshcli ni-swinst-sshcli"
 
 # Necessary whenever building a container.
 # Though this appears to do nothing, given how our kernel recipes are constructed.
