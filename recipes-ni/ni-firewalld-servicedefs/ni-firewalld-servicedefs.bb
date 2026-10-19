@@ -15,7 +15,6 @@ SRC_URI = "\
 	file://services/iec-61850.xml \
 	file://services/modbus.xml \
 	file://services/ni-dnet.xml \
-	file://services/ni-imaq.xml \
 	file://services/ni-labview-realtime.xml \
 	file://services/ni-labview-remote-panels.xml \
 	file://services/ni-labview-viserver.xml \
@@ -25,15 +24,9 @@ SRC_URI = "\
 	file://services/ni-rfsa-classic-sfp.xml \
 	file://services/ni-rfsa-sfp.xml \
 	file://services/ni-rfsg-sfp.xml \
-	file://services/ni-rio-server.xml \
-	file://services/ni-rpc-server.xml \
-	file://services/ni-scope-sfp.xml \
 	file://services/ni-service-locator.xml \
-	file://services/ni-sync-remote.xml \
 	file://services/ni-veristand-engine.xml \
 	file://services/ni-veristand-gateway.xml \
-	file://services/ni-visa-server.xml \
-	file://services/ni-xnet-bus-monitor.xml \
 	file://services/opcua.xml \
 	file://ni-firewall-open \
 "
@@ -46,7 +39,7 @@ FILES:${PN} += "/"
 # used by NI MAX and Hardware Manager; they must stay reachable by default.
 # mdns (udp/5353) is the firewalld built-in for avahi, which nirtmdnsd uses for
 # NI device discovery.
-CORE_NI_SERVICES = "ni-service-locator ni-mxs ni-rpc-server ni-logos-xt ni-sync-remote http https mdns"
+CORE_NI_SERVICES = "ni-service-locator ni-mxs ni-logos-xt http https mdns"
 
 do_install () {
 	for f in ${SRC_URI}; do
