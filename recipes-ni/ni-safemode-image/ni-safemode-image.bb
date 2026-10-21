@@ -43,9 +43,24 @@ RDEPENDS:${PN} += "ni-safemode-utils fw-printenv"
 # Apply the bundled safemode image on the target only, never during rootfs
 # assembly on the build host. niinstallsafemode writes /boot/.safe, which is
 # mounted in both runmode and safemode, so this upgrade works from either mode.
-# opkg is the single version authority here, so -f bypasses niinstallsafemode's
-# own version check and makes reinstalling the same version idempotent instead
-# of failing the postinst.
+# It is run without -f so its own version check refuses downgrades; the same
+# exit-code handling as the System Configuration firmware update is used.
 pkg_postinst_ontarget:${PN}() {
-	/usr/local/natinst/bin/niinstallsafemode ${datadir}/nilrt-safemode/safemode.cfg -f
+	rc=0
+	/usr/local/natinst/bin/niinstallsafemode ${datadir}/nilrt-safemode/safemode.cfg || rc=$?
+	case $rc in
+	0)
+		;;
+	3)
+		echo "${PN}: safemode is already at the packaged version"
+		;;
+	2)
+		echo "${PN}: installed safemode is newer than the packaged version; not downgrading" >&2
+		exit 1
+		;;
+	*)
+		echo "${PN}: niinstallsafemode failed with exit code $rc" >&2
+		exit 1
+		;;
+	esac
 }
