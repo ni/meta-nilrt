@@ -14,8 +14,21 @@ SECTION = "base"
 # compatibility opkg uses when selecting the bundle for a target.
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-# Track the safemode image version so opkg can order upgrades between bundles.
-PV = "${DISTRO_VERSION}"
+# Version the package by the safemode it carries (BUILDNAME is stamped into
+# bootimage.ini as component_version), mapped so that opkg orders it the same
+# way nicompareversion does: the NI phase letter becomes a number (d=0, a=1,
+# b=2, rc=3, f=4), e.g. 27.0.0d23 -> 27.0.0.0.23.
+def safemode_pkg_version(d):
+    import re
+    buildname = d.getVar('BUILDNAME') or ''
+    m = re.match(r'([0-9]+)\.([0-9]+)(?:\.([0-9]+)(?:(d|a|b|rc|f)([0-9]+))?)?', buildname)
+    if not m:
+        bb.fatal("ni-safemode-image: BUILDNAME '%s' is not an NI version such as 27.0.0d23" % buildname)
+    major, minor, sub, phase, build = m.groups()
+    phases = {'d': 0, 'a': 1, 'b': 2, 'rc': 3, 'f': 4}
+    return '.'.join(str(int(x)) for x in (major, minor, sub or 0, phases[phase or 'f'], build or 0))
+
+PV = "${@safemode_pkg_version(d)}"
 
 # The safemode rootfs archive is currently produced for x64 only. arm safemode
 # is delivered as a FIT image through a different path.
