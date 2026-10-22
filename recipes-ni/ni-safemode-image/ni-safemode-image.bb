@@ -17,11 +17,12 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 # Version the package by the safemode it carries (BUILDNAME is stamped into
 # bootimage.ini as component_version), mapped so that opkg orders it the same
 # way nicompareversion does: the NI phase letter becomes a number (d=0, a=1,
-# b=2, rc=3, f=4), e.g. 27.0.0d23 -> 27.0.0.0.23.
+# b=2, rc=3, f=4), e.g. 27.0.0d23 -> 27.0.0.0.23. The whole BUILDNAME must be
+# an NI version, optionally followed by the -x64 suffix CI builds carry.
 def safemode_pkg_version(d):
     import re
     buildname = d.getVar('BUILDNAME') or ''
-    m = re.match(r'([0-9]+)\.([0-9]+)(?:\.([0-9]+)(?:(d|a|b|rc|f)([0-9]+))?)?', buildname)
+    m = re.fullmatch(r'([0-9]+)\.([0-9]+)(?:\.([0-9]+)(?:(d|a|b|rc|f)([0-9]+))?)?(?:-x64)?', buildname)
     if not m:
         bb.fatal("ni-safemode-image: BUILDNAME '%s' is not an NI version such as 27.0.0d23" % buildname)
     major, minor, sub, phase, build = m.groups()
