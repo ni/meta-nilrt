@@ -1,0 +1,10 @@
+#!/bin/sh
+# opkg post_invoke hook: apply NI firewall drop-ins right after a package
+# transaction, so a package's service opens (or closes) without a reboot.
+# Runs before 10-aide-reinit, so the rebaseline includes the zone change.
+[ -x /usr/bin/ni-firewall-apply ] || exit 0
+# An apply already running may have read the markers before this transaction;
+# let it finish (any later run reads them fresh), then apply.
+flock -w 120 /var/lib/ni/firewall/apply.lock true 2>/dev/null
+/usr/bin/ni-firewall-apply </dev/null 2>&1 | logger -t ni-firewall-apply
+exit 0
