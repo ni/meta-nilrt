@@ -11,6 +11,7 @@ PV = "1.0"
 SRC_URI = "\
 	file://ni-firewall-apply \
 	file://ni-firewall-apply.init \
+	file://05-ni-firewall-apply \
 "
 
 inherit update-rc.d
@@ -23,6 +24,8 @@ INITSCRIPT_PARAMS = "start 25 2 3 4 5 . stop 75 0 1 6 ."
 do_install () {
 	install -D -m 0755 ${UNPACKDIR}/ni-firewall-apply ${D}${bindir}/ni-firewall-apply
 	install -D -m 0755 ${UNPACKDIR}/ni-firewall-apply.init ${D}${sysconfdir}/init.d/ni-firewall-apply
+	# Re-apply after each opkg transaction (needs opkg post_invoke support).
+	install -D -m 0755 ${UNPACKDIR}/05-ni-firewall-apply ${D}${sysconfdir}/opkg/post_invoke.d/05-ni-firewall-apply
 
 	# The drop-in contract directory: other packages install markers here.
 	install -d ${D}${sysconfdir}/ni/firewall/open.d
@@ -30,7 +33,7 @@ do_install () {
 	install -d ${D}${localstatedir}/lib/ni/firewall
 }
 
-FILES:${PN} += "${sysconfdir}/ni/firewall/open.d ${localstatedir}/lib/ni/firewall"
+FILES:${PN} += "${sysconfdir}/ni/firewall/open.d ${localstatedir}/lib/ni/firewall ${sysconfdir}/opkg/post_invoke.d"
 
 # Reuses the WI-A helper (ni-firewall-open/close) and firewalld's tools.
 RDEPENDS:${PN} += "ni-firewalld-servicedefs firewalld firewalld-offline-cmd"
