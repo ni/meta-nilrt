@@ -735,4 +735,3 @@ prompt_user()
 		echo "$question: $var (auto)"
 	fi
 }
-
