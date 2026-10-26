@@ -10,20 +10,18 @@ if [ "$arch" = "armv7l" ]; then
 		echo $tmp_cfg
 	}
 elif [ "$arch" = "x86_64" ]; then
-	BOOT_CONFIG_LOCATION="/boot/bootmode"
+	BOOT_CONFIG_LOCATION="/boot/grub/grubenv"
 
 	write_config() {
-		echo "set BOOT_MODE=$1" > $BOOT_CONFIG_LOCATION
+		grub-editenv "$BOOT_CONFIG_LOCATION" set "BOOT_MODE=$1"
 	}
 
 	read_config() {
-		read tmp_cfg < $BOOT_CONFIG_LOCATION
-		echo $tmp_cfg | awk -F '=' '{print $2}';
+		grub-editenv "$BOOT_CONFIG_LOCATION" list | sed -n 's/^BOOT_MODE=//p'
 	}
 
-	# if the bootmode file doesn't exist, this is the first run of this
-	# script for this boot, so set it to the current mode
-	if [ ! -f "$BOOT_CONFIG_LOCATION" ]; then
+	# If the boot mode is unset, initialize it to the current mode.
+	if [ -z "$(read_config)" ]; then
 		if [ -f "/etc/natinst/safemode" ]; then
 			write_config safemode
 		else

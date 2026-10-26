@@ -124,6 +124,8 @@ override_primaryport_grubenv()
 
 add_USB_gadget_args_to_grubenv()
 {
+	local grubenv_file=$1
+	local readonly_vars_file=$2
 	local MAC=$(get_usbdev_mac)
 	local VID=$(get_usbdev_vid)
 	local PID=$(get_usbdev_pid)
@@ -134,14 +136,18 @@ add_USB_gadget_args_to_grubenv()
 	if is_usbdev_target; then
 
 		if [ -n "$MAC" -a -n "$VID" -a -n "$PID" -a -n "$SN" -a -n "$TID" -a -n "$PROD" ]; then
-			cat << EOF > $GRUB_MOUNTPOINT/grubvar_readonly
-set usbgadgetethaddr=$MAC
-set USBVendorID=$VID
-set USBProductID=$PID
-set SerialNum=$SN
-set USBDevice=$TID
-set USBProduct=$PROD
-EOF
+			grub-editenv "$grubenv_file" set \
+				"usbgadgetethaddr=$MAC" \
+				"USBVendorID=$VID" \
+				"USBProductID=$PID" \
+				"SerialNum=$SN" \
+				"USBDevice=$TID" \
+				"USBProduct=$PROD"
+			for varname in "usbgadgetethaddr" "USBVendorID" "USBProductID" "SerialNum" "USBDevice" "USBProduct"; do
+				if ! grep -Fxq "$varname" "$readonly_vars_file"; then
+					echo "$varname" >> "$readonly_vars_file"
+				fi
+			done
 		else
 			print_error "Details required for USB device mode are missing from SMBIOS! UPGRADE your BIOS if using NI Target. USB Gadget will not be functional."
 			return
@@ -151,12 +157,23 @@ EOF
 
 set_serial_port()
 {
+	local grubenv_file=$1
+	local readonly_vars_file=$2
+	grub-editenv "$grubenv_file" unset serial_port GRUB_SERIAL_BASE_CLOCK
+
 	if [ -d /sys/class/tty/ttyS0 ] && [ -f /sys/class/tty/ttyS0/type ] && [ `cat /sys/class/tty/ttyS0/type` -ne 0 ]; then
-		echo "set serial_port="`cat /sys/class/tty/ttyS0/port` >> $GRUB_MOUNTPOINT/grubvar_readonly
+		local serial_port=$(cat /sys/class/tty/ttyS0/port)
+		grub-editenv "$grubenv_file" set "serial_port=$serial_port"
+		if ! grep -Fxq "serial_port" "$readonly_vars_file"; then
+			echo "serial_port" >> "$readonly_vars_file"
+		fi
 
 		local base_clock
 		if base_clock=$(get_serial_base_clock); then
-			echo "set GRUB_SERIAL_BASE_CLOCK=$base_clock" >> $GRUB_MOUNTPOINT/grubvar_readonly
+			grub-editenv "$grubenv_file" set "GRUB_SERIAL_BASE_CLOCK=$base_clock"
+			if ! grep -Fxq "GRUB_SERIAL_BASE_CLOCK" "$readonly_vars_file"; then
+				echo "GRUB_SERIAL_BASE_CLOCK" >> "$readonly_vars_file"
+			fi
 		fi
 	fi
 
@@ -308,13 +325,13 @@ install_grubenv()
 		cp $SOURCE_DIR/grubenv $BOOTFS_MOUNTPOINT/grub
 		cp $SOURCE_DIR/SMBIOS_NI_vars $BOOTFS_MOUNTPOINT/.safe
 		cp $SOURCE_DIR/EFI_NI_vars $BOOTFS_MOUNTPOINT/.safe
-		add_USB_gadget_args_to_grubenv
+		add_USB_gadget_args_to_grubenv "$BOOTFS_MOUNTPOINT/grub/grubenv" "$BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars"
 		override_primaryport_grubenv $BOOTFS_MOUNTPOINT/grub/grubenv
 	else
 		cp $SOURCE_DIR/grubenv_non_ni_target $BOOTFS_MOUNTPOINT/grub/grubenv
 	fi
 
-	set_serial_port
+	set_serial_port "$BOOTFS_MOUNTPOINT/grub/grubenv" "$BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars"
 
 	grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "BIOSBootMode=efi"
 	grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "NITarget=$NI_TARGET"
@@ -369,10 +386,12 @@ fix_grubenv_after_usbreplication()
 {
 		# Fix files in nigrub filesystem
 		rm $GRUB_MOUNTPOINT/grubvar_readonly
-		if is_ni_device ; then
-			add_USB_gadget_args_to_grubenv
-		fi
-		set_serial_port
+		for grubenv_file in "$BOOTFS_MOUNTPOINT/grub/grubenv" "$BOOTFS_MOUNTPOINT/grub/grubenv.bak"; do
+			if is_ni_device ; then
+				add_USB_gadget_args_to_grubenv "$grubenv_file" "$BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars"
+			fi
+			set_serial_port "$grubenv_file" "$BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars"
+		done
 		add_rootuuid_to_grubenv
 
 		# Fix files in nibootfs filesystem

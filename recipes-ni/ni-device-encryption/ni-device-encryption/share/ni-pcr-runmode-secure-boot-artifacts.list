@@ -1,0 +1,15 @@
+# PCR 15 artifact list for Secure Boot runmode.
+# Entries are ordered as GRUB opens them. Password config is read only when
+# the EFI SecureBoot variable is enabled.
+# Both grubenv loads must read identical contents; the wrapper must not save it.
+nigrub:EFI/BOOT/grub.cfg
+/boot/grub/grubenv
+nigrub:EFI/BOOT/efi-secure-boot.inc
+# SecureBoot=1: nigrub:EFI/BOOT/password.inc
+nigrub:efi/nilrt/grub.cfg
+/boot/grub/grubenv
+/boot/runmode/bootimage.cfg
+/boot/runmode/cpu-mitigations.cfg
+# Optional fragments are measured in sorted order before the kernel.
+/boot/runmode/bootimage.cfg.d/*.cfg
+/boot/runmode/bzImage
