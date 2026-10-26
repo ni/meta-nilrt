@@ -10,3 +10,4 @@ nigrub:efi/nilrt/grub.cfg
 /boot/runmode/bootimage.cfg
 /boot/runmode/cpu-mitigations.cfg
 /boot/runmode/bzImage
+/boot/runmode/ramdisk.xz

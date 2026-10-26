@@ -15,8 +15,12 @@ SRC_URI += "file://grub-dkms-bundle.cfg"
 IMAGE_INSTALL = " \
 	grub-efi-nilrt \
 	grub-bootconf-nilrt \
+	nilrt-grub-runmode \
 	kernel-image-bzimage \
 "
+
+# shim is the first stage; SELoader and the NI grub image are its siblings.
+IMAGE_INSTALL:append = " ${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'shim seloader', '', d)}"
 
 INITRAMFS_IMAGE = "nilrt-initramfs"
 do_rootfs[depends] += "${INITRAMFS_IMAGE}:do_image_complete"
@@ -43,7 +47,15 @@ bootimg_fixup() {
 
 	# Generate readme.txt file to describe image contents
 	echo  >"${IMAGE_ROOTFS}/boot/readme.txt" "${PN} ${PV} ${PR} system partition image:"
-	echo >>"${IMAGE_ROOTFS}/boot/readme.txt" " - bootx64.efi: Grub EFI binary"
+	if [ "${SECURE_BOOT_ENABLED}" = "1" ]; then
+		echo >>"${IMAGE_ROOTFS}/boot/readme.txt" " - efi/nilrt/bootx64.efi: shim EFI binary (first stage)"
+		echo >>"${IMAGE_ROOTFS}/boot/readme.txt" " - efi/nilrt/SELoaderx64.efi: SELoader EFI binary (second stage)"
+		echo >>"${IMAGE_ROOTFS}/boot/readme.txt" " - efi/nilrt/mmx64.efi: MokManager EFI binary"
+		echo >>"${IMAGE_ROOTFS}/boot/readme.txt" " - efi/nilrt/${GRUB_IMAGE}: Grub EFI binary"
+		echo >>"${IMAGE_ROOTFS}/boot/readme.txt" " - ${SB_FILE_EXT} files: detached signatures for the files Grub loads"
+	else
+		echo >>"${IMAGE_ROOTFS}/boot/readme.txt" " - bootx64.efi: Grub EFI binary"
+	fi
 	echo >>"${IMAGE_ROOTFS}/boot/readme.txt" " - grub.cfg: Grub configuration"
 	echo >>"${IMAGE_ROOTFS}/boot/readme.txt" " - bzImage: $(readlink "${IMAGE_ROOTFS}/boot/bzImage") kernel image"
 	echo >>"${IMAGE_ROOTFS}/boot/readme.txt" " - initrd.cpio.gz: ${INITRAMFS_IMAGE}-${MACHINE}.cpio.gz ramdisk image"
@@ -51,8 +63,17 @@ bootimg_fixup() {
 
 	# Move /boot/runmode/bzImage to /boot/bzImage
 	mv "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/$(readlink "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/bzImage")" "${IMAGE_ROOTFS}/boot/bzImage"
-	# Remove /boot/runmode
-	rm -rf "${IMAGE_ROOTFS}/boot/runmode"
+
+	# Keep the runmode config layout expected by grub.cfg, but point it to the
+	# kernel at the bundle root.
+	sed -i "s|set kernel_path='/runmode/bzImage'|set kernel_path='/bzImage'|" \
+		"${IMAGE_ROOTFS}/boot/runmode/bootimage.cfg"
+	install -d "${IMAGE_ROOTFS}/boot/runmode/bootimage.cfg.d"
+	if [ -d "${IMAGE_ROOTFS}/boot/bootimage.cfg.d" ]; then
+		cp -a "${IMAGE_ROOTFS}/boot/bootimage.cfg.d/." \
+			"${IMAGE_ROOTFS}/boot/runmode/bootimage.cfg.d/"
+		rm -rf "${IMAGE_ROOTFS}/boot/bootimage.cfg.d"
+	fi
 
 	# Bitbake insists on installing glibc which is not needed on
 	#  EFI system partition. Cleanup all non-boot related files.
@@ -60,6 +81,8 @@ bootimg_fixup() {
 		-not -path "${IMAGE_ROOTFS}/boot" \
 		-a -not -path "${IMAGE_ROOTFS}/boot/*" \
 		-a -not -path "${IMAGE_ROOTFS}/boot/efi" \
+		-a -not -path "${IMAGE_ROOTFS}/boot/efi/EFI" \
+		-a -not -path "${IMAGE_ROOTFS}/boot/efi/EFI/*" \
 		-a -not -path "${IMAGE_ROOTFS}/boot/efi/nilrt" \
 		-a -not -path "${IMAGE_ROOTFS}/boot/efi/nilrt/*" \
 		-a -not -path "${IMAGE_ROOTFS}/boot/bootimage.cfg.d" \
@@ -103,6 +126,56 @@ python secure_boot_esp_sign() {
         uks_bl_sign(target, d)
 }
 
-IMAGE_PREPROCESS_COMMAND += " bootimg_fixup; secure_boot_esp_sign; "
+# shim looks for its next stage next to itself, so the whole chain has to live
+# in the same directory as the NI-prefixed grub image.
+secure_boot_esp_fixup() {
+	if [ "${SECURE_BOOT_ENABLED}" != "1" ]; then
+		return
+	fi
+
+	for f in bootx64.efi mmx64.efi SELoaderx64.efi Hash2DxeCrypto.efi Pkcs7VerifyDxe.efi LockDown.efi; do
+		if [ ! -e "${IMAGE_ROOTFS}/efi/EFI/BOOT/$f" ]; then
+			case "$f" in
+				SELoaderx64.efi|Hash2DxeCrypto.efi|Pkcs7VerifyDxe.efi|LockDown.efi)
+					continue
+					;;
+				*)
+					bbfatal "$f is required in the secure-boot ESP image but was not installed."
+					;;
+			esac
+		fi
+		mv "${IMAGE_ROOTFS}/efi/EFI/BOOT/$f" "${IMAGE_ROOTFS}/efi/nilrt/$f"
+	done
+
+	rm -rf "${IMAGE_ROOTFS}/efi/EFI"
+}
+
+python secure_boot_esp_sign() {
+    import glob
+    import os
+
+    if d.getVar('SECURE_BOOT_ENABLED') != '1':
+        return
+
+    bb.build.exec_func('check_deploy_keys', d)
+    if d.getVar('GRUB_SIGN_VERIFY') == '1':
+        bb.build.exec_func('check_boot_public_key', d)
+
+    rootfs = d.getVar('IMAGE_ROOTFS')
+    targets = [rootfs + '/efi/nilrt/grub.cfg',
+               rootfs + '/bzImage',
+               rootfs + '/initrd.cpio.gz',
+               rootfs + '/runmode/bootimage.cfg',
+               rootfs + '/runmode/cpu-mitigations.cfg']
+    targets += sorted(glob.glob(rootfs + '/runmode/bootimage.cfg.d/*.cfg'))
+
+    for target in targets:
+        if not os.path.exists(target):
+            bb.fatal('%s is required in the secure-boot ESP image but is missing.'
+                     % target[len(rootfs):])
+        uks_bl_sign(target, d)
+}
+
+IMAGE_PREPROCESS_COMMAND += " bootimg_fixup; secure_boot_esp_fixup; secure_boot_esp_sign; secure_boot_esp_sign; "
 
 inherit image
