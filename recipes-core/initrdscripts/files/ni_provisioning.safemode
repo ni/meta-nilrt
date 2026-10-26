@@ -37,6 +37,4 @@ trap - ERR
 exec 1>&3
 exec 2>&4
 
-set_root_password
-
 provision_successfull
