@@ -77,14 +77,166 @@ if [ "$arch" = "armv7l" ]; then
 	rmdir "$mount_point/runmode" 2>/dev/null || true
 elif [ "$arch" = "x86_64" ]; then
 	kernel="/mnt/userfs/boot/tmp/runmode"
+	kernel_sig_ext=""
+	for ext in .p7b .sig; do
+		if [ -e "${kernel}/bzImage${ext}" ]; then
+			kernel_sig_ext="${ext}"
+			break
+		fi
+	done
+	if [ -z "${kernel_sig_ext}" ]; then
+		versioned_kernel_sig=$(ls -1 "${kernel}"/bzImage-*.* 2>/dev/null | grep -E '\.(p7b|sig)$' | sort | tail -n 1)
+		if [ -n "${versioned_kernel_sig}" ]; then
+			kernel_sig_ext=".${versioned_kernel_sig##*.}"
+			cp "${versioned_kernel_sig}" "${kernel}/bzImage${kernel_sig_ext}"
+		fi
+	fi
 	# install the kernel
 	rm -rf /boot/runmode
 	if mv "$kernel" "$mount_point"; then
 		# Remove the tmp path from the rootfs
 		rmdir "`dirname "$kernel"`"
+		if [ -n "${kernel_sig_ext}" ] && [ ! -e "${mount_point}/runmode/bzImage${kernel_sig_ext}" ]; then
+			echo "ERROR: runmode kernel signature sidecar was not preserved." 1>&2
+			exit 1
+		fi
 	else
 		exit 1
 	fi
+fi
+
+install_secure_boot_efi()
+{
+	local source_dir=/mnt/userfs/boot/efi
+	local esp_mount=/var/volatile/nigrub
+	local boot_dir=$source_dir/EFI/BOOT
+	local runmode_dir=/boot/runmode
+	local secure_boot_enabled="@SECURE_BOOT_ENABLED@"
+	local signature_ext="@SB_FILE_EXT@"
+	local use_seloader="@UEFI_SELOADER@"
+	local required_efi_files="bootx64.efi mmx64.efi grubx64.efi"
+	local file
+
+	if [ "$secure_boot_enabled" != "1" ]; then
+		return 0
+	fi
+
+	case "$signature_ext" in
+		.p7b|.sig) ;;
+		*)
+			echo "ERROR: unsupported secure-boot signature extension: $signature_ext" 1>&2
+			return 1
+			;;
+	esac
+	if [ "$use_seloader" = "1" ]; then
+		required_efi_files="$required_efi_files SELoaderx64.efi"
+	fi
+
+	for file in $required_efi_files grub.cfg "grub.cfg$signature_ext"; do
+		[ -f "$boot_dir/$file" ] || {
+			echo "ERROR: secure-boot EFI file is missing: $boot_dir/$file" 1>&2
+			return 1
+		}
+	done
+	for file in bzImage "bzImage$signature_ext" bootimage.cfg "bootimage.cfg$signature_ext"; do
+		[ -f "$runmode_dir/$file" ] || {
+			echo "ERROR: secure-boot runmode file is missing: $runmode_dir/$file" 1>&2
+			return 1
+		}
+	done
+
+	if ! mkdir -p "$esp_mount"; then
+		echo "ERROR: could not create ESP mount directory: $esp_mount" 1>&2
+		return 1
+	fi
+	if ! mount -L nigrub "$esp_mount"; then
+		echo "ERROR: could not mount the nigrub ESP at $esp_mount" 1>&2
+		return 1
+	fi
+	trap 'umount "$esp_mount" || echo "ERROR: could not unmount ESP at $esp_mount" 1>&2' RETURN
+
+	# The ESP menus are preserved below, so each must already have a signature
+	# sidecar for the chain being installed; otherwise the verifier rejects them.
+	for file in efi/boot/grub.cfg efi/nilrt/grub.cfg; do
+		if [ ! -f "$esp_mount/$file" ] || [ ! -f "$esp_mount/$file$signature_ext" ]; then
+			echo "ERROR: signed safemode menu is missing on ESP: $esp_mount/$file$signature_ext" 1>&2
+			return 1
+		fi
+	done
+
+	local update_failed=0
+	local stage_dir="" previous_dir=""
+	if ! mkdir -p "$esp_mount/efi"; then
+		echo "ERROR: could not create ESP EFI directory: $esp_mount/efi" 1>&2
+		update_failed=1
+	fi
+
+	# Build the complete new chain beside the live directory first, so a failed
+	# copy never leaves a mix of old and new stages on the ESP.
+	if [ "$update_failed" -eq 0 ] && ! stage_dir=$(mktemp -d "$esp_mount/efi/.boot-stage.XXXXXX"); then
+		echo "ERROR: could not create EFI staging directory on ESP" 1>&2
+		update_failed=1
+	fi
+	# Both ESP grub.cfg menus are safemode-owned; carry them over unchanged.
+	if [ "$update_failed" -eq 0 ] && [ -d "$esp_mount/efi/boot" ] && ! cp -a "$esp_mount/efi/boot/." "$stage_dir/"; then
+		echo "ERROR: could not copy existing EFI directory to staging" 1>&2
+		update_failed=1
+	fi
+	if [ "$update_failed" -eq 0 ]; then
+		rm -rf "$stage_dir/fonts"
+		for file in bootx64.efi SELoaderx64.efi mmx64.efi grubx64.efi \
+			Hash2DxeCrypto.efi Pkcs7VerifyDxe.efi LockDown.efi; do
+			[ -f "$boot_dir/$file" ] || continue
+			if ! cp -a "$boot_dir/$file" "$stage_dir/$file"; then
+				echo "ERROR: could not stage EFI file: $file" 1>&2
+				update_failed=1
+				break
+			fi
+		done
+	fi
+	if [ "$update_failed" -eq 0 ] && ! sync; then
+		echo "ERROR: could not sync staged EFI files" 1>&2
+		update_failed=1
+	fi
+
+	# Swap the staged chain in as one step, keeping the previous directory so it
+	# can be restored if the swap fails.
+	if [ "$update_failed" -eq 0 ]; then
+		chmod 0755 "$stage_dir"
+		if [ -d "$esp_mount/efi/boot" ]; then
+			previous_dir="$esp_mount/efi/.boot-previous"
+			rm -rf "$previous_dir"
+			if ! mv "$esp_mount/efi/boot" "$previous_dir"; then
+				echo "ERROR: could not move existing EFI directory aside" 1>&2
+				update_failed=1
+			fi
+		fi
+	fi
+	if [ "$update_failed" -eq 0 ] && ! mv "$stage_dir" "$esp_mount/efi/boot"; then
+		echo "ERROR: could not install staged EFI directory" 1>&2
+		update_failed=1
+		if [ -n "$previous_dir" ] && ! mv "$previous_dir" "$esp_mount/efi/boot"; then
+			echo "ERROR: EFI rollback failed; previous chain kept at $previous_dir" 1>&2
+		fi
+	fi
+	if [ "$update_failed" -eq 0 ]; then
+		[ -z "$previous_dir" ] || rm -rf "$previous_dir"
+		sync
+	fi
+	if [ -n "$stage_dir" ] && [ -d "$stage_dir" ]; then
+		rm -rf "$stage_dir"
+	fi
+
+	trap - RETURN
+	if ! umount "$esp_mount"; then
+		echo "ERROR: could not unmount ESP at $esp_mount" 1>&2
+		update_failed=1
+	fi
+	return "$update_failed"
+}
+
+if [ "$arch" = "x86_64" ]; then
+	install_secure_boot_efi || exit $?
 fi
 
 # Use persistent names on PXI, not on any other targets
