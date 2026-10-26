@@ -68,8 +68,7 @@ do_install () {
 
 	# Install PCR artifact lists to the package share directory, where they
 	# are reachable from both the safemode initramfs and the runmode rootfs.
-	install -m 0644 ${S}/share/ni-pcr-runmode-artifacts.list ${D}${libdir}/${BPN}/share/ni-pcr-runmode-artifacts.list
-	install -m 0644 ${S}/share/ni-pcr-safemode-artifacts.list ${D}${libdir}/${BPN}/share/ni-pcr-safemode-artifacts.list
+	install -m 0644 ${S}/share/ni-pcr-*-artifacts.list ${D}${libdir}/${BPN}/share/
 
 	# Install initscript
 	install -d ${D}${sysconfdir}/init.d
@@ -94,4 +93,4 @@ RDEPENDS:${PN} = "\
 	util-linux-logger \
 "
 
-FILES:${PN} += "${libdir}/${BPN}/share/ni-pcr-runmode-artifacts.list ${libdir}/${BPN}/share/ni-pcr-safemode-artifacts.list"
+FILES:${PN} += "${libdir}/${BPN}/share/ni-pcr-*-artifacts.list"

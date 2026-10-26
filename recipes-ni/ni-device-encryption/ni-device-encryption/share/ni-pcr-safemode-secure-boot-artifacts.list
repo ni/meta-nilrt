@@ -1,0 +1,12 @@
+# PCR 15 artifact list for Secure Boot safemode.
+# Entries are ordered as GRUB opens them. Password config is read only when
+# the EFI SecureBoot variable is enabled.
+nigrub:EFI/BOOT/grub.cfg
+/boot/grub/grubenv
+nigrub:EFI/BOOT/efi-secure-boot.inc
+# SecureBoot=1: nigrub:EFI/BOOT/password.inc
+/boot/grub.cfg
+/boot/grub/grubenv
+/boot/.safe/bootimage.cfg
+/boot/.safe/bzImage
+/boot/.safe/ramdisk.xz
