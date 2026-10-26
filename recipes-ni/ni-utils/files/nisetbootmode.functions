@@ -13,7 +13,7 @@ elif [ "$arch" = "x86_64" ]; then
 	BOOT_CONFIG_LOCATION="/boot/grub/grubenv"
 
 	write_config() {
-		grub-editenv "$BOOT_CONFIG_LOCATION" set "BOOT_MODE=$1"
+		grub-editenv "$BOOT_CONFIG_LOCATION" set "BOOT_MODE=$1" && rm -f /boot/bootmode
 	}
 
 	read_config() {
