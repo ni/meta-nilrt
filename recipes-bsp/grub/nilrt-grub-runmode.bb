@@ -7,6 +7,8 @@ S = "${UNPACKDIR}"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/grub:"
 
+require ${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'nilrt-grub-runmode-secure-boot.inc', '', d)}
+
 SRC_URI += " \
     file://grub-runmode-bootimage.cfg \
     file://grub.d \

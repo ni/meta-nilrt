@@ -4,7 +4,13 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 IMAGE_FSTYPES = "tar.bz2"
 
+SECURE_BOOT_ENABLED = "${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', '1', '0', d)}"
+
+inherit ${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'user-key-store', '', d)}
+
 DEPENDS = "grub-efi grub-bootconf ${PREFERRED_PROVIDER_virtual/kernel}"
+
+SRC_URI += "file://grub-dkms-bundle.cfg"
 
 IMAGE_INSTALL = " \
 	grub-efi-nilrt \
@@ -24,6 +30,13 @@ bootimg_fixup() {
 
 	# Install initramfs image to /boot/EFI/BOOT/
 	install -m 0644 "${DEPLOY_DIR_IMAGE}/${INITRAMFS_IMAGE}-${MACHINE}.cpio.gz" "${IMAGE_ROOTFS}/boot/initrd.cpio.gz"
+
+	# The shared grub-bootconf menu is for BSI runmode and expects nirootfs.
+	# DKMS bundles boot from the active ESP using the supplied initramfs.
+	install -m 0644 "${UNPACKDIR}/grub-dkms-bundle.cfg" "${IMAGE_ROOTFS}/boot/efi/nilrt/grub.cfg"
+	if [ "${SECURE_BOOT_ENABLED}" = "1" ]; then
+		rm -f "${IMAGE_ROOTFS}/boot/efi/nilrt/grub.cfg${SB_FILE_EXT}"
+	fi
 
 	# Install version file
 	echo "${BUILDNAME}" >"${IMAGE_ROOTFS}/boot/version"
@@ -66,6 +79,30 @@ bootimg_fixup() {
 	rmdir "${IMAGE_ROOTFS}/boot"
 }
 
-IMAGE_PREPROCESS_COMMAND += " bootimg_fixup; "
+python secure_boot_esp_sign() {
+    import glob
+    import os
+
+    if d.getVar('SECURE_BOOT_ENABLED') != '1':
+        return
+
+    bb.build.exec_func('check_deploy_keys', d)
+    if d.getVar('GRUB_SIGN_VERIFY') == '1':
+        bb.build.exec_func('check_boot_public_key', d)
+
+    rootfs = d.getVar('IMAGE_ROOTFS')
+    targets = [rootfs + '/efi/nilrt/grub.cfg',
+               rootfs + '/bzImage',
+               rootfs + '/initrd.cpio.gz']
+    targets += sorted(glob.glob(rootfs + '/bootimage.cfg.d/*.cfg'))
+
+    for target in targets:
+        if not os.path.exists(target):
+            bb.fatal('%s is required in the DKMS ESP image but is missing.'
+                     % target[len(rootfs):])
+        uks_bl_sign(target, d)
+}
+
+IMAGE_PREPROCESS_COMMAND += " bootimg_fixup; secure_boot_esp_sign; "
 
 inherit image
