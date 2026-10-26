@@ -77,11 +77,45 @@ target_device_code=`/sbin/fw_printenv -n DeviceCode`
 [ -s $tmp_dir/$kernel ]
 [ -s $tmp_dir/$ramdisk ]
 
+# Secure-boot archives carry signed EFI and boot payload files.
+signature_ext=""
+for sig_ext in .p7b .sig; do
+	if [ -s "$tmp_dir/$kernel$sig_ext" ]; then
+		signature_ext=$sig_ext
+		break
+	fi
+done
+if [ -d "$tmp_dir/efi" ] || [ -n "$signature_ext" ]; then
+	[ -n "$signature_ext" ]
+	[ -s "$tmp_dir/$kernel$signature_ext" ]
+	[ -s "$tmp_dir/ramdisk.xz$signature_ext" ]
+	[ -s "$tmp_dir/$grub_bootimage_cfg$signature_ext" ]
+	[ -s "$tmp_dir/grub.cfg$signature_ext" ]
+fi
+
 # Return a different error code if there is a failure while touching the safemode files
 chmod u+w $mount_point/.safe || exit 5
-chmod u+w $mount_point/.safe/* || exit 5
-cp -f $tmp_dir/* $mount_point/.safe/ || exit 5
-chmod u-w $mount_point/.safe/* || exit 5
+find $mount_point/.safe -type f -exec chmod u+w {} + || exit 5
+
+# The archive is merged into .safe, so remove stale signature variants for
+# every managed payload before copying its replacement.
+while IFS= read -r -d '' source_path; do
+	relative_path="${source_path#"$tmp_dir"/}"
+	rm -f "$mount_point/.safe/$relative_path.p7b" "$mount_point/.safe/$relative_path.sig" || exit 5
+done < <(find "$tmp_dir" -type f ! -name '*.p7b' ! -name '*.sig' -print0)
+
+# Do not retain or execute an updater from a previous secure-boot archive.
+if [ ! -x "$tmp_dir/update-safemode-efi.sh" ]; then
+	rm -f "$mount_point/.safe/update-safemode-efi.sh" || exit 5
+fi
+
+cp -a $tmp_dir/. $mount_point/.safe/ || exit 5
+find $mount_point/.safe -type f -exec chmod u-w {} + || exit 5
+chmod u-w $mount_point/.safe || exit 5
+
+if [ -x $mount_point/.safe/update-safemode-efi.sh ]; then
+	$mount_point/.safe/update-safemode-efi.sh || exit 5
+fi
 chmod u-w $mount_point/.safe || exit 5
 
 if [ -x $tmp_dir/postinst ]; then
