@@ -164,26 +164,15 @@ set_serial_port()
 
 partitioning_disk()
 {
-	DISK_SIZE_BYTES=$(lsblk -bnd -o SIZE "$TARGET_DISK")
-	DISK_SIZE_GB=$((DISK_SIZE_BYTES / 1024 / 1024 / 1024))
-	if [ "$DISK_SIZE_GB" -ge 32 ]; then
-    	PART1_END=100
-		PART2_END=284
-		PART3_END=348
-	else
-    	PART1_END=16
-    	PART2_END=200
-    	PART3_END=216
-	fi
 	for part in $(lsblk -lnpo NAME,TYPE "$TARGET_DISK" | awk '$2 == "part" { print $1 }'); do
 		umount "$part" 2>/dev/null || true
 	done
 	print_info "Partitioning TARGET_DISK=$TARGET_DISK (PART_STYLE=$PART_STYLE)..."
 	PARTED_ERROR=`parted -s $TARGET_DISK mklabel $PART_STYLE 2>&1` || die "$PARTED_ERROR"
-	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART1_NAME 1MB ${PART1_END}MB 2>&1` || die "$PARTED_ERROR"
-	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART2_NAME ${PART1_END}MB ${PART2_END}MB 2>&1` || die "$PARTED_ERROR"
-	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART3_NAME ${PART2_END}MB ${PART3_END}MB 2>&1` || die "$PARTED_ERROR"
-	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART4_NAME ${PART3_END}MB 100% 2>&1` || die "$PARTED_ERROR"
+	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART1_NAME 1MB 16MB 2>&1` || die "$PARTED_ERROR"
+	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART2_NAME 16MB 200MB 2>&1` || die "$PARTED_ERROR"
+	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART3_NAME 200MB 216MB 2>&1` || die "$PARTED_ERROR"
+	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART4_NAME 216MB 100% 2>&1` || die "$PARTED_ERROR"
 	print_done
 
 	print_info "Assigning EFI System Partition..."
@@ -230,7 +219,23 @@ mount_grub_partition()
 {
 	GRUB_MOUNTPOINT=/var/volatile/grub
 	mkdir $GRUB_MOUNTPOINT -p
-	MOUNT_ERROR=`mount ${TARGET_DISK}${PART_SEPARATOR}1 $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
+	MOUNT_ERROR=`mount "${TARGET_DISK}${PART_SEPARATOR}1" $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
+}
+
+# Signed EFI binaries installed by packagegroup-efi-secure-boot. The unsigned
+# oe-core images under /boot/EFI/BOOT are only usable without Secure Boot.
+# SELoaderx64.efi is renamed to bootx64.efi when MOK signing is disabled.
+SECURE_BOOT_REQUIRED_FILES="bootx64.efi mmx64.efi grubx64.efi"
+SECURE_BOOT_OPTIONAL_FILES="SELoaderx64.efi"
+SECURE_BOOT_CHAIN="$SECURE_BOOT_REQUIRED_FILES $SECURE_BOOT_OPTIONAL_FILES"
+SECURE_BOOT_EFI_FILES="$SECURE_BOOT_CHAIN Hash2DxeCrypto.efi Pkcs7VerifyDxe.efi LockDown.efi"
+
+secure_boot_chain_available()
+{
+	for STAGE in $SECURE_BOOT_REQUIRED_FILES ; do
+		[ -f "$SECURE_BOOT_EFI_DIR/$STAGE" ] || return 1
+	done
+	return 0
 }
 
 install_grub()
@@ -257,7 +262,7 @@ mount_bootfs_partition()
 {
 	BOOTFS_MOUNTPOINT=/var/volatile/bootfs
 	mkdir $BOOTFS_MOUNTPOINT -p
-	BOOTFS_ERROR=`mount ${TARGET_DISK}${PART_SEPARATOR}2 $BOOTFS_MOUNTPOINT 2>&1` || die "$BOOTFS_ERROR"
+	BOOTFS_ERROR=`mount "${TARGET_DISK}${PART_SEPARATOR}2" $BOOTFS_MOUNTPOINT 2>&1` || die "$BOOTFS_ERROR"
 }
 
 install_safemode()
@@ -394,7 +399,7 @@ fixup_configfs()
 	CONFIG_MOUNTPOINT=/var/volatile/configfs
 
 	mkdir -p $CONFIG_MOUNTPOINT
-	mount ${TARGET_DISK}${PART_SEPARATOR}3 $CONFIG_MOUNTPOINT
+	mount "${TARGET_DISK}${PART_SEPARATOR}3" $CONFIG_MOUNTPOINT
 
 	# Set root dir ownership to lvuser:ni
 	chown 500:500 $CONFIG_MOUNTPOINT
