@@ -260,7 +260,6 @@ RDEPENDS:${PN} += "\
 	cunit \
 	dejagnu \
 	i2c-tools \
-	icon-slicer \
 	jq \
 	lemon \
 	libedit \
@@ -288,6 +287,7 @@ RDEPENDS:${PN} += "\
 # meta-openembedded/meta-oe/recipes-devtools
 RDEPENDS:${PN}:append:x64 = "\
 	concurrencykit \
+	icon-slicer \
 "
 
 # meta-openembedded/meta-oe/recipes-extended
@@ -740,9 +740,13 @@ RDEPENDS:${PN} += "\
 
 # meta-security
 RDEPENDS:${PN} += "\
-	clamav \
 	ecryptfs-utils \
 	samhain-server \
+"
+
+# meta-security
+RDEPENDS:${PN}:append:x64 = "\
+	clamav \
 "
 
 # meta-nilrt/recipes-ni
