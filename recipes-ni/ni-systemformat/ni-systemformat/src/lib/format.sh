@@ -403,7 +403,6 @@ function print_root_fstype()
 
 
 function _necessary_services_stop() {
-	/etc/init.d/systemWebServer stop
 	# SSHd uses start-stop-daemon without the --oknodo arg, so returns nonzero
 	# if the daemon is not running.
 	# That's OK. So use the initscript's 'status' command to double-check.
@@ -412,14 +411,11 @@ function _necessary_services_stop() {
 		/etc/init.d/sshd status || sshd_status=$?
 		[ "$sshd_status" -eq 3 ]
 	fi
-	/etc/init.d/niauth stop
 }
 
 
 function _necessary_services_start() {
-	with_retry /etc/init.d/niauth start
 	with_retry /etc/init.d/sshd start
-	with_retry /etc/init.d/systemWebServer start
 }
 
 

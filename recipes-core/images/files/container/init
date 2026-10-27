@@ -14,7 +14,6 @@ fi
 fw_setenv serial# $(hostname)
 
 /etc/init.d/populateconfig start
-/etc/init.d/niauth start
 
 # Bind-mount /boot so ni-arch-gen can detect it as mounted
 mount --bind /boot /boot
@@ -31,11 +30,6 @@ fi
 
 /etc/init.d/avahi-daemon start
 /etc/init.d/nirtmdnsd start
-
-# Fix /run/natinst ownership so webserv can create PID file
-mkdir -p /run/natinst
-chown webserv:ni /run/natinst
-/etc/init.d/systemWebServer start
 
 /etc/init.d/sshd start
 
