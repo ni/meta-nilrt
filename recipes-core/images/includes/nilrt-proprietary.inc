@@ -6,23 +6,15 @@ NI_PROPRIETARY_SAFEMODE_PACKAGES = "\
 
 NI_PROPRIETARY_COMMON_PACKAGES = "\
         libnitargetcfg \
-        ni-auth-webservice \
         ni-avahi-client \
         ni-ca-certs \
-        ni-rt-exec-webservice \
         ni-service-locator \
         ni-software-action-services \
-        ni-software-installation-websvc \
-        ni-ssl-webserver-support \
         ni-sysapi \
         ni-sysapi-remote \
         ni-sysmgmt-auth-utils \
-        ni-system-webserver \
         ni-traceengine \
-        ni-webdav-system-webserver-support \
         ni-webserver-libs \
-        ni-webservices-webserver-support \
-        ni-wif-landingpage \
         ni-wifibledd \
         nicurl \
         nirtcfg \
