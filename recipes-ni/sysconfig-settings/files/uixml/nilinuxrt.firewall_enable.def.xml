@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<item>
+	<group id="startupsettings" caption="{startupsettings}" weight="100" order="0">
+		<!-- sysattr=FirewallEnable -->
+		<property id="firewallenable" caption="{firewallenable}" sysattr="219697152" writable="true" order="900" />
+	</group>
+</item>

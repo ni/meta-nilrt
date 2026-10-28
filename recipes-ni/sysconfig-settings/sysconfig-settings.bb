@@ -189,3 +189,36 @@ pkg_prerm_ontarget:${PN}-ui () {
 	nirtcfg --set "section=systemsettings,token=ui.enabled,value=False"
 	rm -f ${systemsettingsdir}/ui_enable.ini
 }
+
+# sysconfig-settings-firewall package
+PACKAGES += "${PN}-firewall"
+SUMMARY:${PN}-firewall = "System configuration files to enable the firewall"
+DESCRIPTION:${PN}-firewall = "Configuration files that allow NI hardware configuration applications to enable or disable firewalld (SystemSettings firewall.enabled)."
+
+SRC_URI:append = "\
+	file://systemsettings/firewall_enable.ini \
+	file://uixml/nilinuxrt.firewall_enable.binding.xml \
+	file://uixml/nilinuxrt.firewall_enable.const.de.xml \
+	file://uixml/nilinuxrt.firewall_enable.const.fr.xml \
+	file://uixml/nilinuxrt.firewall_enable.const.ja.xml \
+	file://uixml/nilinuxrt.firewall_enable.const.ko.xml \
+	file://uixml/nilinuxrt.firewall_enable.const.xml \
+	file://uixml/nilinuxrt.firewall_enable.const.zh-CN.xml \
+	file://uixml/nilinuxrt.firewall_enable.def.xml \
+"
+
+FILES:${PN}-firewall = "\
+	${settingsdatadir}/firewall_enable.ini \
+	${uixmldir}/nilinuxrt.firewall_enable.* \
+"
+
+RDEPENDS:${PN}-firewall += "sysconfig-settings firewalld"
+
+pkg_postinst_ontarget:${PN}-firewall () {
+	ln -sf ${settingsdatadir}/firewall_enable.ini ${systemsettingsdir}/firewall_enable.ini
+}
+
+# Leave firewall.enabled as set; firewalld keeps honoring it after removal.
+pkg_prerm:${PN}-firewall () {
+	rm -f $D${systemsettingsdir}/firewall_enable.ini
+}

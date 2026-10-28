@@ -133,6 +133,7 @@ RDEPENDS:${PN} += "\
 	firewalld \
 	ni-firewalld-servicedefs \
 	ni-firewall-dropins \
+	sysconfig-settings-firewall \
 "
 
 # Required components for Veristand.
