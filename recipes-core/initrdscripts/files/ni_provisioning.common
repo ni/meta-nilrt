@@ -24,7 +24,6 @@ ARCH=$(uname -m)
 VERBOSE_ARGS=${VERBOSE_ARGS:-"-q"}
 MKFS_ARGS=${MKFS_ARGS:-"$VERBOSE_ARGS -F -I 256"}
 verbose_mode=${verbose_mode:-0}
-interactive_disk_selection=${interactive_disk_selection:-0}
 
 if [ "$verbose_mode" -eq 0 ]; then
 	do_silent() { "$@" &>/dev/null; };
@@ -148,7 +147,7 @@ elif [ "$ARCH" = "x86_64" ]; then
 
 	show_help()
 	{
-		>&3 echo -e "\nUsage: $0 [-hav] [-t DEVICE] [-c y|n] [-b SECONDS] [-p PASSWORD] [-F RESTART_OPTION]\n"
+		>&3 echo -e "\nUsage: $0 [-hav] [-t DEVICE] [-c y|n] [-b SECONDS] [-F RESTART_OPTION]\n"
 		>&3 echo -e "Options\n"
 		>&3 echo "   -h : Show help."
 		>&3 echo "   -a : Ask at every error if continue. Default is N, so at the first error abort."
@@ -156,10 +155,8 @@ elif [ "$ARCH" = "x86_64" ]; then
 		>&3 echo "   -t DEVICE : DEVICE is the device name for the disk to update. (e.g /dev/sda)"
 		>&3 echo "               If DEVICE is not specificed, the first non-removable block device"
 		>&3 echo "               that is not the recovery tool is used."
-		>&3 echo "   -i : Enable interactive disk selection."
 		>&3 echo "   -c y|n : Initial value of the console out enable flag."
 		>&3 echo "   -b SECONDS : Initial value of bootdelay -- how long (seconds) to show boot menu."
-		>&3 echo "   -p PROVISION_ROOT_PASSWORD : Set the value of the root password."
 		>&3 echo "   -F RESTART_OPTION : Force provisioning (surpress the promts). RESTART_OPTION specifies"
 		>&3 echo "                       what should be done after a succesful provisioning and can have the"
 		>&3 echo "                       following values: reboot, poweroff or shell."
@@ -172,7 +169,6 @@ elif [ "$ARCH" = "x86_64" ]; then
 		local path=$1
 		local block=$2
 		local mmc_ok=${3:-false}
-		local removable_ok=${4:-false}
 
 		if ! (( $? == 0 )); then
 			(( verbose_mode )) && echo "SKIPPED $path_abbrev: udevadm failed" >&2
@@ -187,11 +183,9 @@ elif [ "$ARCH" = "x86_64" ]; then
 
 		# Skip removable devices; we're only interested in internal disks. This
 		# catches USBs and CDs.
-		if ! $removable_ok; then
-			if ! (( $(<$path/removable) == 0 )); then
-				(( verbose_mode )) && echo "SKIPPED $path_abbrev: removable!=0" >&2
-				return 1
-			fi
+		if ! (( $(<$path/removable) == 0 )); then
+			(( verbose_mode )) && echo "SKIPPED $path_abbrev: removable!=0" >&2
+			return 1
 		fi
 
 		# Skip read-only devices. This catches mmcblk*boot*, but *not*
@@ -274,53 +268,6 @@ elif [ "$ARCH" = "x86_64" ]; then
 
 		if [[ $selected_block ]]; then
 			echo "$selected_block"
-		else
-			return 1
-		fi
-	}
-
-	select_target_block_device()
-	{
-		local -n selected_block=$1
-		local block_index="?"
-		local mmc_ok=true
-		local block_devices=()
-
-		for path in /sys/block/*; do
-			path_abbrev=${path##/sys/block/}
-			local block=$(udevadm info -r --query=name --path=$path)
-			check_block_device $path $block $mmc_ok true || continue
-
-			# Add each valid block device to block_devices
-			block_devices+=( "$block" )
-		done
-
-		if [ ${#block_devices[@]} -eq 0 ]; then
-			return 1
-		fi
-
-		for i in "${!block_devices[@]}"; do
-			local dev="${block_devices[$i]}"
-			local block_name=$(lsblk -dn -o NAME "$dev")
-			local block_model=$(lsblk -dn -o MODEL "$dev")
-			local block_serial=$(lsblk -dn -o SERIAL "$dev")
-			printf "%s) %s\t%s\t%s\n" "$i" "$block_name" "$block_model" "$block_serial"
-		done
-
-		# Build a regex pattern for the available devices
-		max_index=$((${#block_devices[@]} - 1))
-		regex="^("
-		for ((i = 0; i <= max_index; i++)); do
-			regex+="$i|"
-		done
-		regex="${regex%|})$"
-
-		prompt_user "Select a block device to provision" "$regex" "0" block_index
-
-		selected_block=${block_devices[$block_index]}
-
-		if [[ $selected_block ]]; then
-			return 0
 		else
 			return 1
 		fi
@@ -490,9 +437,20 @@ elif [ "$ARCH" = "x86_64" ]; then
 				die "Failed to find an image file in bundle"
 			fi
 
-			# Move boot loader image to auto-discoverable /efi/boot/
-			mkdir /mnt/efi-auto/niboota/efi/boot
-			mv /mnt/efi-auto/niboota/efi/nilrt/bootx64.efi /mnt/efi-auto/niboota/efi/boot/bootx64.efi
+			local nilrt_efi_dir=/mnt/efi-auto/niboota/efi/nilrt
+			local auto_efi_dir=/mnt/efi-auto/niboota/efi/boot
+			mkdir -p "$auto_efi_dir"
+
+			if [ -e "$nilrt_efi_dir/grubx64.efi" ]; then
+				local secure_boot_stage
+				for secure_boot_stage in bootx64.efi mmx64.efi grubx64.efi; do
+					[ -f "$nilrt_efi_dir/$secure_boot_stage" ] || die "Secure Boot bundle is missing $secure_boot_stage"
+				done
+				cp -a "$nilrt_efi_dir"/. "$auto_efi_dir"/
+			else
+				[ -f "$nilrt_efi_dir/bootx64.efi" ] || die "Bundle is missing bootx64.efi"
+				cp "$nilrt_efi_dir/bootx64.efi" "$auto_efi_dir/bootx64.efi"
+			fi
 
 			umount /mnt/efi-auto/niboota
 			umount /mnt/efi-auto/bundle
@@ -552,7 +510,7 @@ early_setup()
 
 	OPTIND=1
 
-	while getopts "havit:c:b:p:F:" opt; do
+	while getopts "havt:c:b:F:" opt; do
 		case "$opt" in
 			h)  show_help
 				exit 1
@@ -561,8 +519,6 @@ early_setup()
 				;;
 			v)  verbose_mode=1
 				>&3 echo "Verbose mode..."
-				;;
-			i)  interactive_disk_selection=1
 				;;
 			t)  TARGET_DISK="$OPTARG"
 				;;
@@ -575,8 +531,6 @@ early_setup()
 				fi
 				;;
 			b)  grubenv_bootdelay="$OPTARG"
-				;;
-			p)  PROVISION_ROOT_PASSWORD="$OPTARG"
 				;;
 			F)  FORCE_PROVISIONING=1
 				if [ $OPTARG == "reboot" -o  "$OPTARG" == "poweroff" -o "$OPTARG" == "shell" ]; then
@@ -601,22 +555,18 @@ early_setup()
 	fi
 
 	if [[ -z $TARGET_DISK ]]; then
-		if [[ $interactive_disk_selection -eq 1 ]]; then
-			select_target_block_device TARGET_DISK
-		else
-			local search_begin="`get_time_delta 0`"
-			while [ "`get_time_delta "$search_begin"`" -le "$TARGET_DISK_SEARCH_TIME" ]; do
-				(( verbose_mode )) && echo "Searching for TARGET_DISK..." >&2
-				TARGET_DISK="`find_target_block_device`" || TARGET_DISK=""
-				if [[ -z $TARGET_DISK ]]; then
-					(( verbose_mode )) && echo "not found" >&2
-					sleep 1
-				else
-					(( verbose_mode )) && echo "found TARGET_DISK=$TARGET_DISK" >&2
-					break
-				fi
-			done
-		fi
+		local search_begin="`get_time_delta 0`"
+		while [ "`get_time_delta "$search_begin"`" -le "$TARGET_DISK_SEARCH_TIME" ]; do
+			(( verbose_mode )) && echo "Searching for TARGET_DISK..." >&2
+			TARGET_DISK="`find_target_block_device`" || TARGET_DISK=""
+			if [[ -z $TARGET_DISK ]]; then
+				(( verbose_mode )) && echo "not found" >&2
+				sleep 1
+			else
+				(( verbose_mode )) && echo "found TARGET_DISK=$TARGET_DISK" >&2
+				break
+			fi
+		done
 
 		if [[ -z $TARGET_DISK ]]; then
 			die "No target device found for installation after $TARGET_DISK_SEARCH_TIME seconds."
@@ -735,4 +685,3 @@ prompt_user()
 		echo "$question: $var (auto)"
 	fi
 }
-

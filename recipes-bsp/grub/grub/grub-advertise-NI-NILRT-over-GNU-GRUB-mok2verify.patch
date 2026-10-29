@@ -1,0 +1,64 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+Date: Thu, 15 Dec 2016 14:04:40 +0200
+Subject: [PATCH] grub: advertise NI NILRT over GNU GRUB
+
+Also don't prompt the more advanced commands to the user, even though
+they can be entered anyway. Presumably advanced users already know about
+them and can use them without being told and this discourages behaviour
+like "uu what does this button do?" from unknowledgeable users.
+
+This is the variant applied on top of the meta-efi-secure-boot
+mok2verify patch set, which rewrites the same message sites.
+
+Upstream-Status: Inappropriate [NI specific]
+
+Signed-off-by: Ioan-Adrian Ratiu <adrian.ratiu@ni.com>
+---
+--- a/grub-core/normal/main.c
++++ b/grub-core/normal/main.c
+@@ -208,7 +208,7 @@
+ {
+   grub_ssize_t msg_len;
+   int posx;
+-  const char *msg = _("GNU GRUB  version %s");
++  const char *msg = _("NI Linux Real-Time Boot Options");
+   char *msg_formatted;
+   grub_uint32_t *unicode_msg;
+   grub_uint32_t *last_position;
+@@ -219,9 +219,9 @@
+   if (grub_is_secured () == 1)
+     {
+       if (grub_is_unlockable () == 1)
+-        msg = _("GNU GRUB  version %s (UNLOCKABLE)");
++        msg = _("NI Linux Real-Time Boot Options (UNLOCKABLE)");
+       else
+-        msg = _("GNU GRUB  version %s (LOCKED)");
++        msg = _("NI Linux Real-Time Boot Options (LOCKED)");
+     }
+ #endif
+ 
+--- a/grub-core/normal/menu_text.c
++++ b/grub-core/normal/menu_text.c
+@@ -190,9 +190,7 @@
+ 		    "ESC to return previous menu.");
+ 	  else
+ #endif
+-	    msg = _("Press enter to boot the selected OS, "
+-		    "`e' to edit the commands before booting "
+-		    "or `c' for a command-line. ESC to return previous menu.");
++	    msg = _("Press enter to boot the selected OS. ");
+ 
+ 	  ret += grub_print_message_indented_real
+ 	    (msg, STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
+@@ -204,9 +202,7 @@
+ 	    msg = _("Press enter to boot the selected OS.");
+ 	  else
+ #endif
+-	    msg = _("Press enter to boot the selected OS, "
+-		    "`e' to edit the commands before booting "
+-		    "or `c' for a command-line.");
++	    msg = _("Press enter to boot the selected OS. ");
+ 
+ 	  ret += grub_print_message_indented_real
+ 	    (msg, STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);

@@ -20,7 +20,6 @@ prune_efi_crash_vars
 install_grub
 
 install_safemode
-install_bootmode_file
 install_grubenv
 set_versions
 
@@ -36,7 +35,5 @@ print_done
 trap - ERR
 exec 1>&3
 exec 2>&4
-
-set_root_password
 
 provision_successfull

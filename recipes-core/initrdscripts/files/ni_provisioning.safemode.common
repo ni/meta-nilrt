@@ -124,6 +124,8 @@ override_primaryport_grubenv()
 
 add_USB_gadget_args_to_grubenv()
 {
+	local grubenv_file=$1
+	local readonly_vars_file=$2
 	local MAC=$(get_usbdev_mac)
 	local VID=$(get_usbdev_vid)
 	local PID=$(get_usbdev_pid)
@@ -134,14 +136,18 @@ add_USB_gadget_args_to_grubenv()
 	if is_usbdev_target; then
 
 		if [ -n "$MAC" -a -n "$VID" -a -n "$PID" -a -n "$SN" -a -n "$TID" -a -n "$PROD" ]; then
-			cat << EOF > $GRUB_MOUNTPOINT/grubvar_readonly
-set usbgadgetethaddr=$MAC
-set USBVendorID=$VID
-set USBProductID=$PID
-set SerialNum=$SN
-set USBDevice=$TID
-set USBProduct=$PROD
-EOF
+			grub-editenv "$grubenv_file" set \
+				"usbgadgetethaddr=$MAC" \
+				"USBVendorID=$VID" \
+				"USBProductID=$PID" \
+				"SerialNum=$SN" \
+				"USBDevice=$TID" \
+				"USBProduct=$PROD"
+			for varname in "usbgadgetethaddr" "USBVendorID" "USBProductID" "SerialNum" "USBDevice" "USBProduct"; do
+				if ! grep -Fxq "$varname" "$readonly_vars_file"; then
+					echo "$varname" >> "$readonly_vars_file"
+				fi
+			done
 		else
 			print_error "Details required for USB device mode are missing from SMBIOS! UPGRADE your BIOS if using NI Target. USB Gadget will not be functional."
 			return
@@ -151,12 +157,23 @@ EOF
 
 set_serial_port()
 {
+	local grubenv_file=$1
+	local readonly_vars_file=$2
+	grub-editenv "$grubenv_file" unset serial_port GRUB_SERIAL_BASE_CLOCK
+
 	if [ -d /sys/class/tty/ttyS0 ] && [ -f /sys/class/tty/ttyS0/type ] && [ `cat /sys/class/tty/ttyS0/type` -ne 0 ]; then
-		echo "set serial_port="`cat /sys/class/tty/ttyS0/port` >> $GRUB_MOUNTPOINT/grubvar_readonly
+		local serial_port=$(cat /sys/class/tty/ttyS0/port)
+		grub-editenv "$grubenv_file" set "serial_port=$serial_port"
+		if ! grep -Fxq "serial_port" "$readonly_vars_file"; then
+			echo "serial_port" >> "$readonly_vars_file"
+		fi
 
 		local base_clock
 		if base_clock=$(get_serial_base_clock); then
-			echo "set GRUB_SERIAL_BASE_CLOCK=$base_clock" >> $GRUB_MOUNTPOINT/grubvar_readonly
+			grub-editenv "$grubenv_file" set "GRUB_SERIAL_BASE_CLOCK=$base_clock"
+			if ! grep -Fxq "GRUB_SERIAL_BASE_CLOCK" "$readonly_vars_file"; then
+				echo "GRUB_SERIAL_BASE_CLOCK" >> "$readonly_vars_file"
+			fi
 		fi
 	fi
 
@@ -164,26 +181,15 @@ set_serial_port()
 
 partitioning_disk()
 {
-	DISK_SIZE_BYTES=$(lsblk -bnd -o SIZE "$TARGET_DISK")
-	DISK_SIZE_GB=$((DISK_SIZE_BYTES / 1024 / 1024 / 1024))
-	if [ "$DISK_SIZE_GB" -ge 32 ]; then
-    	PART1_END=100
-		PART2_END=284
-		PART3_END=348
-	else
-    	PART1_END=16
-    	PART2_END=200
-    	PART3_END=216
-	fi
 	for part in $(lsblk -lnpo NAME,TYPE "$TARGET_DISK" | awk '$2 == "part" { print $1 }'); do
 		umount "$part" 2>/dev/null || true
 	done
 	print_info "Partitioning TARGET_DISK=$TARGET_DISK (PART_STYLE=$PART_STYLE)..."
 	PARTED_ERROR=`parted -s $TARGET_DISK mklabel $PART_STYLE 2>&1` || die "$PARTED_ERROR"
-	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART1_NAME 1MB ${PART1_END}MB 2>&1` || die "$PARTED_ERROR"
-	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART2_NAME ${PART1_END}MB ${PART2_END}MB 2>&1` || die "$PARTED_ERROR"
-	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART3_NAME ${PART2_END}MB ${PART3_END}MB 2>&1` || die "$PARTED_ERROR"
-	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART4_NAME ${PART3_END}MB 100% 2>&1` || die "$PARTED_ERROR"
+	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART1_NAME 1MB 16MB 2>&1` || die "$PARTED_ERROR"
+	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART2_NAME 16MB 200MB 2>&1` || die "$PARTED_ERROR"
+	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART3_NAME 200MB 216MB 2>&1` || die "$PARTED_ERROR"
+	PARTED_ERROR=`parted -s --align optimal $TARGET_DISK mkpart $PART4_NAME 216MB 100% 2>&1` || die "$PARTED_ERROR"
 	print_done
 
 	print_info "Assigning EFI System Partition..."
@@ -230,7 +236,23 @@ mount_grub_partition()
 {
 	GRUB_MOUNTPOINT=/var/volatile/grub
 	mkdir $GRUB_MOUNTPOINT -p
-	MOUNT_ERROR=`mount ${TARGET_DISK}${PART_SEPARATOR}1 $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
+	MOUNT_ERROR=`mount "${TARGET_DISK}${PART_SEPARATOR}1" $GRUB_MOUNTPOINT 2>&1` || die "$MOUNT_ERROR"
+}
+
+# Signed EFI binaries installed by packagegroup-efi-secure-boot. The unsigned
+# oe-core images under /boot/EFI/BOOT are only usable without Secure Boot.
+# SELoaderx64.efi is renamed to bootx64.efi when MOK signing is disabled.
+SECURE_BOOT_REQUIRED_FILES="bootx64.efi mmx64.efi grubx64.efi"
+SECURE_BOOT_OPTIONAL_FILES="SELoaderx64.efi"
+SECURE_BOOT_CHAIN="$SECURE_BOOT_REQUIRED_FILES $SECURE_BOOT_OPTIONAL_FILES"
+SECURE_BOOT_EFI_FILES="$SECURE_BOOT_CHAIN Hash2DxeCrypto.efi Pkcs7VerifyDxe.efi LockDown.efi"
+
+secure_boot_chain_available()
+{
+	for STAGE in $SECURE_BOOT_REQUIRED_FILES ; do
+		[ -f "$SECURE_BOOT_EFI_DIR/$STAGE" ] || return 1
+	done
+	return 0
 }
 
 install_grub()
@@ -241,15 +263,66 @@ install_grub()
 	GRUB_TARGET_DIR=$GRUB_MOUNTPOINT/efi/boot
 	mkdir -p $GRUB_TARGET_DIR
 	GRUB_TARGET=$(uname -m)
-	cp /boot/EFI/BOOT/bootx64.efi $GRUB_TARGET_DIR
+
+	if secure_boot_chain_available ; then
+		# bootx64.efi is shim here; it loads its next stage from its own
+		# directory, so the whole chain has to be installed together.
+		for STAGE in $SECURE_BOOT_EFI_FILES ; do
+			if [ -f "$SECURE_BOOT_EFI_DIR/$STAGE" ] ; then
+				cp "$SECURE_BOOT_EFI_DIR/$STAGE" $GRUB_TARGET_DIR
+			fi
+		done
+	else
+		cp /boot/EFI/BOOT/bootx64.efi $GRUB_TARGET_DIR
+	fi
 
 	set_efiboot_entry
 
 	print_info "Installing grub.cfg..."
 
-	cp $SOURCE_DIR/grub.cfg $GRUB_TARGET_DIR/grub.cfg
-	mkdir -p $GRUB_TARGET_DIR/fonts
-	cp $SOURCE_DIR/fonts/unicode.pf2 $GRUB_TARGET_DIR/fonts/
+	if secure_boot_chain_available ; then
+		grub_sig_ext=""
+		for sig_ext in .p7b .sig ; do
+			if [ -f "$SOURCE_DIR/grub.cfg$sig_ext" ] ; then
+				grub_sig_ext=$sig_ext
+				break
+			fi
+		done
+		[ -n "$grub_sig_ext" ] || die "Secure Boot grub.cfg signature is missing"
+		for GRUB_MENU_DIR in "$GRUB_TARGET_DIR" "$GRUB_MOUNTPOINT/efi/nilrt" ; do
+			mkdir -p "$GRUB_MENU_DIR"
+			rm -f "$GRUB_MENU_DIR/grub.cfg.p7b" "$GRUB_MENU_DIR/grub.cfg.sig"
+			cp "$SOURCE_DIR/grub.cfg" "$GRUB_MENU_DIR/grub.cfg"
+			cp "$SOURCE_DIR/grub.cfg$grub_sig_ext" "$GRUB_MENU_DIR/grub.cfg$grub_sig_ext"
+		done
+	else
+		if [ -f "$GRUB_TARGET_DIR/grub.cfg" ] ; then
+			print_info "Preserving existing grub.cfg on ESP..."
+		else
+			cp "$SOURCE_DIR/grub.cfg" "$GRUB_TARGET_DIR/grub.cfg"
+		fi
+		for sig_ext in .p7b .sig ; do
+			if [ -f "$SOURCE_DIR/grub.cfg$sig_ext" ] ; then
+				if [ -f "$GRUB_TARGET_DIR/grub.cfg$sig_ext" ] ; then
+					print_info "Preserving existing grub.cfg$sig_ext on ESP..."
+				else
+					cp "$SOURCE_DIR/grub.cfg$sig_ext" "$GRUB_TARGET_DIR/grub.cfg$sig_ext"
+				fi
+				break
+			fi
+		done
+	fi
+
+	# In Secure Boot mode, the font is embedded in the signed grubx64.efi and
+	# an external unicode.pf2 is not trusted. Skip copying the unsigned font so
+	# GRUB does not try to load an unrelated mismatched file.
+	if secure_boot_chain_available ; then
+		# Ensure no stale external font is left behind from an older install.
+		rm -rf "$GRUB_TARGET_DIR/fonts"
+	else
+		mkdir -p $GRUB_TARGET_DIR/fonts
+		cp $SOURCE_DIR/fonts/unicode.pf2 $GRUB_TARGET_DIR/fonts/
+	fi
 	print_done
 }
 
@@ -257,7 +330,7 @@ mount_bootfs_partition()
 {
 	BOOTFS_MOUNTPOINT=/var/volatile/bootfs
 	mkdir $BOOTFS_MOUNTPOINT -p
-	BOOTFS_ERROR=`mount ${TARGET_DISK}${PART_SEPARATOR}2 $BOOTFS_MOUNTPOINT 2>&1` || die "$BOOTFS_ERROR"
+	BOOTFS_ERROR=`mount "${TARGET_DISK}${PART_SEPARATOR}2" $BOOTFS_MOUNTPOINT 2>&1` || die "$BOOTFS_ERROR"
 }
 
 install_safemode()
@@ -270,15 +343,33 @@ install_safemode()
 	cp "$SOURCE_DIR"/*Image		"$BOOTFS_MOUNTPOINT/.safe/"
 	cp "$SOURCE_DIR"/ramdisk.*	"$BOOTFS_MOUNTPOINT/.safe/"
 	cp "$SOURCE_DIR"/bootimage.*  "$BOOTFS_MOUNTPOINT/.safe/"
-
-	print_done
-}
-
-install_bootmode_file()
-{
-	# write initial bootmode file
-	print_info "Installing bootmode file..."
-	echo "set BOOT_MODE=safemode" >$BOOTFS_MOUNTPOINT/bootmode
+	if [ -f "$SOURCE_DIR/update-safemode-efi.sh" ] ; then
+		config_sig_ext=""
+		for sig_ext in .p7b .sig ; do
+			if [ -f "$SOURCE_DIR/bootimage.cfg$sig_ext" ] ; then
+				config_sig_ext=$sig_ext
+				break
+			fi
+		done
+		[ -n "$config_sig_ext" ] || die "Secure Boot bootimage.cfg signature is missing"
+		[ -f "$SOURCE_DIR/grub.cfg$config_sig_ext" ] || die "Matching Secure Boot grub.cfg signature is missing"
+		rm -f "$BOOTFS_MOUNTPOINT/.safe/bootimage.cfg.p7b" \
+			"$BOOTFS_MOUNTPOINT/.safe/bootimage.cfg.sig" \
+			"$BOOTFS_MOUNTPOINT/.safe/grub.cfg.p7b" \
+			"$BOOTFS_MOUNTPOINT/.safe/grub.cfg.sig"
+		cp -a "$SOURCE_DIR/bootimage.cfg" "$SOURCE_DIR/bootimage.cfg$config_sig_ext" "$BOOTFS_MOUNTPOINT/.safe/"
+		cp -a "$SOURCE_DIR/grub.cfg" "$SOURCE_DIR/grub.cfg$config_sig_ext" "$BOOTFS_MOUNTPOINT/.safe/"
+		cp -a "$SOURCE_DIR/update-safemode-efi.sh" "$BOOTFS_MOUNTPOINT/.safe/"
+		cp -a "$SOURCE_DIR/efi" "$BOOTFS_MOUNTPOINT/.safe/"
+	fi
+	# Detached kernel signature; the ramdisk and bootimage globs above
+	# already pick theirs up.
+	for sig_ext in .p7b .sig ; do
+		if [ -f "$SOURCE_DIR/bzImage$sig_ext" ] ; then
+			cp "$SOURCE_DIR"/*Image"$sig_ext" "$BOOTFS_MOUNTPOINT/.safe/"
+			break
+		fi
+	done
 	print_done
 }
 
@@ -303,16 +394,17 @@ install_grubenv()
 		cp $SOURCE_DIR/grubenv $BOOTFS_MOUNTPOINT/grub
 		cp $SOURCE_DIR/SMBIOS_NI_vars $BOOTFS_MOUNTPOINT/.safe
 		cp $SOURCE_DIR/EFI_NI_vars $BOOTFS_MOUNTPOINT/.safe
-		add_USB_gadget_args_to_grubenv
+		add_USB_gadget_args_to_grubenv "$BOOTFS_MOUNTPOINT/grub/grubenv" "$BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars"
 		override_primaryport_grubenv $BOOTFS_MOUNTPOINT/grub/grubenv
 	else
 		cp $SOURCE_DIR/grubenv_non_ni_target $BOOTFS_MOUNTPOINT/grub/grubenv
 	fi
 
-	set_serial_port
+	set_serial_port "$BOOTFS_MOUNTPOINT/grub/grubenv" "$BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars"
 
 	grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "BIOSBootMode=efi"
 	grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "NITarget=$NI_TARGET"
+	grub-editenv $BOOTFS_MOUNTPOINT/grub/grubenv set "BOOT_MODE=safemode"
 
 	# Mark aforementioned grub vars read-only
 	for varname in "BIOSBootMode" "NITarget" ; do
@@ -364,10 +456,12 @@ fix_grubenv_after_usbreplication()
 {
 		# Fix files in nigrub filesystem
 		rm $GRUB_MOUNTPOINT/grubvar_readonly
-		if is_ni_device ; then
-			add_USB_gadget_args_to_grubenv
-		fi
-		set_serial_port
+		for grubenv_file in "$BOOTFS_MOUNTPOINT/grub/grubenv" "$BOOTFS_MOUNTPOINT/grub/grubenv.bak"; do
+			if is_ni_device ; then
+				add_USB_gadget_args_to_grubenv "$grubenv_file" "$BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars"
+			fi
+			set_serial_port "$grubenv_file" "$BOOTFS_MOUNTPOINT/.safe/GRUB_NI_readonly_vars"
+		done
 		add_rootuuid_to_grubenv
 
 		# Fix files in nibootfs filesystem
@@ -394,7 +488,7 @@ fixup_configfs()
 	CONFIG_MOUNTPOINT=/var/volatile/configfs
 
 	mkdir -p $CONFIG_MOUNTPOINT
-	mount ${TARGET_DISK}${PART_SEPARATOR}3 $CONFIG_MOUNTPOINT
+	mount "${TARGET_DISK}${PART_SEPARATOR}3" $CONFIG_MOUNTPOINT
 
 	# Set root dir ownership to lvuser:ni
 	chown 500:500 $CONFIG_MOUNTPOINT
@@ -414,31 +508,6 @@ fixup_configfs()
 		print_done
 	fi
 
-	umount $CONFIG_MOUNTPOINT
-}
-
-set_root_password()
-{
-	# Set the restore mode password
-	if ! [[ -v PROVISION_ROOT_PASSWORD ]]; then
-		passwd
-	elif [[ -z "$PROVISION_ROOT_PASSWORD" ]]; then
-		passwd -d root
-	else
-		echo "root:$PROVISION_ROOT_PASSWORD" | chpasswd
-	fi
-
-	# Get the root password hash
-	ROOT_ENTRY=$(grep "^root:" /etc/shadow)
-	ROOT_HASH=$(echo "$ROOT_ENTRY" | cut -d':' -f2)
-
-	# Create the shared shadow file and add root entry
-	CONFIG_MOUNTPOINT=/var/volatile/configfs
-	mkdir -p $CONFIG_MOUNTPOINT
-	mount ${TARGET_DISK}${PART_SEPARATOR}3 $CONFIG_MOUNTPOINT
-	touch "$CONFIG_MOUNTPOINT/.shadow"
-	chmod 400 "$CONFIG_MOUNTPOINT/.shadow"
-	echo "$ROOT_HASH" > "$CONFIG_MOUNTPOINT/.shadow"
 	umount $CONFIG_MOUNTPOINT
 }
 
@@ -485,3 +554,4 @@ sanity_check()
 }
 
 SOURCE_DIR=/payload
+SECURE_BOOT_EFI_DIR=$SOURCE_DIR/efi/EFI/BOOT
