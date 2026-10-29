@@ -45,3 +45,10 @@ RDEPENDS:${PN}:append:x64 = "\
 RDEPENDS:${PN}:append:x64 = "\
 	init-nilrt-runmode-initramfs \
 "
+
+# Feed-only package that carries the safemode boot image so a device can
+# upgrade safemode from the feed (WI 3538836). Deliberately not part of any
+# image install: it bundles the full safemode archive and applies it on install.
+RDEPENDS:${PN}:append:x64 = "\
+	ni-safemode-image \
+"
