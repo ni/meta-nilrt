@@ -16,13 +16,6 @@ ROOTFS_RO_UNNEEDED = "\
 # /etc/opkg/ni-arch.conf at first boot via run-postinsts.
 IMAGE_INSTALL_NODEPS += "ni-arch-gen"
 
-# ni-auth is required by SystemWebServer (segfaults without niauth_daemon).
-# ni-system-webserver provides the web server for deployment and discovery
-# by NI MAX and VeriStand.
-# ni-webdav-system-webserver-support provides mod_nidav.so for WebDAV file
-# deployment (how VeriStand deploys .rtexe to /c).
-IMAGE_INSTALL_NODEPS += "ni-auth ni-system-webserver ni-webdav-system-webserver-support"
-
 # nirtmdnsd provides NI RT mDNS service for target discovery.
 IMAGE_INSTALL_NODEPS += "nirtmdnsd"
 
