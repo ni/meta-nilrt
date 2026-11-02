@@ -13,7 +13,8 @@
 #
 # Downloaded SBOMs are kept in NILRT_FEED_SBOM_CACHE. To build offline, put
 # the SBOMs there (named <pkg>_<ver>_<arch>.ipk.cdx.sbom.json) and set
-# BB_NO_NETWORK = "1".
+# BB_NO_NETWORK = "1". Cached and downloaded SBOMs are checked against the
+# feed IPK MD5 when available; mismatched pool builds are skipped.
 
 NILRT_FEED_SBOM_POOL_URI ??= "http://argohttp.natinst.com/ni/linuxpkg/pool/ipk"
 NILRT_FEED_SBOM_CACHE ??= "${DL_DIR}/nilrt-feed-sbom"
@@ -34,20 +35,20 @@ def nilrt_feed_spdx_package_doc(d, name, info, outdir):
     if not version or not arch:
         bb.fatal("nilrt-feed-spdx: opkg reported no version or architecture for %s" % name)
 
+    lists_dir = d.expand("${IMAGE_ROOTFS}${OPKGLIBDIR}/opkg/lists")
+    md5 = nilrt_feed_spdx_feed_md5(lists_dir).get((name, version, arch))
     try:
         sbom_path, source_url = feed_sbom.fetch_sbom(
             d.getVar("NILRT_FEED_SBOM_POOL_URI"),
             d.getVar("NILRT_FEED_SBOM_CACHE"),
             name, version, arch,
-            allow_network=d.getVar("BB_NO_NETWORK") != "1")
+            allow_network=d.getVar("BB_NO_NETWORK") != "1", md5=md5)
     except feed_sbom.FeedSbomError as e:
         bb.fatal("nilrt-feed-spdx: %s has no SPDX from a recipe and no SBOM could be found: %s" % (name, e))
 
     with open(sbom_path) as f:
         cdx = json.load(f)
 
-    lists_dir = d.expand("${IMAGE_ROOTFS}${OPKGLIBDIR}/opkg/lists")
-    md5 = nilrt_feed_spdx_feed_md5(lists_dir).get((name, version, arch))
     problems = feed_sbom.verify_sbom(cdx, name, version, arch, md5)
     if problems:
         bb.fatal("nilrt-feed-spdx: SBOM %s does not match installed package %s %s (%s):\n  %s" % (

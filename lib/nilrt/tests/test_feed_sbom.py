@@ -124,6 +124,58 @@ class FetchTests(unittest.TestCase):
         self.assertEqual((path2, url2), (path, SBOM_URL))
         self.assertEqual(offline.requests, [])
 
+    def test_selects_later_build_matching_feed_md5(self):
+        pool = FakePool()
+        first_url = SBOM_URL.replace("8a10e89c", "59205b1e")
+        pool.files[first_url] = json.dumps(sample_cdx(md5="0" * 32)).encode()
+        path, url = feed_sbom.fetch_sbom(
+            POOL, self.cache, NAME, VER, ARCH, md5=MD5, get=pool.get)
+        self.assertEqual(url, SBOM_URL)
+        self.assertIn(first_url, pool.requests)
+        self.assertEqual(pool.requests.count(SBOM_URL), 1)
+        with open(path) as f:
+            self.assertEqual(feed_sbom.verify_sbom(json.load(f), NAME, VER, ARCH, MD5), [])
+
+    def test_replaces_cached_build_when_feed_md5_changes(self):
+        pool = FakePool()
+        path, _ = feed_sbom.fetch_sbom(
+            POOL, self.cache, NAME, VER, ARCH, md5=MD5, get=pool.get)
+        replacement_md5 = "1" * 32
+        pool.files[SBOM_URL] = json.dumps(sample_cdx(md5=replacement_md5)).encode()
+        path2, _ = feed_sbom.fetch_sbom(
+            POOL, self.cache, NAME, VER, ARCH, md5=replacement_md5, get=pool.get)
+        self.assertEqual(path2, path)
+        with open(path2) as f:
+            self.assertEqual(feed_sbom.verify_sbom(
+                json.load(f), NAME, VER, ARCH, replacement_md5), [])
+
+    def test_matching_cache_is_verified_and_used_offline(self):
+        pool = FakePool()
+        expected = feed_sbom.fetch_sbom(
+            POOL, self.cache, NAME, VER, ARCH, md5=MD5, get=pool.get)
+        pool.requests.clear()
+        self.assertEqual(feed_sbom.fetch_sbom(
+            POOL, self.cache, NAME, VER, ARCH, allow_network=False,
+            md5=MD5, get=pool.get), expected)
+        self.assertEqual(pool.requests, [])
+
+    def test_mismatched_cache_fails_offline_without_network(self):
+        pool = FakePool()
+        feed_sbom.fetch_sbom(POOL, self.cache, NAME, VER, ARCH, get=pool.get)
+        pool.requests.clear()
+        with self.assertRaisesRegex(feed_sbom.FeedSbomError, "MD5.*BB_NO_NETWORK"):
+            feed_sbom.fetch_sbom(
+                POOL, self.cache, NAME, VER, ARCH, allow_network=False,
+                md5="1" * 32, get=pool.get)
+        self.assertEqual(pool.requests, [])
+
+    def test_no_matching_build_is_not_cached(self):
+        pool = FakePool()
+        with self.assertRaisesRegex(feed_sbom.FeedSbomError, "Rejected candidates:"):
+            feed_sbom.fetch_sbom(
+                POOL, self.cache, NAME, VER, ARCH, md5="1" * 32, get=pool.get)
+        self.assertFalse(os.path.exists(self.cache))
+
     def test_offline_without_cache_fails(self):
         with self.assertRaisesRegex(feed_sbom.FeedSbomError, "BB_NO_NETWORK"):
             feed_sbom.fetch_sbom(POOL, self.cache, NAME, VER, ARCH, allow_network=False, get=FakePool().get)
@@ -220,6 +272,57 @@ class ConvertTests(unittest.TestCase):
         self.assertEqual([p["supplier"] for p in lvrt], ["NOASSERTION", "NOASSERTION"])
         refs = [l["licenseId"] for l in doc["hasExtractedLicensingInfos"]]
         self.assertEqual(refs, ["LicenseRef-National-Instruments-Inc"])
+
+    def test_nested_components_preserve_both_trees_and_parent_relationships(self):
+        cdx = sample_cdx()
+        cdx["components"] = [{
+            "name": "top", "version": "1",
+            "components": [{
+                "name": "nested", "version": "2",
+                "components": [{
+                    "name": "leaf", "version": "3",
+                    "licenses": [{"license": {"name": "Nested License"}}],
+                    "purl": "pkg:generic/leaf@3",
+                    "hashes": [{"alg": "SHA-256", "content": "AB" * 32}],
+                }],
+            }],
+        }]
+        cdx["metadata"]["component"]["components"] = [{
+            "name": "metadata-child", "version": "4",
+            "components": [{"name": "nested", "version": "5"}],
+        }]
+        doc = self.convert(cdx)
+        packages = {(p["name"], p["versionInfo"]): p for p in doc["packages"]}
+        self.assertEqual(len(packages), 6)
+        ids = {p["SPDXID"] for p in doc["packages"]}
+        self.assertEqual(len(ids), 6)
+        by_id = {p["SPDXID"]: (p["name"], p["versionInfo"]) for p in doc["packages"]}
+        contains = {
+            (by_id[r["spdxElementId"]], by_id[r["relatedSpdxElement"]])
+            for r in doc["relationships"] if r["relationshipType"] == "CONTAINS"
+        }
+        self.assertEqual(contains, {
+            ((NAME, VER), ("top", "1")),
+            (("top", "1"), ("nested", "2")),
+            (("nested", "2"), ("leaf", "3")),
+            ((NAME, VER), ("metadata-child", "4")),
+            (("metadata-child", "4"), ("nested", "5")),
+        })
+        leaf = packages[("leaf", "3")]
+        self.assertEqual(leaf["licenseDeclared"], "LicenseRef-Nested-License")
+        self.assertIn("LicenseRef-Nested-License",
+                      {info["licenseId"] for info in doc["hasExtractedLicensingInfos"]})
+        self.assertEqual(leaf["externalRefs"][0]["referenceLocator"], "pkg:generic/leaf@3")
+        self.assertEqual(leaf["checksums"][0]["checksumValue"], "ab" * 32)
+        parsed = oe.spdx.SPDXDocument.from_json(io.StringIO(json.dumps(doc)))
+        self.assertEqual(len(parsed.packages), 6)
+
+    def test_unnamed_nested_component_fails_instead_of_disappearing(self):
+        cdx = sample_cdx()
+        cdx["metadata"]["component"]["components"] = [
+            {"name": "parent", "components": [{"version": "1"}]}]
+        with self.assertRaisesRegex(feed_sbom.FeedSbomError, "under parent has no name"):
+            self.convert(cdx)
 
     def test_unknown_license_id_becomes_licenseref(self):
         cdx = sample_cdx()

@@ -119,14 +119,28 @@ def _prefixes(pool_uri, name, get):
                 yield top
 
 
-def find_sbom_url(pool_uri, name, version, arch, get=http_get):
-    """Locate the SBOM of one package build in the pool and return its URL.
+def _verified_sbom(data, source, name, version, arch, md5):
+    try:
+        cdx = json.loads(data)
+    except ValueError as e:
+        raise FeedSbomError("%s is not valid JSON: %s" % (source, e))
+    if not isinstance(cdx, dict):
+        raise FeedSbomError("%s is not a CycloneDX document object" % source)
+    problems = verify_sbom(cdx, name, version, arch, md5)
+    if problems:
+        raise FeedSbomError("%s does not match the installed package: %s" % (
+            source, "; ".join(problems)))
+
+
+def _find_sbom(pool_uri, name, version, arch, get, md5):
+    """Return the URL and bytes of a verified package SBOM.
 
     The build-hash folder cannot be derived from the package, so each
-    sub-folder of the version folder is tried in turn.
+    sub-folder is tried until the SBOM matches the installed package.
     """
     fname = sbom_filename(name, version, arch)
     tried = []
+    rejected = []
     for prefix in _prefixes(pool_uri, name, get):
         vdir = version_dir_url(pool_uri, prefix, name, version)
         tried.append(vdir)
@@ -135,17 +149,40 @@ def find_sbom_url(pool_uri, name, version, arch, get=http_get):
             continue
         for build_hash in list_subdirs(index.decode("utf-8", "replace"), vdir):
             url = vdir + urllib.parse.quote(build_hash) + "/" + urllib.parse.quote(fname)
-            if get(url) is not None:
-                return url
-    raise FeedSbomError("No %s found in the NI package pool (looked in: %s)" % (fname, ", ".join(tried)))
+            data = get(url)
+            if data is None:
+                continue
+            try:
+                _verified_sbom(data, url, name, version, arch, md5)
+            except FeedSbomError as e:
+                rejected.append(str(e))
+                continue
+            return url, data
+    details = "\nRejected candidates:\n" + "\n".join(rejected) if rejected else ""
+    raise FeedSbomError("No %s found matching the installed package in the NI package pool "
+                        "(looked in: %s)%s" % (fname, ", ".join(tried), details))
 
 
-def fetch_sbom(pool_uri, cache_dir, name, version, arch, allow_network=True, get=http_get):
-    """Return (path, source_url) of the package SBOM, downloading it into cache_dir if needed."""
+def find_sbom_url(pool_uri, name, version, arch, get=http_get, md5=None):
+    """Locate an SBOM matching the package identity and expected feed MD5."""
+    url, _ = _find_sbom(pool_uri, name, version, arch, get, md5)
+    return url
+
+
+def fetch_sbom(pool_uri, cache_dir, name, version, arch, allow_network=True, get=http_get, md5=None):
+    """Return (path, source_url), caching only an SBOM verified against the package."""
     fname = sbom_filename(name, version, arch)
     path = os.path.join(cache_dir, fname)
     url_file = path + ".url"
+    cache_error = None
     if os.path.exists(path):
+        with open(path, "rb") as f:
+            data = f.read()
+        try:
+            _verified_sbom(data, path, name, version, arch, md5)
+        except FeedSbomError as e:
+            cache_error = e
+    if os.path.exists(path) and cache_error is None:
         source = None
         if os.path.exists(url_file):
             with open(url_file) as f:
@@ -153,16 +190,16 @@ def fetch_sbom(pool_uri, cache_dir, name, version, arch, allow_network=True, get
         return path, source
 
     if not allow_network:
+        if cache_error:
+            raise FeedSbomError("%s; network access is disabled (BB_NO_NETWORK)" % cache_error)
         raise FeedSbomError("%s is not in %s and network access is disabled (BB_NO_NETWORK)" % (fname, cache_dir))
 
-    url = find_sbom_url(pool_uri, name, version, arch, get=get)
-    data = get(url)
-    if data is None:
-        raise FeedSbomError("%s disappeared while downloading" % url)
     try:
-        json.loads(data)
-    except ValueError as e:
-        raise FeedSbomError("%s is not valid JSON: %s" % (url, e))
+        url, data = _find_sbom(pool_uri, name, version, arch, get, md5)
+    except FeedSbomError as e:
+        if cache_error:
+            raise FeedSbomError("Cached SBOM rejected: %s\n%s" % (cache_error, e)) from e
+        raise
 
     os.makedirs(cache_dir, exist_ok=True)
     fd, tmp = tempfile.mkstemp(dir=cache_dir, prefix=".%s." % fname)
@@ -348,8 +385,8 @@ def cyclonedx_to_spdx(spdx, cdx, name, version, arch, namespace, created,
 
     The document describes one package whose name is the opkg package name,
     so create-spdx can match it to the installed package. The NI and
-    third-party components listed in the CycloneDX SBOM are added as
-    packages it CONTAINS.
+    third-party components in both CycloneDX component trees are added as
+    packages, preserving each parent's CONTAINS relationships.
 
     spdx is the oe.spdx module, passed in so this module has no OE dependency.
     """
@@ -385,21 +422,22 @@ def cyclonedx_to_spdx(spdx, cdx, name, version, arch, namespace, created,
     doc.packages.append(pkg)
     doc.add_relationship(doc, "DESCRIBES", pkg)
 
-    used = {pkg.SPDXID}
-    for index, component in enumerate(cdx.get("components") or [], start=1):
-        if not component.get("name"):
-            continue
-        child = spdx.SPDXPackage()
-        child.name = component["name"]
-        sid = "SPDXRef-Component-%d-%s" % (index, spdx_id_part(component["name"]))
-        while sid in used:
-            sid += "-x"
-        used.add(sid)
-        child.SPDXID = sid
-        child.supplier = _supplier(component)
-        _fill_package(spdx, child, component, licenses)
-        doc.packages.append(child)
-        doc.add_relationship(pkg, "CONTAINS", child)
+    def add_components(parent, components):
+        for component in components or []:
+            if not component.get("name"):
+                raise FeedSbomError("Component under %s has no name" % parent.name)
+            child = spdx.SPDXPackage()
+            child.name = component["name"]
+            child.SPDXID = "SPDXRef-Component-%d-%s" % (
+                len(doc.packages), spdx_id_part(component["name"]))
+            child.supplier = _supplier(component)
+            _fill_package(spdx, child, component, licenses)
+            doc.packages.append(child)
+            doc.add_relationship(parent, "CONTAINS", child)
+            add_components(child, component.get("components"))
+
+    add_components(pkg, cdx.get("components"))
+    add_components(pkg, main.get("components"))
 
     doc.hasExtractedLicensingInfos = list(licenses.extracted.values())
     return doc
