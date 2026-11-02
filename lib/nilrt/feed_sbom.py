@@ -352,6 +352,8 @@ def _supplier(component, default=None):
 
 
 def _fill_package(spdx, pkg, component, licenses):
+    pkg.filesAnalyzed = False
+    del pkg.licenseInfoFromFiles
     pkg.versionInfo = component.get("version") or "NOASSERTION"
     pkg.licenseDeclared = licenses.expression(component.get("licenses"))
     if component.get("copyright"):

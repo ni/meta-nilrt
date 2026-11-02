@@ -256,6 +256,36 @@ class ConvertTests(unittest.TestCase):
                        "relatedSpdxElement": main["SPDXID"]}, doc["relationships"])
         self.assertIn(SBOM_URL, doc["creationInfo"]["comment"])
 
+    def test_package_only_fields_for_main_child_and_nested_packages(self):
+        cdx = sample_cdx()
+        cdx["components"][0]["components"] = [{"name": "nested", "version": "1"}]
+        cdx["metadata"]["component"]["components"] = [{"name": "metadata-child", "version": "2"}]
+        doc = self.convert(cdx)
+        self.assertEqual(len(doc["packages"]), 8)
+        for package in doc["packages"]:
+            with self.subTest(package=package["name"]):
+                self.assertIs(package["filesAnalyzed"], False)
+                self.assertNotIn("licenseInfoFromFiles", package)
+                self.assertNotIn("packageVerificationCode", package)
+                self.assertNotIn("hasFiles", package)
+        parsed = oe.spdx.SPDXDocument.from_json(io.StringIO(json.dumps(doc)))
+        self.assertTrue(all(p.filesAnalyzed is False for p in parsed.packages))
+
+    def test_boolean_model_preserves_recipe_defaults_and_rejects_non_booleans(self):
+        package = oe.spdx.SPDXPackage()
+        self.assertNotIn("filesAnalyzed", package.serializer())
+        self.assertEqual(package.licenseInfoFromFiles, ["NOASSERTION"])
+        for value in (False, True):
+            package.filesAnalyzed = value
+            self.assertIs(package.serializer()["filesAnalyzed"], value)
+            self.assertIs(oe.spdx.SPDXPackage(filesAnalyzed=value).filesAnalyzed, value)
+        for value in ("false", 0, None):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    package.filesAnalyzed = value
+                with self.assertRaises(TypeError):
+                    oe.spdx.SPDXPackage(filesAnalyzed=value)
+
     def test_components_and_licenses(self):
         doc = self.convert()
         ids = [p["SPDXID"] for p in doc["packages"]]
