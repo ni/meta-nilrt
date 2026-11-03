@@ -33,9 +33,111 @@ elif [ "$arch" = "x86_64" ]; then
 fi
 
 BOOT_MODE_INPUT=/tmp/ni_boot_mode_input
+BOOT_MODE_LOGGED=/run/ni_boot_mode_logged
 SAFEMODE_REASON_FILE=/etc/natinst/share/safemode_reason
 
 fail() { echo "$@" >&2; exit 1; }
+
+log_bootmode_request() (
+	local CURRENT_BOOT_MODE=runtime RUNTIME_ROOT= LOG_DIR LOG_FILE LOG_PARENT LOG_MODE
+
+	if [ -f /etc/natinst/safemode ]; then
+		CURRENT_BOOT_MODE=safemode
+	fi
+
+	case "$CURRENT_BOOT_MODE:${1:-}" in
+	safemode:runtime)
+		RUNTIME_ROOT=/mnt/userfs
+		if ! mountpoint -q "$RUNTIME_ROOT"; then
+			echo "Unable to log boot mode request: $RUNTIME_ROOT is not mounted" >&2
+			return 1
+		fi
+		;;
+	runtime:safemode)
+		;;
+	runtime:runtime|safemode:safemode)
+		echo "Requested boot mode $1 is already active" >&2
+		return 0
+		;;
+	*)
+		echo "Invalid requested boot mode: ${1:-<missing>}" >&2
+		return 1
+		;;
+	esac
+
+	# /var/log can be volatile and /var/local/natinst/log is writable by
+	# non-root users, so use a persistent directory that only root can
+	# modify. Users then cannot swap the log for a symlink or FIFO.
+	LOG_DIR=$RUNTIME_ROOT/var/lib/ni/bootmode
+	LOG_FILE=$LOG_DIR/bootmode_change.log
+
+	LOG_PARENT=$LOG_DIR
+	while :; do
+		if [ -L "$LOG_PARENT" ] || { [ -e "$LOG_PARENT" ] &&
+			{ [ ! -d "$LOG_PARENT" ] || [ ! -O "$LOG_PARENT" ] ||
+			  ! LOG_MODE=$(stat -c %a "$LOG_PARENT") ||
+			  [ "$((0$LOG_MODE & 022))" -ne 0 ]; }; }; then
+			echo "Unsafe boot mode log directory $LOG_PARENT" >&2
+			return 1
+		fi
+		[ "$LOG_PARENT" = / ] && break
+		LOG_PARENT=${LOG_PARENT%/*}
+		[ -n "$LOG_PARENT" ] || LOG_PARENT=/
+	done
+
+	umask 077
+	if ! mkdir -p "$LOG_DIR"; then
+		echo "Unable to create boot mode log directory $LOG_DIR" >&2
+		return 1
+	fi
+
+	if [ -L "$LOG_FILE" ] || { [ -e "$LOG_FILE" ] && [ ! -f "$LOG_FILE" ]; }; then
+		echo "Refusing to write boot mode request to non-regular file $LOG_FILE" >&2
+		return 1
+	fi
+
+	if ! printf '%s requested switch from %s to %s\n' \
+		"$(date '+%Y-%m-%d %H:%M:%S')" "$CURRENT_BOOT_MODE" "$1" >> "$LOG_FILE"; then
+		echo "Unable to write boot mode request to $LOG_FILE" >&2
+		return 1
+	fi
+)
+
+record_bootmode_request() {
+	if ! rm -f "$BOOT_MODE_LOGGED"; then
+		echo "Unable to clear logged boot mode in $BOOT_MODE_LOGGED" >&2
+		return 1
+	fi
+	if ! log_bootmode_request "$1"; then
+		return 1
+	fi
+	if ! printf '%s\n' "$1" > "$BOOT_MODE_LOGGED"; then
+		echo "Unable to record logged boot mode in $BOOT_MODE_LOGGED" >&2
+		return 1
+	fi
+}
+
+log_pending_bootmode() {
+	local PENDING_MODE= LOGGED_MODE= CURRENT_MODE=runtime
+	[ -f "$BOOT_MODE_INPUT" ] || return 0
+	if ! read PENDING_MODE < "$BOOT_MODE_INPUT" && [ -z "$PENDING_MODE" ]; then
+		echo "Unable to read boot mode request from $BOOT_MODE_INPUT" >&2
+		return 1
+	fi
+	if [ -f "$BOOT_MODE_LOGGED" ] &&
+		! read LOGGED_MODE < "$BOOT_MODE_LOGGED" && [ -z "$LOGGED_MODE" ]; then
+		echo "Unable to read logged boot mode from $BOOT_MODE_LOGGED" >&2
+		return 1
+	fi
+	[ -f /etc/natinst/safemode ] && CURRENT_MODE=safemode
+	case "$CURRENT_MODE:$PENDING_MODE" in
+	runtime:safemode|safemode:runtime)
+		if [ "$PENDING_MODE" != "$LOGGED_MODE" ]; then
+			record_bootmode_request "$PENDING_MODE"
+		fi
+		;;
+	esac
+}
 
 setbootmode() {
 	case "$1" in

@@ -18,6 +18,10 @@
 #         force-normal or force-runtime - boots the target into normal mode
 #         force-install - boots the target into install mode
 #
+#     Runtime-to-safemode and safemode-to-runtime requests are logged
+#     to /var/lib/ni/bootmode/bootmode_change.log on the runtime filesystem
+#     (/mnt/userfs/var/lib/ni/bootmode/bootmode_change.log in safemode).
+#
 #     This script reads the contents of the file, if it exists, and
 #     configures the boot process according to the value from the file, if
 #     the value is one of the valid values.  The file $BOOT_MODE_INPUT itself
@@ -39,6 +43,9 @@ fi
 
 case "$1" in
   start)
+	if ! rm -f "$BOOT_MODE_LOGGED"; then
+		echo "Unable to clear logged boot mode in $BOOT_MODE_LOGGED" >&2
+	fi
 	# The default boot mode is always runmode, we also change the permissions on
 	# the $BOOT_MODE_INPUT so the system webserver can change the mode to boot into
 	echo runtime >$BOOT_MODE_INPUT
@@ -46,10 +53,11 @@ case "$1" in
 	chmod 660 $BOOT_MODE_INPUT
 	;;
   stop)
-	# Will hit checkbootmode just before exit 0 below
+	log_pending_bootmode
 	;;
   force-safemode|boot-safemode)
 	echo safemode >$BOOT_MODE_INPUT
+	record_bootmode_request safemode
 	if [ -z "$2" ]; then
 		echo "No safe mode reason specified."
 		echo "Safe Mode" >$SAFEMODE_REASON_FILE
@@ -62,9 +70,13 @@ case "$1" in
 	# normally install mode is indicated by writing BOOT_MODE_INPUT
 	# directly, not by using this script.
 	echo install >$BOOT_MODE_INPUT
+	if ! rm -f "$BOOT_MODE_LOGGED"; then
+		echo "Unable to clear logged boot mode in $BOOT_MODE_LOGGED" >&2
+	fi
 	;;
   force-runtime|boot-runtime|force-runmode|boot-runmode|force-normal|force-normalmode|boot-normal|boot-normalmode)
 	echo runtime >$BOOT_MODE_INPUT
+	record_bootmode_request runtime
 	;;
   *)
 	echo "Usage: $progname {force-safemode|force-runtime|force-install} [safemode reason]" >&2
@@ -75,4 +87,3 @@ esac
 checkbootmode
 
 exit 0
-
