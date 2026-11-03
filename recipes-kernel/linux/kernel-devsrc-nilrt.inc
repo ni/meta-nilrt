@@ -3,7 +3,7 @@
 
 pkg_postinst_ontarget:${PN} () {
 	cd /lib/modules/${KERNEL_VERSION}/build
-	find ./ -exec touch -m {} \;
+	find . -print0 | xargs -0 -r -n 128 -s 8192 touch -m
 	make olddefconfig
 	make prepare
 	make modules_prepare
