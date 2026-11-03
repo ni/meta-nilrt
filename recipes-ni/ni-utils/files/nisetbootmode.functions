@@ -51,10 +51,6 @@ log_bootmode_request() {
 	runtime:safemode)
 		LOG_FILE=/var/log/bootmode.log
 		;;
-	runtime:runtime|safemode:safemode)
-		# Only requests to change the current mode are logged.
-		return 0
-		;;
 	*)
 		echo "Invalid requested boot mode: ${1:-<missing>}" >&2
 		return 1
