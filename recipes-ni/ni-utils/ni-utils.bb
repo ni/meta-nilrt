@@ -20,12 +20,13 @@ FILES:${PN} += "\
 	${sysconfdir}/init.d/nisetled \
 	${sysconfdir}/init.d/nisetprimarymac \
 	${sysconfdir}/natinst/networking/functions.common \
+	${localstatedir}/lib/ni/bootmode \
 	/usr/local/natinst/bin/status_led \
 "
 
 DEPENDS += "shadow-native pseudo-native niacctbase update-rc.d-native"
 
-RDEPENDS:${PN} += "niacctbase bash"
+RDEPENDS:${PN} += "niacctbase bash ${VIRTUAL-RUNTIME_mountpoint}"
 
 RDEPENDS:${PN}:append:x64 = " fw-printenv"
 
@@ -36,6 +37,7 @@ do_install () {
 	install -d ${D}${sysconfdir}/init.d
 	install -d ${D}${libdir}
 	install -d ${D}${sysconfdir}/natinst/networking
+	install -d -m 0755 ${D}${localstatedir}/lib/ni/bootmode
 
 	install -m 0755   ${S}/status_led                  ${D}${bindir}
 	install -m 0440   ${S}/nisetbootmode.functions     ${D}${libdir}
