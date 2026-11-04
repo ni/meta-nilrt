@@ -55,8 +55,10 @@ def nilrt_feed_spdx_package(d, objset, name, info):
         bb.note("nilrt-feed-spdx: locating SBOM for %s %s (%s)" % (name, version, arch))
         cache = Path(d.getVar("NILRT_FEED_SBOM_CACHE"))
         cache.mkdir(parents=True, exist_ok=True)
-        lock = cache / (feed_sbom.sbom_filename(name, version, arch) + ".lock")
-        with bb.utils.fileslocked([str(lock)]):
+        cache_path = Path(feed_sbom.sbom_cache_path(str(cache), name, version, arch, md5))
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        lock = str(cache_path) + ".lock"
+        with bb.utils.fileslocked([lock]):
             path, source = feed_sbom.fetch_sbom(
                 d.getVar("NILRT_FEED_SBOM_POOL_URI"), str(cache),
                 name, version, arch, allow_network=d.getVar("BB_NO_NETWORK") != "1",

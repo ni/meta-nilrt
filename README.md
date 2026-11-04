@@ -39,6 +39,12 @@ and SPDX license expressions use the corresponding SPDX licensing objects.
 `NILRT_FEED_SBOM_CACHE` defaults to `${DL_DIR}/nilrt-feed-sbom`. For offline
 builds, populate the cache with `<name>_<version>_<arch>.ipk.cdx.sbom.json`
 files and set `BB_NO_NETWORK = "1"`. Cached entries are validated too.
+Feed builds are cached under `<IPK-MD5>/<name>_<version>_<arch>.ipk.cdx.sbom.json`
+so distinct builds cannot replace each other's cache entries. Existing flat
+cache files are migrated only after matching the expected feed MD5.
+Package licenses come only from component-level declarations; BOM document
+licenses are retained separately in a source-metadata annotation.
+SHA-3 hashes and both CPE 2.2 URI and CPE 2.3 formatted bindings are preserved.
 The default internal pool uses HTTP: MD5 selects the matching IPK build,
 but does not authenticate the SBOM contents. Use a trusted network/cache
 or an authenticated pool endpoint.

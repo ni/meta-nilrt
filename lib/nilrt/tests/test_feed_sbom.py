@@ -12,6 +12,8 @@ import os
 import sys
 import tempfile
 import unittest
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
 from unittest.mock import patch
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -140,7 +142,7 @@ class FetchTests(unittest.TestCase):
         with open(path) as f:
             self.assertEqual(feed_sbom.verify_sbom(json.load(f), NAME, VER, ARCH, MD5), [])
 
-    def test_replaces_cached_build_when_feed_md5_changes(self):
+    def test_feed_md5_changes_use_independent_cache_paths(self):
         pool = FakePool()
         path, _ = feed_sbom.fetch_sbom(
             POOL, self.cache, NAME, VER, ARCH, md5=MD5, get=pool.get)
@@ -148,10 +150,56 @@ class FetchTests(unittest.TestCase):
         pool.files[SBOM_URL] = json.dumps(sample_cdx(md5=replacement_md5)).encode()
         path2, _ = feed_sbom.fetch_sbom(
             POOL, self.cache, NAME, VER, ARCH, md5=replacement_md5, get=pool.get)
-        self.assertEqual(path2, path)
+        self.assertNotEqual(path2, path)
+        with open(path) as f:
+            self.assertEqual(feed_sbom.verify_sbom(json.load(f), NAME, VER, ARCH, MD5), [])
         with open(path2) as f:
             self.assertEqual(feed_sbom.verify_sbom(
                 json.load(f), NAME, VER, ARCH, replacement_md5), [])
+        self.assertEqual(feed_sbom.fetch_sbom(
+            POOL, self.cache, NAME, VER, ARCH, allow_network=False, md5=MD5), (path, SBOM_URL))
+        self.assertEqual(feed_sbom.fetch_sbom(
+            POOL, self.cache, NAME, VER, ARCH, allow_network=False, md5=replacement_md5),
+            (path2, SBOM_URL))
+
+    def test_legacy_flat_cache_is_verified_and_migrated_offline(self):
+        pool = FakePool()
+        legacy, source = feed_sbom.fetch_sbom(
+            POOL, self.cache, NAME, VER, ARCH, get=pool.get)
+        path, migrated_source = feed_sbom.fetch_sbom(
+            POOL, self.cache, NAME, VER, ARCH, md5=MD5, allow_network=False)
+        self.assertNotEqual(path, legacy)
+        self.assertEqual(migrated_source, source)
+        self.assertEqual(os.path.dirname(path), os.path.join(self.cache, MD5))
+        with open(path, "rb") as new, open(legacy, "rb") as old:
+            self.assertEqual(new.read(), old.read())
+
+    def test_parallel_feed_builds_do_not_replace_each_other(self):
+        ready = Barrier(2)
+        digests = (MD5, "1" * 32)
+
+        def fetch(digest):
+            pool = FakePool(sample_cdx(md5=digest))
+
+            def get(url):
+                if url == SBOM_URL:
+                    ready.wait(timeout=10)
+                return pool.get(url)
+
+            return feed_sbom.fetch_sbom(
+                POOL, self.cache, NAME, VER, ARCH, md5=digest, get=get)[0]
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            paths = list(executor.map(fetch, digests))
+        self.assertNotEqual(*paths)
+        for path, digest in zip(paths, digests):
+            with open(path) as stream:
+                self.assertEqual(feed_sbom.verify_sbom(
+                    json.load(stream), NAME, VER, ARCH, digest), [])
+
+    def test_invalid_md5_cannot_form_cache_path(self):
+        with self.assertRaisesRegex(feed_sbom.FeedSbomError, "Invalid feed IPK MD5"):
+            feed_sbom.sbom_cache_path(self.cache, NAME, VER, ARCH, "../invalid")
 
     def test_matching_cache_is_verified_and_used_offline(self):
         pool = FakePool()
@@ -278,6 +326,80 @@ class ConvertTests(unittest.TestCase):
         self.assertEqual(package.suppliedBy.name, "NI")
         self.assertIn("architecture=core2-64", package.software_packageUrl)
         self.assertIn(SBOM_URL, package.software_sourceInfo)
+
+    def test_bom_document_license_is_not_assigned_to_main_package(self):
+        for component_licenses in (None, [{"license": {"id": "MIT"}}]):
+            with self.subTest(component_licenses=component_licenses):
+                self.setUp()
+                cdx = sample_cdx()
+                cdx["metadata"]["licenses"] = [{"license": {"id": "CC0-1.0"}}]
+                if component_licenses is None:
+                    del cdx["metadata"]["component"]["licenses"]
+                else:
+                    cdx["metadata"]["component"]["licenses"] = component_licenses
+                package = self.convert(cdx)
+                licenses = [
+                    target.simplelicensing_licenseExpression
+                    for relationship in self.objset.foreach_type(oe.spdx30.Relationship)
+                    if relationship.from_ == package
+                    and relationship.relationshipType == oe.spdx30.RelationshipType.hasDeclaredLicense
+                    for target in relationship.to
+                ]
+                self.assertEqual(licenses, [] if component_licenses is None else ["MIT"])
+                annotations = list(self.objset.foreach_type(oe.spdx30.Annotation))
+                self.assertEqual(len(annotations), 1)
+                self.assertIn("BOM document licenses (not package licenses)", annotations[0].statement)
+                self.assertIn("CC0-1.0", annotations[0].statement)
+                self.serialize()
+
+    def test_sha3_and_existing_hash_algorithms_serialize_correctly(self):
+        cdx = sample_cdx()
+        hashes = {
+            "SHA3-256": ("sha3_256", 32), "SHA3-384": ("sha3_384", 48),
+            "SHA3-512": ("sha3_512", 64), "SHA-1": ("sha1", 20),
+            "SHA-256": ("sha256", 32), "SHA-384": ("sha384", 48),
+            "SHA-512": ("sha512", 64), "MD5": ("md5", 16),
+        }
+        cdx["components"][0]["hashes"] = [
+            {"alg": name, "content": "AB" * size} for name, (_, size) in hashes.items()
+        ]
+        self.convert(cdx)
+        doc = self.serialize()
+        component = next(obj for obj in doc["@graph"] if obj.get("name") == "CPUInfo")
+        self.assertEqual(
+            {entry["algorithm"]: entry["hashValue"] for entry in component["verifiedUsing"]},
+            {algorithm: "ab" * size for algorithm, size in hashes.values()},
+        )
+
+    def test_identical_bom_licenses_keep_distinct_package_annotations(self):
+        packages = []
+        for name in (NAME, "other-package"):
+            cdx = sample_cdx(name=name)
+            cdx["metadata"]["licenses"] = [{"license": {"id": "CC0-1.0"}}]
+            packages.append(feed_sbom.cyclonedx_to_spdx30(
+                self.objset, cdx, name, VER, ARCH, self.license_data))
+        annotations = list(self.objset.foreach_type(oe.spdx30.Annotation))
+        self.assertEqual(len(annotations), 2)
+        self.assertEqual({a.subject._id for a in annotations}, {p._id for p in packages})
+        self.assertEqual(len({a._id for a in annotations}), 2)
+        self.serialize()
+
+    def test_cpe_binding_controls_identifier_type(self):
+        cdx = sample_cdx()
+        cdx["components"][0]["cpe"] = "cpe:/a:example:library:1.0"
+        self.convert(cdx)
+        doc = self.serialize()
+        identifiers = {
+            obj["name"]: obj["externalIdentifier"][0]
+            for obj in doc["@graph"] if obj.get("type") == "software_Package"
+            and obj.get("externalIdentifier")
+        }
+        self.assertEqual(identifiers["CPUInfo"]["externalIdentifierType"], "cpe22")
+        self.assertEqual(identifiers["CPUInfo"]["identifier"], "cpe:/a:example:library:1.0")
+        self.assertEqual(identifiers["zlib"]["externalIdentifierType"], "cpe23")
+        cdx["components"][0]["cpe"] = "invalid"
+        with self.assertRaisesRegex(feed_sbom.FeedSbomError, "Unsupported CPE binding"):
+            self.convert(cdx)
 
     def test_components_and_licenses(self):
         self.convert()

@@ -19,6 +19,7 @@ import base64
 import html.parser
 import json
 import os
+import re
 import tempfile
 import time
 import urllib.error
@@ -33,6 +34,32 @@ class FeedSbomError(Exception):
 
 def sbom_filename(name, version, arch):
     return "%s_%s_%s%s" % (name, version, arch, SBOM_SUFFIX)
+
+
+def sbom_cache_path(cache_dir, name, version, arch, md5=None):
+    """Keep different feed builds of the same package identity independent."""
+    if md5:
+        if not re.fullmatch(r"[0-9a-fA-F]{32}", md5):
+            raise FeedSbomError("Invalid feed IPK MD5: %r" % md5)
+        cache_dir = os.path.join(cache_dir, md5.lower())
+    return os.path.join(cache_dir, sbom_filename(name, version, arch))
+
+
+def _cache_sbom(path, data, source):
+    directory = os.path.dirname(path)
+    os.makedirs(directory, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(dir=directory, prefix="." + os.path.basename(path) + ".")
+    try:
+        with os.fdopen(fd, "wb") as stream:
+            stream.write(data)
+        with open(temporary + ".url", "w") as stream:
+            stream.write((source or "") + "\n")
+        os.replace(temporary + ".url", path + ".url")
+        os.replace(temporary, path)
+    finally:
+        for remaining in (temporary, temporary + ".url"):
+            if os.path.exists(remaining):
+                os.unlink(remaining)
 
 
 def version_series(version):
@@ -160,21 +187,28 @@ def find_sbom_url(pool_uri, name, version, arch, get=http_get, md5=None):
 def fetch_sbom(pool_uri, cache_dir, name, version, arch, allow_network=True, get=http_get, md5=None):
     """Return (path, source_url), caching only an SBOM verified against the package."""
     fname = sbom_filename(name, version, arch)
-    path = os.path.join(cache_dir, fname)
-    url_file = path + ".url"
+    path = sbom_cache_path(cache_dir, name, version, arch, md5)
+    # Read old flat cache entries only for migration after full validation.
+    candidate = path
+    legacy = os.path.join(cache_dir, fname)
+    if not os.path.exists(path) and md5 and os.path.exists(legacy):
+        candidate = legacy
     cache_error = None
-    if os.path.exists(path):
-        with open(path, "rb") as f:
+    if os.path.exists(candidate):
+        with open(candidate, "rb") as f:
             data = f.read()
         try:
-            _verified_sbom(data, path, name, version, arch, md5)
+            _verified_sbom(data, candidate, name, version, arch, md5)
         except FeedSbomError as e:
             cache_error = e
-    if os.path.exists(path) and cache_error is None:
+    if os.path.exists(candidate) and cache_error is None:
         source = None
+        url_file = candidate + ".url"
         if os.path.exists(url_file):
             with open(url_file) as f:
                 source = f.read().strip() or None
+        if candidate != path:
+            _cache_sbom(path, data, source)
         return path, source
 
     if not allow_network:
@@ -189,13 +223,7 @@ def fetch_sbom(pool_uri, cache_dir, name, version, arch, allow_network=True, get
             raise FeedSbomError("Cached SBOM rejected: %s\n%s" % (cache_error, e)) from e
         raise
 
-    os.makedirs(cache_dir, exist_ok=True)
-    fd, tmp = tempfile.mkstemp(dir=cache_dir, prefix=".%s." % fname)
-    with os.fdopen(fd, "wb") as f:
-        f.write(data)
-    with open(url_file, "w") as f:
-        f.write(url + "\n")
-    os.replace(tmp, path)
+    _cache_sbom(path, data, url)
     return path, url
 
 
@@ -234,7 +262,7 @@ def _purl_arch(purl):
 
 
 def _hashes(component):
-    return {h.get("alg", "").replace("-", "").upper(): h.get("content", "").lower()
+    return {h.get("alg", "").upper(): h.get("content", "").lower()
             for h in component.get("hashes", []) if h.get("alg") and h.get("content")}
 
 
@@ -341,9 +369,16 @@ def cyclonedx_to_spdx30(objset, cdx, name, version, arch, license_data, source_u
         if component.get("copyright"):
             package.software_copyrightText = component["copyright"]
         if component.get("cpe"):
+            cpe = component["cpe"]
+            if cpe.startswith("cpe:/"):
+                cpe_type = spdx.ExternalIdentifierType.cpe22
+            elif cpe.startswith("cpe:2.3:"):
+                cpe_type = spdx.ExternalIdentifierType.cpe23
+            else:
+                raise FeedSbomError("Unsupported CPE binding: %s" % cpe)
             package.externalIdentifier.append(spdx.ExternalIdentifier(
-                externalIdentifierType=spdx.ExternalIdentifierType.cpe23,
-                identifier=component["cpe"],
+                externalIdentifierType=cpe_type,
+                identifier=cpe,
             ))
         supplier = component.get("supplier") or component.get("manufacturer") or {}
         supplier_name = supplier.get("name") or component.get("publisher")
@@ -357,6 +392,10 @@ def cyclonedx_to_spdx30(objset, cdx, name, version, arch, license_data, source_u
             package.suppliedBy = agent
         for algorithm, value in sorted(_hashes(component).items()):
             algorithm = algorithm.lower()
+            if algorithm.startswith("sha3-"):
+                algorithm = algorithm.replace("-", "_", 1)
+            else:
+                algorithm = algorithm.replace("-", "")
             if algorithm not in spdx.HashAlgorithm.NAMED_INDIVIDUALS:
                 raise FeedSbomError("Unsupported hash algorithm: %s" % algorithm)
             package.verifiedUsing.append(spdx.Hash(
@@ -375,9 +414,16 @@ def cyclonedx_to_spdx30(objset, cdx, name, version, arch, license_data, source_u
 
     metadata = cdx.get("metadata") or {}
     main = dict(metadata["component"])
-    if not main.get("licenses"):
-        main["licenses"] = metadata.get("licenses")
     package = add_component(main)
+    if metadata.get("licenses"):
+        objset.add(spdx.Annotation(
+            _id=objset.new_spdxid("feed-bom-license", name, version, arch),
+            creationInfo=objset.doc.creationInfo,
+            subject=package,
+            statement="Source CycloneDX BOM document licenses (not package licenses): "
+            + json.dumps(metadata["licenses"], sort_keys=True),
+            annotationType=spdx.AnnotationType.other,
+        ))
     package.software_primaryPurpose = spdx.software_SoftwarePurpose.install
     package.software_sourceInfo = "Converted from CycloneDX %s; source: %s; serial: %s" % (
         cdx.get("specVersion"), source_url or "local SBOM cache", cdx.get("serialNumber", ""))
