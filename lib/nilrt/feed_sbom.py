@@ -3,9 +3,8 @@
 #
 # SPDX-License-Identifier: MIT
 #
-"""Fetch the CycloneDX SBOM published for a prebuilt NI feed package and
-convert it to an SPDX 2.2 document that create-spdx-2.2 can combine into the
-image SBOM.
+"""Fetch verified feed package CycloneDX SBOMs and add their inventory to
+OpenEmbedded SPDX 3.0 image documents.
 
 NI packages installed from feeds have no recipe in the build, so OE-core
 cannot generate SPDX for them. Each package's build publishes
@@ -13,34 +12,23 @@ cannot generate SPDX for them. Each package's build publishes
 
     <pool>/<prefix>/<pkg>/<X.Y.Z>/<ver>/<build-hash>/<pkg>_<ver>_<arch>.ipk.cdx.sbom.json
 
-This module has no BitBake dependency so it can be unit tested on its own.
+The downloader has no BitBake dependency. Conversion uses OE's SPDX model.
 """
 
+import base64
 import html.parser
 import json
 import os
-import re
 import tempfile
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
-import uuid
 
 SBOM_SUFFIX = ".ipk.cdx.sbom.json"
 
-SPDX_TOOL = "Tool: meta-nilrt nilrt-feed-spdx.bbclass"
-
-_ID_INVALID = re.compile(r"[^A-Za-z0-9.-]+")
-
-
 class FeedSbomError(Exception):
     pass
-
-
-def spdx_id_part(text):
-    """Return text restricted to the characters SPDX allows in identifiers."""
-    return _ID_INVALID.sub("-", text).strip("-.") or "unknown"
 
 
 def sbom_filename(name, version, arch):
@@ -227,7 +215,10 @@ def parse_opkg_lists(lists_dir):
                 if not line:
                     key = (fields.get("Package"), fields.get("Version"), fields.get("Architecture"))
                     if all(key) and fields.get("MD5Sum"):
-                        result[key] = fields["MD5Sum"].lower()
+                        md5 = fields["MD5Sum"].lower()
+                        if key in result and result[key] != md5:
+                            raise FeedSbomError("Conflicting feed IPK MD5 values for %s" % (key,))
+                        result[key] = md5
                     fields = {}
                 elif not line[0].isspace() and ":" in line:
                     k, v = line.split(":", 1)
@@ -271,175 +262,137 @@ def verify_sbom(cdx, name, version, arch, md5=None):
     return problems
 
 
-def document_namespace(prefix, uuid_namespace, name, version, arch):
-    ns_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, uuid_namespace)
-    key = "%s_%s_%s" % (name, version, arch)
-    return "%s/%s-%s" % (prefix.rstrip("/"), spdx_id_part(name), uuid.uuid5(ns_uuid, key))
+def cyclonedx_to_spdx30(objset, cdx, name, version, arch, license_data, source_url=None):
+    """Add the package and both component trees to an OE SPDX 3.0 ObjectSet."""
+    import oe.spdx30 as spdx
 
+    problems = verify_sbom(cdx, name, version, arch)
+    if problems:
+        raise FeedSbomError("; ".join(problems))
+    if cdx.get("services"):
+        raise FeedSbomError("CycloneDX services are not supported for feed packages")
+    references = {}
+    ordinal = 0
 
-class _Licenses:
-    """Map CycloneDX licenses to SPDX expressions, collecting LicenseRefs."""
-
-    def __init__(self, spdx, known_ids):
-        self.spdx = spdx
-        self.known = set(known_ids or ())
-        self.extracted = {}
-
-    def _ref(self, name, url=None):
-        ident = "LicenseRef-" + spdx_id_part(name)
-        if ident not in self.extracted:
-            info = self.spdx.SPDXExtractedLicensingInfo()
-            info.licenseId = ident
-            info.name = name
-            info.extractedText = name + ("\n" + url if url else "")
-            if url:
-                info.comment = url
-            self.extracted[ident] = info
-        return ident
-
-    _OPERATORS = {"AND", "OR", "WITH"}
-
-    def _normalize_expression(self, expr):
-        """Make every license id in expr valid for SPDX 2.2.
-
-        Custom LicenseRef-* ids get extracted licensing info; ids that are not
-        on the SPDX license list become LicenseRefs.
-        """
-        tokens = re.split(r"([A-Za-z0-9.+:-]+)", expr)
-        after_with = False
-        for i in range(1, len(tokens), 2):
-            token = tokens[i]
-            if token in self._OPERATORS:
-                after_with = token == "WITH"
+    def add_licenses(package, entries):
+        expressions = []
+        for index, entry in enumerate(entries or []):
+            license = entry.get("license") or {}
+            expression = entry.get("expression") or license.get("id")
+            if expression and "LicenseRef-" not in expression and (
+                entry.get("expression") or expression in license_data["licenses"]
+            ):
+                expressions.append(expression)
                 continue
-            if after_with or ":" in token:
-                # exception ids and DocumentRef-*:LicenseRef-* stay unchanged
-                pass
-            elif token.startswith("LicenseRef-"):
-                tokens[i] = self._ref(token[len("LicenseRef-"):])
-            elif self.known and token.rstrip("+") not in self.known:
-                tokens[i] = self._ref(token)
-            after_with = False
-        return "".join(tokens)
-
-    def expression(self, licenses):
-        terms = []
-        for entry in licenses or []:
-            if entry.get("expression"):
-                terms.append("(%s)" % self._normalize_expression(entry["expression"]))
+            title = license.get("name") or expression
+            if not title:
+                raise FeedSbomError("Unrecognized license entry for %s" % package.name)
+            attachment = license.get("text") or {}
+            text = attachment.get("content")
+            if text is None:
+                # A name or URL is not the full license text required by SPDX.
+                package.comment = (package.comment or "") + "\nCycloneDX declared license: " + json.dumps(
+                    entry, sort_keys=True)
+                objset.new_relationship(
+                    [package], spdx.RelationshipType.hasDeclaredLicense,
+                    [spdx.expandedlicensing_IndividualLicensingInfo.NoAssertionLicense])
                 continue
-            lic = entry.get("license") or {}
-            if lic.get("id") and (not self.known or lic["id"] in self.known):
-                terms.append(lic["id"])
-            elif lic.get("id") or lic.get("name"):
-                terms.append(self._ref(lic.get("name") or lic["id"], lic.get("url")))
-        terms = list(dict.fromkeys(terms))
-        if not terms:
-            return "NOASSERTION"
-        if len(terms) == 1 and terms[0].startswith("("):
-            return terms[0][1:-1]
-        return " AND ".join(terms)
+            encoding = attachment.get("encoding")
+            if encoding == "base64":
+                try:
+                    text = base64.b64decode(text, validate=True).decode("utf-8")
+                except (ValueError, UnicodeDecodeError) as error:
+                    raise FeedSbomError("Invalid license text for %s: %s" % (package.name, error)) from error
+            elif encoding is not None:
+                raise FeedSbomError("Unsupported license text encoding: %s" % encoding)
+            licensing = objset.add(spdx.simplelicensing_SimpleLicensingText(
+                _id=package._id + "/license/" + str(index),
+                creationInfo=objset.doc.creationInfo,
+                name=title,
+                simplelicensing_licenseText=text,
+            ))
+            if license.get("url"):
+                licensing.comment = license["url"]
+            objset.new_relationship(
+                [package], spdx.RelationshipType.hasDeclaredLicense, [licensing])
+        if expressions:
+            expression = expressions[0] if len(expressions) == 1 else " AND ".join(
+                "(%s)" % term for term in expressions)
+            licensing = objset.new_license_expression(expression, license_data)
+            objset.new_relationship(
+                [package], spdx.RelationshipType.hasDeclaredLicense, [licensing])
 
+    def add_component(component, parent=None):
+        nonlocal ordinal
+        if not isinstance(component, dict) or not component.get("name"):
+            raise FeedSbomError("Component under %s has no name" % (parent.name if parent else name))
+        ordinal += 1
+        package = objset.add(spdx.software_Package(
+            _id=objset.new_spdxid("feed-package", name, version, arch, str(ordinal)),
+            creationInfo=objset.doc.creationInfo,
+            name=component["name"],
+        ))
+        if component.get("version"):
+            package.software_packageVersion = component["version"]
+        if component.get("purl"):
+            package.software_packageUrl = component["purl"]
+        if component.get("description"):
+            package.description = component["description"]
+        if component.get("copyright"):
+            package.software_copyrightText = component["copyright"]
+        if component.get("cpe"):
+            package.externalIdentifier.append(spdx.ExternalIdentifier(
+                externalIdentifierType=spdx.ExternalIdentifierType.cpe23,
+                identifier=component["cpe"],
+            ))
+        supplier = component.get("supplier") or component.get("manufacturer") or {}
+        supplier_name = supplier.get("name") or component.get("publisher")
+        if supplier_name:
+            agent = objset.find_filter(spdx.Organization, name=supplier_name)
+            if agent is None:
+                agent = objset.add(spdx.Organization(
+                    _id=objset.new_spdxid("feed-supplier", supplier_name),
+                    creationInfo=objset.doc.creationInfo, name=supplier_name,
+                ))
+            package.suppliedBy = agent
+        for algorithm, value in sorted(_hashes(component).items()):
+            algorithm = algorithm.lower()
+            if algorithm not in spdx.HashAlgorithm.NAMED_INDIVIDUALS:
+                raise FeedSbomError("Unsupported hash algorithm: %s" % algorithm)
+            package.verifiedUsing.append(spdx.Hash(
+                algorithm=getattr(spdx.HashAlgorithm, algorithm), hashValue=value))
+        add_licenses(package, component.get("licenses"))
+        ref = component.get("bom-ref")
+        if ref:
+            if ref in references:
+                raise FeedSbomError("Duplicate CycloneDX bom-ref: %s" % ref)
+            references[ref] = package
+        if parent:
+            objset.new_relationship([parent], spdx.RelationshipType.contains, [package])
+        for child in component.get("components") or []:
+            add_component(child, package)
+        return package
 
-def _supplier(component, default=None):
-    for key in ("supplier", "manufacturer"):
-        name = (component.get(key) or {}).get("name")
-        if name:
-            return "Organization: %s" % name
-    if component.get("publisher"):
-        return "Organization: %s" % component["publisher"]
-    return default or "NOASSERTION"
-
-
-def _fill_package(spdx, pkg, component, licenses):
-    pkg.filesAnalyzed = False
-    del pkg.licenseInfoFromFiles
-    pkg.versionInfo = component.get("version") or "NOASSERTION"
-    pkg.licenseDeclared = licenses.expression(component.get("licenses"))
-    if component.get("copyright"):
-        pkg.copyrightText = component["copyright"]
-    if component.get("description"):
-        pkg.description = component["description"]
-    for alg, value in sorted(_hashes(component).items()):
-        if alg in ("MD5", "SHA1", "SHA256", "SHA384", "SHA512"):
-            c = spdx.SPDXChecksum()
-            c.algorithm = alg
-            c.checksumValue = value
-            pkg.checksums.append(c)
-    if component.get("purl"):
-        ref = spdx.SPDXExternalReference()
-        ref.referenceCategory = "PACKAGE-MANAGER"
-        ref.referenceType = "purl"
-        ref.referenceLocator = component["purl"]
-        pkg.externalRefs.append(ref)
-    if component.get("cpe"):
-        ref = spdx.SPDXExternalReference()
-        ref.referenceCategory = "SECURITY"
-        ref.referenceType = "cpe23Type"
-        ref.referenceLocator = component["cpe"]
-        pkg.externalRefs.append(ref)
-
-
-def cyclonedx_to_spdx(spdx, cdx, name, version, arch, namespace, created,
-                      source_url=None, license_ids=None, license_list_version=None,
-                      organization="NI"):
-    """Return an oe.spdx.SPDXDocument for one feed package.
-
-    The document describes one package whose name is the opkg package name,
-    so create-spdx can match it to the installed package. The NI and
-    third-party components in both CycloneDX component trees are added as
-    packages, preserving each parent's CONTAINS relationships.
-
-    spdx is the oe.spdx module, passed in so this module has no OE dependency.
-    """
-    licenses = _Licenses(spdx, license_ids)
-    meta = cdx.get("metadata") or {}
-    main = meta.get("component") or {}
-
-    doc = spdx.SPDXDocument()
-    doc.name = spdx_id_part(name)
-    doc.documentNamespace = namespace
-    doc.creationInfo.created = created
-    if license_list_version:
-        doc.creationInfo.licenseListVersion = license_list_version
-    doc.creationInfo.creators.append(SPDX_TOOL)
-    doc.creationInfo.creators.append("Organization: %s" % organization)
-    doc.creationInfo.comment = (
-        "Converted from the CycloneDX SBOM published for the NI feed package %s %s (%s)%s%s." % (
-            name, version, arch,
-            " at " + source_url if source_url else "",
-            ", serialNumber " + cdx["serialNumber"] if cdx.get("serialNumber") else ""))
-
-    pkg = spdx.SPDXPackage()
-    pkg.name = name
-    pkg.SPDXID = "SPDXRef-Package-%s" % spdx_id_part(name)
-    pkg.supplier = _supplier(main, "Organization: %s" % organization)
-    pkg.packageFileName = "%s_%s_%s.ipk" % (name, version, arch)
+    metadata = cdx.get("metadata") or {}
+    main = dict(metadata["component"])
+    if not main.get("licenses"):
+        main["licenses"] = metadata.get("licenses")
+    package = add_component(main)
+    package.software_primaryPurpose = spdx.software_SoftwarePurpose.install
+    package.software_sourceInfo = "Converted from CycloneDX %s; source: %s; serial: %s" % (
+        cdx.get("specVersion"), source_url or "local SBOM cache", cdx.get("serialNumber", ""))
     if source_url and source_url.endswith(".cdx.sbom.json"):
-        pkg.downloadLocation = source_url[:-len(".cdx.sbom.json")]
-    _fill_package(spdx, pkg, main, licenses)
-    pkg.versionInfo = version
-    if pkg.licenseDeclared == "NOASSERTION":
-        pkg.licenseDeclared = licenses.expression(meta.get("licenses"))
-    doc.packages.append(pkg)
-    doc.add_relationship(doc, "DESCRIBES", pkg)
-
-    def add_components(parent, components):
-        for component in components or []:
-            if not component.get("name"):
-                raise FeedSbomError("Component under %s has no name" % parent.name)
-            child = spdx.SPDXPackage()
-            child.name = component["name"]
-            child.SPDXID = "SPDXRef-Component-%d-%s" % (
-                len(doc.packages), spdx_id_part(component["name"]))
-            child.supplier = _supplier(component)
-            _fill_package(spdx, child, component, licenses)
-            doc.packages.append(child)
-            doc.add_relationship(parent, "CONTAINS", child)
-            add_components(child, component.get("components"))
-
-    add_components(pkg, cdx.get("components"))
-    add_components(pkg, main.get("components"))
-
-    doc.hasExtractedLicensingInfos = list(licenses.extracted.values())
-    return doc
+        package.software_downloadLocation = source_url[:-len(".cdx.sbom.json")]
+    for component in cdx.get("components") or []:
+        add_component(component, package)
+    for dependency in cdx.get("dependencies") or []:
+        if dependency.get("provides"):
+            raise FeedSbomError("CycloneDX dependency provides is not supported")
+        refs = [dependency.get("ref"), *dependency.get("dependsOn", [])]
+        if any(ref not in references for ref in refs):
+            raise FeedSbomError("Unresolved CycloneDX dependency reference: %s" % refs)
+        if len(refs) > 1:
+            objset.new_relationship(
+                [references[refs[0]]], spdx.RelationshipType.dependsOn,
+                [references[ref] for ref in refs[1:]])
+    return package

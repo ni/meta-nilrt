@@ -12,13 +12,17 @@ import os
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 META_NILRT_LIB = os.path.normpath(os.path.join(HERE, "..", ".."))
 OE_LIB = os.path.normpath(os.path.join(META_NILRT_LIB, "..", "..", "openembedded-core", "meta", "lib"))
-sys.path[:0] = [META_NILRT_LIB, OE_LIB]
+BITBAKE_LIB = os.path.normpath(os.path.join(META_NILRT_LIB, "..", "..", "bitbake", "lib"))
+sys.path[:0] = [META_NILRT_LIB, OE_LIB, BITBAKE_LIB]
 
-import oe.spdx  # noqa: E402
+import bb.data  # noqa: E402
+import oe.sbom30  # noqa: E402
+import oe.spdx30  # noqa: E402
 from nilrt import feed_sbom  # noqa: E402
 
 POOL = "http://pool.example/ni/linuxpkg/pool/ipk"
@@ -222,130 +226,92 @@ class VerifyTests(unittest.TestCase):
             self.assertEqual(feed_sbom.parse_opkg_lists(d), {(NAME, VER, ARCH): MD5})
         self.assertEqual(feed_sbom.parse_opkg_lists("/does/not/exist"), {})
 
+    def test_conflicting_feed_builds_fail(self):
+        with tempfile.TemporaryDirectory() as directory:
+            for index in range(2):
+                with open(os.path.join(directory, str(index)), "w") as stream:
+                    stream.write("Package: %s\nVersion: %s\nArchitecture: %s\nMD5Sum: %s\n" % (
+                        NAME, VER, ARCH, str(index) * 32))
+            with self.assertRaisesRegex(feed_sbom.FeedSbomError, "Conflicting"):
+                feed_sbom.parse_opkg_lists(directory)
+
 
 class ConvertTests(unittest.TestCase):
+    def setUp(self):
+        self.d = bb.data.init()
+        for key, value in {
+            "PN": "test-image", "BB_UNIHASH": "abcdef", "SPDX_UUID_NAMESPACE": "openembedded.org",
+            "SPDX_NAMESPACE_PREFIX": "https://spdx.example", "SPDX_TOOL_NAME": "test",
+            "SPDX_TOOL_VERSION": "1", "SPDX_AUTHORS": "", "SPDX_VERSION": "3.0.1",
+            "SPDX_EXTERNAL_PACKAGE_FUNC": "",
+        }.items():
+            self.d.setVar(key, value)
+        self.objset = oe.sbom30.ObjectSet.new_objset(self.d, "test", copy_from_bitbake_doc=False)
+        author = self.objset.add(oe.spdx30.Organization(
+            _id="https://spdx.example/author", name="Test author",
+            creationInfo=self.objset.doc.creationInfo))
+        self.objset.doc.creationInfo.createdBy.append(author)
+        self.objset.doc.profileConformance = [oe.spdx30.ProfileIdentifierType.core]
+        self.license_data = {
+            "licenses": {name: {} for name in ("Zlib", "MIT", "Apache-2.0")},
+            "licenseListVersion": "3.24",
+        }
+
     def convert(self, cdx=None):
-        ns = feed_sbom.document_namespace("http://spdx.org/spdxdocs", "openembedded.org", NAME, VER, ARCH)
-        doc = feed_sbom.cyclonedx_to_spdx(
-            oe.spdx, cdx or sample_cdx(), NAME, VER, ARCH, ns, "2026-10-30T00:00:00Z",
-            source_url=SBOM_URL, license_ids=["Zlib", "MIT", "Apache-2.0"], license_list_version="3.24")
+        return feed_sbom.cyclonedx_to_spdx30(
+            self.objset, cdx or sample_cdx(), NAME, VER, ARCH,
+            self.license_data, source_url=SBOM_URL)
+
+    def serialize(self):
         buf = io.BytesIO()
-        doc.to_json(buf, sort_keys=True)
+        self.objset.objects.add(self.objset.doc)
+        oe.spdx30.JSONLDInlineSerializer().write(self.objset, buf, force_at_graph=True)
         return json.loads(buf.getvalue())
 
-    def test_namespace_is_stable_and_version_specific(self):
-        a = feed_sbom.document_namespace("http://spdx.org/spdxdocs", "x", NAME, VER, ARCH)
-        self.assertEqual(a, feed_sbom.document_namespace("http://spdx.org/spdxdocs", "x", NAME, VER, ARCH))
-        self.assertNotEqual(a, feed_sbom.document_namespace("http://spdx.org/spdxdocs", "x", NAME, "1-r0", ARCH))
-        self.assertTrue(a.startswith("http://spdx.org/spdxdocs/ni-sysapi-"))
-
     def test_main_package(self):
-        doc = self.convert()
-        self.assertEqual(doc["spdxVersion"], "SPDX-2.2")
-        self.assertEqual(doc["name"], NAME)
-        main = doc["packages"][0]
-        self.assertEqual(main["name"], NAME)
-        self.assertEqual(main["versionInfo"], VER)
-        self.assertEqual(main["supplier"], "Organization: NI")
-        self.assertEqual(main["packageFileName"], "ni-sysapi_27.0.0.60-0+d60_core2-64.ipk")
-        self.assertEqual(main["downloadLocation"], SBOM_URL[:-len(".cdx.sbom.json")])
-        self.assertEqual(main["checksums"], [{"algorithm": "MD5", "checksumValue": MD5}])
-        self.assertEqual(main["licenseDeclared"], "LicenseRef-National-Instruments-Inc")
-        self.assertEqual(main["externalRefs"][0]["referenceType"], "purl")
-        self.assertIn({"spdxElementId": "SPDXRef-DOCUMENT", "relationshipType": "DESCRIBES",
-                       "relatedSpdxElement": main["SPDXID"]}, doc["relationships"])
-        self.assertIn(SBOM_URL, doc["creationInfo"]["comment"])
-
-    def test_package_only_fields_for_main_child_and_nested_packages(self):
-        cdx = sample_cdx()
-        cdx["components"][0]["components"] = [{"name": "nested", "version": "1"}]
-        cdx["metadata"]["component"]["components"] = [{"name": "metadata-child", "version": "2"}]
-        doc = self.convert(cdx)
-        self.assertEqual(len(doc["packages"]), 8)
-        for package in doc["packages"]:
-            with self.subTest(package=package["name"]):
-                self.assertIs(package["filesAnalyzed"], False)
-                self.assertNotIn("licenseInfoFromFiles", package)
-                self.assertNotIn("packageVerificationCode", package)
-                self.assertNotIn("hasFiles", package)
-        parsed = oe.spdx.SPDXDocument.from_json(io.StringIO(json.dumps(doc)))
-        self.assertTrue(all(p.filesAnalyzed is False for p in parsed.packages))
-
-    def test_boolean_model_preserves_recipe_defaults_and_rejects_non_booleans(self):
-        package = oe.spdx.SPDXPackage()
-        self.assertNotIn("filesAnalyzed", package.serializer())
-        self.assertEqual(package.licenseInfoFromFiles, ["NOASSERTION"])
-        for value in (False, True):
-            package.filesAnalyzed = value
-            self.assertIs(package.serializer()["filesAnalyzed"], value)
-            self.assertIs(oe.spdx.SPDXPackage(filesAnalyzed=value).filesAnalyzed, value)
-        for value in ("false", 0, None):
-            with self.subTest(value=value):
-                with self.assertRaises(TypeError):
-                    package.filesAnalyzed = value
-                with self.assertRaises(TypeError):
-                    oe.spdx.SPDXPackage(filesAnalyzed=value)
+        package = self.convert()
+        self.assertEqual(package.name, NAME)
+        self.assertEqual(package.software_packageVersion, VER)
+        self.assertEqual(package.software_primaryPurpose, oe.spdx30.software_SoftwarePurpose.install)
+        self.assertEqual(package.software_downloadLocation, SBOM_URL[:-len(".cdx.sbom.json")])
+        self.assertEqual(package.verifiedUsing[0].hashValue, MD5)
+        self.assertEqual(package.suppliedBy.name, "NI")
+        self.assertIn("architecture=core2-64", package.software_packageUrl)
+        self.assertIn(SBOM_URL, package.software_sourceInfo)
 
     def test_components_and_licenses(self):
-        doc = self.convert()
-        ids = [p["SPDXID"] for p in doc["packages"]]
-        self.assertEqual(len(set(ids)), 6, "SPDXIDs must be unique even for duplicate component names")
-        contains = [r for r in doc["relationships"] if r["relationshipType"] == "CONTAINS"]
-        self.assertEqual(len(contains), 5)
-        zlib = next(p for p in doc["packages"] if p["name"] == "zlib")
-        self.assertEqual(zlib["licenseDeclared"], "Zlib")
-        self.assertEqual({r["referenceType"] for r in zlib["externalRefs"]}, {"purl", "cpe23Type"})
-        self.assertEqual(zlib["checksums"][0]["algorithm"], "SHA256")
-        openssl = next(p for p in doc["packages"] if p["name"] == "openssl")
-        self.assertEqual(openssl["licenseDeclared"], "Apache-2.0 OR MIT")
-        lvrt = [p for p in doc["packages"] if p["name"] == "LVRTEthernet"]
-        self.assertEqual([p["supplier"] for p in lvrt], ["NOASSERTION", "NOASSERTION"])
-        refs = [l["licenseId"] for l in doc["hasExtractedLicensingInfos"]]
-        self.assertEqual(refs, ["LicenseRef-National-Instruments-Inc"])
+        self.convert()
+        doc = self.serialize()
+        self.assertEqual(doc["@context"], "https://spdx.org/rdf/3.0.1/spdx-context.jsonld")
+        packages = list(self.objset.foreach_type(oe.spdx30.software_Package))
+        self.assertEqual(len(packages), 6)
+        self.assertEqual(len({p._id for p in packages}), 6)
+        zlib = next(p for p in packages if p.name == "zlib")
+        self.assertEqual(zlib.verifiedUsing[0].hashValue, "ab" * 32)
+        self.assertEqual(zlib.externalIdentifier[0].externalIdentifierType,
+                         oe.spdx30.ExternalIdentifierType.cpe23)
+        expressions = list(self.objset.foreach_type(oe.spdx30.simplelicensing_LicenseExpression))
+        self.assertEqual({p.simplelicensing_licenseExpression for p in expressions},
+                         {"Zlib", "Apache-2.0 OR MIT"})
+        main = next(p for p in packages if p.name == NAME)
+        self.assertIn("National Instruments", main.comment)
+        self.assertEqual(list(self.objset.foreach_type(oe.spdx30.simplelicensing_SimpleLicensingText)), [])
+        parsed = oe.spdx30.SHACLObjectSet()
+        oe.spdx30.JSONLDDeserializer().read(io.BytesIO(json.dumps(doc).encode()), parsed)
+        self.assertEqual(len(list(parsed.foreach_type(oe.spdx30.software_Package))), 6)
 
     def test_nested_components_preserve_both_trees_and_parent_relationships(self):
         cdx = sample_cdx()
-        cdx["components"] = [{
-            "name": "top", "version": "1",
-            "components": [{
-                "name": "nested", "version": "2",
-                "components": [{
-                    "name": "leaf", "version": "3",
-                    "licenses": [{"license": {"name": "Nested License"}}],
-                    "purl": "pkg:generic/leaf@3",
-                    "hashes": [{"alg": "SHA-256", "content": "AB" * 32}],
-                }],
-            }],
-        }]
-        cdx["metadata"]["component"]["components"] = [{
-            "name": "metadata-child", "version": "4",
-            "components": [{"name": "nested", "version": "5"}],
-        }]
-        doc = self.convert(cdx)
-        packages = {(p["name"], p["versionInfo"]): p for p in doc["packages"]}
-        self.assertEqual(len(packages), 6)
-        ids = {p["SPDXID"] for p in doc["packages"]}
-        self.assertEqual(len(ids), 6)
-        by_id = {p["SPDXID"]: (p["name"], p["versionInfo"]) for p in doc["packages"]}
+        cdx["components"] = [{"name": "top", "components": [{"name": "nested"}]}]
+        cdx["metadata"]["component"]["components"] = [{"name": "metadata-child"}]
+        self.convert(cdx)
         contains = {
-            (by_id[r["spdxElementId"]], by_id[r["relatedSpdxElement"]])
-            for r in doc["relationships"] if r["relationshipType"] == "CONTAINS"
+            (r.from_.name, child.name)
+            for r in self.objset.foreach_type(oe.spdx30.Relationship)
+            if r.relationshipType == oe.spdx30.RelationshipType.contains
+            for child in r.to
         }
-        self.assertEqual(contains, {
-            ((NAME, VER), ("top", "1")),
-            (("top", "1"), ("nested", "2")),
-            (("nested", "2"), ("leaf", "3")),
-            ((NAME, VER), ("metadata-child", "4")),
-            (("metadata-child", "4"), ("nested", "5")),
-        })
-        leaf = packages[("leaf", "3")]
-        self.assertEqual(leaf["licenseDeclared"], "LicenseRef-Nested-License")
-        self.assertIn("LicenseRef-Nested-License",
-                      {info["licenseId"] for info in doc["hasExtractedLicensingInfos"]})
-        self.assertEqual(leaf["externalRefs"][0]["referenceLocator"], "pkg:generic/leaf@3")
-        self.assertEqual(leaf["checksums"][0]["checksumValue"], "ab" * 32)
-        parsed = oe.spdx.SPDXDocument.from_json(io.StringIO(json.dumps(doc)))
-        self.assertEqual(len(parsed.packages), 6)
+        self.assertEqual(contains, {(NAME, "top"), ("top", "nested"), (NAME, "metadata-child")})
 
     def test_unnamed_nested_component_fails_instead_of_disappearing(self):
         cdx = sample_cdx()
@@ -354,26 +320,110 @@ class ConvertTests(unittest.TestCase):
         with self.assertRaisesRegex(feed_sbom.FeedSbomError, "under parent has no name"):
             self.convert(cdx)
 
-    def test_unknown_license_id_becomes_licenseref(self):
+    def test_unknown_license_is_preserved_without_inventing_full_text(self):
         cdx = sample_cdx()
         cdx["components"] = [{"name": "x", "version": "1", "licenses": [{"license": {"id": "NotAnSpdxId"}}]}]
-        doc = self.convert(cdx)
-        self.assertEqual(doc["packages"][1]["licenseDeclared"], "LicenseRef-NotAnSpdxId")
+        self.convert(cdx)
+        package = next(p for p in self.objset.foreach_type(oe.spdx30.software_Package) if p.name == "x")
+        self.assertIn("NotAnSpdxId", package.comment)
+        self.assertEqual(list(self.objset.foreach_type(oe.spdx30.simplelicensing_SimpleLicensingText)), [])
 
-    def test_expression_licenserefs_are_declared(self):
+    def test_supplied_full_license_text_is_preserved(self):
         cdx = sample_cdx()
-        cdx["components"] = [{"name": "x", "version": "1", "licenses": [
-            {"expression": "(MIT OR LicenseRef-Custom) AND NotAnSpdxId AND Apache-2.0 WITH LLVM-exception"}]}]
-        doc = self.convert(cdx)
-        self.assertEqual(doc["packages"][1]["licenseDeclared"],
-                         "(MIT OR LicenseRef-Custom) AND LicenseRef-NotAnSpdxId AND Apache-2.0 WITH LLVM-exception")
-        refs = {l["licenseId"] for l in doc["hasExtractedLicensingInfos"]}
-        self.assertTrue({"LicenseRef-Custom", "LicenseRef-NotAnSpdxId"} <= refs, refs)
+        cdx["components"][0]["licenses"] = [{
+            "license": {"name": "Custom", "text": {"content": "License text."}}}]
+        self.convert(cdx)
+        texts = list(self.objset.foreach_type(oe.spdx30.simplelicensing_SimpleLicensingText))
+        self.assertEqual([lic.simplelicensing_licenseText for lic in texts], ["License text."])
 
-    def test_document_reads_back_with_oe_spdx(self):
-        doc = self.convert()
-        parsed = oe.spdx.SPDXDocument.from_json(io.StringIO(json.dumps(doc)))
-        self.assertEqual(parsed.packages[0].name, NAME)
+    def test_base64_license_text_and_invalid_encoding(self):
+        cdx = sample_cdx()
+        license = {"name": "Custom", "text": {"encoding": "base64", "content": "TGljZW5zZQ=="}}
+        cdx["components"][0]["licenses"] = [{"license": license}]
+        self.convert(cdx)
+        texts = list(self.objset.foreach_type(oe.spdx30.simplelicensing_SimpleLicensingText))
+        self.assertEqual([lic.simplelicensing_licenseText for lic in texts], ["License"])
+        license["text"]["content"] = "not valid base64!"
+        with self.assertRaisesRegex(feed_sbom.FeedSbomError, "Invalid license text"):
+            self.convert(cdx)
+
+    def test_duplicate_references_and_unsupported_content_fail(self):
+        cdx = sample_cdx()
+        cdx["components"][0]["bom-ref"] = "duplicate"
+        cdx["components"][1]["bom-ref"] = "duplicate"
+        with self.assertRaisesRegex(feed_sbom.FeedSbomError, "Duplicate"):
+            self.convert(cdx)
+        cdx = sample_cdx()
+        cdx["services"] = [{"name": "service"}]
+        with self.assertRaisesRegex(feed_sbom.FeedSbomError, "services"):
+            self.convert(cdx)
+
+    def test_mismatched_metadata_fails_conversion(self):
+        with self.assertRaisesRegex(feed_sbom.FeedSbomError, "version"):
+            self.convert(sample_cdx(version="wrong"))
+
+    def test_dependencies_and_unresolved_references(self):
+        cdx = sample_cdx()
+        cdx["metadata"]["component"]["bom-ref"] = "main"
+        cdx["components"][0]["bom-ref"] = "child"
+        cdx["dependencies"] = [{"ref": "main", "dependsOn": ["child"]}]
+        self.convert(cdx)
+        deps = list(self.objset.foreach_filter(
+            oe.spdx30.Relationship, relationshipType=oe.spdx30.RelationshipType.dependsOn))
+        self.assertEqual(len(deps), 1)
+        self.assertEqual(deps[0].from_.name, NAME)
+        self.assertEqual(deps[0].to[0].name, "CPUInfo")
+        cdx["dependencies"][0]["dependsOn"] = ["missing"]
+        with self.assertRaisesRegex(feed_sbom.FeedSbomError, "Unresolved"):
+            self.convert(cdx)
+
+    def test_external_hook_and_default_missing_provider_behavior(self):
+        import oe.spdx30_tasks
+
+        build = self.objset.new_task_build("rootfs", "rootfs")
+        with patch("oe.spdx_common.collect_direct_deps", return_value=[]), \
+                patch("oe.spdx_common.collect_package_providers", return_value={}), \
+                patch("bb.note") as note:
+            packages = {NAME: {"ver": VER, "arch": ARCH}}
+            oe.spdx30_tasks.collect_build_package_inputs(self.d, self.objset, build, packages)
+            note.assert_called_once()
+            package = self.convert()
+            self.d.setVar("SPDX_EXTERNAL_PACKAGE_FUNC", "external_package")
+            with patch("bb.utils.better_eval", return_value=package):
+                oe.spdx30_tasks.collect_build_package_inputs(self.d, self.objset, build, packages)
+            inputs = list(self.objset.foreach_filter(
+                oe.spdx30.LifecycleScopedRelationship,
+                relationshipType=oe.spdx30.RelationshipType.hasInput))
+            self.assertEqual(len(inputs), 1)
+            self.assertIn(package._id, inputs[0].to)
+
+    def test_recipe_provider_does_not_invoke_external_hook(self):
+        import oe.spdx30_tasks
+
+        package = self.convert()
+        self.d.setVar("SPDX_EXTERNAL_PACKAGE_FUNC", "external_package")
+        build = self.objset.new_task_build("rootfs", "rootfs")
+        with patch("oe.spdx_common.collect_direct_deps", return_value=[]), \
+                patch("oe.spdx_common.collect_package_providers", return_value={NAME: (NAME, "hash")}), \
+                patch("oe.sbom30.find_root_obj_in_jsonld", return_value=(package, self.objset)), \
+                patch("bb.utils.better_eval") as external:
+            oe.spdx30_tasks.collect_build_package_inputs(
+                self.d, self.objset, build, {NAME: {"ver": VER, "arch": ARCH}}, {})
+            external.assert_not_called()
+
+    def test_external_hook_must_return_a_package(self):
+        import oe.spdx30_tasks
+
+        self.d.setVar("SPDX_EXTERNAL_PACKAGE_FUNC", "external_package")
+        build = self.objset.new_task_build("rootfs", "rootfs")
+        with patch("oe.spdx_common.collect_direct_deps", return_value=[]), \
+                patch("oe.spdx_common.collect_package_providers", return_value={}), \
+                patch("bb.utils.better_eval", return_value=None), \
+                patch("bb.fatal", side_effect=RuntimeError) as fatal:
+            with self.assertRaises(RuntimeError):
+                oe.spdx30_tasks.collect_build_package_inputs(
+                    self.d, self.objset, build, {NAME: {"ver": VER, "arch": ARCH}})
+            self.assertIn("did not return an SPDX package", fatal.call_args.args[0])
 
 
 if __name__ == "__main__":

@@ -1,85 +1,77 @@
-# Adds SPDX for NI packages that images install from package feeds.
-#
-# With BUILD_IMAGES_FROM_FEEDS, NI proprietary packages come prebuilt from the
-# NI feeds and have no recipe, so create-spdx has no SPDX for them. Each NI
-# package build publishes a CycloneDX SBOM next to its ipk in the NI package
-# pool. For every installed package that has no SPDX provider, create-spdx-2.2
-# calls SPDX_EXTERNAL_PACKAGE_FUNC; this class implements it by downloading
-# the SBOM for the exact installed name, version and architecture, checking it
-# matches the package, and converting it to an SPDX 2.2 document that is added
-# to the image SPDX archive.
-#
-# The build fails if an installed package has neither a recipe nor a pool SBOM.
-#
-# Downloaded SBOMs are kept in NILRT_FEED_SBOM_CACHE. To build offline, put
-# the SBOMs there (named <pkg>_<ver>_<arch>.ipk.cdx.sbom.json) and set
-# BB_NO_NETWORK = "1". Cached and downloaded SBOMs are checked against the
-# feed IPK MD5 when available; mismatched pool builds are skipped.
+# Include the inventory published for prebuilt feed packages in image SPDX 3.0.
 
 NILRT_FEED_SBOM_POOL_URI ??= "http://argohttp.natinst.com/ni/linuxpkg/pool/ipk"
 NILRT_FEED_SBOM_CACHE ??= "${DL_DIR}/nilrt-feed-sbom"
-NILRT_FEED_SBOM_ORG ??= "NI"
+NILRT_FEED_SBOM_MD5 = "${SPDXDIR}/feed-package-md5.json"
 
-SPDX_EXTERNAL_PACKAGE_FUNC = "nilrt_feed_spdx_package_doc"
+SPDX_EXTERNAL_PACKAGE_FUNC = "${@'nilrt_feed_spdx_package' if d.getVar('BUILD_IMAGES_FROM_FEEDS') == '1' and bb.data.inherits_class('image', d) else ''}"
 
-def nilrt_feed_spdx_package_doc(d, name, info, outdir):
+ROOTFS_POSTUNINSTALL_COMMAND:append = " nilrt_feed_spdx_collect_checksums;"
+do_rootfs[file-checksums] += "${NILRT_FEED_SBOM_LIB}:True"
+do_create_rootfs_spdx[file-checksums] += "${NILRT_FEED_SBOM_LIB}:True"
+do_create_rootfs_spdx[network] = "1"
+
+python nilrt_feed_spdx_collect_checksums() {
     import json
-    from datetime import datetime, timezone
     from pathlib import Path
-    import oe.spdx
+    from nilrt import feed_sbom
+
+    lists_dir = d.expand("${IMAGE_ROOTFS}${OPKGLIBDIR}/opkg/lists")
+    try:
+        checksums = feed_sbom.parse_opkg_lists(lists_dir)
+    except feed_sbom.FeedSbomError as error:
+        bb.fatal("nilrt-feed-spdx: %s" % error)
+    path = Path(d.getVar("NILRT_FEED_SBOM_MD5"))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w") as stream:
+        json.dump([[*identity, md5] for identity, md5 in sorted(checksums.items())], stream)
+}
+
+def nilrt_feed_spdx_package(d, objset, name, info):
+    import json
+    from pathlib import Path
+    import bb.fetch2
     import oe.spdx_common
     from nilrt import feed_sbom
 
-    version = info.get("ver")
-    arch = info.get("arch")
+    version, arch = info.get("ver"), info.get("arch")
     if not version or not arch:
-        bb.fatal("nilrt-feed-spdx: opkg reported no version or architecture for %s" % name)
+        bb.fatal("nilrt-feed-spdx: missing installed version/architecture for %s" % name)
 
-    lists_dir = d.expand("${IMAGE_ROOTFS}${OPKGLIBDIR}/opkg/lists")
-    md5 = nilrt_feed_spdx_feed_md5(lists_dir).get((name, version, arch))
-    try:
-        sbom_path, source_url = feed_sbom.fetch_sbom(
-            d.getVar("NILRT_FEED_SBOM_POOL_URI"),
-            d.getVar("NILRT_FEED_SBOM_CACHE"),
-            name, version, arch,
-            allow_network=d.getVar("BB_NO_NETWORK") != "1", md5=md5)
-    except feed_sbom.FeedSbomError as e:
-        bb.fatal("nilrt-feed-spdx: %s has no SPDX from a recipe and no SBOM could be found: %s" % (name, e))
-
-    with open(sbom_path) as f:
-        cdx = json.load(f)
-
-    problems = feed_sbom.verify_sbom(cdx, name, version, arch, md5)
-    if problems:
-        bb.fatal("nilrt-feed-spdx: SBOM %s does not match installed package %s %s (%s):\n  %s" % (
-            sbom_path, name, version, arch, "\n  ".join(problems)))
+    checksums = json.loads(Path(d.getVar("NILRT_FEED_SBOM_MD5")).read_text())
+    md5 = next((value for pkg, ver, architecture, value in checksums
+                if (pkg, ver, architecture) == (name, version, arch)), None)
     if not md5:
-        bb.note("nilrt-feed-spdx: no feed MD5 for %s %s (%s); SBOM checked by name, version and architecture only" % (
-            name, version, arch))
+        bb.fatal("nilrt-feed-spdx: no feed IPK MD5 for %s %s (%s)" % (name, version, arch))
 
-    license_data = oe.spdx_common.load_spdx_license_data(d)
-    namespace = feed_sbom.document_namespace(
-        d.getVar("SPDX_NAMESPACE_PREFIX"), d.getVar("SPDX_UUID_NAMESPACE"), name, version, arch)
-    doc = feed_sbom.cyclonedx_to_spdx(
-        oe.spdx, cdx, name, version, arch, namespace,
-        datetime.now(tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        source_url=source_url,
-        license_ids=license_data["licenses"].keys(),
-        license_list_version=get_license_list_version(license_data, d),
-        organization=d.getVar("NILRT_FEED_SBOM_ORG"))
+    def get(url):
+        bb.fetch2.check_network_access(d, "nilrt-feed-spdx", url)
+        if url.startswith("http:"):
+            bb.warnonce("nilrt-feed-spdx: the SBOM pool uses unauthenticated HTTP; "
+                        "IPK MD5 checks select the build but do not authenticate SBOM inventory")
+        return feed_sbom.http_get(url)
 
-    out = Path(outdir) / ("%s.spdx.json" % doc.name)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    with out.open("wb") as f:
-        doc.to_json(f, sort_keys=True, indent=get_json_indent(d))
-    bb.note("nilrt-feed-spdx: %s %s (%s) <- %s" % (name, version, arch, source_url or sbom_path))
-    return out
+    try:
+        bb.note("nilrt-feed-spdx: locating SBOM for %s %s (%s)" % (name, version, arch))
+        cache = Path(d.getVar("NILRT_FEED_SBOM_CACHE"))
+        cache.mkdir(parents=True, exist_ok=True)
+        lock = cache / (feed_sbom.sbom_filename(name, version, arch) + ".lock")
+        with bb.utils.fileslocked([str(lock)]):
+            path, source = feed_sbom.fetch_sbom(
+                d.getVar("NILRT_FEED_SBOM_POOL_URI"), str(cache),
+                name, version, arch, allow_network=d.getVar("BB_NO_NETWORK") != "1",
+                get=get, md5=md5)
+            cdx = json.loads(Path(path).read_text())
+            problems = feed_sbom.verify_sbom(cdx, name, version, arch, md5)
+            if problems:
+                raise feed_sbom.FeedSbomError("; ".join(problems))
+        package = feed_sbom.cyclonedx_to_spdx30(
+            objset, cdx, name, version, arch,
+            oe.spdx_common.load_spdx_license_data(d), source_url=source)
+    except feed_sbom.FeedSbomError as error:
+        bb.fatal("nilrt-feed-spdx: %s: %s" % (name, error))
+    bb.note("nilrt-feed-spdx: included %s %s (%s) from %s" % (
+        name, version, arch, source or path))
+    return package
 
-def nilrt_feed_spdx_feed_md5(lists_dir):
-    from nilrt import feed_sbom
-    cache = nilrt_feed_spdx_feed_md5.__dict__.setdefault("cache", {})
-    if lists_dir not in cache:
-        cache[lists_dir] = feed_sbom.parse_opkg_lists(lists_dir)
-    return cache[lists_dir]
-
-nilrt_feed_spdx_package_doc[vardepsexclude] += "BB_NO_NETWORK NILRT_FEED_SBOM_CACHE"
+nilrt_feed_spdx_package[vardepsexclude] += "BB_NO_NETWORK NILRT_FEED_SBOM_CACHE"
