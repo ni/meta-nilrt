@@ -93,10 +93,37 @@ pkg_postinst_ontarget:${PN} () {
 	# Get target class, may be empty-string on VMs
 	class="`/sbin/fw_printenv -n TargetClass || true`"
 
-	# Use persistent names on PXI, not on any other targets
-	if [ "$class" != "PXI" -a "$class" != "USRP Stand-Alone Devices" ]; then
-		touch /etc/udev/rules.d/80-net-name-slot.rules
-	fi
+	# Determine whether or not to enable consistent network device naming, a.k.a.
+	# biosdevname.
+	biosdevname=0
+
+	case "$class" in
+	PXI|"USRP Stand-Alone Devices")
+		# PXI Linux RT targets and USRP devices always use biosdevname.
+		biosdevname=1 ;;
+	*)
+		case `/sbin/fw_printenv -n DeviceDesc` in
+		*-[0-9][0-9][0-9][0-9][0-9]*)
+			# NI targets with five-digit model numbers always use
+			# biosdevname.
+			biosdevname=1 ;;
+		*)
+			case `/sbin/fw_printenv -n NITarget` in
+			[Tt]rue) ;;
+			# Non-NI devices always use biosdevname.
+			*) biosdevname=1 ;;
+			esac
+		esac
+	esac
+
+	case $biosdevname in
+	0)
+		# Disable /lib/udev/rules.d/80-net-name-slot.rules
+		touch /etc/udev/rules.d/80-net-name-slot.rules ;;
+	*)
+		# Use /lib/udev/rules.d/80-net-name-slot.rules
+		rm -f /etc/udev/rules.d/80-net-name-slot.rules ;;
+	esac
 
 	# Enable core dumps on PXI, not on any other targets
 	[ "$class" = "PXI" ] && echo "* soft core unlimited" > /etc/security/limits.d/allow-core-dumps.conf
