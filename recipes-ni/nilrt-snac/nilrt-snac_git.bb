@@ -15,7 +15,7 @@ SRC_URI = "\
 "
 
 SRCREV = "${AUTOREV}"
-PV = "3.1.1+git${SRCPV}"
+PV = "3.2.0+git${SRCPV}"
 
 
 inherit ptest
@@ -37,6 +37,7 @@ do_install_ptest() {
 CONFFILES:${PN} = "${sysconfdir}/snac/snac.conf"
 FILES:${PN} += "\
 	${datadir}/* \
+	${libdir}/firewalld/services/* \
 "
 
 RDEPENDS:${PN} = "\
