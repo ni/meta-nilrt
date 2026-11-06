@@ -36,9 +36,37 @@ if grep -qs artemis /sys/firmware/devicetree/base/compatible ; then
 	mountfs=ext4
 fi
 
+# Locate a data partition using its GPT partition label when available.
+# Some systems may only provide filesystem labels.
+function _find_data_partition()
+{
+	local label="$1"
+	local device=""
+
+	device=$(blkid \
+		--match-token "PARTLABEL=$label" \
+		--output device 2>/dev/null || :)
+
+	if [ -z "$device" ]; then
+		device=$(blkid \
+			--label "${label}-luks" \
+			--output device 2>/dev/null || :)
+	fi
+
+	if [ -z "$device" ]; then
+		device=$(blkid \
+			--label "$label" \
+			--output device 2>/dev/null || :)
+	fi
+
+	[ -n "$device" ] || return 1
+	printf '%s\n' "$device"
+}
+
+
 if [ "$ARCH" = "x86_64" ] || [ "${mountfs:-}" = "ext4" ]; then
-	CONFIGFS_DEV=/dev/disk/by-partlabel/$NICONFIG_PARTLABEL
-	ROOTFS_DEV=/dev/disk/by-partlabel/$USERFS_PARTLABEL
+	CONFIGFS_DEV=$(_find_data_partition "$NICONFIG_LABEL") || CONFIGFS_DEV=
+	ROOTFS_DEV=$(_find_data_partition "$USERFS_LABEL") || ROOTFS_DEV=
 fi
 
 export CONFIG_MOUNT_POINT="/etc/natinst/share"
@@ -236,10 +264,27 @@ function format_rootfs_or_userfs() {
 	# is no longer applicable.
 	ABORTED_ATTEMPT=yes
 	local ret=0  # function return code.
-	
+	local target_dev
+
+	if [ "$VOL" = config ]; then
+		target_dev="$CONFIGFS_DEV"
+	else
+		target_dev="$ROOTFS_DEV"
+	fi
+
 	# REQUEST VALIDATION
 	[[ $(supported_fstypes) =~ (^|,)"${TYPE}"(,) ]] || \
 		die_with_usage INVALID_FSTYPE "Invalid fstype '$TYPE'"
+
+	# ext4 volumes require a block device. UBIFS volumes are identified and
+	# formatted through their UBI partition and volume identifiers instead.
+	if [ "$TYPE" = ext4 ] &&
+	   { [ -z "$target_dev" ] || [ ! -b "$target_dev" ]; }
+	then
+		die BAD_ENVIRONMENT \
+			"Could not locate the block device for the $VOL volume."
+	fi
+
 	if [ "$OPT_ENCRYPT" = yes ]; then
 		check_tpm || die BAD_ENVIRONMENT \
 			"Encryption was requested but no TPM device was found."
