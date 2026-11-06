@@ -37,6 +37,39 @@ SAFEMODE_REASON_FILE=/etc/natinst/share/safemode_reason
 
 fail() { echo "$@" >&2; exit 1; }
 
+log_bootmode_request() {
+	local CURRENT_BOOT_MODE=runtime LOG_FILE
+
+	if [ -f /etc/natinst/safemode ]; then
+		CURRENT_BOOT_MODE=safemode
+	fi
+
+	case "$CURRENT_BOOT_MODE:${1:-}" in
+	# /var/log may be a symlink to volatile storage when persistent logs
+	# are disabled, so log to the always-persistent NI log directory.
+	safemode:runtime)
+		LOG_FILE=/mnt/userfs/var/local/natinst/log/bootmode.log
+		;;
+	runtime:safemode)
+		LOG_FILE=/var/local/natinst/log/bootmode.log
+		;;
+	runtime:runtime|safemode:safemode)
+		echo "Requested boot mode $1 is already active" >&2
+		return 0
+		;;
+	*)
+		echo "Invalid requested boot mode: ${1:-<missing>}" >&2
+		return 1
+		;;
+	esac
+
+	if ! printf '%s requested switch from %s to %s\n' \
+		"$(date '+%Y-%m-%d %H:%M:%S')" "$CURRENT_BOOT_MODE" "$1" >> "$LOG_FILE"; then
+		echo "Unable to write boot mode request to $LOG_FILE" >&2
+		return 1
+	fi
+}
+
 setbootmode() {
 	case "$1" in
 	runtime)
