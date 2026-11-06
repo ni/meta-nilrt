@@ -70,6 +70,7 @@ RDEPENDS:${PN} += "\
 	ni-netcfgutil \
 	niacctbase \
 	shadow \
+	util-linux-blkid \
 	util-linux-lsblk \
 	util-linux-logger \
 "
