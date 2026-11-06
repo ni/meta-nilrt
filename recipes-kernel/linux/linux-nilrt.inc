@@ -104,6 +104,11 @@ pkg_postinst_ontarget:${KERNEL_PACKAGE_NAME}-base:append:x64 () {
 			# a symlink then it must be the kernel currently booted; rename it
 			# and store its version for uninstall.
 			if mv "${KERNEL_IMAGETYPE}" "${KERNEL_IMAGETYPE}-`uname -r`" 2>/dev/null; then
+				for sig_ext in .p7b .sig; do
+					if [ -f "${KERNEL_IMAGETYPE}$sig_ext" ] && [ ! -L "${KERNEL_IMAGETYPE}$sig_ext" ]; then
+						mv "${KERNEL_IMAGETYPE}$sig_ext" "${KERNEL_IMAGETYPE}-`uname -r`$sig_ext" || exit 1
+					fi
+				done
 				echo "${KERNEL_IMAGETYPE}-`uname -r`" >> kernel-versions
 			else
 				echo "WARNING: could not move existing $D/${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE} file"
@@ -114,6 +119,19 @@ pkg_postinst_ontarget:${KERNEL_PACKAGE_NAME}-base:append:x64 () {
 	echo "${KERNEL_IMAGETYPE}-${KERNEL_VERSION}" >> kernel-versions
 
 	if [ -L "${KERNEL_IMAGETYPE}" -o ! -f "${KERNEL_IMAGETYPE}" ]; then
+		for sig_ext in .p7b .sig; do
+			if [ ! -f "${KERNEL_IMAGETYPE}-${KERNEL_VERSION}$sig_ext" ]; then
+				if [ -e "${KERNEL_IMAGETYPE}$sig_ext" ] || [ -L "${KERNEL_IMAGETYPE}$sig_ext" ]; then
+					echo "ERROR: missing signature ${KERNEL_IMAGETYPE}-${KERNEL_VERSION}$sig_ext" 1>&2
+					exit 1
+				fi
+			fi
+		done
+		for sig_ext in .p7b .sig; do
+			if [ -f "${KERNEL_IMAGETYPE}-${KERNEL_VERSION}$sig_ext" ]; then
+				ln -f -s "${KERNEL_IMAGETYPE}-${KERNEL_VERSION}$sig_ext" "${KERNEL_IMAGETYPE}$sig_ext" || exit 1
+			fi
+		done
 		ln -f -s "${KERNEL_IMAGETYPE}-${KERNEL_VERSION}" "${KERNEL_IMAGETYPE}"
 	else
 		echo "ERROR: $D/${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE} file is not a symbolic link"
@@ -182,10 +200,24 @@ pkg_postrm:${KERNEL_PACKAGE_NAME}-base:append:x64 () {
 
 	# If the symlink points to this kernel; update it.
 	kpath=`readlink -f ${KERNEL_IMAGETYPE} 2>/dev/null`
-	if [ -f "$kpath" ]; then
+	if [ -n "$kpath" ]; then
 		kimage=`basename $kpath 2>/dev/null`
 		if [ "$kimage" = "${KERNEL_IMAGETYPE}-${KERNEL_VERSION}" ]; then
-			ln -f -s `tail -1 kernel-versions` "${KERNEL_IMAGETYPE}"
+			fallback_image=`tail -1 kernel-versions`
+			for sig_ext in .p7b .sig; do
+				if [ ! -f "$fallback_image$sig_ext" ]; then
+					if [ -e "${KERNEL_IMAGETYPE}$sig_ext" ] || [ -L "${KERNEL_IMAGETYPE}$sig_ext" ]; then
+						echo "ERROR: missing signature $fallback_image$sig_ext" 1>&2
+						exit 1
+					fi
+				fi
+			done
+			for sig_ext in .p7b .sig; do
+				if [ -f "$fallback_image$sig_ext" ]; then
+					ln -f -s "$fallback_image$sig_ext" "${KERNEL_IMAGETYPE}$sig_ext" || exit 1
+				fi
+			done
+			ln -f -s "$fallback_image" "${KERNEL_IMAGETYPE}"
 		fi
 	fi
 }
