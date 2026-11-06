@@ -32,6 +32,7 @@ RDEPENDS:${PN} += "\
 	busybox-ifplugd \
 	busybox-udhcpd \
 	busybox-zcip \
+	ca-certificates \
 	coreutils-hostname \
 	crio-support-scripts \
 	cronie \

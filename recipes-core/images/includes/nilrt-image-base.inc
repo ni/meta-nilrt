@@ -1,6 +1,7 @@
 # This image is bootable to a console with package management support
 
 inherit extrausers
+inherit nilrt-https-feeds
 
 # useradd and groupadd need to be on sysroot
 do_rootfs[depends] += "shadow-native:do_populate_sysroot"
