@@ -103,65 +103,71 @@ if [ -f "$STATE_FILE" ]; then
 	done < "$STATE_FILE"
 fi
 
-# Detect once whether firewalld is running (live) or not (offline) and the
-# default zone, mirroring ni-firewall-open, so we can tell whether a service was
-# already enabled before this mechanism opened it.
-if firewall-cmd --state >/dev/null 2>&1; then
-	fw_live=1
-	fw_zone=$(firewall-cmd --get-default-zone 2>/dev/null)
-else
-	fw_live=0
-	fw_zone=$(firewall-offline-cmd --get-default-zone 2>/dev/null)
-fi
-if [ -z "$fw_zone" ]; then
-	echo "$prog: could not determine the default firewalld zone" >&2
+# Services enabled in the default zone's permanent config, and in the running
+# config when firewalld runs (firewall-cmd exits 252 when it does not; offline
+# there is only the permanent config). Each firewall tool call takes about a
+# second on a cRIO, so read the state once instead of querying every service.
+list_enabled() {
+	enabled=$(firewall-cmd --permanent --list-services 2>/dev/null)
+	case $? in
+	0) running=$(firewall-cmd --list-services 2>/dev/null); return ;;
+	252) ;;
+	# Without D-Bus firewall-cmd fails with DBUS_ERROR, not 252.
+	*) ! firewall-cmd --state >/dev/null 2>&1 || return 1 ;;
+	esac
+	enabled=$(firewall-offline-cmd --list-services 2>/dev/null) || return 1
+	running=$enabled
+}
+if ! list_enabled; then
+	echo "$prog: could not read the default firewalld zone" >&2
 	exit 1
 fi
 
-# svc_enabled_perm <svc> - return 0 if <svc> is enabled in the permanent/default
-# zone. Returns non-zero if the zone is unknown or the service is not enabled.
-svc_enabled_perm() {
-	[ -n "$fw_zone" ] || return 1
-	if [ "$fw_live" = 1 ]; then
-		firewall-cmd --permanent --zone="$fw_zone" --query-service="$1" >/dev/null 2>&1
-	else
-		firewall-offline-cmd --zone="$fw_zone" --query-service="$1" >/dev/null 2>&1
-	fi
-}
-
 rc=0
-applied=""
 
-# Open every desired service (idempotent). Record a service as "ours" only if we
-# opened it on a previous run, or if this run actually transitioned it from
-# disabled to enabled. This ensures we never later close a service that was
-# already enabled by something else (e.g. the core NI services).
+# Open desired services missing from either config, and close services we
+# opened before whose marker is gone while either config still has them. Only
+# touch what differs, in one helper call each.
+to_open=""
 for svc in $desired; do
-	if in_list "$svc" $previous; then
-		ni-firewall-open "$svc" || rc=1
-		in_list "$svc" $applied || applied="$applied $svc"
-		continue
-	fi
-	pre=0
-	svc_enabled_perm "$svc" && pre=1
-	ni-firewall-open "$svc" || rc=1
-	post=0
-	svc_enabled_perm "$svc" && post=1
-	if [ "$pre" = 0 ] && [ "$post" = 1 ]; then
-		in_list "$svc" $applied || applied="$applied $svc"
-	fi
+	in_list "$svc" $enabled && in_list "$svc" $running || to_open="$to_open $svc"
 done
-
-# Close services we opened before whose marker is now gone. Keep ownership if a
-# close fails so the next reconcile retries it instead of leaking the rule.
+to_close=""
 for svc in $previous; do
 	in_list "$svc" $desired && continue
-	if ni-firewall-close "$svc"; then
-		continue
-	fi
-	rc=1
-	in_list "$svc" $applied || applied="$applied $svc"
+	in_list "$svc" $enabled || in_list "$svc" $running && to_close="$to_close $svc"
 done
+[ -z "$to_open" ] || ni-firewall-open $to_open || rc=1
+[ -z "$to_close" ] || ni-firewall-close $to_close || rc=1
+before=$enabled
+
+# A desired service is ours if we opened it on a previous run or this run
+# enabled it; one that something else had already enabled is never ours, so we
+# never close, for example, the core NI services. A service stays ours while its
+# reopen or close fails, so the next run retries it instead of leaking the rule.
+applied=""
+if [ -n "$to_open$to_close" ] && ! list_enabled; then
+	echo "$prog: could not re-read the default firewalld zone" >&2
+	rc=1
+	applied=$previous
+	for svc in $to_open; do
+		in_list "$svc" $before $applied || applied="$applied $svc"
+	done
+else
+	for svc in $desired; do
+		if in_list "$svc" $previous ||
+		    { in_list "$svc" $enabled && ! in_list "$svc" $before; }; then
+			applied="$applied $svc"
+		fi
+	done
+	for svc in $previous; do
+		in_list "$svc" $desired && continue
+		if in_list "$svc" $enabled || in_list "$svc" $running; then
+			rc=1
+			applied="$applied $svc"
+		fi
+	done
+fi
 
 # Persist the set we opened (one service per line) via a temp file + rename so
 # the state is never left half-written if the hook is interrupted. Treat write
