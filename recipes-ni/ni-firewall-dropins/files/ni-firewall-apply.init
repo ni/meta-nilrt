@@ -1,7 +1,8 @@
 #!/bin/sh
 ### BEGIN INIT INFO
 # Provides:          ni-firewall-apply
-# Required-Start:    $local_fs firewalld
+# Required-Start:    $local_fs
+# X-Start-Before:    firewalld
 # Required-Stop:
 # Default-Start:     2 3 4 5
 # Default-Stop:

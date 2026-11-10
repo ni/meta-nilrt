@@ -17,9 +17,9 @@ SRC_URI = "\
 inherit update-rc.d
 
 INITSCRIPT_NAME = "ni-firewall-apply"
-# Start after firewalld (installed with update-rc.d "defaults" => S20) so the
-# reconciliation runs against the live daemon; no meaningful stop action.
-INITSCRIPT_PARAMS = "start 25 2 3 4 5 . stop 75 0 1 6 ."
+# Reconcile the drop-ins offline at S02, before firewalld (S03) starts, so
+# firewalld comes up with them already applied; no stop action.
+INITSCRIPT_PARAMS = "start 02 2 3 4 5 . stop 75 0 1 6 ."
 
 do_install () {
 	install -D -m 0755 ${UNPACKDIR}/ni-firewall-apply ${D}${bindir}/ni-firewall-apply
