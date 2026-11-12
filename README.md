@@ -16,9 +16,6 @@ Contact
 ----
 Email [licensing@emerson.com]
 
-Package feed configuration and BSI validation are documented in
-[BSI HTTPS package feeds](docs/bsi-feeds.md).
-
 [NI Linux Real-Time Portal]:http://www.ni.com/white-paper/14627/en/
 [Github]:https://www.github.com/ni/nilrt
 [licensing@emerson.com]:mailto:licensing@emerson.com

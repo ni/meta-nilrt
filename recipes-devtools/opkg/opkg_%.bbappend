@@ -17,7 +17,7 @@ SRC_URI:append:armv7a = " \
 	file://test_arm_kernel_arch.sh \
 "
 
-PACKAGECONFIG = "libsolv gpg sha256 curl ssl-curl"
+PACKAGECONFIG = "libsolv gpg sha256 curl"
 
 do_install:append () {
 	install -d ${D}${sysconfdir}/opkg

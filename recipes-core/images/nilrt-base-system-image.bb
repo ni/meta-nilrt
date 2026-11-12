@@ -51,4 +51,4 @@ create_cdf() {
 IMAGE_PREPROCESS_COMMAND += "bootimg_fixup;"
 IMAGE_POSTPROCESS_COMMAND += "create_cdf;"
 
-inherit image nilrt-https-feeds
+inherit image

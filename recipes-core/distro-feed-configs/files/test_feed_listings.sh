@@ -18,7 +18,7 @@ for conf_file in ${FEED_CONF_FILES}; do
 # The flow goes:
 # > All lines that start [0+ spaces]src/gz in /etc/opkg/*.conf files
 # >> Replace any line that follows the strict format:
-# >>> ^src/gz ([1+ non-space])( https://[1+ non-space])$
+# >>> ^src/gz ([1+ non-space])( https?://[1+ non-space])$
 # >> with the line
 # >>> pass - [first group, the feed name]
 # >> Pass the result of this replacement to the following sed
@@ -29,7 +29,7 @@ for conf_file in ${FEED_CONF_FILES}; do
 # While this leads to a real doozy of a oneliner, this is done to enforce
 # strict formatting checks, as formatting can be lost when passing variables
 # around in bash
-    CUR_FEED_LISTINGS="$(grep -hE "^[ \t]*src/gz" ${conf_file} | sed 's#^src/gz \([^ \t]\+\)\( https://[^ \t]\+\)$#pass - \1#' | sed 's#^[ \t]*src/gz[ \t]\+\([^ \t]\+\).*$#fail - \1#'| sed 's#^\(.*src/gz.*\)$#fail - UNKNOWN REPO "\1\"#')"
+    CUR_FEED_LISTINGS="$(grep -hE "^[ \t]*src/gz" ${conf_file} | sed 's#^src/gz \([^ \t]\+\)\( https\?://[^ \t]\+\)$#pass - \1#' | sed 's#^[ \t]*src/gz[ \t]\+\([^ \t]\+\).*$#fail - \1#'| sed 's#^\(.*src/gz.*\)$#fail - UNKNOWN REPO "\1\"#')"
 
     while read -r line; do
         echo $line
