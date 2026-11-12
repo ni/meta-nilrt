@@ -113,10 +113,10 @@ esac
 case $biosdevname in
 0)
 	# Disable /lib/udev/rules.d/80-net-name-slot.rules
-	touch /etc/udev/rules.d/80-net-name-slot.rules ;;
+	touch /mnt/userfs/etc/udev/rules.d/80-net-name-slot.rules ;;
 *)
 	# Use /lib/udev/rules.d/80-net-name-slot.rules
-	rm -f /etc/udev/rules.d/80-net-name-slot.rules ;;
+	rm -f /mnt/userfs/etc/udev/rules.d/80-net-name-slot.rules ;;
 esac
 
 
