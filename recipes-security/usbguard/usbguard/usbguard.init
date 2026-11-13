@@ -125,11 +125,17 @@ fi
 usbguard_daemon_start()
 {
     if [ -f "$PIDFILE" ]; then
-        log_failure_msg "$DESC is running already."
-        exit 1
+        if start-stop-daemon --status --pidfile $PIDFILE --exec $DAEMON; then
+            log_failure_msg "$DESC is running already."
+            exit 1
+        fi
+        rm -f $PIDFILE
     fi
 
-    start-stop-daemon --start --pidfile $PIDFILE --make-pidfile --background --exec $DAEMON -- -f -s -c $CONFIG_FILE
+    # Let the daemon fork (-f) and write its own pidfile (-p). It loads its
+    # configuration and rules before forking, so startup errors are printed to
+    # the console and returned as a non-zero exit status.
+    start-stop-daemon --start --pidfile $PIDFILE --exec $DAEMON -- -f -s -p $PIDFILE -c $CONFIG_FILE
 }
 
 usbguard_daemon_stop()
