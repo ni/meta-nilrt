@@ -7,10 +7,15 @@ S = "${UNPACKDIR}"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/grub:"
 
+require ${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'nilrt-grub-safemode-secure-boot.inc', '', d)}
+
+SAFEMODE_GRUB_CFG = "${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'grub-safemode-secure-boot.cfg', 'grub-safemode.cfg', d)}"
+
 SRC_URI += " \
     file://grubenv \
-    file://grub-safemode.cfg \
+    file://${SAFEMODE_GRUB_CFG} \
     file://grub-safemode-bootimage.cfg \
+    file://grub-usb-gadget.cfg \
 "
 
 FILES:${PN} += " \
@@ -28,6 +33,7 @@ CONFFILES:${PN} += " \
 do_install () {
 	install -d ${D}/boot
 	install -m 0644 ${UNPACKDIR}/grub-safemode-bootimage.cfg ${D}/boot/bootimage.cfg
-	install -m 0644 ${UNPACKDIR}/grub-safemode.cfg ${D}/boot/grub.cfg
+	cat ${UNPACKDIR}/grub-usb-gadget.cfg >> ${D}/boot/bootimage.cfg
+	install -m 0644 ${UNPACKDIR}/${SAFEMODE_GRUB_CFG} ${D}/boot/grub.cfg
 	install -m 0644 ${UNPACKDIR}/grubenv ${D}/boot/grubenv
 }
