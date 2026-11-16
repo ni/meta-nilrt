@@ -24,19 +24,6 @@ function _arg_in_cmdline () {
 	grep -q -E "(^| +)$1( +|$)" /proc/cmdline
 }
 
-# Check the test machine architecture. If it is a supported arch for this test,
-# return 0; otherwise, return 1.
-function _check_machine_arch () {
-	case `uname -m` in
-		x86_64)
-			return 0
-			;;
-		*)
-			return 1
-			;;
-	esac
-}
-
 function report_cpu () {
 	echo "INFO: cpu under test:"
 	while read -r line; do
@@ -56,6 +43,10 @@ function report_cpu () {
 
 function report_vulnerability_status () {
 	echo "INFO: vulnerability status:"
+	if [ ! -d "${SYSFS_VULNS}" ]; then
+		echo "INFO:     ${SYSFS_VULNS} is not provided by this kernel"
+		return
+	fi
 	for id in $(ls ${SYSFS_VULNS}); do
 		status=$(cat ${SYSFS_VULNS}/${id})
 		echo "INFO:     ${id}: ${status}"
@@ -70,8 +61,8 @@ function test_mitigations () {
 	echo "INFO:     $(cat /proc/cmdline)"
 
 	kcmdline_arg="mitigations=off"
-	if ! _arg_in_cmdline "${kcmdline_arg}"; then
-		echo "Expected kernel command argument \"${kcmdline_arg}\" not in command line."
+	if _arg_in_cmdline "${kcmdline_arg}"; then
+		echo "Unexpected kernel command argument \"${kcmdline_arg}\" in command line; CPU mitigations are disabled."
 		ptest_fail
 	else
 		ptest_pass
@@ -85,14 +76,6 @@ function test_mitigations () {
 
 ptest_test=$(basename "$0" ".sh")
 
-rc=$ptest_rc
+test_mitigations
 
-if ! _check_machine_arch; then
-	echo "INFO: machine architecture not supported for this test"
-	ptest_skip
-	ptest_report
-else
-	test_mitigations
-fi
-
-exit $rc
+exit $ptest_rc
