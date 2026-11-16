@@ -2,7 +2,7 @@
 # ni-firewall-apply - reconcile declarative NI firewall drop-ins with firewalld.
 #
 # Contract:
-#   A package that needs a firewalld service opened in the default zone ships:
+#   A package that needs an inbound firewalld service opened ships:
 #     1. the service definition  <service>.xml  in the firewalld services dir
 #        (e.g. ${libdir}/firewalld/services or /etc/firewalld/services), and
 #     2. a drop-in marker file   /etc/ni/firewall/open.d/<name>
@@ -10,6 +10,11 @@
 #   blank lines and lines starting with '#' are ignored. A marker with no
 #   service lines defaults to a single service named after the marker file with
 #   any leading "NN-" ordering prefix and trailing ".conf" suffix removed.
+#
+# Declared services are opened in the "ni-dropins" firewalld policy, which this
+# package ships and which applies to the "public" and "work" zones. The policy
+# lives under the firewalld system directory, so it survives
+# 'firewall-offline-cmd --reset-to-defaults' (empty); the next run refills it.
 #
 # On each run this hook:
 #   * opens every service named by a current marker (idempotent), and
@@ -26,6 +31,11 @@
 #           NI_FIREWALL_APPLY_TIMEOUT seconds, default 300) and then apply,
 #           instead of skipping. Used right before firewalld starts, so the
 #           daemon never loads a zone that another run is still updating.
+#
+# Earlier versions opened drop-ins in the default zone and kept a state file
+# without a header. On the first run with such a state file, the services it
+# lists are closed in the default zone; services that are still declared are
+# then opened in the policy as usual.
 
 set -u
 # Service names are literals; disable globbing so unquoted list expansions
@@ -37,6 +47,8 @@ STATE_DIR=${NI_FIREWALL_STATE_DIR:-/var/lib/ni/firewall}
 STATE_FILE=$STATE_DIR/applied
 LOCK_FILE=$STATE_DIR/apply.lock
 WAIT_TIMEOUT=${NI_FIREWALL_APPLY_TIMEOUT:-300}
+POLICY=ni-dropins
+STATE_HEADER="# ni-firewall-apply state v2"
 
 prog=${0##*/}
 
@@ -114,32 +126,64 @@ if [ -d "$OPEN_D" ]; then
 	done
 fi
 
-# Services opened by the previous run.
+# Services opened by the previous run. A state file without the header comes
+# from a version that opened drop-ins in the default zone.
 previous=""
+legacy=""
 if [ -f "$STATE_FILE" ]; then
+	format=legacy
 	while IFS= read -r svc || [ -n "$svc" ]; do
-		[ -n "$svc" ] || continue
+		if [ "$svc" = "$STATE_HEADER" ]; then
+			format=current
+			continue
+		fi
+		case $svc in ''|'#'*) continue ;; esac
 		previous="$previous $svc"
 	done < "$STATE_FILE"
+	if [ "$format" = legacy ]; then
+		legacy=$previous
+		previous=""
+	fi
 fi
 
-# Services enabled in the default zone's permanent config, and in the running
-# config when firewalld runs (firewall-cmd exits 252 when it does not; offline
-# there is only the permanent config). Each firewall tool call takes about a
+# Migrate: take the services an earlier version opened out of the default zone.
+# Those still declared are reopened in the policy below. On failure leave the
+# state untouched, so the next run retries the migration.
+if [ -n "$legacy" ]; then
+	echo "$prog: moving drop-ins from the default zone to policy '$POLICY'"
+	if ! ni-firewall-close $legacy; then
+		echo "$prog: could not close drop-ins in the default zone; will retry" >&2
+		exit 1
+	fi
+fi
+
+# Services enabled in the policy's permanent config, and in the running config
+# when firewalld runs (firewall-cmd exits 252 when it does not; offline there
+# is only the permanent config). Each firewall tool call takes about a
 # second on a cRIO, so read the state once instead of querying every service.
 list_enabled() {
-	enabled=$(firewall-cmd --permanent --list-services 2>/dev/null)
+	enabled=$(firewall-cmd --permanent --policy="$POLICY" --list-services 2>/dev/null)
 	case $? in
-	0) running=$(firewall-cmd --list-services 2>/dev/null); return ;;
+	0) running=$(firewall-cmd --policy="$POLICY" --list-services 2>/dev/null); return ;;
 	252) ;;
+	# INVALID_POLICY: the daemon was started before this package installed the
+	# policy, and loads policy files only at start/reload.
+	140)
+		echo "$prog: reloading firewalld to load policy '$POLICY'"
+		firewall-cmd --reload >/dev/null 2>&1 || return 1
+		enabled=$(firewall-cmd --permanent --policy="$POLICY" --list-services 2>/dev/null) ||
+			return 1
+		running=$(firewall-cmd --policy="$POLICY" --list-services 2>/dev/null)
+		return
+		;;
 	# Without D-Bus firewall-cmd fails with DBUS_ERROR, not 252.
 	*) ! firewall-cmd --state >/dev/null 2>&1 || return 1 ;;
 	esac
-	enabled=$(firewall-offline-cmd --list-services 2>/dev/null) || return 1
+	enabled=$(firewall-offline-cmd --policy="$POLICY" --list-services 2>/dev/null) || return 1
 	running=$enabled
 }
 if ! list_enabled; then
-	echo "$prog: could not read the default firewalld zone" >&2
+	echo "$prog: could not read firewalld policy '$POLICY'" >&2
 	exit 1
 fi
 
@@ -157,8 +201,8 @@ for svc in $previous; do
 	in_list "$svc" $desired && continue
 	in_list "$svc" $enabled || in_list "$svc" $running && to_close="$to_close $svc"
 done
-[ -z "$to_open" ] || ni-firewall-open $to_open || rc=1
-[ -z "$to_close" ] || ni-firewall-close $to_close || rc=1
+[ -z "$to_open" ] || ni-firewall-open --policy="$POLICY" $to_open || rc=1
+[ -z "$to_close" ] || ni-firewall-close --policy="$POLICY" $to_close || rc=1
 before=$enabled
 
 # A desired service is ours if we opened it on a previous run or this run
@@ -167,7 +211,7 @@ before=$enabled
 # reopen or close fails, so the next run retries it instead of leaking the rule.
 applied=""
 if [ -n "$to_open$to_close" ] && ! list_enabled; then
-	echo "$prog: could not re-read the default firewalld zone" >&2
+	echo "$prog: could not re-read firewalld policy '$POLICY'" >&2
 	rc=1
 	applied=$previous
 	for svc in $to_open; do
@@ -189,11 +233,12 @@ else
 	done
 fi
 
-# Persist the set we opened (one service per line) via a temp file + rename so
-# the state is never left half-written if the hook is interrupted. Treat write
-# failures as errors so a silently-lost state can't corrupt later reconciles.
+# Persist the set we opened (a header, then one service per line) via a temp
+# file + rename so the state is never left half-written if the hook is
+# interrupted. Treat write failures as errors so a silently-lost state can't
+# corrupt later reconciles.
 tmp=$STATE_FILE.tmp
-if ! ( : > "$tmp" ) 2>/dev/null; then
+if ! ( echo "$STATE_HEADER" > "$tmp" ) 2>/dev/null; then
 	echo "$prog: cannot write state file '$tmp'" >&2
 	rc=1
 else
