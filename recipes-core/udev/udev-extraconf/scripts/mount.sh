@@ -100,7 +100,13 @@ rm_dir() {
 	fi
 }
 
+worldwritable_enabled() {
+	[ "$(/usr/local/natinst/bin/nirtcfg --get section=SystemSettings,token=worldwritable.enabled,value="false" | tr "[:upper:]" "[:lower:]")" = "true" ]
+}
+
 if [ "$ACTION" = "add" ] && [ -n "$DEVNAME" ] && [ -n "$ID_FS_TYPE" ]; then
+	worldwritable_enabled || exit 0
+
 	if [ -x "$PMOUNT" ]; then
 		$PMOUNT $DEVNAME 2> /dev/null
 	elif [ -x $MOUNT ]; then
