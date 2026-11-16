@@ -66,6 +66,7 @@ RDEPENDS:${PN} += "\
 	ni-rtfeatures \
 	ni-safemode-utils \
 	ni-shutdown-guard \
+	ni-sysctl-hardening \
 	ni-systemformat \
 	ni-utils \
 	niacctbase \
