@@ -1,23 +1,26 @@
 #!/bin/sh
 # ni-firewall-open / ni-firewall-close
 #
-# Open or close a firewalld service in the default zone. The same script backs
-# both commands; the action is chosen from the name it is invoked as
-# (ni-firewall-close is a symlink to ni-firewall-open).
+# Open or close a firewalld service in the default zone, or in a firewalld
+# policy when --policy is given. The same script backs both commands; the action
+# is chosen from the name it is invoked as (ni-firewall-close is a symlink to
+# ni-firewall-open).
 #
 # It works in two situations:
 #   * offline - firewalld is not running (e.g. early first boot). Changes are
 #     written with firewall-offline-cmd and take effect when firewalld starts.
 #   * live    - firewalld is running. Changes are applied to the running config
 #     (immediate) and the permanent config (persisted). firewalld is reloaded
-#     only when opening a service whose definition it has not loaded yet.
+#     only when it has not loaded the target policy or, when opening, a
+#     service definition yet.
 #
-# Usage: ni-firewall-open  <service> [<service> ...]
-#        ni-firewall-close <service> [<service> ...]
+# Usage: ni-firewall-open  [--policy=<policy>] <service> [<service> ...]
+#        ni-firewall-close [--policy=<policy>] <service> [<service> ...]
 #
-# Re-running is idempotent. Opening an unknown service causes a non-zero exit.
-# Closing does not require the service definition to exist, so a service whose
-# package (and XML) was removed can still be taken out of the zone.
+# Re-running is idempotent. Opening an unknown service, or targeting a policy
+# that has no definition, causes a non-zero exit. Closing does not require the
+# service definition to exist, so a service whose package (and XML) was removed
+# can still be taken out of the zone or policy.
 
 set -u
 
@@ -33,10 +36,38 @@ case "$prog" in
 		;;
 esac
 
-if [ $# -lt 1 ]; then
-	echo "Usage: $prog <service> [<service> ...]" >&2
+usage() {
+	echo "Usage: $prog [--policy=<policy>] <service> [<service> ...]" >&2
 	exit 2
-fi
+}
+
+# With --policy the services go into that policy; otherwise into the default
+# zone.
+policy=
+while [ $# -gt 0 ]; do
+	case $1 in
+	--policy=*)
+		policy=${1#--policy=}
+		[ -n "$policy" ] || usage
+		shift
+		;;
+	--policy)
+		if [ $# -lt 2 ] || [ -z "$2" ]; then
+			usage
+		fi
+		policy=$2
+		shift 2
+		;;
+	--) shift; break ;;
+	-*)
+		echo "$prog: unknown option '$1'" >&2
+		usage
+		;;
+	*) break ;;
+	esac
+done
+
+[ $# -ge 1 ] || usage
 
 # Ask firewalld itself which service definitions exist instead of scanning a
 # hard-coded path: XMLs may live under /etc/firewalld/services or the platform
@@ -68,17 +99,32 @@ in_list() {
 # is safe to target for the permanent changes below.
 if firewall-cmd --state >/dev/null 2>&1; then
 	live=1
-	zone=$(firewall-cmd --get-default-zone 2>/dev/null)
+	[ -n "$policy" ] || zone=$(firewall-cmd --get-default-zone 2>/dev/null)
 	available_services=$(firewall-offline-cmd --get-services 2>/dev/null) || available_services=
 else
 	live=0
-	zone=$(firewall-offline-cmd --get-default-zone 2>/dev/null)
+	[ -n "$policy" ] || zone=$(firewall-offline-cmd --get-default-zone 2>/dev/null)
 	available_services=$(firewall-offline-cmd --get-services 2>/dev/null) || available_services=
 fi
 
-if [ -z "${zone:-}" ]; then
-	echo "$prog: could not determine the default firewalld zone" >&2
-	exit 1
+if [ -n "$policy" ]; then
+	# Like services, firewall-offline-cmd reads policy definitions straight from
+	# disk, so a policy file installed while the daemon runs is visible here.
+	available_policies=$(firewall-offline-cmd --get-policies 2>/dev/null) ||
+		available_policies=
+	if ! in_list "$policy" $available_policies; then
+		echo "$prog: unknown firewalld policy '$policy'" >&2
+		exit 1
+	fi
+	target="--policy=$policy"
+	target_desc="policy '$policy'"
+else
+	if [ -z "${zone:-}" ]; then
+		echo "$prog: could not determine the default firewalld zone" >&2
+		exit 1
+	fi
+	target="--zone=$zone"
+	target_desc="zone '$zone'"
 fi
 
 # firewalld always ships built-in service definitions, so an empty list means the
@@ -92,35 +138,48 @@ fi
 # Run a permanent/offline query or change with the right tool for the mode.
 fw_perm() {
 	if [ "$live" = 1 ]; then
-		firewall-cmd --permanent --zone="$zone" "$@"
+		firewall-cmd --permanent "$target" "$@"
 	else
 		case $1 in
 		--remove-service=*)
 			# firewall-offline-cmd treats a bare --remove-service as a lokkit option.
 			fw_opt=$1
 			shift
-			set -- "--remove-service-from-zone=${fw_opt#--remove-service=}" "$@"
+			if [ -n "$policy" ]; then
+				set -- "--remove-service-from-policy=${fw_opt#--remove-service=}" "$@"
+			else
+				set -- "--remove-service-from-zone=${fw_opt#--remove-service=}" "$@"
+			fi
 			;;
 		esac
-		firewall-offline-cmd --zone="$zone" "$@"
+		firewall-offline-cmd "$target" "$@"
 	fi
 }
 
-# The running daemon only loads service files at start/reload, so one installed
-# while it runs is unknown to it. Reload once before opening such a service; the
-# helper keeps runtime and permanent in step, so nothing it manages is lost.
-if [ "$live" = 1 ] && [ "$action" = add ]; then
+# The running daemon only loads service and policy files at start/reload, so
+# one installed while it runs is unknown to it. Reload once before using such a
+# policy or opening such a service; the helper keeps runtime and permanent in
+# step, so nothing it manages is lost.
+need_reload=0
+if [ "$live" = 1 ] && [ -n "$policy" ]; then
+	loaded_policies=$(firewall-cmd --get-policies 2>/dev/null) || loaded_policies=
+	in_list "$policy" $loaded_policies || need_reload=1
+fi
+if [ "$live" = 1 ] && [ "$action" = add ] && [ "$need_reload" = 0 ]; then
 	loaded_services=$(firewall-cmd --get-services 2>/dev/null) || loaded_services=
 	for svc in "$@"; do
 		if service_exists "$svc" && ! in_list "$svc" $loaded_services; then
-			echo "$prog: reloading firewalld to load new service definitions"
-			if ! firewall-cmd --reload >/dev/null 2>&1; then
-				echo "$prog: firewalld reload failed" >&2
-				exit 1
-			fi
+			need_reload=1
 			break
 		fi
 	done
+fi
+if [ "$need_reload" = 1 ]; then
+	echo "$prog: reloading firewalld to load new definitions"
+	if ! firewall-cmd --reload >/dev/null 2>&1; then
+		echo "$prog: firewalld reload failed" >&2
+		exit 1
+	fi
 fi
 
 rc=0
@@ -136,13 +195,13 @@ for svc in "$@"; do
 
 	if [ "$action" = add ] && [ "$enabled" = 0 ]; then
 		if ! fw_perm --add-service="$svc" >/dev/null 2>&1; then
-			echo "$prog: failed to open service '$svc' in zone '$zone'" >&2
+			echo "$prog: failed to open service '$svc' in $target_desc" >&2
 			rc=1
 			continue
 		fi
 	elif [ "$action" = remove ] && [ "$enabled" = 1 ]; then
 		if ! fw_perm --remove-service="$svc" >/dev/null 2>&1; then
-			echo "$prog: failed to close service '$svc' in zone '$zone'" >&2
+			echo "$prog: failed to close service '$svc' in $target_desc" >&2
 			rc=1
 			continue
 		fi
@@ -156,18 +215,18 @@ for svc in "$@"; do
 	# non-zero exit rather than hiding it.
 	if [ "$live" = 1 ]; then
 		runtime_enabled=0
-		firewall-cmd --zone="$zone" --query-service="$svc" >/dev/null 2>&1 &&
+		firewall-cmd "$target" --query-service="$svc" >/dev/null 2>&1 &&
 			runtime_enabled=1
 
 		if [ "$action" = add ] && [ "$runtime_enabled" = 0 ]; then
-			if ! firewall-cmd --zone="$zone" --add-service="$svc" >/dev/null 2>&1; then
-				echo "$prog: '$svc' was saved to the permanent config but could not be applied to the running zone '$zone'" >&2
+			if ! firewall-cmd "$target" --add-service="$svc" >/dev/null 2>&1; then
+				echo "$prog: '$svc' was saved to the permanent config but could not be applied to the running $target_desc" >&2
 				rc=1
 				continue
 			fi
 		elif [ "$action" = remove ] && [ "$runtime_enabled" = 1 ]; then
-			if ! firewall-cmd --zone="$zone" --remove-service="$svc" >/dev/null 2>&1; then
-				echo "$prog: '$svc' was removed from the permanent config but could not be removed from the running zone '$zone'" >&2
+			if ! firewall-cmd "$target" --remove-service="$svc" >/dev/null 2>&1; then
+				echo "$prog: '$svc' was removed from the permanent config but could not be removed from the running $target_desc" >&2
 				rc=1
 				continue
 			fi
@@ -176,7 +235,7 @@ for svc in "$@"; do
 
 	# The desired state is now ensured whether or not a change was needed, so
 	# word the message as a state rather than an action.
-	echo "$prog: service '$svc' is $state in zone '$zone'"
+	echo "$prog: service '$svc' is $state in $target_desc"
 done
 
 exit $rc
