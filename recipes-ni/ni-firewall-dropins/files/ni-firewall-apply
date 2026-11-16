@@ -220,11 +220,12 @@ fi
 # Migrate the services an earlier version opened in the default zone. First
 # open those still declared in the policy, then close all of them in the zone,
 # so a declared service stays reachable throughout. The still-declared ones
-# were ours in the zone, so they become ours in the policy; record that before
-# opening them, so a partial failure can't leave an unowned policy rule. If a
-# step fails, persist the ownership and the pending zone removals, and retry
-# them on the next run; reopening is idempotent, and a service whose marker is
-# gone by then is closed in the policy like any other service we own.
+# were ours in the zone, so they become ours in the policy. Persist that, with
+# the pending zone removals, before touching the firewall, so neither a failed
+# step nor an interrupted run can leave an unowned policy rule; if the state
+# can't be written, change nothing. If a step fails, retry on the next run;
+# reopening is idempotent, and a service whose marker is gone by then is
+# closed in the policy like any other service we own.
 if [ -n "$zone_pending" ]; then
 	echo "$prog: moving drop-ins from the default zone to policy '$POLICY'"
 	keep=""
@@ -233,14 +234,16 @@ if [ -n "$zone_pending" ]; then
 		keep="$keep $svc"
 		in_list "$svc" $previous || previous="$previous $svc"
 	done
+	if ! write_state "$previous"; then
+		echo "$prog: could not record the migration; left drop-ins in the default zone, will retry" >&2
+		exit 1
+	fi
 	if [ -n "$keep" ] && ! ni-firewall-open --policy="$POLICY" $keep; then
 		echo "$prog: could not open drop-ins in policy '$POLICY'; left them in the default zone, will retry" >&2
-		write_state "$previous"
 		exit 1
 	fi
 	if ! ni-firewall-close $zone_pending; then
 		echo "$prog: could not close drop-ins in the default zone; will retry" >&2
-		write_state "$previous"
 		exit 1
 	fi
 	zone_pending=""
