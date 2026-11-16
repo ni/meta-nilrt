@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Inbound services declared by NI packages through /etc/ni/firewall/open.d.
+  ni-firewall-apply adds and removes the services; do not edit them by hand.
+
+  The ingress zones are listed explicitly instead of ANY, so an interface that
+  the user placed in a restrictive zone such as drop or block stays closed.
+  "work" carries the NILRT SNAC WireGuard interface and is unused otherwise.
+  The positive priority evaluates this policy after the zones.
+-->
+<policy target="CONTINUE" priority="100">
+  <short>NI drop-ins</short>
+  <description>Inbound services declared by installed NI software.</description>
+  <ingress-zone name="public"/>
+  <ingress-zone name="work"/>
+  <egress-zone name="HOST"/>
+</policy>

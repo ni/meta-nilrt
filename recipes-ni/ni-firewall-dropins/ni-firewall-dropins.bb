@@ -1,17 +1,19 @@
 SUMMARY = "Declarative firewalld drop-in contract and apply hook for NI software"
 DESCRIPTION = "Provides /etc/ni/firewall/open.d and a boot-time hook that \
 reconciles drop-in markers with firewalld (reusing ni-firewall-open), so any \
-package can open a firewalld service in the default zone by shipping a service \
-XML definition plus a marker file."
+package can open a firewalld service by shipping a service XML definition plus a \
+marker file. Declared services are opened in the ni-dropins firewalld policy, \
+which applies to the public and work zones."
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 S = "${UNPACKDIR}"
-PV = "1.0"
+PV = "1.1"
 
 SRC_URI = "\
 	file://ni-firewall-apply \
 	file://ni-firewall-apply.init \
 	file://05-ni-firewall-apply \
+	file://ni-dropins.xml \
 "
 
 inherit update-rc.d
@@ -31,11 +33,18 @@ do_install () {
 	install -d ${D}${sysconfdir}/ni/firewall/open.d
 	# Persistent state directory for the apply hook.
 	install -d ${D}${localstatedir}/lib/ni/firewall
+
+	# The policy the drop-ins are opened in. Shipped in the firewalld system
+	# directory so that 'firewall-offline-cmd --reset-to-defaults' keeps it.
+	install -D -m 0644 ${UNPACKDIR}/ni-dropins.xml \
+		${D}${nonarch_libdir}/firewalld/policies/ni-dropins.xml
 }
 
 FILES:${PN} += "${sysconfdir}/ni/firewall/open.d ${localstatedir}/lib/ni/firewall ${sysconfdir}/opkg/post_invoke.d"
+FILES:${PN} += "${nonarch_libdir}/firewalld/policies"
 
-# Reuses the WI-A helper (ni-firewall-open/close) and firewalld's tools.
-RDEPENDS:${PN} += "ni-firewalld-servicedefs firewalld firewalld-offline-cmd"
+# Reuses the WI-A helper (ni-firewall-open/close, --policy since 1.1) and
+# firewalld's tools.
+RDEPENDS:${PN} += "ni-firewalld-servicedefs (>= 1.1) firewalld firewalld-offline-cmd"
 # flock serializes concurrent runs; depend on it so the lock is always present.
 RDEPENDS:${PN} += "util-linux-flock"
