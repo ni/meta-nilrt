@@ -42,6 +42,7 @@ FILES:${PN} += "\
 
 RDEPENDS:${PN} = "\
 	bash \
+	ni-firewall-dropins (>= 1.1) \
 	opkg \
 	python3-core \
 "
