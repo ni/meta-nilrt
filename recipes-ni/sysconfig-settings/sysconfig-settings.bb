@@ -222,3 +222,36 @@ pkg_postinst_ontarget:${PN}-firewall () {
 pkg_prerm:${PN}-firewall () {
 	rm -f $D${systemsettingsdir}/firewall_enable.ini
 }
+
+# sysconfig-settings-worldwritable package
+PACKAGES += "${PN}-worldwritable"
+SUMMARY:${PN}-worldwritable = "System configuration files to enable automount and world-writable devices"
+DESCRIPTION:${PN}-worldwritable = "Configuration files that allow NI hardware configuration applications to enable block device automounting and world-writable device permissions (SystemSettings worldwritable.enabled)."
+
+SRC_URI:append = "\
+	file://systemsettings/worldwritable_enable.ini \
+	file://uixml/nilinuxrt.worldwritable_enable.binding.xml \
+	file://uixml/nilinuxrt.worldwritable_enable.const.de.xml \
+	file://uixml/nilinuxrt.worldwritable_enable.const.fr.xml \
+	file://uixml/nilinuxrt.worldwritable_enable.const.ja.xml \
+	file://uixml/nilinuxrt.worldwritable_enable.const.ko.xml \
+	file://uixml/nilinuxrt.worldwritable_enable.const.xml \
+	file://uixml/nilinuxrt.worldwritable_enable.const.zh-CN.xml \
+	file://uixml/nilinuxrt.worldwritable_enable.def.xml \
+"
+
+FILES:${PN}-worldwritable = "\
+	${settingsdatadir}/worldwritable_enable.ini \
+	${uixmldir}/nilinuxrt.worldwritable_enable.* \
+"
+
+RDEPENDS:${PN}-worldwritable += "sysconfig-settings udev-extraconf"
+
+pkg_postinst_ontarget:${PN}-worldwritable () {
+	ln -sf ${settingsdatadir}/worldwritable_enable.ini ${systemsettingsdir}/worldwritable_enable.ini
+}
+
+# Leave worldwritable.enabled as set; udev keeps honoring it after removal.
+pkg_prerm:${PN}-worldwritable () {
+	rm -f $D${systemsettingsdir}/worldwritable_enable.ini
+}
