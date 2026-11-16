@@ -17,5 +17,6 @@ nigrub:grubvar_readonly
 /boot/bootmode
 /boot/runmode/bootimage.cfg
 /boot/runmode/cpu-mitigations.cfg
+/boot/runmode/bootimage.cfg.d/*.cfg
 /boot/runmode/bzImage
 /boot/runmode/ramdisk.xz
