@@ -37,7 +37,7 @@ bootimg_fixup() {
 
 	# The shared grub-bootconf menu is for BSI runmode and expects nirootfs.
 	# DKMS bundles boot from the active ESP using the supplied initramfs.
-	install -m 0644 "${UNPACKDIR}/grub-dkms-bundle.cfg" "${IMAGE_ROOTFS}/boot/efi/nilrt/grub.cfg"
+	install -m 0644 "${THISDIR}/files/grub-dkms-bundle.cfg" "${IMAGE_ROOTFS}/boot/efi/nilrt/grub.cfg"
 	if [ "${SECURE_BOOT_ENABLED}" = "1" ]; then
 		rm -f "${IMAGE_ROOTFS}/boot/efi/nilrt/grub.cfg${SB_FILE_EXT}"
 	fi
@@ -64,6 +64,10 @@ bootimg_fixup() {
 	# Move /boot/runmode/bzImage to /boot/bzImage
 	mv "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/$(readlink "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/bzImage")" "${IMAGE_ROOTFS}/boot/bzImage"
 
+	rm -f "${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/bzImage" \
+		"${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/bzImage.p7b" \
+		"${IMAGE_ROOTFS}/${KERNEL_IMAGEDEST}/bzImage.sig"
+
 	# Keep the runmode config layout expected by grub.cfg, but point it to the
 	# kernel at the bundle root.
 	sed -i "s|set kernel_path='/runmode/bzImage'|set kernel_path='/bzImage'|" \
@@ -72,6 +76,9 @@ bootimg_fixup() {
 	if [ -d "${IMAGE_ROOTFS}/boot/bootimage.cfg.d" ]; then
 		cp -a "${IMAGE_ROOTFS}/boot/bootimage.cfg.d/." \
 			"${IMAGE_ROOTFS}/boot/runmode/bootimage.cfg.d/"
+		rm -f "${IMAGE_ROOTFS}/boot/runmode/bootimage.cfg.d/cpu-mitigations.cfg" \
+			"${IMAGE_ROOTFS}/boot/runmode/bootimage.cfg.d/cpu-mitigations.cfg.p7b" \
+			"${IMAGE_ROOTFS}/boot/runmode/bootimage.cfg.d/cpu-mitigations.cfg.sig"
 		rm -rf "${IMAGE_ROOTFS}/boot/bootimage.cfg.d"
 	fi
 
