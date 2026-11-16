@@ -146,34 +146,28 @@ if [ -f "$STATE_FILE" ]; then
 	fi
 fi
 
-# Migrate: take the services an earlier version opened out of the default zone.
-# Those still declared are reopened in the policy below. On failure leave the
-# state untouched, so the next run retries the migration.
-if [ -n "$legacy" ]; then
-	echo "$prog: moving drop-ins from the default zone to policy '$POLICY'"
-	if ! ni-firewall-close $legacy; then
-		echo "$prog: could not close drop-ins in the default zone; will retry" >&2
-		exit 1
-	fi
-fi
-
 # Services enabled in the policy's permanent config, and in the running config
 # when firewalld runs (firewall-cmd exits 252 when it does not; offline there
 # is only the permanent config). Each firewall tool call takes about a
 # second on a cRIO, so read the state once instead of querying every service.
+read_live() {
+	enabled=$(firewall-cmd --permanent --policy="$POLICY" --list-services 2>/dev/null) ||
+		return
+	running=$(firewall-cmd --policy="$POLICY" --list-services 2>/dev/null)
+}
 list_enabled() {
-	enabled=$(firewall-cmd --permanent --policy="$POLICY" --list-services 2>/dev/null)
+	read_live
 	case $? in
-	0) running=$(firewall-cmd --policy="$POLICY" --list-services 2>/dev/null); return ;;
+	0) return 0 ;;
 	252) ;;
 	# INVALID_POLICY: the daemon was started before this package installed the
-	# policy, and loads policy files only at start/reload.
+	# policy. It watches its config directories, so the permanent config may
+	# already know the policy, but it loads it into the running config only at
+	# start/reload.
 	140)
 		echo "$prog: reloading firewalld to load policy '$POLICY'"
 		firewall-cmd --reload >/dev/null 2>&1 || return 1
-		enabled=$(firewall-cmd --permanent --policy="$POLICY" --list-services 2>/dev/null) ||
-			return 1
-		running=$(firewall-cmd --policy="$POLICY" --list-services 2>/dev/null)
+		read_live
 		return
 		;;
 	# Without D-Bus firewall-cmd fails with DBUS_ERROR, not 252.
@@ -185,6 +179,19 @@ list_enabled() {
 if ! list_enabled; then
 	echo "$prog: could not read firewalld policy '$POLICY'" >&2
 	exit 1
+fi
+
+# Migrate: take the services an earlier version opened out of the default zone.
+# Those still declared are reopened in the policy below. This runs only once
+# the policy is readable, so a service is never closed in the zone without
+# being reopened in the policy. On failure leave the state untouched, so the
+# next run retries the migration.
+if [ -n "$legacy" ]; then
+	echo "$prog: moving drop-ins from the default zone to policy '$POLICY'"
+	if ! ni-firewall-close $legacy; then
+		echo "$prog: could not close drop-ins in the default zone; will retry" >&2
+		exit 1
+	fi
 fi
 
 rc=0
