@@ -34,8 +34,8 @@
 #
 # Earlier versions opened drop-ins in the default zone and kept a state file
 # without a header. On the first run with such a state file, the services it
-# lists are closed in the default zone; services that are still declared are
-# then opened in the policy as usual.
+# lists that are still declared are opened in the policy, and then all of them
+# are closed in the default zone.
 
 set -u
 # Service names are literals; disable globbing so unquoted list expansions
@@ -181,15 +181,29 @@ if ! list_enabled; then
 	exit 1
 fi
 
-# Migrate: take the services an earlier version opened out of the default zone.
-# Those still declared are reopened in the policy below. This runs only once
-# the policy is readable, so a service is never closed in the zone without
-# being reopened in the policy. On failure leave the state untouched, so the
-# next run retries the migration.
+# Migrate the services an earlier version opened in the default zone. First
+# open those still declared in the policy, then close all of them in the zone,
+# so a declared service stays reachable throughout. If either step fails, keep
+# the old state file, so the next run retries the migration (reopening is
+# idempotent). The migrated services that are still declared were ours, so
+# they stay ours in the policy.
 if [ -n "$legacy" ]; then
 	echo "$prog: moving drop-ins from the default zone to policy '$POLICY'"
+	keep=""
+	for svc in $legacy; do
+		in_list "$svc" $desired && keep="$keep $svc"
+	done
+	if [ -n "$keep" ] && ! ni-firewall-open --policy="$POLICY" $keep; then
+		echo "$prog: could not open drop-ins in policy '$POLICY'; left them in the default zone, will retry" >&2
+		exit 1
+	fi
 	if ! ni-firewall-close $legacy; then
 		echo "$prog: could not close drop-ins in the default zone; will retry" >&2
+		exit 1
+	fi
+	previous=$keep
+	if [ -n "$keep" ] && ! list_enabled; then
+		echo "$prog: could not re-read firewalld policy '$POLICY'" >&2
 		exit 1
 	fi
 fi
