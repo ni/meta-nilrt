@@ -42,7 +42,10 @@ pkg_postinst_ontarget:kdump() {
     fi
 }
 
-pkg_postrm_ontarget:kdump() {
+pkg_postrm:kdump() {
+    if [ -n "$D" ]; then
+        exit 0
+    fi
     sb_var=/sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c
     if [ -r "$sb_var" ] && [ "$(od -An -j4 -N1 -tu1 "$sb_var" | tr -d '[:space:]')" = "1" ]; then
         echo "[kdump:warning] Secure Boot is enabled. Run ni-reseal-luks before rebooting, or the encrypted volumes may fail to unlock."
@@ -50,8 +53,10 @@ pkg_postrm_ontarget:kdump() {
 }
 
 FILES:kdump += " \
+    ${KDUMP_RUNMODE_CFG} \
     ${KDUMP_RUNMODE_CFG}${SB_FILE_EXT} \
 "
 CONFFILES:kdump += " \
+    ${KDUMP_RUNMODE_CFG} \
     ${KDUMP_RUNMODE_CFG}${SB_FILE_EXT} \
 "
