@@ -35,7 +35,8 @@
 # Earlier versions opened drop-ins in the default zone and kept a state file
 # without a header. On the first run with such a state file, the services it
 # lists that are still declared are opened in the policy, and then all of them
-# are closed in the default zone.
+# are closed in the default zone. Removals that fail are kept in the state file
+# and retried.
 
 set -u
 # Service names are literals; disable globbing so unquoted list expansions
@@ -126,10 +127,13 @@ if [ -d "$OPEN_D" ]; then
 	done
 fi
 
-# Services opened by the previous run. A state file without the header comes
-# from a version that opened drop-ins in the default zone.
+# Services this hook owns in the policy (opened by a previous run), and
+# services an earlier version opened in the default zone whose removal there
+# is still pending. The state file stores the latter as "zone:<service>"
+# lines; a state file without the header comes from that earlier version and
+# lists only the latter.
 previous=""
-legacy=""
+zone_pending=""
 if [ -f "$STATE_FILE" ]; then
 	format=legacy
 	while IFS= read -r svc || [ -n "$svc" ]; do
@@ -137,14 +141,46 @@ if [ -f "$STATE_FILE" ]; then
 			format=current
 			continue
 		fi
-		case $svc in ''|'#'*) continue ;; esac
-		previous="$previous $svc"
+		case $svc in
+		''|'#'*) ;;
+		zone:*) zone_pending="$zone_pending ${svc#zone:}" ;;
+		*)
+			if [ "$format" = legacy ]; then
+				zone_pending="$zone_pending $svc"
+			else
+				previous="$previous $svc"
+			fi
+			;;
+		esac
 	done < "$STATE_FILE"
-	if [ "$format" = legacy ]; then
-		legacy=$previous
-		previous=""
-	fi
 fi
+
+# write_state <owned services>: persist the services we own in the policy and
+# the pending default-zone removals (a header, then one entry per line) via a
+# temp file + rename, so the state is never left half-written if the hook is
+# interrupted. A failed write keeps the previous state and returns non-zero,
+# so a silently-lost state can't corrupt later reconciles.
+write_state() {
+	tmp=$STATE_FILE.tmp
+	if ! ( echo "$STATE_HEADER" > "$tmp" ) 2>/dev/null; then
+		echo "$prog: cannot write state file '$tmp'" >&2
+		return 1
+	fi
+	write_ok=1
+	for svc in $1; do
+		echo "$svc" >> "$tmp" || write_ok=0
+	done
+	for svc in $zone_pending; do
+		echo "zone:$svc" >> "$tmp" || write_ok=0
+	done
+	if [ "$write_ok" = 1 ]; then
+		mv "$tmp" "$STATE_FILE" && return 0
+	else
+		echo "$prog: failed to write state; keeping previous state" >&2
+		rm -f "$tmp"
+	fi
+	return 1
+}
 
 # Services enabled in the policy's permanent config, and in the running config
 # when firewalld runs (firewall-cmd exits 252 when it does not; offline there
@@ -183,27 +219,34 @@ fi
 
 # Migrate the services an earlier version opened in the default zone. First
 # open those still declared in the policy, then close all of them in the zone,
-# so a declared service stays reachable throughout. If either step fails, keep
-# the old state file, so the next run retries the migration (reopening is
-# idempotent). The migrated services that are still declared were ours, so
-# they stay ours in the policy.
-if [ -n "$legacy" ]; then
+# so a declared service stays reachable throughout. The still-declared ones
+# were ours in the zone, so they become ours in the policy; record that before
+# opening them, so a partial failure can't leave an unowned policy rule. If a
+# step fails, persist the ownership and the pending zone removals, and retry
+# them on the next run; reopening is idempotent, and a service whose marker is
+# gone by then is closed in the policy like any other service we own.
+if [ -n "$zone_pending" ]; then
 	echo "$prog: moving drop-ins from the default zone to policy '$POLICY'"
 	keep=""
-	for svc in $legacy; do
-		in_list "$svc" $desired && keep="$keep $svc"
+	for svc in $zone_pending; do
+		in_list "$svc" $desired || continue
+		keep="$keep $svc"
+		in_list "$svc" $previous || previous="$previous $svc"
 	done
 	if [ -n "$keep" ] && ! ni-firewall-open --policy="$POLICY" $keep; then
 		echo "$prog: could not open drop-ins in policy '$POLICY'; left them in the default zone, will retry" >&2
+		write_state "$previous"
 		exit 1
 	fi
-	if ! ni-firewall-close $legacy; then
+	if ! ni-firewall-close $zone_pending; then
 		echo "$prog: could not close drop-ins in the default zone; will retry" >&2
+		write_state "$previous"
 		exit 1
 	fi
-	previous=$keep
+	zone_pending=""
 	if [ -n "$keep" ] && ! list_enabled; then
 		echo "$prog: could not re-read firewalld policy '$POLICY'" >&2
+		write_state "$previous"
 		exit 1
 	fi
 fi
@@ -254,26 +297,6 @@ else
 	done
 fi
 
-# Persist the set we opened (a header, then one service per line) via a temp
-# file + rename so the state is never left half-written if the hook is
-# interrupted. Treat write failures as errors so a silently-lost state can't
-# corrupt later reconciles.
-tmp=$STATE_FILE.tmp
-if ! ( echo "$STATE_HEADER" > "$tmp" ) 2>/dev/null; then
-	echo "$prog: cannot write state file '$tmp'" >&2
-	rc=1
-else
-	write_ok=1
-	for svc in $applied; do
-		echo "$svc" >> "$tmp" || write_ok=0
-	done
-	if [ "$write_ok" = 1 ]; then
-		mv "$tmp" "$STATE_FILE" || rc=1
-	else
-		echo "$prog: failed to write state; keeping previous state" >&2
-		rm -f "$tmp"
-		rc=1
-	fi
-fi
+write_state "$applied" || rc=1
 
 exit $rc
