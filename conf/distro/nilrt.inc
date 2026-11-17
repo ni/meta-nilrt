@@ -135,7 +135,7 @@ INSANE_SKIP:append:xilinx-zynq = "32bit-time"
 ## OPKG SOURCE FEEDS ##
 
 # Root URI of all NILRT feeds
-NILRT_FEEDS_URI                    ?= "http://download.ni.com/ni-linux-rt/feeds"
+NILRT_FEEDS_URI                    ?= "https://download.ni.com/ni-linux-rt/feeds"
 NILRT_FEEDS_URI_RELEASE            ?= "${NILRT_FEEDS_URI}/${NILRT_FEED_NAME}"
 NILRT_MACHINE_FEED_URI:x64         ?= "${NILRT_FEEDS_URI_RELEASE}/x64"
 NILRT_MACHINE_FEED_URI:xilinx-zynq ?= "${NILRT_FEEDS_URI_RELEASE}/arm"
