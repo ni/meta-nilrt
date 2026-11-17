@@ -3,17 +3,18 @@ From: Jussi Keranen <jussi.keranen@vincit.com>
 Date: Tue, 25 Jul 2023 16:03:57 +0800
 Subject: [PATCH] Verify all buffiles
 
-Verify buffiles, e.g. fonts and images
+Verify buffiles, e.g. fonts and images, and retain the authenticated bytes
+as the backing file so cache refills cannot reread unauthenticated data.
 
 Upstream-Status: Inappropriate [embedded specific]
 
 Signed-off-by: Jussi Keranen <jussi.keranen@vincit.com>
 ---
- grub-core/io/bufio.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ grub-core/io/bufio.c | 19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
 
 diff --git a/grub-core/io/bufio.c b/grub-core/io/bufio.c
-index a458c3a..dad8b5a 100644
+index a458c3a..2d8553b 100644
 --- a/grub-core/io/bufio.c
 +++ b/grub-core/io/bufio.c
 @@ -24,6 +24,9 @@
@@ -26,26 +27,27 @@ index a458c3a..dad8b5a 100644
 
  GRUB_MOD_LICENSE ("GPLv3+");
 
-@@ -91,7 +94,20 @@ grub_file_t
- grub_buffile_open (const char *name, enum grub_file_type type, grub_size_t size)
+@@ -92,8 +95,22 @@ grub_buffile_open (const char *name, enum grub_file_type type, grub_size_t size)
  {
    grub_file_t io, file;
-+#ifdef GRUB_MACHINE_EFI
-+  grub_err_t err;
 
+-  io = grub_file_open (name, type);
++#ifdef GRUB_MACHINE_EFI
 +  if (grub_strncmp (name, "(memdisk)", sizeof ("(memdisk)") - 1) != 0)
 +    {
-+      err = _grub_verify_file_buffer (name);
-+      if (err != GRUB_ERR_NONE)
++      io = grub_verify_file_open (name, type);
++      if (!io && grub_is_secured () != 0)
 +        {
-+          grub_error (err, "Security Violation: %s failed to load", name);
++          grub_error (grub_errno, "Security Violation: %s failed to load", name);
 +          grub_print_error ();
 +          grub_halt();
++          return 0;
 +        }
 +    }
++  else
 +#endif
-   io = grub_file_open (name, type);
++    io = grub_file_open (name, type);
    if (! io)
      return 0;
---
-2.25.1
+
+   file = grub_bufio_open (io, size);
