@@ -160,7 +160,7 @@ RDEPENDS:${PN}-common += "\
     python3-pygments (>= 2.19.2) \
     python3-pyiface (= 0.0.11) \
     python3-pyopenssl (>= 26.0.0) \
-    python3-dateutil (== 2.9.0) \
+    python3-dateutil (= 2.9.0) \
     python3-gnupg (>= 0.5.5) \
     python3-pyyaml (= 6.0.3) \
     python3-pyzmq (= 27.1.0) \
