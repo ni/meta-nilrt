@@ -18,10 +18,12 @@ CDFGUID:xilinx-zynq = "8E3EACD0-B36E-462B-A500-88AE644AB3B0"
 OSVALUE:x64 = "NI-Linux x64"
 OSVALUE:xilinx-zynq = "Linux-ARMv7-A"
 
-OSVERSION:x64 = "7.0"
+# The minimum required version here should be kept in sync with:
+# ni-central:src/rtos/rtosinstallersd/nilrt_onert_system_image/onert_system_image_common.mak
+OSVERSION:x64 = "27.0"
 # For BSI to fit on smaller ARM targets, safemode needs zlib compression and other space saving measures.
 # So set minimum compatible safemode version to 26.3 which has them.
-OSVERSION:xilinx-zynq = "26.3"
+OSVERSION:xilinx-zynq = "27.0"
 
 ROOTFS_IMAGE = "nilrt-runmode-rootfs"
 do_rootfs[depends] += "${ROOTFS_IMAGE}:do_image_complete"
