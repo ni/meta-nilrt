@@ -178,7 +178,6 @@ RDEPENDS:${PN}-common += "\
     python3-xxhash (>= 3.6.0) \
     python3-yarl (>= 1.23.0) \
     python3-zipp (>= 3.23.0) \
-
 "
 RRECOMMENDS:${PN}-common = "lsb-release"
 RSUGGESTS:${PN}-common = "python3-mako python3-git"
