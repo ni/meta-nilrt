@@ -2,22 +2,23 @@ HOMEPAGE = "http://saltstack.com/"
 SECTION = "admin"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=3ab0f85f9c3b3eb8184e17b99fd4dfb2"
-DEPENDS = "\
-    python3-msgpack \
-    python3-pyyaml \
-    python3-jinja2 \
-    python3-markupsafe \
-"
 
-DEPENDS += "\
+# Native dependencies requried by Salt 3008's build system
+# NOTE: looseversion did not have a native variant;
+# we created a python3-looseversion_%.bbappend,
+# containing: "BBCLASSEXTEND += "native",
+# under recipes-devtools/python, to provide it.
+DEPENDS = "\
     python3-distro-native \
+    python3-looseversion-native \
+    python3-importlib-metadata-native \
 "
 
 PACKAGECONFIG = "tcp"
 PACKAGECONFIG[tcp] = ",,python3-pycryptodome"
 
 SRC_URI = "\
-    git://github.com/ni/salt.git;protocol=https;branch=ni/master/3006.13 \
+    git://github.com/AlexDanDuna/salt.git;protocol=https;branch=ni/master/3008.3-dev \
     file://minion \
     file://salt-minion \
     file://salt-common.bash_completion \
@@ -33,7 +34,7 @@ SRC_URI = "\
 
 SRCREV = "${AUTOREV}"
 
-inherit setuptools3_legacy update-rc.d ptest
+inherit python_pep517 update-rc.d ptest
 
 # Avoid a QA Warning triggered by the test package including a file
 # with a .a extension
@@ -106,7 +107,7 @@ SUMMARY:${PN}-minion = "client package for salt, the distributed remote executio
 DESCRIPTION:${PN}-minion = "${DESCRIPTION_COMMON} This particular package provides the worker agent for salt."
 RDEPENDS:${PN}-minion = "${PN}-common (= ${EXTENDPKGV}) python3-core python3-msgpack python3-distro"
 RDEPENDS:${PN}-minion += "${@bb.utils.contains('PACKAGECONFIG', 'zeromq', 'python3-pycryptodome python3-pyzmq (>= 20.0.0)', '',d)}"
-RDEPENDS:${PN}-minion += "${@bb.utils.contains('PACKAGECONFIG', 'tcp', 'python3-pycryptodome', '',d)}"
+#RDEPENDS:${PN}-minion += "${@bb.utils.contains('PACKAGECONFIG', 'tcp', 'python3-pycryptodome', '',d)}"
 RRECOMMENDS:${PN}-minion:append:x64 = "dmidecode"
 RSUGGESTS:${PN}-minion = "python3-augeas"
 CONFFILES:${PN}-minion = "${sysconfdir}/${PN}/minion ${sysconfdir}/init.d/${PN}-minion"
@@ -117,22 +118,69 @@ INITSCRIPT_PARAMS:${PN}-minion = "defaults"
 SUMMARY:${PN}-common = "shared libraries that salt requires for all packages"
 DESCRIPTION:${PN}-common = "${DESCRIPTION_COMMON} This particular package provides shared libraries that \
 salt-master, salt-minion, and salt-syndic require to function."
-RDEPENDS:${PN}-common = "\
-    python3-backports-ssl-match-hostname \
-    python3-charset-normalizer \
-    python3-core \
-    python3-certifi (>= 2024.2.2) \
-    python3-cryptography (>= 42.0.0) \
-    python3-dateutil \
-    python3-fcntl \
-    python3-jinja2 (>= 3.1.5) \
-    python3-looseversion \
-    python3-markupsafe \
-    python3-packaging (>= 21.3) \
-    python3-psutil (>= 5.0.0) \
-    python3-pyyaml \
-    python3-requests (>= 2.32.3) \
-    python3-urllib3 (>= 1.26.20) \
+RDEPENDS:${PN}-common = "python3-core"
+RDEPENDS:${PN}-common += "\
+    python3-aiohappyeyeballs (= 2.6.1) \
+    python3-aiohttp (>= 3.13.5) \
+    python3-aiosignal (= 1.4.0) \
+    python3-annotated-doc (= 0.0.4) \
+    python3-attrs (>= 25.4.0) \
+    python3-backports-ssl-match-hostname (= 3.7.0.1) \
+    python3-certifi (>= 2026.2.25) \
+    python3-cffi (= 2.0.0) \
+    python3-charset-normalizer (>= 3.4.7) \
+    python3-croniter (= 6.2.2) \
+    python3-cryptography (>= 46.0.7) \
+    python3-distlib (= 0.4.0) \
+    python3-distro (= 1.9.0) \
+    python3-filelock (>= 3.25.2) \
+    python3-frozenlist (= 1.8.0) \
+    python3-future (= 1.0.0) \
+    python3-gitdb (= 4.0.12) \
+    python3-googleapis-common-protos (>= 1.63.2) \
+    python3-idna (>= 3.11) \
+    python3-importlib-metadata (= 9.0.0) \
+    python3-jinja2 (= 3.1.6) \
+    python3-jmespath (= 1.1.0) \
+    python3-git (>= 3.1.43) \
+    python3-looseversion (= 1.3.0) \
+    python3-markdown-it-py (>= 3.0.0) \
+    python3-markupsafe (= 3.0.3) \
+    python3-mdurl (= 0.1.2) \
+    python3-more-itertools (>= 10.6.0) \
+    python3-msgpack (>= 1.1.2) \
+    python3-multidict (>= 6.7.1) \
+    python3-packaging (>= 26.0) \
+    python3-platformdirs (>= 4.9.6) \
+    python3-propcache (= 0.4.1) \
+    python3-protobuf (= 6.33.6) \
+    python3-psutil (= 7.2.2) \
+    python3-pyasn1 (= 0.6.4) \
+    python3-pyconnman (= 0.2.0) \
+    python3-pycparser (= 3.0) \
+    python3-pycryptodomex (= 3.23.0) \
+    python3-pygments (>= 2.19.2) \
+    python3-pyiface (= 0.0.11) \
+    python3-pyinotify (= 0.9.6) \
+    python3-pyopenssl (>= 26.0.0) \
+    python3-dateutil (>= 2.9.0) \
+    python3-gnupg (>= 0.5.5) \
+    python3-pyyaml (= 6.0.3) \
+    python3-pyzmq (= 27.1.0) \
+    python3-requests (>= 2.32.5) \
+    python3-rich (= 15.0.0) \
+    python3-setproctitle (= 1.3.7) \
+    python3-shellingham (= 1.5.4) \
+    python3-six (= 1.17.0) \
+    python3-smmap (>= 6.0.0) \
+    python3-tornado (>= 6.5.7) \
+    python3-typer (>= 0.24.1) \
+    python3-typing-extensions (= 4.15.0) \
+    python3-urllib3 (>= 2.6.3) \
+    python3-virtualenv (>= 21.2.1) \
+    python3-xxhash (>= 3.6.0) \
+    python3-yarl (>= 1.23.0) \
+    python3-zipp (>= 3.23.0) \
 "
 RRECOMMENDS:${PN}-common = "lsb-release"
 RSUGGESTS:${PN}-common = "python3-mako python3-git"
