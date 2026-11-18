@@ -133,6 +133,53 @@ function _check_env() {
 }
 
 
+function _select_pcr_artifact_list() {
+	local mode="$1"
+	local secure_boot_wrapper="$nigrub_mount/EFI/BOOT/efi-secure-boot.inc"
+	local secure_boot_var="/sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c"
+
+	if [[ ! -f "$secure_boot_wrapper" ]]; then
+		PCR_ARTIFACT_LIST="$SCRIPT_DIR/../share/ni-pcr-${mode}-artifacts.list"
+		return
+	fi
+
+	if [[ ! -r "$secure_boot_var" ]]; then
+		echo "ERROR: Secure Boot GRUB wrapper is installed, but the EFI SecureBoot variable is unavailable." >&2
+		exit ${EXITCODES[BADENV]}
+	fi
+
+	local secure_boot_state
+	secure_boot_state=$(od -An -j4 -N1 -tu1 "$secure_boot_var" | tr -d '[:space:]') || {
+		echo "ERROR: Could not read the EFI SecureBoot variable." >&2
+		exit ${EXITCODES[BADENV]}
+	}
+	case "$secure_boot_state" in
+		0|1) ;;
+		*)
+			echo "ERROR: Invalid EFI SecureBoot variable value '$secure_boot_state'." >&2
+			exit ${EXITCODES[BADENV]}
+			;;
+	esac
+
+	local source_list="$SCRIPT_DIR/../share/ni-pcr-${mode}-secure-boot-artifacts.list"
+	local generated_list
+	generated_list=$(mktemp -p /dev/shm "ni-reseal-${mode}-artifacts.XXXXXX")
+	_cleanup_files+=("$generated_list")
+
+	awk -v secure_boot="$secure_boot_state" '
+		/^# SecureBoot=1: / {
+			if (secure_boot == "1")
+				print substr($0, 17)
+			next
+		}
+		/^#/ || NF == 0 { next }
+		{ print }
+	' "$source_list" > "$generated_list"
+
+	PCR_ARTIFACT_LIST="$generated_list"
+}
+
+
 function parse_args() {
 	local argv=("$@")
 	local positionals=()
@@ -292,8 +339,10 @@ function reseal_device() {
 	_cleanup_files+=("$pcr_digest_safemode_file")
 
 	echo "Pre-calculating PCR 15 for safemode..."
+	_select_pcr_artifact_list safemode
+	local safemode_artifact_list="$PCR_ARTIFACT_LIST"
 	if ! ni-pcr-precalc \
-			--artifact-list /usr/lib/ni-device-encryption/share/ni-pcr-safemode-artifacts.list \
+			--artifact-list "$safemode_artifact_list" \
 			--nigrub-mount "$nigrub_mount" \
 			--pcr7 "$pcr7_file" \
 			--output-pcr-digest "$pcr_digest_safemode_file"; then
@@ -312,8 +361,10 @@ function reseal_device() {
 	_cleanup_files+=("$pcr_digest_runmode_file")
 
 	echo "Pre-calculating PCR 15 for runmode..."
+	_select_pcr_artifact_list runmode
+	local runmode_artifact_list="$PCR_ARTIFACT_LIST"
 	if ! ni-pcr-precalc \
-			--artifact-list /usr/lib/ni-device-encryption/share/ni-pcr-runmode-artifacts.list \
+			--artifact-list "$runmode_artifact_list" \
 			--nigrub-mount "$nigrub_mount" \
 			--pcr7 "$pcr7_file" \
 			--output-pcr-digest "$pcr_digest_runmode_file"; then
