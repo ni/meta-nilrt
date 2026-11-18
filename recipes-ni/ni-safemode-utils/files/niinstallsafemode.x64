@@ -3,7 +3,8 @@
 # Copyright (c) 2013 National Instruments
 #
 # Returns 1 on usage error, 2 if trying to downgrade without -f, 3 if
-# reapplying the same version without -f, 5 on error manipulating /boot/.safe;
+# reapplying the same version without -f, 4 if an unsigned archive is given on
+# a Secure Boot-enabled target, 5 on error manipulating /boot/.safe;
 # 6 if shutting down
 
 if [ $# -ne 1 ] && [ $# -ne 2 ]; then
@@ -85,6 +86,19 @@ for sig_ext in .p7b .sig; do
 		break
 	fi
 done
+
+# Installed signatures are only valid for signed payloads, so an unsigned
+# archive must not replace them on a Secure Boot-enabled target.
+sb_var=/sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c
+secure_boot_enabled=0
+if [ -r "$sb_var" ] && [ "$(od -An -j4 -N1 -tu1 "$sb_var" | tr -d '[:space:]')" = "1" ]; then
+	secure_boot_enabled=1
+fi
+if [ "$secure_boot_enabled" = "1" ] && [ -z "$signature_ext" ]; then
+	echo "$0: refusing unsigned safemode archive on a Secure Boot-enabled target." >&2
+	exit 4
+fi
+
 if [ -d "$tmp_dir/efi" ] || [ -n "$signature_ext" ]; then
 	[ -n "$signature_ext" ]
 	[ -s "$tmp_dir/$kernel$signature_ext" ]
