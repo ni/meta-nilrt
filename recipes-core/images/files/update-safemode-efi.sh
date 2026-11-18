@@ -27,39 +27,54 @@ ESP_MOUNT="${1:-/mnt/esp}"
 ESP_LABEL="nigrub"
 BOOT_FILES="bootx64.efi SELoaderx64.efi mmx64.efi grubx64.efi Hash2DxeCrypto.efi Pkcs7VerifyDxe.efi LockDown.efi"
 
+# Validates a safemode payload directory and sets signature_ext to the
+# signature suffix in use. Any failed check exits under set -e.
+validate_safe_dir() {
+    safe_check_dir="$1"
+    # The config sidecar extension follows SB_FILE_EXT (.p7b or .sig). Use the
+    # bootimage sidecar to select it, then require the matching GRUB sidecar too.
+    test -s "$safe_check_dir/bootimage.cfg"
+    test -s "$safe_check_dir/grub.cfg"
+    signature_ext=""
+    for ext in .p7b .sig; do
+        if [ -s "$safe_check_dir/bootimage.cfg$ext" ]; then
+            signature_ext="$ext"
+            break
+        fi
+    done
+    if [ -z "$signature_ext" ]; then
+        echo "No bootimage.cfg signature (.p7b or .sig) found in $safe_check_dir." >&2
+        exit 1
+    fi
+    test -s "$safe_check_dir/grub.cfg$signature_ext"
+
+    for file in bootx64.efi mmx64.efi grubx64.efi; do
+        if [ ! -s "$safe_check_dir/efi/EFI/BOOT/$file" ]; then
+            echo "Required EFI stage is missing or empty: $safe_check_dir/efi/EFI/BOOT/$file" >&2
+            exit 1
+        fi
+    done
+}
+
 if [ -n "$ARCHIVE" ]; then
+    # Extract and validate in a scratch directory so that a missing, unreadable,
+    # or corrupt archive leaves the working payload in $SAFE_DIR untouched.
+    extract_dir=$(mktemp -d "$SAFE_DIR.new.XXXXXX")
+    trap 'rm -rf "$extract_dir"' 0
+    tar xf "$ARCHIVE" -C "$extract_dir"
+    validate_safe_dir "$extract_dir"
     # tar only overwrites files present in the archive, so a sidecar left over
     # from a different signature type (.p7b vs .sig) would otherwise survive
-    # extraction and be selected below.
+    # the copy and be selected below.
     for file in bootimage.cfg grub.cfg; do
         rm -f "$SAFE_DIR/$file.p7b" "$SAFE_DIR/$file.sig"
     done
-    tar xf "$ARCHIVE" -C "$SAFE_DIR"
+    cp -a "$extract_dir/." "$SAFE_DIR/"
+    rm -rf "$extract_dir"
+    trap - 0
 fi
 
-# The config sidecar extension follows SB_FILE_EXT (.p7b or .sig). Use the
-# bootimage sidecar to select it, then require the matching GRUB sidecar too.
-test -s "$SAFE_DIR/bootimage.cfg"
-test -s "$SAFE_DIR/grub.cfg"
-signature_ext=""
-for ext in .p7b .sig; do
-    if [ -s "$SAFE_DIR/bootimage.cfg$ext" ]; then
-        signature_ext="$ext"
-        break
-    fi
-done
-if [ -z "$signature_ext" ]; then
-    echo "No bootimage.cfg signature (.p7b or .sig) found in $SAFE_DIR." >&2
-    exit 1
-fi
-test -s "$SAFE_DIR/grub.cfg$signature_ext"
-
-for file in bootx64.efi mmx64.efi grubx64.efi; do
-    if [ ! -s "$SAFE_DIR/efi/EFI/BOOT/$file" ]; then
-        echo "Required EFI stage is missing or empty: $SAFE_DIR/efi/EFI/BOOT/$file" >&2
-        exit 1
-    fi
-done
+validate_safe_dir "$SAFE_DIR"
 
 already_mounted=0
 stage_dir=""
