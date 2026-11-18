@@ -4,7 +4,7 @@
 
 . /etc/natinst/networking/functions.common
 
-SERIAL=`/sbin/fw_printenv -n serial# 2>&1`
+SERIAL=`/sbin/fw_printenv -n serial# 2>/dev/null`
 if [ "$SERIAL" = "ABCDEFG" ]; then
     # Use the last 8 digits of the primary network device
     SERIAL=`cat /sys/class/net/$(get_primary_device)/address | sed 's/://g' | cut -c 5-12`

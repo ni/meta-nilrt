@@ -21,7 +21,7 @@ startGadget(){
 
     # Only start USB ConfigFS on required targets
     # PID: 0x793C -> ELVIS III
-    device=`fw_printenv -n DeviceCode | awk '{print tolower($0)}'`
+    device=`fw_printenv -n DeviceCode 2>/dev/null | awk '{print tolower($0)}'`
     if [ $device != '0x793c' ]
     then
         [ "$VERBOSE" != no ] && echo "USB ConfigFS not supported: exiting"
@@ -30,13 +30,13 @@ startGadget(){
 
     [ "$VERBOSE" != no ] && echo -n "Starting $progName: "
 
-    vid=`fw_printenv -n USBVendorID`
-    pid=`fw_printenv -n USBProductID`
-    product=`fw_printenv -n USBProduct`
-    bcdDev=`fw_printenv -n USBDevice | awk '{print tolower($0)}'`
-    hostname=`fw_printenv -n hostname`
-    serial=`fw_printenv -n serial#`
-    dev_addr=`fw_printenv -n usbgadgetethaddr`
+    vid=`fw_printenv -n USBVendorID 2>/dev/null`
+    pid=`fw_printenv -n USBProductID 2>/dev/null`
+    product=`fw_printenv -n USBProduct 2>/dev/null`
+    bcdDev=`fw_printenv -n USBDevice 2>/dev/null | awk '{print tolower($0)}'`
+    hostname=`fw_printenv -n hostname 2>/dev/null`
+    serial=`fw_printenv -n serial# 2>/dev/null`
+    dev_addr=`fw_printenv -n usbgadgetethaddr 2>/dev/null`
 
     # Check for variable
     if [[ -z "$vid" || -z "$pid" || -z "$bcdDev" ||

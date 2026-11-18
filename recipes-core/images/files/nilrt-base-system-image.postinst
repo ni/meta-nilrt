@@ -55,7 +55,7 @@ fi
 
 arch="`uname -m`"
 mount_point="/boot"
-class="`/sbin/fw_printenv -n TargetClass`"
+class="`/sbin/fw_printenv -n TargetClass 2>/dev/null`"
 
 if [ "$arch" = "x86_64" ]; then
     echo "" >> /mnt/userfs/etc/fstab

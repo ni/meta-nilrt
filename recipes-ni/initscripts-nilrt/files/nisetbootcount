@@ -2,7 +2,7 @@
 # (c) 2013 National Instruments Corporation
 [ "${VERBOSE}" != "no" ] && echo -n "Updating system boot count"
 
-BOOTCOUNT=`/sbin/fw_printenv -n bootcount 2>&1`
+BOOTCOUNT=`/sbin/fw_printenv -n bootcount 2>/dev/null`
 if test $? -ne 0
 then
     BOOTCOUNT=0

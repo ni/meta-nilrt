@@ -1,6 +1,6 @@
 #! /bin/sh
 
-if [ `/sbin/fw_printenv -n BIOSBootMode` = "legacy" ]; then
+if [ `/sbin/fw_printenv -n BIOSBootMode 2>/dev/null` = "legacy" ]; then
 	exit 0
 fi
 

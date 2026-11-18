@@ -5,6 +5,5 @@
 
 # Prune fw_printenv mapping files on non-NI targets
 tmp_dir=`dirname $0`
-[[ $(/sbin/fw_printenv -n BIOSBootMode) == legacy ]] && rm -f "$tmp_dir/EFI_NI_vars" || true
-[[ $(/sbin/fw_printenv -n NITarget) == false ]] && rm -f "$tmp_dir/SMBIOS_NI_vars" || true
-
+[[ $(/sbin/fw_printenv -n BIOSBootMode 2>/dev/null) == legacy ]] && rm -f "$tmp_dir/EFI_NI_vars" || true
+[[ $(/sbin/fw_printenv -n NITarget 2>/dev/null) == false ]] && rm -f "$tmp_dir/SMBIOS_NI_vars" || true
