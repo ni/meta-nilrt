@@ -61,6 +61,10 @@ fakeroot python do_sign() {
         # GRUB/SELoader will verify and load.
         uks_bl_sign(resolved_image, d)
 
+        # Keep the exact signed bytes the sidecar covers so do_deploy ships
+        # an image that matches it.
+        shutil.copyfile(resolved_image, os.path.join(d.expand('${B}'), image_type + '.signed'))
+
         resolved_sig = resolved_image + sig_ext
 
         if os.path.exists(resolved_sig):
@@ -90,6 +94,13 @@ do_deploy:append() {
     for imageType in ${KERNEL_IMAGETYPES}; do
         if [ -f "${B}/${imageType}.unsigned" ]; then
             install -m 0644 "${B}/${imageType}.unsigned" "${kernel_deploy_dir}/efi-unsigned/${imageType}"
+        fi
+
+        # Replace the image installed by kernel_do_deploy() under its inherited
+        # versioned name with the signed bytes, so the stable symlinks and the
+        # detached sidecar both refer to a matching pair.
+        if [ -n "${SB_FILE_EXT}" ] && [ -f "${B}/${imageType}.signed" ]; then
+            install -m 0644 "${B}/${imageType}.signed" "${kernel_deploy_dir}/${imageType}-${KERNEL_IMAGE_NAME}${KERNEL_IMAGE_BIN_EXT}"
         fi
 
         # The packaged sidecar is versioned; deploy it under the stable name.
