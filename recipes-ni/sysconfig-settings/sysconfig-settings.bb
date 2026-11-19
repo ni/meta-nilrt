@@ -204,7 +204,7 @@ pkg_prerm_ontarget:${PN}-ui () {
 # sysconfig-settings-firewall package
 PACKAGES += "${PN}-firewall"
 SUMMARY:${PN}-firewall = "System configuration files to enable the firewall"
-DESCRIPTION:${PN}-firewall = "Configuration files that allow NI hardware configuration applications to enable or disable firewalld (SystemSettings firewall.enabled)."
+DESCRIPTION:${PN}-firewall = "Configuration files for the reboot-applied SystemSettings firewall.enabled switch. Firewalld starts only when this setting is true."
 
 SRC_URI:append = "\
 	file://systemsettings/firewall_enable.ini \
