@@ -1,0 +1,17 @@
+#!/bin/sh
+
+nirtcfg=/usr/local/natinst/bin/nirtcfg
+if [ ! -x "$nirtcfg" ]; then
+	echo "firewalld: $nirtcfg not found, cannot read SystemSettings firewall.enabled" >&2
+	exit 1
+fi
+
+if ! enabled=$("$nirtcfg" --get section=SystemSettings,token=firewall.enabled,value=false); then
+	echo "firewalld: could not read SystemSettings firewall.enabled" >&2
+	exit 1
+fi
+
+case "$enabled" in
+	[Tt][Rr][Uu][Ee]) exit 0 ;;
+	*) exit 1 ;;
+esac
