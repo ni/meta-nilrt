@@ -34,6 +34,7 @@ do_kernel_configme[depends] += "libgcc:do_populate_sysroot"
 
 SRC_URI = "\
 	${NILRT_GIT}/${GIT_KERNEL_REPO};protocol=https;branch=${KBRANCH} \
+	file://kernel-security.cfg \
 "
 # Generically use the *latest* rev from the kernel source branch, if none is
 # specified by a recipe.
