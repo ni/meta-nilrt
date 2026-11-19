@@ -91,10 +91,36 @@ pkg_postinst_ontarget:${PN} () {
 	fi
 
 	# Get target class, may be empty-string on VMs
-	class="`/sbin/fw_printenv -n TargetClass || true`"
+	class="`/sbin/fw_printenv -n TargetClass 2>/dev/null || true`"
 
-	# Use persistent names on PXI, not on any other targets
-	if [ "$class" != "PXI" -a "$class" != "USRP Stand-Alone Devices" ]; then
+	# Detect the target and select the net device naming scheme.
+	# For more information, see systemd.net-naming-scheme(7).
+	biosdevname=
+
+	# net.ifnames=0 pre-empts all other logic. Note: net.ifnames=1 is not checked.
+	# This matches 80-net-name-slot.rules.
+	[ -z "$biosdevname" ] && grep -Fq 'net.ifnames=0' /proc/cmdline && biosdevname=0
+
+	# On non-NI hardware, always use modern naming. Note: At present, NI ARM targets
+	# do not set NITarget.
+	[ -z "$biosdevname" ] && [ `/sbin/fw_printenv -n NITarget 2>/dev/null` = false ] && biosdevname=1
+
+	# On PXI Linux RT and USRP, always use modern naming.
+	[ -z "$biosdevname" ] && case "$class" in
+		PXI|"USRP Stand-Alone Devices") biosdevname=1 ;;
+	esac
+
+	# DeviceDesc include the model number, prefixed by a dash. If it is at least
+	# five digits long, always use modern naming.
+	[ -z "$biosdevname" ] && case `/sbin/fw_printenv -n DeviceDesc 2>/dev/null` in
+		*-[0-9][0-9][0-9][0-9][0-9]*) biosdevname=1 ;;
+	esac
+
+	# /lib/udev/rules.d/80-net-name-slot.rules effects modern network device naming.
+	# To disable it, override with an empty file in /etc/udev/rules.d.
+	if (( biosdevname )); then
+		rm -f /etc/udev/rules.d/80-net-name-slot.rules
+	else
 		touch /etc/udev/rules.d/80-net-name-slot.rules
 	fi
 
