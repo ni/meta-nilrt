@@ -1,0 +1,11 @@
+[Unit]
+Description=Create cpusets for National Instruments LabVIEW Real-Time
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/lib/systemd/scripts/nicreatecpusets
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

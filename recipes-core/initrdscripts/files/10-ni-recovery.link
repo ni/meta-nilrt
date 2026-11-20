@@ -1,0 +1,6 @@
+# Recovery provisioning and NI interface renaming expect kernel ethN names.
+[Match]
+OriginalName=eth*
+
+[Link]
+NamePolicy=keep

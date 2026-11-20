@@ -902,6 +902,15 @@ check_settings () {
 ##
 ## Execution starts here
 ##
+case "$MODE" in
+	get|getall|set|setall)
+		if [ -d /run/systemd/system ] && ! in_restoremode; then
+			source /usr/share/ni-shutdown-guard/inhibit-shutdown.sh
+			inhibit_shutdown "$@"
+		fi
+		;;
+esac
+
 protect_stdout
 
 trap cleanup EXIT

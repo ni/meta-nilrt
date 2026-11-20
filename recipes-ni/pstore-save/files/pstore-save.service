@@ -1,0 +1,11 @@
+[Unit]
+Description=Pstore State Recovery Utility
+DefaultDependencies=no
+Before=basic.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/systemd/scripts/pstore-save start
+
+[Install]
+WantedBy=basic.target

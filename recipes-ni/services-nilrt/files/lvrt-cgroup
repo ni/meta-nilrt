@@ -1,0 +1,7 @@
+# This variable can be used to explicitly set the cgroup version used by LabVIEW
+# Real-Time cgroup related init scripts. A value of '0' leaves cgroups under OS
+# control.
+# If unset, the services skip setup without LabVIEW RT. They use v1 for
+# LabVIEW RT 2025 and earlier or on Linux 4.14, and v2 otherwise.
+#
+# LVRT_CGROUP_VERSION=0

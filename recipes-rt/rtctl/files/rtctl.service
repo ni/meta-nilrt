@@ -1,0 +1,13 @@
+[Unit]
+Description=RTCTL Daemon
+DefaultDependencies=no
+Before=halt.target reboot.target
+
+[Service]
+Type=forking
+ExecStart=/usr/lib/systemd/scripts/rtctld start
+ExecStop=/usr/lib/systemd/scripts/rtctld stop
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target halt.target reboot.target

@@ -36,4 +36,11 @@ do_install:append () {
 		echo "HostKey /etc/natinst/share/ssh/ssh_host_rsa_key"     >>${D}${sysconfdir}/ssh/sshd_config
 		echo "HostKey /etc/natinst/share/ssh/ssh_host_ecdsa_key"   >>${D}${sysconfdir}/ssh/sshd_config
 		echo "HostKey /etc/natinst/share/ssh/ssh_host_ed25519_key" >>${D}${sysconfdir}/ssh/sshd_config
+
+	if [ "${INIT_MANAGER}" = "systemd" ]; then
+		# systemd.bbclass removes init.d scripts; custom recovery init still needs this launcher.
+		install -D -m 0755 ${D}${sysconfdir}/init.d/sshd ${D}${libexecdir}/${BPN}/sshd-recovery
+	fi
 }
+
+FILES:${PN}-sshd += "${libexecdir}/${BPN}/sshd-recovery"

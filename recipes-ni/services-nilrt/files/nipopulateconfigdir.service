@@ -1,0 +1,16 @@
+[Unit]
+Description=Populate NILRT runtime config files
+DefaultDependencies=no
+Before=sysinit.target
+ConditionPathIsDirectory=/etc/populateconfig.d
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c '\
+  for i in /etc/populateconfig.d/*.sh; do \
+    [ -x "$i" ] && "$i"; \
+  done; \
+'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=sysinit.target

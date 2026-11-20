@@ -24,6 +24,11 @@ RDEPENDS:${PN} += "\
 	${@bb.utils.contains('COMBINED_FEATURES', 'pci', 'pciutils-ids', '',d)} \
 	${@bb.utils.contains('MACHINE_FEATURES', 'acpi', 'busybox-acpid', '', d)} \
 	${@bb.utils.contains('MACHINE_FEATURES', 'keyboard', 'keymaps', '', d)} \
+	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'systemd', 'sysvinit', d)} \
+	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'systemd-nilrt', 'initscripts', d)} \
+	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'services-nilrt', 'initscripts-nilrt', d)} \
+	${@bb.utils.contains('INIT_MANAGER', 'sysvinit', 'eudev', '', d)} \
+	${@bb.utils.contains('INIT_MANAGER', 'sysvinit', 'modutils-initscripts', '', d)} \
 	avahi-daemon \
 	base-files \
 	base-files-nilrt \
@@ -39,13 +44,10 @@ RDEPENDS:${PN} += "\
 	daemonize \
 	dpkg-start-stop \
 	ethtool \
-	eudev \
 	fw-printenv \
 	glibc-gconv-utf-16 \
 	gptfdisk \
 	init-ifupdown \
-	initscripts \
-	initscripts-nilrt \
 	iproute2 \
 	kmod \
 	libavahi-client \
@@ -58,7 +60,6 @@ RDEPENDS:${PN} += "\
 	libstdc++ \
 	logrotate \
 	lsbinitscripts \
-	modutils-initscripts \
 	netbase \
 	ni-acctsync \
 	ni-hw-scripts \
@@ -84,7 +85,6 @@ RDEPENDS:${PN} += "\
 	sysconfig-settings \
 	sysconfig-settings-console \
 	syslog-ng \
-	sysvinit \
 	tar \
 	udev-extraconf \
 	usbutils \

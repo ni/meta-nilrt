@@ -1,0 +1,12 @@
+[Unit]
+Description=Set reboot type for National Instruments controllers
+DefaultDependencies=no
+Before=reboot.target
+
+[Service]
+Type=oneshot
+ExecStop=/lib/systemd/scripts/nisetreboottype
+RemainAfterExit=yes
+
+[Install]
+WantedBy=reboot.target
