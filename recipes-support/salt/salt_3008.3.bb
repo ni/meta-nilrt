@@ -107,7 +107,7 @@ SUMMARY:${PN}-minion = "client package for salt, the distributed remote executio
 DESCRIPTION:${PN}-minion = "${DESCRIPTION_COMMON} This particular package provides the worker agent for salt."
 RDEPENDS:${PN}-minion = "${PN}-common (= ${EXTENDPKGV}) python3-core python3-msgpack python3-distro"
 RDEPENDS:${PN}-minion += "${@bb.utils.contains('PACKAGECONFIG', 'zeromq', 'python3-pycryptodome python3-pyzmq (>= 20.0.0)', '',d)}"
-#RDEPENDS:${PN}-minion += "${@bb.utils.contains('PACKAGECONFIG', 'tcp', 'python3-pycryptodome', '',d)}"
+RDEPENDS:${PN}-minion += "${@bb.utils.contains('PACKAGECONFIG', 'tcp', 'python3-pycryptodome', '',d)}"
 RRECOMMENDS:${PN}-minion:append:x64 = "dmidecode"
 RSUGGESTS:${PN}-minion = "python3-augeas"
 CONFFILES:${PN}-minion = "${sysconfdir}/${PN}/minion ${sysconfdir}/init.d/${PN}-minion"
