@@ -11,9 +11,11 @@ if [ $# -ne 1 ] && [ $# -ne 2 ]; then
 	exit 1
 fi
 
-case "$(/sbin/runlevel)" in
-*\ 6|*\ 0) echo "$0: called during shutdown; aborting."; exit 6 ;;
-esac
+if [ ! -d /run/systemd/system ]; then
+	case "$(/sbin/runlevel)" in
+	*\ 6|*\ 0) echo "$0: called during shutdown; aborting."; exit 6 ;;
+	esac
+fi
 
 restore_itb_on_failure=no
 restore_defbit_on_failure=no
