@@ -14,6 +14,11 @@ INITSCRIPT_PARAMS = "start 03 2 3 4 5 . stop 81 0 1 6 ."
 
 # Start firewalld only when SystemSettings firewall.enabled in ni-rt.ini is
 # true; it is off by default, leaving the network unfiltered.
+#
+# Each time firewalld is about to start (at boot or by hand), first reconcile
+# the NI drop-ins offline with ni-firewall-apply, so the daemon comes up with
+# them applied and nothing runs while the firewall is disabled. restart waits
+# for the old daemon to exit, so the apply sees it stopped and works offline.
 do_install:append () {
 	initscript=${D}${sysconfdir}/init.d/firewalld
 	sed -i \
@@ -28,14 +33,31 @@ firewalld_enabled() {\
 	enabled=$("$nirtcfg" --get section=SystemSettings,token=firewall.enabled,value=false) || return 1\
 	[ "$(echo "$enabled" | tr "[:upper:]" "[:lower:]")" = "true" ]\
 }' \
+		-e '/^pidfile=/a\
+\
+firewalld_apply_dropins() {\
+	[ -x /usr/bin/ni-firewall-apply ] || return 0\
+	# Already running: start does nothing, so there is nothing to apply first.\
+	[ -f "$pidfile" ] && kill -0 "$(cat "$pidfile")" 2>/dev/null && return 0\
+	# A failed apply must not keep the firewall down.\
+	/usr/bin/ni-firewall-apply --wait || echo "firewalld: ni-firewall-apply failed, starting anyway" >&2\
+}' \
 		-e '/^[[:space:]]*start)$/a\
         firewalld_enabled || { echo "firewalld is disabled (SystemSettings firewall.enabled)"; exit 0; }' \
 		-e '/^[[:space:]]*restart)$/a\
         firewalld_enabled || { echo "firewalld is disabled (SystemSettings firewall.enabled)"; "$0" stop; exit 0; }' \
+		-e '/^[[:space:]]*restart)$/,/;;/s/^\([[:space:]]*start-stop-daemon --stop --quiet --pidfile \$pidfile\)$/\1 --retry 5/' \
+		-e '/^[[:space:]]*echo -n "Starting firewalld: "$/i\
+        firewalld_apply_dropins' \
 		$initscript
 	if ! grep -q '^firewalld_enabled() {$' $initscript || \
 	   ! grep -A1 -E '^[[:space:]]*start\)$' $initscript | grep -q 'firewalld_enabled ||' || \
 	   ! grep -A1 -E '^[[:space:]]*restart\)$' $initscript | grep -q 'firewalld_enabled ||'; then
 		bbfatal "could not add the firewall.enabled check to the firewalld init script"
+	fi
+	if ! grep -q '^firewalld_apply_dropins() {$' $initscript || \
+	   [ "$(grep -c '^[[:space:]]*firewalld_apply_dropins$' $initscript)" != 2 ] || \
+	   ! grep -q -- '--pidfile \$pidfile --retry 5$' $initscript; then
+		bbfatal "could not add the ni-firewall-apply step to the firewalld init script"
 	fi
 }

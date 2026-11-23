@@ -1,8 +1,9 @@
 SUMMARY = "Declarative firewalld drop-in contract and apply hook for NI software"
-DESCRIPTION = "Provides /etc/ni/firewall/open.d and a boot-time hook that \
-reconciles drop-in markers with firewalld (reusing ni-firewall-open), so any \
-package can open a firewalld service in the default zone by shipping a service \
-XML definition plus a marker file."
+DESCRIPTION = "Provides /etc/ni/firewall/open.d and an apply hook that \
+reconciles drop-in markers with firewalld (reusing ni-firewall-open) after \
+each opkg transaction and before firewalld starts, so any package can open a \
+firewalld service in the default zone by shipping a service XML definition \
+plus a marker file."
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 S = "${UNPACKDIR}"
@@ -10,20 +11,13 @@ PV = "1.0"
 
 SRC_URI = "\
 	file://ni-firewall-apply \
-	file://ni-firewall-apply.init \
 	file://05-ni-firewall-apply \
 "
 
-inherit update-rc.d
-
-INITSCRIPT_NAME = "ni-firewall-apply"
-# Reconcile the drop-ins offline at S02, before firewalld (S03) starts, so
-# firewalld comes up with them already applied; no stop action.
-INITSCRIPT_PARAMS = "start 02 2 3 4 5 . stop 75 0 1 6 ."
-
+# No init script of its own: the firewalld init script runs ni-firewall-apply
+# before it starts the daemon (see the firewalld bbappend).
 do_install () {
 	install -D -m 0755 ${UNPACKDIR}/ni-firewall-apply ${D}${bindir}/ni-firewall-apply
-	install -D -m 0755 ${UNPACKDIR}/ni-firewall-apply.init ${D}${sysconfdir}/init.d/ni-firewall-apply
 	# Re-apply after each opkg transaction (needs opkg post_invoke support).
 	install -D -m 0755 ${UNPACKDIR}/05-ni-firewall-apply ${D}${sysconfdir}/opkg/post_invoke.d/05-ni-firewall-apply
 

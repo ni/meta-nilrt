@@ -20,6 +20,12 @@
 # recorded in its own state file, so services opened outside this mechanism
 # (such as the core NI services opened by the ni-firewalld-servicedefs postinst)
 # are never disturbed.
+#
+# Usage: ni-firewall-apply [--wait]
+#   --wait  if another run is in progress, wait for it to finish (up to
+#           NI_FIREWALL_APPLY_TIMEOUT seconds, default 300) and then apply,
+#           instead of skipping. Used right before firewalld starts, so the
+#           daemon never loads a zone that another run is still updating.
 
 set -u
 # Service names are literals; disable globbing so unquoted list expansions
@@ -30,19 +36,28 @@ OPEN_D=${NI_FIREWALL_OPEN_D:-/etc/ni/firewall/open.d}
 STATE_DIR=${NI_FIREWALL_STATE_DIR:-/var/lib/ni/firewall}
 STATE_FILE=$STATE_DIR/applied
 LOCK_FILE=$STATE_DIR/apply.lock
+WAIT_TIMEOUT=${NI_FIREWALL_APPLY_TIMEOUT:-300}
 
 prog=${0##*/}
+
+wait=0
+case $# in
+0) ;;
+1) [ "$1" = --wait ] && wait=1 || { echo "usage: $prog [--wait]" >&2; exit 2; } ;;
+*) echo "usage: $prog [--wait]" >&2; exit 2 ;;
+esac
 
 if ! mkdir -p "$STATE_DIR"; then
 	echo "$prog: cannot create state directory '$STATE_DIR'" >&2
 	exit 1
 fi
 
-# Serialize concurrent runs (boot plus a later package operation). Non-blocking:
-# if another run already holds the lock it will do the reconciliation, so just
-# exit cleanly rather than stacking a second pass. flock is required (RDEPENDS);
-# a missing flock or an unopenable lock file is a hard error, distinct from the
-# lock being held by another run.
+# Serialize concurrent runs (boot plus a later package operation). Non-blocking
+# by default: if another run already holds the lock it will do the
+# reconciliation, so just exit cleanly rather than stacking a second pass. With
+# --wait, block until that run finishes and then reconcile. flock is required
+# (RDEPENDS); a missing flock or an unopenable lock file is a hard error,
+# distinct from the lock being held by another run.
 if ! command -v flock >/dev/null 2>&1; then
 	echo "$prog: flock not found; refusing to run without locking" >&2
 	exit 1
@@ -52,7 +67,12 @@ if ! touch "$LOCK_FILE" 2>/dev/null; then
 	exit 1
 fi
 exec 9>"$LOCK_FILE"
-if ! flock -n 9; then
+if [ "$wait" = 1 ]; then
+	if ! flock -w "$WAIT_TIMEOUT" 9; then
+		echo "$prog: another apply run did not finish within ${WAIT_TIMEOUT}s" >&2
+		exit 1
+	fi
+elif ! flock -n 9; then
 	echo "$prog: another apply run is in progress; skipping" >&2
 	exit 0
 fi
