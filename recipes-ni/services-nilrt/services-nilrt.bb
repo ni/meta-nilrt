@@ -43,7 +43,14 @@ SRC_URI = "\
 	file://wirelesssetdomain \
 "
 
-SRC_URI:append:xilinx-zynq = " file://mountutils"
+# nisetbootcount and niusbgadget are shared with the SysVinit recipe, found via FILESEXTRAPATHS above.
+SRC_URI:append:xilinx-zynq = " \
+	file://mountutils \
+	file://nisetbootcount \
+	file://nisetbootcount.service \
+	file://niusbgadget \
+	file://niusbgadget.service \
+"
 
 inherit systemd
 SYSTEMD_PACKAGES = "${PN}"
@@ -133,6 +140,13 @@ install_mountutils () {
 	install -D -m 0755 ${S}/mountutils ${D}${sysconfdir}/init.d/mountutils
 }
 
+do_install:append:xilinx-zynq () {
+	install -m 0644 ${S}/nisetbootcount.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${UNPACKDIR}/nisetbootcount ${D}${libdir}/systemd/scripts
+	install -m 0644 ${S}/niusbgadget.service ${D}${systemd_unitdir}/system
+	install -m 0755 ${UNPACKDIR}/niusbgadget ${D}${libdir}/systemd/scripts
+}
+
 FILES:${PN} += " \
 	${systemd_unitdir}/system/cleanvarcache.service \
 	${systemd_unitdir}/system/firewall.service \
@@ -167,7 +181,15 @@ FILES:${PN} += " \
 	${libdir}/systemd/scripts/wirelesssetdomain \
 "
 
-FILES:${PN}:append:xilinx-zynq = " ${sysconfdir}/init.d/mountutils"
+FILES:${PN}:append:xilinx-zynq = " \
+	${sysconfdir}/init.d/mountutils \
+	${systemd_unitdir}/system/nisetbootcount.service \
+	${libdir}/systemd/scripts/nisetbootcount \
+	${systemd_unitdir}/system/niusbgadget.service \
+	${libdir}/systemd/scripts/niusbgadget \
+"
+
+SYSTEMD_SERVICE:${PN}:append:xilinx-zynq = " nisetbootcount.service niusbgadget.service"
 
 RDEPENDS:${PN} += "\
 	bash \

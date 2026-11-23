@@ -1,0 +1,15 @@
+[Unit]
+Description=USB Ethernet and Mass Storage Gadget
+DefaultDependencies=no
+After=local-fs.target
+Before=shutdown.target
+Conflicts=shutdown.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/lib/systemd/scripts/niusbgadget start
+ExecStop=/lib/systemd/scripts/niusbgadget stop
+
+[Install]
+WantedBy=multi-user.target
