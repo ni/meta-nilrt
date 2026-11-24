@@ -51,5 +51,5 @@ FILES:${PN} += "\
 
 RDEPENDS:${PN} += "\
 	bash \
-	${@bb.utils.contains('INIT_MANAGER','sysvinit',' initscripts',' systemd',d)} \
+	${@bb.utils.contains('INIT_MANAGER','sysvinit',' initscripts',' systemd services-nilrt',d)} \
 "

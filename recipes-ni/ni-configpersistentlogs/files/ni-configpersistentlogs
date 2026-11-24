@@ -45,12 +45,12 @@ reconcile_var_log() {
     fi
 }
 
-reconcile_var_log
-
 if [ ! -f "$FILE_PATH_VOLATILES_CONFIG" ]; then
    [ "${VERBOSE}" != "no" ] && echo "$FILE_PATH_VOLATILES_CONFIG does not exist."
    exit 0
 fi
+
+reconcile_var_log
 
 # This grep command looks for the exact new line.
 OUTPUT=$(grep "^$NEW_VAR_LOG_LINE$" "$FILE_PATH_VOLATILES_CONFIG" 2>&1)
@@ -64,7 +64,7 @@ elif [ "$EXIT_CODE" = 1 ]; then
     # This grep command looks for the exact old line, which we want to replace with the new line.
     OUTPUT=$(grep "^$OLD_VAR_LOG_LINE$" "$FILE_PATH_VOLATILES_CONFIG" 2>&1)
     EXIT_CODE="$?"
- 
+
     if [ "$EXIT_CODE" = 0 ]; then
         # This sed command replaces the old line with the new line.
         if ! OUTPUT=$(sed "s|^$OLD_VAR_LOG_LINE$|$NEW_VAR_LOG_LINE|" -i "$FILE_PATH_VOLATILES_CONFIG" 2>&1)

@@ -1,7 +1,8 @@
 [Unit]
 Description=NI Persistent Logs Configuration Utility
 DefaultDependencies=no
-After=local-fs.target
+Requires=mountconfig.service
+After=local-fs.target mountconfig.service
 Before=systemd-tmpfiles-setup.service systemd-journald.service shutdown.target
 Conflicts=shutdown.target
 
