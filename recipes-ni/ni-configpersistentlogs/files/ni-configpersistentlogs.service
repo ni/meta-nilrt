@@ -1,9 +1,13 @@
 [Unit]
 Description=NI Persistent Logs Configuration Utility
+DefaultDependencies=no
+After=local-fs.target
+Before=systemd-tmpfiles-setup.service systemd-journald.service shutdown.target
+Conflicts=shutdown.target
 
 [Service]
 Type=oneshot
 ExecStart=/usr/lib/systemd/scripts/ni-configpersistentlogs
 
 [Install]
-WantedBy=multi-user.target rescue.target
+WantedBy=sysinit.target
