@@ -21,12 +21,19 @@ inherit allarch systemd
 PACKAGE_ARCH = "all"
 PACKAGES:remove = "${PN}-staticdev ${PN}-dev ${PN}-dbg"
 
+SYSTEMD_SERVICE:${PN} = "ni-rename-ifaces.service nisetserialnumber.service"
 
 do_install () {
 	install -d ${D}${script_location}
 
 	install -m 0755 ${S}/init.d/ni-rename-ifaces     ${D}${script_location}
 	install -m 0755 ${S}/init.d/nisetserialnumber    ${D}${script_location}
+
+	if ${@bb.utils.contains('INIT_MANAGER','systemd','true','false',d)}; then
+		install -d ${D}${systemd_system_unitdir}
+		install -m 0644 ${S}/ni-rename-ifaces.service ${D}${systemd_system_unitdir}/
+		install -m 0644 ${S}/nisetserialnumber.service ${D}${systemd_system_unitdir}/
+	fi
 }
 
 python __anonymous() {
