@@ -24,7 +24,7 @@ RDEPENDS:${PN} += "\
 	parted \
 	procps \
 	sed \
-	sysvinit \
+	${@bb.utils.contains('INIT_MANAGER', 'sysvinit', 'sysvinit', '', d)} \
 	tar \
 	util-linux \
 	util-linux-agetty \
