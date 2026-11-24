@@ -193,6 +193,7 @@ INITSCRIPT_NAME:${PN}-ui = "nisetembeddeduixml"
 INITSCRIPT_PARAMS:${PN}-ui = "start 20 5 ."
 
 inherit systemd
+SYSTEMD_PACKAGES = "${PN}-ui"
 SYSTEMD_SERVICE:${PN}-ui = "nisetembeddeduixml.service"
 SYSTEMD_AUTO_ENABLE:${PN}-ui = "enable"
 
