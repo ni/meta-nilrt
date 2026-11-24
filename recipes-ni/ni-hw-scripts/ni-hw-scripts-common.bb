@@ -71,4 +71,5 @@ FILES:${PN} += "\
 
 RDEPENDS:${PN} += "\
 	bash \
+	${@bb.utils.contains('INIT_MANAGER','systemd','ni-modules-autoload','',d)} \
 "
