@@ -35,7 +35,19 @@ pkg_postinst:${PN} () {
 		OPT="-s"
 	fi
 
-	update-rc.d $OPT ni-rename-ifaces    start 38 S .
+	# Rename before sysctl drop-ins (S34) and /etc/sysctl.conf (S36).
+	# Migrate the standard existing link when upgrading an installed system.
+	if [ -L "$D${sysconfdir}/rcS.d/S38ni-rename-ifaces" ] && \
+	   [ "$(readlink "$D${sysconfdir}/rcS.d/S38ni-rename-ifaces")" = "../init.d/ni-rename-ifaces" ] && \
+	   [ ! -e "$D${sysconfdir}/rcS.d/S33ni-rename-ifaces" ] && \
+	   [ ! -L "$D${sysconfdir}/rcS.d/S33ni-rename-ifaces" ]; then
+		if ! mv "$D${sysconfdir}/rcS.d/S38ni-rename-ifaces" \
+		        "$D${sysconfdir}/rcS.d/S33ni-rename-ifaces"; then
+			echo "ni-hw-scripts-common: failed to migrate ni-rename-ifaces startup link" >&2
+			exit 1
+		fi
+	fi
+	update-rc.d $OPT ni-rename-ifaces    start 33 S .
 	update-rc.d $OPT nisetserialnumber   start 38 S .
 }
 

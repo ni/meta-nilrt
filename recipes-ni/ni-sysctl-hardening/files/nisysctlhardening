@@ -1,0 +1,75 @@
+#!/bin/sh
+# Copyright (c) 2026 National Instruments.
+# All rights reserved.
+#
+# Apply the kernel sysctl drop-ins in /etc/sysctl.d/ in lexical order.
+# bootmisc.sh applies only /etc/sysctl.conf, and runs after this script, so
+# settings in /etc/sysctl.conf take precedence over these defaults.
+
+SYSCTL_DIR=/etc/sysctl.d
+rc=0
+
+apply_interface_default () {
+	family=$1
+	setting_name=$2
+	default=/proc/sys/net/${family}/conf/default/${setting_name}
+	if [ ! -r "${default}" ]; then
+		echo "nisysctlhardening: ${default} is unavailable" >&2
+		rc=1
+		return
+	fi
+	if ! IFS= read -r default_value < "${default}"; then
+		echo "nisysctlhardening: failed to read ${default}" >&2
+		rc=1
+		return
+	fi
+	for setting in /proc/sys/net/${family}/conf/*/${setting_name}; do
+		case "${setting}" in
+			*/all/*|*/default/*) continue ;;
+		esac
+		if [ -e "${setting}" ] && ! printf '%s\n' "${default_value}" > "${setting}"; then
+			echo "nisysctlhardening: failed to apply ${setting}" >&2
+			rc=1
+		fi
+	done
+}
+
+case "$1" in
+	start)
+		if [ ! -e /proc/sys/net/ipv6/conf/default/accept_redirects ]; then
+			if ! /sbin/modprobe ipv6; then
+				echo "nisysctlhardening: failed to load IPv6 before applying settings" >&2
+				rc=1
+			fi
+		fi
+		[ "${VERBOSE}" != "no" ] && echo -n "Applying ${SYSCTL_DIR} settings:"
+		for conf in "${SYSCTL_DIR}"/*.conf; do
+			[ -f "${conf}" ] || continue
+			# -e: ignore keys the running kernel does not provide
+			if ! /sbin/sysctl -e -p "${conf}" >/dev/null; then
+				echo "nisysctlhardening: failed to apply some settings from ${conf}" >&2
+				rc=1
+			fi
+			if [ "${conf}" = "${SYSCTL_DIR}/60-ni-hardening.conf" ]; then
+				apply_interface_default ipv4 accept_redirects
+				apply_interface_default ipv4 send_redirects
+				apply_interface_default ipv6 accept_redirects
+			fi
+		done
+		if [ "${VERBOSE}" != "no" ]; then
+			if [ "${rc}" -eq 0 ]; then
+				echo " done"
+			else
+				echo " failed"
+			fi
+		fi
+		;;
+	stop|restart|force-reload|status)
+		;;
+	*)
+		echo "Usage: $0 start" >&2
+		exit 1
+		;;
+esac
+
+exit "${rc}"
