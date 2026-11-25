@@ -17,7 +17,9 @@ ROOTFS_RO_UNNEEDED = "\
 IMAGE_INSTALL_NODEPS += "ni-arch-gen"
 
 # nirtmdnsd provides NI RT mDNS service for target discovery.
-IMAGE_INSTALL_NODEPS += "nirtmdnsd"
+# ni-avahi-client provides libniAvahiClient.so.14, which nirtmdnsd links
+# against but does not declare as a dependency.
+IMAGE_INSTALL_NODEPS += "nirtmdnsd ni-avahi-client"
 
 # ni-sysapi-sshcli is required by both container variants; install it
 # explicitly since NODEPS skips dependency resolution.
