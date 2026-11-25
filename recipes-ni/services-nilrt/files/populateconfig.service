@@ -1,0 +1,18 @@
+[Unit]
+Description=Populate configuration for National Instruments LabVIEW Real-Time
+DefaultDependencies=no
+Requires=mountconfig.service
+After=mountconfig.service
+Before=sysinit.target shutdown.target
+Conflicts=shutdown.target
+# Do not populate the root filesystem directory if the config mount is absent.
+AssertPathIsMountPoint=/etc/natinst/share
+
+[Service]
+Type=oneshot
+ExecStart=/lib/systemd/scripts/populateconfig start
+ExecStop=/lib/systemd/scripts/populateconfig start
+RemainAfterExit=yes
+
+[Install]
+WantedBy=sysinit.target

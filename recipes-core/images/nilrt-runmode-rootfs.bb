@@ -34,6 +34,8 @@ IMAGE_INSTALL_NODEPS += "\
 "
 
 IMAGE_FEATURES += "allow-setting-blank-passwords"
+PACKAGE_WRITE_DEPS:append = " ${@bb.utils.contains('DISTRO_FEATURES','systemd','systemd-systemctl-native','',d)}"
+DEPENDS:append = " ${@bb.utils.contains('DISTRO_FEATURES','systemd','systemd-systemctl-native','',d)}"
 
 # ==============================================================================
 # IMAGE HERITAGE

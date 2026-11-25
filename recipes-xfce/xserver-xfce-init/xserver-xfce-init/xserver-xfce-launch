@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Only start the XFCE session when the embedded UI is enabled in system configuration.
+if /usr/local/natinst/bin/nirtcfg --get section=SYSTEMSETTINGS,token=ui.enabled,value=False \
+	| grep -iq false
+then
+	echo "$0: Disabled in system configuration." >&2
+	exit 0
+fi
+
+exec /usr/bin/startxfce4

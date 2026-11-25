@@ -902,6 +902,15 @@ check_settings () {
 ##
 ## Execution starts here
 ##
+case "$MODE" in
+	get|getall|set|setall)
+		if [ -d /run/systemd/system ] && ! in_restoremode; then
+			source /usr/share/ni-shutdown-guard/inhibit-shutdown.sh
+			inhibit_shutdown "$@"
+		fi
+		;;
+esac
+
 protect_stdout
 
 trap cleanup EXIT
@@ -910,7 +919,7 @@ trap 'handle_err ${BASH_SOURCE} ${LINENO} ${FUNCNAME:-unknown} $?' ERR
 [[ -f $SCRIPT_ROOTFS ]] && . "$SCRIPT_ROOTFS"
 [[ -f $SCRIPT_PRE ]] && . "$SCRIPT_PRE"
 
-if ! in_restoremode; then
+if ! in_restoremode && [ ! -d /run/systemd/system ]; then
 	case "$(runlevel)" in
 	*\ 6|*\ 0) die ILLTIMED "Called during shutdown; aborting." ;;
 	esac

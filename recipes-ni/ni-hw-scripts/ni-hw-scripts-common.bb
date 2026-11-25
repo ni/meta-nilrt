@@ -5,57 +5,71 @@ LICENSE = "MIT"
 SECTION = "base"
 
 DEPENDS += "\
-	update-rc.d-native \
+	${@bb.utils.contains('INIT_MANAGER','sysvinit','update-rc.d-native','systemd-systemctl-native',d)} \
 "
 
 SRC_URI += "\
 	file://init.d/ni-rename-ifaces \
 	file://init.d/nisetserialnumber \
+	file://ni-rename-ifaces.service \
+	file://nisetserialnumber.service \
 "
 
 S = "${UNPACKDIR}"
 
-
-inherit allarch
+inherit allarch systemd
 PACKAGE_ARCH = "all"
 PACKAGES:remove = "${PN}-staticdev ${PN}-dev ${PN}-dbg"
 
+SYSTEMD_SERVICE:${PN} = "ni-rename-ifaces.service nisetserialnumber.service"
 
 do_install () {
-	install -d ${D}${sysconfdir}/init.d/
+	install -d ${D}${script_location}
 
-	install -m 0755 ${S}/init.d/ni-rename-ifaces     ${D}${sysconfdir}/init.d
-	install -m 0755 ${S}/init.d/nisetserialnumber    ${D}${sysconfdir}/init.d
-}
+	install -m 0755 ${S}/init.d/ni-rename-ifaces     ${D}${script_location}
+	install -m 0755 ${S}/init.d/nisetserialnumber    ${D}${script_location}
 
-pkg_postinst:${PN} () {
-	if [ -n "$D" ]; then
-		OPT="-r $D"
-	else
-		OPT="-s"
+	if ${@bb.utils.contains('INIT_MANAGER','systemd','true','false',d)}; then
+		install -d ${D}${systemd_system_unitdir}
+		install -m 0644 ${S}/ni-rename-ifaces.service ${D}${systemd_system_unitdir}/
+		install -m 0644 ${S}/nisetserialnumber.service ${D}${systemd_system_unitdir}/
 	fi
-
-	update-rc.d $OPT ni-rename-ifaces    start 38 S .
-	update-rc.d $OPT nisetserialnumber   start 38 S .
 }
 
-pkg_postrm:${PN} () {
-	if [ -n "$D" ]; then
-		OPT="-f -r $D"
-	else
-		OPT="-f"
-	fi
+python __anonymous() {
+    if bb.utils.contains('INIT_MANAGER','sysvinit',True,False,d):
+        d.appendVar('pkg_postinst:${PN}',"""
+if [ -n "$D" ]; then
+    OPT="-r $D"
+else
+    OPT="-s"
+fi
 
-	update-rc.d $OPT ni-rename-ifaces  remove
-	update-rc.d $OPT nisetserialnumber remove
+update-rc.d $OPT ni-rename-ifaces    start 38 S .
+update-rc.d $OPT nisetserialnumber   start 38 S .
+"""
+)
+        d.appendVar('pkg_postrm:${PN}',"""
+if [ -n "$D" ]; then
+    OPT="-f -r $D"
+else
+    OPT="-f"
+fi
+
+update-rc.d $OPT ni-rename-ifaces  remove
+update-rc.d $OPT nisetserialnumber remove
+""")
 }
 
-
+script_location = "${@bb.utils.contains('INIT_MANAGER','sysvinit','${sysconfdir}/init.d','${systemd_unitdir}/scripts',d)}"
 FILES:${PN} += "\
-	${sysconfdir}/init.d/ni-rename-ifaces \
-	${sysconfdir}/init.d/nisetserialnumber \
+	${script_location}/ni-rename-ifaces \
+	${script_location}/nisetserialnumber \
+	${@bb.utils.contains('INIT_MANAGER','systemd','${systemd_system_unitdir}/ni-rename-ifaces.service','',d)} \
+	${@bb.utils.contains('INIT_MANAGER','systemd','${systemd_system_unitdir}/nisetserialnumber.service','',d)} \
 "
 
 RDEPENDS:${PN} += "\
 	bash \
+	${@bb.utils.contains('INIT_MANAGER','systemd','ni-modules-autoload','',d)} \
 "

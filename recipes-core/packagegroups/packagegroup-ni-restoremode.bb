@@ -6,6 +6,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} += "\
+	${@bb.utils.contains('INIT_MANAGER', 'systemd', 'udev udev-hwdb', 'sysvinit eudev', d)} \
 	base-passwd \
 	bash \
 	busybox \
@@ -33,7 +34,6 @@ RDEPENDS:${PN} += "\
 	parted \
 	procps \
 	sed \
-	sysvinit \
 	tar \
 	util-linux \
 	util-linux-agetty \
@@ -44,7 +44,6 @@ RDEPENDS:${PN}:append:x64 = "\
 	dmidecode           \
 	efibootmgr          \
 	efivar              \
-	eudev               \
 	busybox-ifplugd     \
 	busybox-zcip        \
 	grub                \

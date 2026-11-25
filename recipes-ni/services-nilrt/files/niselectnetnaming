@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# On safe-mode only, and on every boot, detect the target and select the net device naming scheme.
+# Runs before systemd-udevd, which reads .link policies when it starts.
+
+class="`/sbin/fw_printenv -n TargetClass`"
+
+# Use persistent names on PXI, not on any other targets
+[ "$class" = "PXI" ] && exit 0
+
+# Keep the kernel-assigned ethN names that NI scripts expect
+mkdir -p /run/systemd/network
+cat > /run/systemd/network/50-ni-kernel-names.link <<'EOF'
+[Match]
+OriginalName=*
+
+[Link]
+NamePolicy=kernel
+EOF
+

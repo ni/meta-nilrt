@@ -1,0 +1,13 @@
+[Unit]
+Description=NI Rename Network Interfaces
+DefaultDependencies=no
+Requires=systemd-udev-trigger.service ni-modules-autoload.service
+After=systemd-udev-trigger.service ni-modules-autoload.service
+Before=basic.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/systemd/scripts/ni-rename-ifaces start
+
+[Install]
+WantedBy=basic.target

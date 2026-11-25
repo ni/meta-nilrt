@@ -1,0 +1,13 @@
+[Unit]
+Description=Holdoff Shutdown/Reboot Guard
+DefaultDependencies=no
+# This is a fallback check, not an ordering barrier for other units' stop jobs.
+# System maintenance tools hold a logind inhibitor before shutdown is queued.
+Before=halt.target reboot.target shutdown.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/systemd/scripts/holdoff-shutdown stop
+
+[Install]
+WantedBy=halt.target reboot.target shutdown.target

@@ -11,6 +11,7 @@ PV = "1.0"
 SRC_URI = " \
 	file://xserver-xfce \
 	file://xserver-xfce.service \
+	file://xserver-xfce-launch \
 	file://xserver-xfce.conf \
 	file://xserver-logrotate.conf \
 "
@@ -34,15 +35,19 @@ do_install() {
 	fi
 	if ${@bb.utils.contains('DISTRO_FEATURES','systemd','true','false',d)}; then
 		install -d ${D}${systemd_unitdir}/system
-		install -m 0644 xserver-xfce.conf ${D}${sysconfdir}/default/xserver-xfce
+		install -d ${D}${systemd_unitdir}/scripts
 		install -m 0644 ${S}/xserver-xfce.service ${D}${systemd_unitdir}/system
+		install -m 0755 ${S}/xserver-xfce-launch ${D}${systemd_unitdir}/scripts/xserver-xfce-launch
 	fi
 	install -d ${D}${sysconfdir}/logrotate.d
 	install -m 0644 xserver-logrotate.conf ${D}${sysconfdir}/logrotate.d/xserver.conf
 }
 
 
-FILES_${PN} += "${sysconfdir}/default/xserver-xfce"
+FILES:${PN} += "${sysconfdir}/default/xserver-xfce"
+inherit systemd
+FILES:${PN} += "${@bb.utils.contains('DISTRO_FEATURES','systemd','${systemd_unitdir}/system/xserver-xfce.service ${systemd_unitdir}/scripts/xserver-xfce-launch','', d)}"
+
 # Get util-linux for su
 RDEPENDS:${PN} = "xserver-xorg xinit xfce4-session util-linux"
 RCONFLICTS:${PN} = "xserver-nodm-init"

@@ -1,0 +1,13 @@
+[Unit]
+Description=Select Network Device Naming Scheme
+DefaultDependencies=no
+# Block-device mounts need udev, so this must not wait for local-fs.target.
+Before=systemd-udevd.service systemd-udev-trigger.service
+ConditionPathExists=/etc/natinst/safemode
+
+[Service]
+Type=oneshot
+ExecStart=/lib/systemd/scripts/niselectnetnaming
+
+[Install]
+WantedBy=multi-user.target

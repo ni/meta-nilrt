@@ -1,0 +1,11 @@
+[Unit]
+Description=RTCTL Daemon
+
+[Service]
+Type=forking
+ExecStart=/usr/lib/systemd/scripts/rtctld start
+ExecStop=/usr/lib/systemd/scripts/rtctld stop
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

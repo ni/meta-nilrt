@@ -8,30 +8,8 @@
 # Short-Description: Setup cgroups LabVIEW RT & assign tasks
 ### END INIT INFO
 
-identify_lvrt_cgroup_version()
-{
-	# Linux 4.14 requires cgroups v1
-	local kernel_version
-	kernel_version="$(uname -r)"
-	case "$kernel_version" in
-		4.14.*) echo 1; return ;;
-	esac
-
-	local lvrt_installed
-	lvrt_installed=$(opkg list-installed ni-labview-realtime 2>/dev/null)
-
-	# Default to cgroups v2 if LabVIEW RT is not installed
-	[ -z "$lvrt_installed" ] && echo 2 && return
-
-	local lvrt_version major_version
-	lvrt_version=$(awk '{print $3}' <<<"$lvrt_installed")
-	major_version=${lvrt_version%%.*}
-
-	# LabVIEW RT 2025 and prior versions only support cgroups v1
-	[ -n "$major_version" ] && [ "$major_version" -le 25 ] && echo 1 || echo 2
-}
-
-LVRT_CGROUP_VERSION=$(identify_lvrt_cgroup_version)
+. /usr/share/ni-cgroups/lvrt-cgroup-version.sh
+LVRT_CGROUP_VERSION=$(select_lvrt_cgroup_version "$(lvrt_installed_package)")
 
 if [ "$LVRT_CGROUP_VERSION" -eq 1 ]; then
         /etc/init.d/ni-cgroups-v1 "$1"

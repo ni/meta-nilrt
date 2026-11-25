@@ -17,6 +17,8 @@ SRC_URI = "\
 	file://ni_provisioning.answers.default \
 "
 
+SRC_URI += "${@bb.utils.contains('INIT_MANAGER', 'systemd', 'file://10-ni-recovery.link', '', d)}"
+
 SRC_URI:append:xilinx-zynqhf = "\
 	file://disk_config_xilinx-zynqhf \
 "
@@ -41,6 +43,17 @@ do_install() {
 
 	install -d ${D}${sysconfdir}/init.d
 	install -m 0755 ${UNPACKDIR}/ni-restore-provisioning.init ${D}${sysconfdir}/init.d/ni-restore-provisioning
+	rename_dir=${sysconfdir}/init.d
+	sshd_start=${sysconfdir}/init.d/sshd
+	if [ "${INIT_MANAGER}" = "systemd" ]; then
+		rename_dir=${systemd_unitdir}/scripts
+		sshd_start=${libexecdir}/openssh/sshd-recovery
+		install -D -m 0644 ${UNPACKDIR}/10-ni-recovery.link ${D}${sysconfdir}/systemd/network/10-ni-recovery.link
+	fi
+	sed -i -e 's|@INIT_MANAGER@|${INIT_MANAGER}|g' \
+		-e "s|@RENAME_DIR@|$rename_dir|g" \
+		-e "s|@SSHD_START@|$sshd_start|g" \
+		${D}${sysconfdir}/init.d/ni-restore-provisioning
 
 	install -d ${D}/${sysconfdir}/profile.d
 	install -m 0644 ${UNPACKDIR}/00-init-restore-mode.sh ${D}/${sysconfdir}/profile.d/

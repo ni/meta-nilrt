@@ -24,7 +24,7 @@ RDEPENDS:${PN} += "\
 	parted \
 	procps \
 	sed \
-	sysvinit \
+	${@bb.utils.contains('INIT_MANAGER', 'sysvinit', 'sysvinit', '', d)} \
 	tar \
 	util-linux \
 	util-linux-agetty \
@@ -43,7 +43,7 @@ RDEPENDS:${PN}:append:x64 = "\
 	dmidecode           \
 	efibootmgr          \
 	efivar              \
-	eudev               \
+	${@bb.utils.contains('INIT_MANAGER', 'sysvinit', 'eudev', '', d)} \
 	grub                \
 	grub-editenv        \
 	grub-efi            \
