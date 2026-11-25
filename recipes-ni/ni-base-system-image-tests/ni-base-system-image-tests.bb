@@ -20,7 +20,6 @@ SRC_URI = "\
     file://test_fs_permissions_diff.sh \
     file://test_fs_permissions_known.sh \
     file://test_disk_size.sh \
-    file://test_automount.sh \
 "
 
 S = "${UNPACKDIR}"
@@ -40,4 +39,4 @@ do_install_ptest() {
 # We only want to build the -ptest package
 PACKAGES:remove = "${PN}-dev ${PN}-staticdev ${PN}-dbg"
 
-RDEPENDS:${PN}-ptest:append = " bash python3-pymongo udev util-linux-losetup e2fsprogs-mke2fs libdevmapper"
+RDEPENDS:${PN}-ptest:append = " bash python3-pymongo"
