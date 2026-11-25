@@ -6,7 +6,7 @@ NILRT_FEED_SBOM_MD5 = "${SPDXDIR}/feed-package-md5.json"
 NILRT_FEED_SBOM_FEEDS ??= "NI-main-software NI-dist"
 
 SPDX_EXTERNAL_PACKAGE_FUNC = ""
-SPDX_EXTERNAL_PACKAGE_FUNC:task-create_rootfs_spdx = "${@'nilrt_feed_spdx_package' if d.getVar('BUILD_IMAGES_FROM_FEEDS') == '1' and bb.data.inherits_class('image', d) else ''}"
+SPDX_EXTERNAL_PACKAGE_FUNC:task-create-rootfs-spdx = "${@'nilrt_feed_spdx_package' if d.getVar('BUILD_IMAGES_FROM_FEEDS') == '1' and bb.data.inherits_class('image', d) else ''}"
 
 ROOTFS_POSTUNINSTALL_COMMAND:append = " nilrt_feed_spdx_collect_checksums;"
 do_rootfs[file-checksums] += "${NILRT_FEED_SBOM_LIB}:True"
