@@ -116,7 +116,6 @@ RDEPENDS:${PN} = "\
 	salt-common \
 	salt-minion \
 	sysconfig-settings \
-	sysconfig-settings-worldwritable \
 	systemimageupdateinfo \
 	trace-cmd \
 	util-linux-sfdisk \
