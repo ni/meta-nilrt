@@ -3,7 +3,7 @@
 
 PETTER=/usr/sbin/niwatchdogpet
 
-class="`/sbin/fw_printenv -n TargetClass`"
+class="`/sbin/fw_printenv -n TargetClass 2>/dev/null`"
 
 # PXI targets use the built-in watchdog rather than CPLD
 [ "$class" = "PXI" ] && exit 0 

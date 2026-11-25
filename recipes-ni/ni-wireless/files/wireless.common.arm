@@ -9,7 +9,7 @@ setup_wireless()
 
     export DISABLE_CERTIFICATE_TIME_STAMP_VERIFICATION=1
 
-    WIRELESS_REGION_FACTORY=`fw_printenv -n wirelessRegionFactory`
+    WIRELESS_REGION_FACTORY=`fw_printenv -n wirelessRegionFactory 2>/dev/null`
     if [ $? -ne 0 ]; then
         WIRELESS_REGION_FACTORY=-1
     fi
