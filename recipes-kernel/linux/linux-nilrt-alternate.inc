@@ -4,6 +4,7 @@ KERNEL_PACKAGE_NAME:append = "-${LINUX_KERNEL_TYPE}"
 KBUILD_FRAGMENTS_LOCATION = "nilrt-${LINUX_KERNEL_TYPE}"
 
 require linux-nilrt.inc
+require ${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'linux-nilrt-efi-secure-boot.inc', '', d)}
 
 # Force creation of symlink to target file at a relative path
 KERNEL_IMAGE_SYMLINK_DEST = "."

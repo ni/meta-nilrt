@@ -7,8 +7,11 @@ S = "${UNPACKDIR}"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/grub:"
 
+require ${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'nilrt-grub-runmode-secure-boot.inc', '', d)}
+
 SRC_URI += " \
     file://grub-runmode-bootimage.cfg \
+    file://grub-usb-gadget.cfg \
     file://grub.d \
 "
 
@@ -18,5 +21,6 @@ CONFFILES:${PN} += "/boot/runmode/bootimage.cfg /boot/runmode/bootimage.cfg.d/*.
 do_install () {
 	install -d ${D}/boot/runmode
 	install -m 0644 ${UNPACKDIR}/grub-runmode-bootimage.cfg ${D}/boot/runmode/bootimage.cfg
+	cat ${UNPACKDIR}/grub-usb-gadget.cfg >> ${D}/boot/runmode/bootimage.cfg
 	install -m 0644 ${UNPACKDIR}/grub.d/cpu-mitigations.cfg ${D}/boot/runmode
 }
