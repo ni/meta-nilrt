@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<item>
+	<group id="startupsettings" caption="{startupsettings}" weight="100" order="0">
+		<!-- sysattr=WorldWritableEnabled -->
+		<property id="worldwritableenable" caption="{worldwritableenable}" sysattr="219693056" writable="true" order="910" />
+	</group>
+</item>
